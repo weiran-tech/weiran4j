@@ -1,0 +1,274 @@
+name: devops-workflow
+version: 1
+description: >-
+  Devops 规格治理 + 编排执行流水线。
+  interview → explore → proposal → specs/design → tasks → exec/plan → 实现 → verify(集成+校验)。
+  本 schema 与 templates/ 自包含全部判定口径;openspec/design/ 只放使用说明与设计说明,流程不依赖它。
+
+artifacts:
+  # ── L0 消歧 ──────────────────────────────────────────────
+  - id: interview
+    generates: interview.md
+    description: 需求澄清结论(deep-interview 的落盘产物)
+    template: interview.md
+    instruction: |
+      记录需求澄清的结论。这是整条流水线信息密度最高的一层,不落盘则换 session 即蒸发,
+      后续所有文档都只是它的降级复述。
+
+      必填:
+      - **一句话需求**:用户原话,不要改写
+      - **澄清记录**:提问 → 回答 → 由此确定的决策
+      - **边界**:「要做」/「明确不做」/「本次不决定」。「明确不做」要具体,不要写「其他暂不考虑」
+      - **验收标准**:每条都必须能判定真假。「体验更好」不合格,「列表首屏 < 1s」合格
+      - **关键取舍**:选了什么、放弃了什么、为什么
+      - **未决歧义**:必须清零才能进入下一步,每条要么被回答,要么被移入「本次不决定」
+
+      Gate:未决歧义未清零时,不要继续生成 explore/proposal —— 停下来问人。
+    requires: []
+
+  # ── L1 现实校验 ──────────────────────────────────────────
+  - id: explore
+    generates: explore.md
+    description: 代码现状调研与共享层影响面
+    template: explore.md
+    instruction: |
+      带着 interview.md 去读代码。这一层**必须执行**,不能跳过直接写 proposal ——
+      跳过它,设计就是纸上推演,现实冲突会推迟到实现阶段才爆,那时返工成本已放大 10 倍。
+
+      必填:
+      - **现有实现**:带 `file_path:line` 引用
+      - **可复用点**:避免后续 subagent 重复造轮子
+      - **真实约束**:代码里客观存在、设计必须绕开的东西
+      - **影响面**,尤其是 **共享层命中** —— 这张表直接决定后面能不能并行:
+        · `packages/shared/src/{index,types,validation,constants}.ts`
+        · `packages/server/src/db/schema.ts` 与 `db/schema/*.ts`
+        · `packages/server/drizzle/*.sql` 与 `drizzle/meta/_journal.json`(序号型资源)
+        · `packages/server/src/index.ts`(路由注册)
+        · `packages/web/src/mocks/handlers/index.ts`、`packages/web/src/App.tsx`
+        **完整判定清单已内嵌在本层模板的「共享层命中」三张表里 —— 逐行过,不要跳。**
+        判定流程:命中三张表任意一项 → Layer 0;否则若被 2 个以上执行单元读取 → 也进 Layer 0
+        (读也要先冻结);再否则才是普通并行单元。
+      - **对 interview 的反向修正**:发现需求与现实冲突时,回改 interview.md 并在此注明。
+        不要闷头往下走 —— explore 的价值一半在这里。
+
+      Gate:共享层命中漏一项,实现阶段必然冲突。宁可多列。
+    requires:
+      - interview
+
+  # ── L2 规格化 ────────────────────────────────────────────
+  - id: proposal
+    generates: proposal.md
+    description: 变更提案:为什么做、做什么、影响哪些包
+    template: proposal.md
+    instruction: |
+      写清 WHY 和 WHAT,不写 HOW。实现细节属于 design.md 和 exec/plan.md。
+
+      必填:
+      - **Why / What Changes / Scope**:Out of Scope 必须与 interview.md 的「明确不做」一致
+      - **Capabilities**:列出将新建或修改的能力,每个对应一个 `specs/<kebab-case>/spec.md`。
+        填表前先读 `openspec/specs/README.md`(能力索引)—— 这一节是 proposal 与 specs 之间的契约,必须先调研再填。
+      - **影响的包**:`packages/shared` / `packages/server` / `packages/web`
+      - **共享层影响**:逐项勾选,来源是 explore.md 的共享层命中表
+      - **横切关注点**:权限点、数据范围、多租户、审计日志、字段脱敏、幂等、
+        导出/任务中心、工作流绑定 —— **逐项过一遍**
+
+      为什么横切关注点必须逐项勾:本流水线里 tasks.md 是唯一权威需求源,没人会重新推导需求。
+      这里漏掉的东西,后面 verify 阶段也发现不了(因为 spec 里根本没写)。这张表是唯一的漏项防线。
+    requires:
+      - explore
+
+  - id: specs
+    generates: "specs/**/*.md"
+    description: 能力级 delta spec
+    template: spec.md
+    instruction: |
+      **本层职责**:为 proposal 的 Capabilities 一节中的每个能力建一个 delta spec 文件。
+      - 新能力:用 proposal 里的 kebab-case 名,路径 `specs/<capability>/spec.md`
+      - 改已有能力:沿用 `openspec/specs/<capability>/` 的现有目录名
+
+      **四种 delta 操作的语义**(用 `##` 标题):
+      - **ADDED**:新增需求
+      - **MODIFIED**:变更既有需求的行为,**必须写出完整的更新后内容** —— archive 只保留这里的正文,写差异会丢细节
+      - **REMOVED**:退役,必须含 **Reason** 与 **Migration**
+      - **RENAMED**:仅改名,用 FROM:/TO: 格式,ID 不变
+
+      **Gate**:spec 必须可测 —— 每个场景都是一条潜在测试用例,对应 design.md 的 Test Plan;
+      判据行给出的是「怎么验」,L8 逐条核对靠它。
+
+      格式与写法照模板骨架填空;判定口径见 <rules>(与本段同在一个提示词内,不重复展开)。
+    requires:
+      - proposal
+
+  - id: design
+    generates: design.md
+    description: 技术设计:架构、契约、数据、横切
+    template: design.md
+    instruction: |
+      写清 HOW,保持意图粒度 —— 描述「行为如何」,不写逐文件的实现步骤。
+      逐文件的活属于 exec/plan.md,且**不得回写本文件**(见 02-handoff-contract.md 规则 8)。
+
+      **动笔前先读 `openspec/rules/enforced/constitution.md`,并逐条填「## 宪法对照」表。**
+      那是全流程唯一一处「跨 change 不变量」的落地点 —— 项目级约定只在那里断言一次,
+      不在每个 change 里重新推导。标记三选一:☑ 符合 / ☐ 不涉及 / ⚠ 偏离,
+      三者都要写说明,⚠ 还要写清代价与是否连带修订宪法。`L2c/constitution-check` 会逐条校验。
+
+      本仓库必填章节:
+      - **Shared 契约变更**:`packages/shared` 的类型/Zod schema/常量改动。
+        这一节会直接成为 exec/plan.md 的 Layer 0 与契约冻结项
+      - **API Design**:Hono 路由;复用 shared 的 Zod schema 不另写一套;
+        分页走 `lib/pagination.ts`;同步 `lib/openapi-schemas.ts`
+      - **Database Design**:Drizzle schema 放 `db/schema/<域>.ts` 并在 `db/schema.ts` 导出;
+        改完跑 `pnpm db:generate`,**不要手写迁移文件名**;只加不删,保持向前兼容
+      - **权限 / 数据范围 / 租户**:permissions、`lib/data-scope.ts`、`lib/tenant.ts`
+      - **定时任务 / 队列 / 实时推送**:pg-boss、WebSocket,含幂等键与重试
+      - **缓存与幂等**:Redis key 与 TTL、`middleware/idempotency.ts`
+      - **前端设计**:页面/hook/组件/权限点
+      - **Observability / Test Plan / Rollout / Rollback**:Rollback 要写 revert 锚点
+
+      ⚠️ 完成后需要**人类审阅**(L3 闸门)。审阅通过后在 frontmatter 补 `approved_by` 与 `approved_at`。
+      这是全流程唯一一次「改起来还便宜」的审阅点,后面每一层的返工成本都是它的 10 倍。
+    requires:
+      - proposal
+
+  - id: tasks
+    generates: tasks.md
+    description: 需求粒度的任务清单(权威需求源)
+    template: tasks.md
+    instruction: |
+      **本层职责**:把设计落成需求粒度的清单。**本文件是需求的权威源** ——
+      这里漏写的东西全流程无人会再发现,因为没人会重新推导需求。
+
+      **分组顺序有意义**:准备 → 共享契约层 → 数据层 → 后端 → 前端 → 测试 → 发布 → 上线后。
+      共享契约层与数据层排在最前,因为它们对应 exec/plan.md 的 Layer 0,必须串行先做 ——
+      顺序本身就暗示了分层,派生执行计划时不容易切错。
+
+      **Gate**:生成前先确认 `design.md` 的 frontmatter 已有 `approved_by`(L3 人类审阅)。
+      没有则先提示人审阅,不要先行下推。
+
+      粒度、空条目、需求回指的判定口径见 <rules>(与本段同在一个提示词内,不重复展开);
+      分组骨架见模板。
+    requires:
+      - specs
+      - design
+
+  # ── L4 交接点 1:意图 → 工程 ─────────────────────────────
+  - id: exec-plan
+    generates: exec/plan.md
+    description: 由 tasks.md 派生的并行执行计划(依赖图/分层/契约/worktree)
+    template: exec-plan.md
+    instruction: |
+      把 tasks.md 编译成可并行的执行图。**这是本流水线最关键的一步。**
+
+      **不变量:本文件是 tasks.md 的下游派生物,单向。**
+      允许 tasks.md → 本文件;禁止本文件的实现细节回写 tasks.md / design.md。
+      违反这条,spec 会退化成工单,失去描述意图的能力。
+
+      六件事:
+      1. **任务映射**:每条 tasks.md 条目都要有归宿 —— 要么映射到执行单元,
+         要么进「未映射条目」表并写明原因。允许 1 条拆成 N 个;**禁止** N 条合并成 1 个
+         (合并会让 verify 阶段无法逐条追溯)。静默丢弃的条目会被判为漏做。
+      2. **依赖图**:画成 DAG,有环说明拆分错了。注意「前端页面」和「后端接口」看似平行,
+         实际是契约依赖 —— 解法不是串行,而是把接口签名提到 Layer 0 冻结。
+      3. **Layer 0**:所有共享层改动集中在这一层,**串行先做**。migration 必须一次性生成完 ——
+         `drizzle/*.sql` 序号和 `meta/_journal.json` 是不可并行的序号资源,
+         两个 worktree 各自生成会撞号,而且 git 不报冲突(文件名不同),journal 才报。
+      4. **契约冻结**:Layer 0 完成后填满契约表并锁定。并行单元照签名实现,不得自行修改;
+         需要改则暂停所有消费方,走变更记录。没有契约冻结的并行,本质是让 N 个 agent
+         各自猜同一个接口长什么样,猜测互不兼容是必然的。
+      5. **worktree 与文件所有权**:同层内任意两个 worktree 的「拥有(可写)文件集」不得相交;
+         相交说明分层错了,回去重切。每个 worktree 声明:拥有 / 只读 / 禁止触碰。
+      6. **失败与降级**:超时重试一次 → 仍失败降级串行;同层文件冲突视为分层错误,停止并行。
+
+      测试归属实现单元,不单独成执行单元:拆开会导致实现方没有测试反馈回路,
+      测试方对着自己没写过的代码补测试,产出通常是给实现盖章而非发现问题。
+
+      两条不可违反的边界:
+      - **依赖判定**:两个单元之间存在依赖,当且仅当满足任一 —— 类型依赖(B 需要 A 定义的类型)、
+        数据依赖(B 读写 A 新建的表/字段)、调用依赖(B 调用 A 新增的函数)、
+        契约依赖(B 的行为由 A 冻结的签名决定)。
+      - **越界修改**:必要连带(不改则本单元无法工作)允许,但必须在收尾笔记申报;
+        越界扩大(与本单元目标无因果关系)回退或另开 change。申报是允许的,隐瞒不是。
+
+      完成后逐条回填模板末尾的 **L4 交接检查清单(10 项)**,那是本层的验收标准。
+    requires:
+      - tasks
+
+  # ── L6+L8 集成与校验 ─────────────────────────────────────
+  - id: verify
+    generates: exec/verify.md
+    description: 集成记录 + 规格一致性校验与不一致项归属判定
+    template: exec-verify.md
+    instruction: |
+      ⚠️ **前置检查**:本文件只在实现(apply)阶段完成后填写。
+      若 tasks.md 仍有未勾选项,不要生成内容 —— 先去执行实现。
+
+      执行者优先级:**参与过实现的 agent > orchestrator 兜底**。
+      orchestrator 是全链上对每份 diff 了解最少的角色,而集成与校验恰恰最需要实现知识。
+      兜底执行时,必须先读完 `exec/notes/*.md` 再动手 —— 那是各执行单元唯一的落盘知识。
+
+      ⚠️ **前置硬闸门**:逐条跑 `openspec/project.json` 的 `commands`,每条输出留到
+      `exec/evidence/<键名>.log`(键名即 commands 的键,如 `build` → `build.log`)。
+      **命令清单以 project.json 为唯一事实源,这里不复述** —— 复述必然漂移,而
+      `L7/evidence-missing` 本就是按那里的键名逐条要日志的。全绿才继续,红灯直接回实现阶段。
+      证据必须是**代码全部改完之后**才跑的:`L7/evidence-fresh` 按 `packages/` 整目录 mtime
+      判定,跑完再补一行(哪怕只补个测试)就全部失效,且各 log 独立判定,要全部重跑。
+      本层的校验部分只回答「实现与规格是否一致」,「能不能跑」由这些命令回答。
+      两者正交,不可互相替代。
+
+      **必填 · 集成记录**(规模自适应,不要为填而填):
+      **判据是 worktree 数,不是执行单元数** —— merge 与冲突只发生在 worktree 之间,
+      同一 worktree 里顺序做完的 N 个单元既不 merge 也不冲突。
+      - **1 个 worktree**(含「不切 worktree、主工作区顺序执行」)时,
+        「Merge 顺序」「冲突清单」两节**整节删掉**,写一行「单 worktree,无并行集成」。
+      - **2 个及以上 worktree** 时展开:
+        · **Merge 顺序**:按 exec/plan.md 的层序,每次 merge 后立刻编译,不要攒着
+        · **冲突清单**:冲突双方、原因、解法。原因若为「两个单元都改了共享层文件」,
+          说明 L4 分层有漏网,记入「流程反馈」
+      - **以下三节与 worktree 数无关,永远要写** —— 单 worktree 一样会产生:
+        · **重复实现消除**:同一 worktree 里先后写的两处等价逻辑同样要合并
+        · **被牺牲的方案**:二选一放弃掉的实现要记下来,否则后人会当成疏漏「修回去」。
+          放弃理由通常只活在实现者的上下文里,notes 里有就搬过来,没有就现在补
+        · **越界修改汇总**:汇总各 notes 的申报并判定性质 ——
+          **必要连带**(不改则本单元无法工作)→ 保留;
+          **越界扩大**(与本单元目标无因果关系)→ 回退或另开 change
+
+      **必填 · 一致性校验**:
+      - **tasks.md 逐条核对**:未实现且未在 exec/plan.md「未映射条目」声明的 → 漏做,回实现
+      - **design.md / specs 一致性**:含验收标准逐条验证方式
+      - **越界检查**:在上面那份越界汇总之外,再找**未申报**的越界。
+        已申报的必要连带是正常工程行为,不应误判;唯一红线是未申报的越界。
+
+      - **不一致项归属判定 —— 本流程最关键的一步**:
+        发现不一致时**不允许默认改文档去迁就代码**。每项必须先判定是谁错了:
+        · 实现偏离了设计意图 → **代码错**,回实现
+        · 设计意图本身被证明不可行或有更优解 → **spec 错**,回 proposal/design 重开,并重新走人类审阅
+        · 设计意图正确但表述有歧义、实现是合理解读 → 补清表述
+
+        `/openspec-sync-specs` 只用于第三类和 delta spec 的正常合入。
+        把第二类交给 sync 处理,等于让规格治理层给既成事实盖章。
+
+      结论行要写明:通过(进入人类审阅 diff)/ 打回实现 / 打回设计。
+    requires:
+      - exec-plan
+
+apply:
+  requires: [exec-plan]
+  tracks: tasks.md
+  instruction: |
+    按 exec/plan.md 执行,不是按 tasks.md 自行拆解。
+
+    - **Layer 0 串行先做**:共享层类型、Drizzle schema、migration、各类 barrel/注册表。
+      完成后跑 `pnpm --filter @zenith/shared build`,并回填 exec/plan.md 的契约冻结表。
+    - **后续层并行**:每个执行单元只写自己「拥有」的文件;需要改别人的文件时,
+      判断是必要连带还是越界扩大,必要连带要在收尾笔记里**申报**(申报是允许的,隐瞒不是)。
+    - **每层结束即 merge 回主干**,worktree 不长挂 —— 冲突成本随挂起时间大致平方增长。
+    - **契约不得私自修改**:需要改签名就停下,回 orchestrator 更新契约表并通知所有消费方。
+    - **测试跟随实现**:同一单元、同一 agent 写,不要留到最后补。
+    - **收尾笔记是硬要求**:每个执行单元结束前必须写 `exec/notes/<单元ID>-<简述>.md`,
+      骨架直接复制 `openspec/schemas/devops-workflow/templates/exec-note.md`。
+      必填:完成的 tasks 条目 / 改了什么 / 为什么这么做(含放弃的方案) / 依赖的契约 /
+      越界申报 / 埋的坑 / 自测结果。
+      subagent 上下文一销毁,未落盘的实现知识永久丢失,而集成阶段恰恰需要它。
+
+    勾选 tasks.md 时以「需求是否被满足」为准,不是「代码是否写了」。
+    遇到阻塞或需要澄清就停下来问,不要自行扩大范围。

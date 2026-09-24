@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:weiran;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+application:
+  service:
+    service-code: weiran
+
+weiran:
+  system:
+    # 测试用低强度，只为让每个用例的登录不至于花掉半秒；生产走 application.yml 的 10。
+    bcrypt-strength: 4
+    jwt:
+      secret: test-only-secret-key-at-least-32-bytes-long
+      issuer: weiran4j
+      ttl: 1h
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+
+logging:
+  level:
+    com.weiran: DEBUG

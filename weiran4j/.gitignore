@@ -1,0 +1,51 @@
+# ---- Java / Gradle ----
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+out/
+*.class
+*.jar
+!gradle-wrapper.jar
+*.log
+hs_err_pid*
+replay_pid*
+
+# ---- Node / 前端 ----
+node_modules/
+dist/
+.turbo/
+.vite/
+*.tsbuildinfo
+coverage/
+
+# Kotlin 编译器会话文件（build-logic 用 kotlin-dsl 时产生）
+.kotlin/
+
+# ---- IDE ----
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+!.vscode/extensions.json
+*.swp
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+
+# ---- 本地环境与密钥 ----
+# 本地运行配置走 config/*.yml（见 config/application-local.yml.example）。
+# 只放行 .example 模板，真实配置一律不进版本库（宪法 CP-9）。
+/config/*.yml
+!/config/*.yml.example
+.env
+.env.*
+!.env.example
+*.local
+local.properties
+*.sentrycache.data
+
+# ---- OMC / AI 运行态 ----
+.omc/
+!.omc/skills/

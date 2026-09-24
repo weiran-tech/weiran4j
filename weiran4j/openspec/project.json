@@ -1,0 +1,37 @@
+{
+  "$schema-note": "openspec 流程中【必须被程序读取】的项目事实。其余项目事实以自由文本写在 templates/ 的 openspec:slot 槽里。改本文件后跑 `node openspec/check.mjs` 验证。",
+
+  "commands-note": "L7 硬闸门的命令清单，**这是唯一事实源**：`L7/evidence-missing` 按这里的键名要求 `exec/evidence/<键>.log` 逐个存在且非空。weiran4j 是 Gradle 项目，三条命令都走 wrapper；`check` 已经包含 test、Checkstyle、SpotBugs、Spotless、Forbidden APIs 与 Error Prone/NullAway，所以 lint 与 test 不再单列第三条命令去重复跑。注意必须用 JDK 21：本机默认 JDK 可能更高，Gradle daemon 跑在高版本上会让 palantir-java-format 失败。",
+
+  "commands": {
+    "build": "JAVA_HOME=${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)} ./gradlew assemble",
+    "test": "JAVA_HOME=${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)} ./gradlew test",
+    "lint": "JAVA_HOME=${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)} ./gradlew check"
+  },
+
+  "sourcePaths": [
+    "weiran-common",
+    "weiran-system",
+    "weiran-app",
+    "web"
+  ],
+
+  "checks-note": "mono4ts 的 drizzle-journal.mjs 没有拷过来：那是 drizzle 迁移台账专用，weiran4j 的序号型共享资源是数据库迁移脚本，等迁移方案落定（Flyway 或 Liquibase）后再写对应的项目级检查。留下的四个都与技术栈无关。rules-index.mjs 守 CLAUDE.md 的规则索引表 —— `openspec/rules/` 不会被自动注入提示词,那张表是它唯一的唤起途径。",
+
+  "checks": [
+    "./guards/rules-index.mjs",
+    "./guards/spec-xref.mjs",
+    "./guards/worktree-orphan.mjs",
+    "./guards/ratchet.mjs"
+  ],
+
+  "capabilities": {
+    "legacyChangeNamed": [],
+    "knownArchiveDrift": []
+  },
+
+  "ratchet": {
+    "$note": "存量棘轮：把宪法里「MUST NOT 新增 X」这类条款变成可执行约束。baseline 是唯一事实源，rules/enforced/constitution.md 只引用它不复述数字。新仓暂无存量，规则为空——真正出现要冻住的存量时再加，不要为了让文件非空而编造规则。",
+    "rules": []
+  }
+}

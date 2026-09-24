@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: weiran4j
+  datasource:
+    url: ${WEIRAN_DB_URL:jdbc:mysql://127.0.0.1:3306/weiran?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
+    username: ${WEIRAN_DB_USERNAME:root}
+    password: ${WEIRAN_DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+server:
+  port: ${WEIRAN_PORT:3300}
+
+# wuli3 web starter：serviceCode 会成为错误码前缀（WEIRAN.SYSTEM.BAD_CREDENTIALS）
+application:
+  service:
+    service-code: weiran
+
+wuli3:
+  web:
+    response:
+      wrapper-enabled: true
+      exception-handler-enabled: true
+
+weiran:
+  system:
+    bcrypt-strength: 10
+    jwt:
+      # 生产环境必须由环境变量注入，至少 32 字节。仓库里不放真实密钥。
+      secret: ${WEIRAN_JWT_SECRET:}
+      issuer: weiran4j
+      ttl: 7d
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+
+logging:
+  level:
+    com.weiran: ${WEIRAN_LOG_LEVEL:INFO}

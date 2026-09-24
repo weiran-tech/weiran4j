@@ -1,0 +1,91 @@
+schema: devops-workflow
+context: |
+  语言:中文(简体)
+  所有产出物(提案、规格、设计、任务)必须用简体中文撰写。
+  技术术语(如 API、REST、Gradle、MyBatis-Plus、JWT)可保留英文原文,说明文字用中文。
+
+  项目形态:weiran4j 是 monorepo —— Java 后端(Gradle 多模块,JDK 21,基于公司底座
+  wuli3-gradle)+ 前端 web(pnpm/Vite/React)。它是 PHP 项目 weiran-v1(Laravel 10)
+  的重做,迁移期两套系统会并行读写同一套 pam_* 表,因此任何涉及表结构的改动都必须
+  同时说明对 PHP 侧的影响。
+
+# ─────────────────────────────────────────────────────────────────────────────
+# rules —— 逐 artifact 的硬约束
+#
+# 为什么需要这一节:`openspec instructions` 只把三样东西拼进 agent 的 prompt ——
+# 本文件的 `context` 与 `rules`、schema.yaml 的 `instruction`、templates/ 下的模板。
+# **其他任何文档都不会被自动加载**,写「见 XXX.md」只是一句祈使句,不是一条依赖。
+#
+# 本节由 mono4ts 的同名文件移植而来,已剔除 TypeScript / drizzle / semi-ui 专属条款,
+# 换成 weiran4j 的 Java + Gradle 口径。保留的都是与技术栈无关的流程判定。
+# 完整检查清单跑 `node openspec/check.mjs --explain`。
+# ─────────────────────────────────────────────────────────────────────────────
+
+rules:
+  interview:
+    - "「未决歧义」清零后写 `- 无` 或删掉该节的空行,不要留 `- [ ]` 空占位——它会被判为未清零。"
+    - "验收标准逐条编号 `AC-1` / `AC-2`,L8 校验要按编号逐条回指,没有编号就只能整体估。"
+    - "未决歧义未清零前不要继续生成 explore / proposal,停下来问人。"
+
+  explore:
+    - "共享层三张表(跨模块契约、序号型资源、构建约定)逐行过一遍:命中写原因与预计改动,未命中写「未命中」,不要整行留空。weiran4j 的共享层是 `weiran-dependencies`(BOM)、`build-logic`(约定插件)、`weiran-common`(跨模块契约)与数据库迁移脚本——**动这四处必然影响全仓,必须排进串行的 Layer 0**。"
+    - "扫描顺序:①结构(模块/包边界,不读文件内容)→ ②grep 索引(不 Read 整文件)→ ③定点精读(≤10 个文件,带 file:line)→ ④对确定要改的符号反查引用。反查优先用 LSP find_references。"
+    - "反查引用必须放在最后一轮:先确定改哪些符号,再算影响面。顺序颠倒等于全仓扫描。"
+    - "精读超过 10 个文件仍未收敛,说明需求边界没划清 —— 回 L0 补澄清,不要继续读。"
+    - "必须写明本次「不会碰的目录」。L8 区分「必要连带」与「越界扩大」需要这条基线。"
+    - "**涉及 `pam_*` 表的改动必须去 `/Users/duoli/Projects/duoli-weiran/weiran-v1` 核对 PHP 侧现状**(迁移文件与 Model),并写明本次改动对 PHP 侧是否破坏性。两套系统并行期,只看 Java 侧等于只看了一半。"
+
+  proposal:
+    - "必须包含 `## Capabilities` 一节,每个能力名用反引号包裹的 kebab-case,且与 `specs/<能力名>/spec.md` 一一对应。多一个或少一个都会被 check.mjs 判错。"
+    - "**能力名是持久的领域名词,不是本次 change 的名字。**与 change 同名报 `L2a/capability-not-change-name`;动词开头(`fix-` / `add-` / `audit-`…)或 `-fixed` / `-cleanup` 结尾报 `L2a/capability-name-shape`。把 change 目录一起改名并不能解决问题 —— 要改的是能力名本身。"
+    - "**动手写 Capabilities 前先读 `openspec/specs/README.md`(能力索引)**。要改的行为已有能力在管,就用那个能力名走 MODIFIED / REMOVED,不要新开一个。"
+    - "修订既有行为**必须**用 MODIFIED / REMOVED,不能新开一个能力把旧的晾在那儿 —— 旧能力不会自动失效,它会继续以 MUST 断言早已被推翻的实现,而所有校验照样全绿。"
+    - "「共享层影响」与「横切关注点」两张表:每一行都必须有勾选标记(☐ 或 ☑)**且**说明列非空。勾 ☐ 表示「不涉及」是合法的,整行留空不是。"
+    - "Out of Scope 必须与 `interview.md` 的「明确不做」逐条一致。"
+
+  specs:
+    - "格式硬要求:需求标题正好 3 个 `#`(`### Requirement: [FR-NNN] <名词短语>`),场景标题正好 4 个 `#`(`#### Scenario: <名称>`),每个 Requirement 至少配一个 Scenario。层级写错会被**静默忽略**,直到 archive 合并时才丢内容。"
+    - "**需求标题是名词短语,不是整句 MUST 陈述;规范陈述写在正文首行**,固定句式 `<主体> **MUST** <行为>。`(用 SHALL / MUST,避免 should / may)。"
+    - "每个场景补一行 `- **判据**:…`,写**可观测**的判定方式(某个 grep 无匹配、某字段值、某接口返回码),不要复述 THEN。"
+    - "**优先断言运行时行为**(单测断言、接口返回值、`./gradlew check` 的具体任务是否通过)而非源码字面量出现次数。Java 侧尤其要注意:Lombok 与注解处理器会生成代码,数源码里的 getter 声明次数必然对不上;要数就数注解或方法调用点。"
+    - "**每条需求必须带能力内唯一的稳定 ID `[FR-NNN]`,只增不复用。** ADDED 取该能力主 spec 已用最大号 +1;MODIFIED / REMOVED / RENAMED **沿用原 ID**。"
+    - "**MODIFIED 的 Requirement 标题与每一条 Scenario 标题都必须与主 spec 逐字一致** —— `openspec archive` 按标题字符串定位,少一条就中止归档。动笔前先 `grep -n '^#### Scenario:' openspec/specs/<能力>/spec.md` 拿清单逐条对照。"
+    - "**新建能力必须写真实的 `## Purpose`**(一到三句,写「这个能力长期解决什么问题」,不写本次改动;不少于 50 字符)。不许留 TBD / TODO / FIXME 占位符。"
+    - "REMOVED Requirements 必须同时写 **Reason** 与 **Migration**。"
+    - "**change 期的一次性验收闸门不是能力规格,不许写成 Requirement。**「`./gradlew check` MUST 全绿」「非 X 文件 MUST NOT 被修改」这类归属 `exec/verify.md`,写进 spec 会把当时的文件清单冻成永久 MUST。"
+    - "**归档后要给新建的主 spec 补 frontmatter `status: \"active\"`**。取值 `active` / `partial` / `superseded`(需同时写 `superseded_by`)。改完后跑 `node openspec/check.mjs --write-index` 重新生成能力索引。"
+
+  design:
+    - "**动笔前先读 `openspec/rules/enforced/constitution.md`,并逐条填「## 宪法对照」表。** 标记三选一 —— ☑ 符合(写怎么遵守的)/ ☐ 不涉及(写为什么碰不到)/ ⚠ 偏离(写为什么必须偏离、代价、是否要连带修订宪法)。**偏离是允许的,不写理由不是**;不要因为「本次改动不大」就整表勾 ☐。"
+    - "保持意图粒度:描述「行为如何」,不写逐文件的实现步骤 —— 那属于 exec/plan.md。"
+    - "本文件完成后需要人类审阅(L3 闸门)。审阅通过前不要继续生成 tasks.md。"
+    - "审阅通过后在 frontmatter 补 `approved_by` 与 `approved_at`(格式 YYYY-MM-DD)。"
+
+  tasks:
+    - "每条任务必须写成 `- [ ] X.Y 描述`,编号在全文件内唯一、**不得重号**。粒度是「做什么」不是「怎么做」。"
+    - "**只写本次真正要做的事。分组是骨架不是清单 —— 本组不涉及就整组删掉**,不要留「类型定义:**无变更**」这类空条目。"
+    - "**流水线自身的闸门不写成任务**:「未决歧义已清零」「人类审阅 design 通过」「归档」分别由 `L0/ambiguity`、`L3/design-approved` 和归档流程管着。"
+    - "**实现类任务必须在描述里回指需求 ID**,写作 `FR-003`;多能力且编号会撞时写 `<能力名>/FR-003`。`L8/requirement-coverage` 据此双向核对。"
+    - "分组顺序固定:准备 → 共享契约层 → 数据层 → 后端 → 前端 → 测试 → 发布 → 上线后。weiran4j 的共享契约层是 `weiran-dependencies` / `build-logic` / `weiran-common`,数据层是数据库迁移脚本,两者必须串行先做。"
+
+  exec-plan:
+    - "「任务映射」表的第一列必须写 tasks.md 的**编号**(如 `2.1`、`§6`),不能只写章节标题 —— 覆盖校验靠编号做。"
+    - "每条 tasks.md 条目都必须有归宿:要么进「任务映射」表,要么进「未映射条目」表并写明原因。允许 1 条拆成 N 个,禁止 N 条并成 1 个。"
+    - "共享层命中项(BOM / build-logic / weiran-common / 数据库迁移)全部归入 Layer 0 串行先做。**Gradle 的 `settings.gradle.kts` 与 `weiran-dependencies/build.gradle.kts` 是全仓单点**,两个并行单元同时改必冲突。"
+    - "完成后逐条回填文末 Gate 清单,并确认没有对 tasks.md / design.md / specs 产生任何回写。"
+    - "「不适用 —— 共享层零命中,无并行」是完全合法的产出。不要为了并行而并行。"
+
+  verify:
+    - "前置检查:`tasks.md` 仍有未勾选项时**不要生成本文件**,先去执行实现。"
+    - "动手前必须先读完 `exec/notes/*.md` —— 那是各执行单元唯一的落盘知识。"
+    - "「集成记录」一节的规模跟执行单元数走:只有 1 个执行单元时,只写「单执行单元,无并行集成」加越界汇总,把 Merge 顺序 / 冲突清单 / 重复实现 / 被牺牲的方案四节整节删掉。"
+    - "越界修改逐条判定性质:必要连带(不改则本单元无法工作)保留;越界扩大(与本单元目标无因果关系)回退或另开 change。"
+    - "前置硬闸门:逐条跑 `openspec/project.json` 的 `commands`(那里是唯一事实源),输出留到 `exec/evidence/<键名>.log`。全绿才继续。"
+    - "**Gradle 证据必须是 JDK 21 下的真实输出**:本机默认 JDK 可能是 25,daemon 跑在高版本上 palantir-java-format 会直接失败,那种红灯不是代码问题。project.json 的命令已内联 `/usr/libexec/java_home -v 21`,照抄命令跑,不要自己简化成 `./gradlew check`。"
+    - "红灯**先归因再决定**:`git stash push -u` 后在基线上重跑那条命令。基线绿=本次引入的回归,回 L5;基线同样红=存量,允许放行但必须把基线对比写进 verify、登记到 `state/waitlist.md`(带症状)、并在结论里标成带条件放行。"
+    - "**顺序固定:先取基线,再留证据。** `git stash` / `stash pop` 会刷新源码目录的 mtime,把已留好的证据全部作废(`L7/evidence-fresh` 按 mtime 判定)。"
+    - "证据日志必须是本次运行的真实输出。check.mjs 会比对日志时间与源码目录的最后改动时间,陈旧日志会被判为无效。"
+    - "结论行必须包含「通过」/「打回实现」/「打回设计」三者之一。"
+    - "越界检查:`git diff` 的文件集,减去 exec/plan.md 各单元「拥有文件 + notes 已申报的必要连带」的并集,差集即未申报越界。"
+    - "不一致项必须先判定归属再动手:代码错 → 回实现;spec 错 → 回 proposal/design 重开并重新走人类审阅;表述歧义 → 补清表述。**不允许默认改文档去迁就代码**。"
+    - "判为「越界扩大、本次不修」的问题,**必须同时登记到 `openspec/state/waitlist.md`**(技术 `T-NN`、业务 `B-NN`),并在「遗留问题」里注明已登记 —— 只写在 verify.md 里等于把它埋了:本文件会随 change 归档。"
