@@ -24,6 +24,12 @@
 ## 常用命令
 
 ```bash
+# ── 一条命令起前后端（仓库根，turbo 编排）──
+pnpm dev                          # = turbo run dev：后端 bootRun(3300) + 前端 vite(5373)，打开 http://localhost:5373
+pnpm dev:server / pnpm dev:web    # 只起其中一端
+# 后端的 dev 是 weiran4j/scripts/dev.mjs：自动找 JDK 21、缺本地配置时先提示，Ctrl-C 会一并停掉应用 JVM。
+# 给后端传环境变量（如 SERVER_PORT、WEIRAN_*）必须先在 turbo.json 的 passThroughEnv 里放行，否则被静默丢弃。
+
 # ── 后端（在 weiran4j/ 下）──
 cd weiran4j && export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 ./gradlew spotlessApply           # 格式化（改完代码先跑这个）
@@ -34,8 +40,7 @@ cd weiran4j && export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 
 # ── 前端与 openspec（在仓库根）──
 pnpm install
-pnpm dev                          # 前端开发服务器（VITE_PORT 默认 5373，/api 代理到 3300）
-pnpm test / pnpm lint / pnpm build
+pnpm test / pnpm lint / pnpm build   # 目前只作用于前端
 pnpm openspec:check               # = node openspec/check.mjs，结构检查，零依赖
 node openspec/check.mjs --explain # 看全部检查项
 pnpm hooks:install                # 新 clone 后跑一次，启用 .githooks/pre-commit
@@ -53,9 +58,10 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 ├── CLAUDE.md / AGENTS.md        # 本文件（两份内容一致，AGENTS.md 给其它 agent 工具读）
 ├── .claude/                     # Claude Code 配置与 skill（见下「AI 工作流文件放在哪」）
 ├── .githooks/pre-commit         # 提交前跑 openspec check
+├── turbo.json                   # turbo 任务编排（pnpm dev 同时起前后端）
 ├── openspec/                    # 规格治理流水线（L0–L10 闸门）
 ├── web/                         # 前端：Vite + React 19 + Semi UI + TanStack Query，路由由菜单驱动
-└── weiran4j/                    # 后端：Gradle 多模块
+└── weiran4j/                    # 后端：Gradle 多模块（package.json 只为接入 turbo，名 @weiran/server）
     ├── build-logic/             # 约定插件。质量规则的唯一来源，不要在模块里重复配置
     ├── weiran-dependencies/     # BOM（import Spring Boot + MyBatis-Plus BOM）。所有版本号只在这里出现
     ├── weiran-common/           # 纯 Java：错误码、分页、响应包络、树工具
@@ -129,7 +135,7 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 | [`rules/enforced/project.md`](openspec/rules/enforced/project.md) | 新增 Gradle 模块前、**新增页面/菜单前（§一 SL-4/SL-5：菜单行与页面文件配对）**、取 Flyway 版本号或菜单 id 前（序号型资源）；判断能不能与他人同时推进时（§二 WT-N，本仓库没有 worktree）；写 `proposal.md`/`tasks.md`/`design.md` 前（§三～六 CC/PK/TG/DS-N） | ✅ `TEMPLATE/profile-rows` |
 | [`rules/advisory/components.md`](openspec/rules/advisory/components.md) | **写 `web/` 的页面或组件前 —— 先查再造**；**给侧边菜单加图标时**（目录节点必须用 `renderNavIcon()`）；删除组件或改其对外协议后回来改这里 | 🟡 只查「新增未登记」（`REPO/components-unregistered`），不查描述对不对 |
 | [`rules/advisory/pitfalls.md`](openspec/rules/advisory/pitfalls.md) | 走 OpenSpec 流水线的**每一层**开工前，读对应那一节（L0–L10 分节）；**尤其**产出 L7 证据前（`git stash` 会让刚写好的证据全部失效）、判定「本次不修」时（只写在 `verify.md` 里等于把它埋了） | ❌ 无 —— 全靠这张表唤起 |
-| [`rules/advisory/toolchain.md`](openspec/rules/advisory/toolchain.md) | **构建报 `palantir-java-format(...)` 相关错误时**（`InvocationTargetException` / `NoClassDefFoundError`，那不是代码问题）；**集成测试成片失败、日志里有 `NoSuchFileException ... build/` 时**（有人同时在跑 `clean`）；**编译报「类 X 是公共的, 应在名为 X.java 的文件中声明」、或改过类名大小写准备提交时**（macOS 上 git 会吞掉只改大小写的重命名）；**从旧版或别处搬前端代码时**（`code` 现为数字 `0`） | ❌ 无 —— 全靠这张表唤起 |
+| [`rules/advisory/toolchain.md`](openspec/rules/advisory/toolchain.md) | **构建报 `palantir-java-format(...)` 相关错误时**（`InvocationTargetException` / `NoClassDefFoundError`，那不是代码问题）；**集成测试成片失败、日志里有 `NoSuchFileException ... build/` 时**（有人同时在跑 `clean`）；**`pnpm dev` 前面设的环境变量没生效时**（turbo 严格模式静默丢弃未声明的变量）；**编译报「类 X 是公共的, 应在名为 X.java 的文件中声明」、或改过类名大小写准备提交时**（macOS 上 git 会吞掉只改大小写的重命名）；**从旧版或别处搬前端代码时**（`code` 现为数字 `0`） | ❌ 无 —— 全靠这张表唤起 |
 
 **分工**：`enforced/constitution.md` 管**代码不变量**（CP-N），`enforced/project.md` 管
 **项目结构事实**（SL/WT/CC/PK/TG/DS-N），`advisory/components.md` 管**可复用的前端公共组件**，

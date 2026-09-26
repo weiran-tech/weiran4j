@@ -22,10 +22,10 @@ export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 # 2. 准备一个空库，启动时 Flyway 自动建表并写入种子数据
 mysql -uroot -e "CREATE DATABASE weiran4j DEFAULT CHARACTER SET utf8mb4"
 cp config/application-local.yml.example config/application-local.yml   # 填库密码与 JWT 密钥（openssl rand -base64 48）
-./gradlew :weiran-app:bootRun          # 自动激活 local profile，默认 3300 端口
 
-# 3. 前端（仓库根目录）
-cd .. && pnpm install && pnpm dev      # 默认 5373，/api 代理到 3300
+# 3. 一条命令起前后端（仓库根目录，turbo 编排）
+cd .. && pnpm install && pnpm dev      # 后端 bootRun(3300) + 前端 vite(5373)，/api 代理到 3300
+                                       # 只起后端：pnpm dev:server，或在 weiran4j/ 下 ./gradlew :weiran-app:bootRun
 ```
 
 打开 http://localhost:5373 ，用 **`admin` / `admin123`** 登录。⚠️ 上线前必须修改该密码。

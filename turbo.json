@@ -1,0 +1,11 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "passThroughEnv": ["JAVA_HOME", "JAVA_HOME_21", "WEIRAN_*", "SERVER_PORT", "SPRING_*"]
+    }
+  }
+}

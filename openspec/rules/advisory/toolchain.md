@@ -57,6 +57,18 @@ palantir-java-format 需要 javac 内部 API 的模块开放(`--add-exports`),
 
 **处置**:`./gradlew --stop` 后重跑,或直接 `./gradlew check --no-daemon`。验证用的全量构建优先 `--no-daemon`。
 
+### turbo 会静默丢弃没声明过的环境变量
+
+**症状**(2026-09-26 实测):`SERVER_PORT=3399 pnpm dev` 后端仍然起在 3300(端口被占时报
+`Port 3300 was already in use`),而同一条命令里的 `VITE_PORT=5399` 却生效了。直接跑
+`SERVER_PORT=3399 node weiran4j/scripts/dev.mjs` 又是好的 —— 所以不是 Gradle daemon 或 Spring 的问题。
+
+turbo 2.x 默认**严格环境变量模式**:只有 `turbo.json` 里声明的变量才会传给任务。`VITE_*` 能过,
+是因为 turbo 识别出 Vite 框架、自动放行了这个前缀;`SERVER_PORT`、`WEIRAN_*` 没人声明,就被拦了,**不报任何错**。
+
+**处置**:要传给后端的变量加进 `turbo.json` 里 `dev` 任务的 `passThroughEnv`
+(已有 `JAVA_HOME`、`JAVA_HOME_21`、`WEIRAN_*`、`SERVER_PORT`、`SPRING_*`)。
+
 ### 只改大小写的文件重命名,在 macOS 上会被 git 吞掉
 
 **症状**(2026-09-26 实测):本机构建一直是绿的,换个时间点(`git switch` / 新 clone / IDE 里跑 `bootRun`)

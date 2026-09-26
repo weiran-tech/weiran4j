@@ -3,12 +3,17 @@
   "private": true,
   "packageManager": "pnpm@11.21.0",
   "scripts": {
-    "dev": "pnpm --filter @weiran/web dev",
+    "dev": "turbo run dev",
+    "dev:server": "turbo run dev --filter=@weiran/server",
+    "dev:web": "turbo run dev --filter=@weiran/web",
     "build": "pnpm --filter @weiran/web build",
     "test": "pnpm --filter @weiran/web test",
     "lint": "pnpm --filter @weiran/web lint",
     "openspec:check": "node openspec/check.mjs",
     "openspec:validate": "openspec validate --strict --changes --no-interactive",
     "hooks:install": "git config core.hooksPath .githooks"
+  },
+  "devDependencies": {
+    "turbo": "^2.11.4"
   }
 }

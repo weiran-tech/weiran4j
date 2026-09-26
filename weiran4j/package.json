@@ -1,0 +1,10 @@
+{
+  "name": "@weiran/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "weiran4j Java 后端(Gradle)。只为接入 pnpm 工作区与 turbo 编排而存在,构建与依赖全部由 Gradle 管理。",
+  "scripts": {
+    "dev": "node scripts/dev.mjs"
+  }
+}
