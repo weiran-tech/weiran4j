@@ -1,15 +1,14 @@
-
 # weiran4j
 
-Weiran 框架的 Java 重做。本目录是 monorepo：**Java 后端 + 前端 web + openspec 工作流**。
+**Java 21 + MySQL 8 + Semi UI** 的后台管理框架底座，能力形态对标 mono4ts 的标准后台：
+登录/JWT、用户、角色、菜单（动态路由 + 按钮权限）、部门、字典、系统配置、登录日志、操作日志。
 
-
-|      |                                                                      |
-| ---- | -------------------------------------------------------------------- |
-| 后端 | JDK 21 · Gradle 9.6.1 · Spring Boot 3.5.15 · MyBatis-Plus            |
-| 底座 | [wuli3-gradle](https://github.com/Y-cs/wuli3-gradle)（公司内部框架） |
-| 前端 | pnpm · Vite · React 19 · TanStack Query                              |
-| 流程 | openspec（L0–L10 闸门）                                              |
+|      |                                                                                   |
+| ---- | --------------------------------------------------------------------------------- |
+| 后端 | JDK 21 · Gradle 9 · Spring Boot 3.5 · MyBatis-Plus · Flyway · MySQL 8 · JWT(jjwt)  |
+| 分层 | DDD 五层（api / domain / application / infrastructure / adapter）                  |
+| 前端 | pnpm · Vite · React 19 · Semi UI · TanStack Query · React Router 7（位于 `../web`） |
+| 流程 | openspec（L0–L10 闸门）                                                           |
 
 ## 快速开始
 
@@ -17,55 +16,38 @@ Weiran 框架的 Java 重做。本目录是 monorepo：**Java 后端 + 前端 we
 # 0. JDK 21 必需。本机默认 JDK 更高时格式化器会崩，且报错指向错误方向
 export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 
-# 1. 底座尚未发布到公司 Nexus，先发到本地 Maven 仓库
-git clone git@github.com:Y-cs/wuli3-gradle.git /tmp/wuli3
-(cd /tmp/wuli3 && ./gradlew publishToMavenLocal -x test)
+# 1. 后端全量门禁（集成测试用 Testcontainers MySQL，需要 Docker）
+./gradlew check
 
-# 2. 后端
-./gradlew check                 # 全量门禁
+# 2. 准备一个空库，启动时 Flyway 自动建表并写入种子数据
+mysql -uroot -e "CREATE DATABASE weiran4j DEFAULT CHARACTER SET utf8mb4"
+cp config/application-local.yml.example config/application-local.yml   # 填库密码与 JWT 密钥（openssl rand -base64 48）
+./gradlew :weiran-app:bootRun          # 自动激活 local profile，默认 3300 端口
 
-# 本地运行配置走 YAML，不走环境变量。复制模板后填库密码与 JWT 密钥：
-cp config/application-local.yml.example config/application-local.yml
-./gradlew :weiran-app:bootRun   # 自动激活 local profile，读 config/，默认 3300 端口
-
-# 3. 前端
-pnpm install
-pnpm dev                        # 默认 5373，代理 /api 到 3300
+# 3. 前端（仓库根目录）
+cd .. && pnpm install && pnpm dev      # 默认 5373，/api 代理到 3300
 ```
 
-## 当前进度
+打开 http://localhost:5373 ，用 **`admin` / `admin123`** 登录。⚠️ 上线前必须修改该密码。
 
-已完成 **骨架 + 一条纵向切片**（用户 / RBAC / JWT 登录），其余业务模块待建。
+## 模块
 
-
-| 接口                      | 说明                                       |
-| ------------------------- | ------------------------------------------ |
-| `POST /api/v1/auth/login` | 通行证（用户名 / 手机号 / 邮箱）+ 密码登录 |
-| `GET /api/v1/auth/me`     | 当前账号及其角色、权限                     |
-
-模块规划与新增模块的步骤见 [`docs/10-模块映射.md`](docs/10-模块映射.md)。
+| Gradle 模块 | 职责 |
+| --- | --- |
+| `build-logic` | 约定插件：Checkstyle / Spotless / SpotBugs / Forbidden APIs / Error Prone + NullAway / Jacoco |
+| `weiran-dependencies` | BOM，所有版本号只在这里 |
+| `weiran-common` | 错误码、分页、响应包络（纯 Java） |
+| `weiran-framework` | 统一响应、全局异常、认证拦截、`@RequiresPermission`、`@OperationLog`、MyBatis-Plus 配置 |
+| `weiran-system-*` | 认证 / 用户 / 角色 / 菜单 / 部门 / 登录日志 |
+| `weiran-platform-*` | 字典 / 系统配置 / 操作日志 |
+| `weiran-app` | 启动模块与集成测试 |
 
 ## 文档
 
-
-| 文档                                                               | 内容                                              |
-| ------------------------------------------------------------------ | ------------------------------------------------- |
-| [`CLAUDE.md`](CLAUDE.md)                                           | 开发约定、分层规矩、门禁硬约束（AI 与人都读这份） |
-| [`docs/00-决策记录.md`](docs/00-决策记录.md)                       | 关键决策与理由，只增不改                          |
-| [`docs/10-模块映射.md`](docs/10-模块映射.md)                       | PHP → Java 模块对照与优先级                       |
-| [`docs/20-数据迁移注意事项.md`](docs/20-数据迁移注意事项.md)       | **迁移前必读**，含阻塞项                          |
-| [`openspec/rules/enforced/constitution.md`](openspec/rules/enforced/constitution.md) | 跨 change 的工程不变量 CP-1…CP-11                 |
-| [`openspec/design/README.md`](openspec/design/README.md)           | openspec 流水线怎么用                             |
-
-## 来源项目
-
-
-|            | 路径                                                                 | 用途                                   |
-| ---------- | -------------------------------------------------------------------- | -------------------------------------- |
-| PHP 原项目 | `/Users/duoli/Projects/duoli-weiran/weiran-v1`                       | 业务与数据模型的事实源，迁移期并行运行 |
-| 前端参考   | `/Users/duoli/Projects/hanrui-jinnuo/mono4ts/packages/web`           | 技术栈参考                             |
-| 流程来源   | `/Users/duoli/Projects/hanrui-jinnuo/mono4ts/openspec`               | openspec 工作流                        |
-| 底座       | [github.com/Y-cs/wuli3-gradle](https://github.com/Y-cs/wuli3-gradle) | 公司内部 Java 框架                     |
-
-> ⚠️ 迁移期 weiran4j 与 weiran-v1 **并行读写同一套 `pam_*` 表**。
-> 改这些表之前先读 `docs/20-数据迁移注意事项.md`——其中「`password` 列宽」是阻塞项。
+| 文档 | 内容 |
+| --- | --- |
+| [`CLAUDE.md`](CLAUDE.md) | 开发约定、分层规矩、门禁硬约束（AI 与人都读这份） |
+| [`docs/01-架构与接口契约.md`](docs/01-架构与接口契约.md) | **前后端唯一契约**：模块、表结构、种子数据、全部接口与错误码 |
+| [`docs/00-决策记录.md`](docs/00-决策记录.md) | 关键决策与理由，只增不改（重写见 D-008） |
+| [`openspec/rules/enforced/constitution.md`](openspec/rules/enforced/constitution.md) | 跨 change 的工程不变量 CP-1…CP-11 |
+| [`openspec/design/README.md`](openspec/design/README.md) | openspec 流水线怎么用 |

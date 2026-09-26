@@ -1,5 +1,6 @@
 ---
-status: "active"
+status: "superseded"
+superseded_by: "admin-foundation"
 ---
 
 # admin-console-shell Specification

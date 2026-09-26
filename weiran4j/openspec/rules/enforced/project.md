@@ -50,54 +50,53 @@
 
 ### SL-1 · `settings.gradle.kts`
 
-新增模块必须在两处追加：`include(...)` 块里加五个扁平模块名
-（`weiran-<mod>-{api,domain,application,infrastructure,adapter}`），
-以及下方 `listOf(...).forEach { ... project(":$name").projectDir = file(...) }` 的目录映射块。
-两处都是**全仓单点**，两个并行改动同时追加行，文本上大概率相邻，极易冲突或需要人工合并。
+新增业务模块只需在 `businessModules` 列表里追加模块名（五层 include 与目录映射由循环生成）；
+新增非业务模块（如 `weiran-xxx-starter`）在 `include(...)` 块里追加。**全仓单点**，并行追加极易冲突。
 
 ### SL-2 · `weiran-dependencies/build.gradle.kts`
 
-`constraints { ... }` 块列出仓内每个模块的坐标+版本。新增模块需追加五行
-`api("com.weiran:weiran-<mod>-*:${project.version}")`。同一原因：全仓单点，多人同时追加会冲突。
+`constraints { ... }` 块钉住 Spring Boot / MyBatis-Plus BOM 之外的第三方版本，并列出仓内模块坐标。
+新增模块或新依赖需追加行。全仓单点，多人同时追加会冲突。
 
 ### SL-3 · `weiran-app/build.gradle.kts`
 
 新增模块需在 `dependencies {}` 追加对其 `adapter` 与 `infrastructure` 两层的
 `implementation(project(":..."))`。这是应用侧唯一需要感知新模块存在的地方。
 
-### SL-4 · `web/src/App.tsx`
+### SL-4 · Flyway 种子菜单（`weiran-*-infrastructure/.../db/migration/**`）
 
-新增前端页面需追加一条 `<Route>`。是前端路由的唯一注册点。
+**前端路由由后端 `sys_menu` 驱动**（`/api/auth/menus`），`web/src/App.tsx` 不再逐页登记 `<Route>`。
+新增页面必须**追加一个 Flyway 迁移**往 `sys_menu` 插入菜单行（`component` = 相对 `web/src/pages` 的路径，无 `.tsx`），
+并按需插入按钮权限行与 `sys_role_menu` 绑定。菜单 id 是全局序号：并行的两个 change 各插一个 id，会撞主键。
 
-### SL-5 · `web/src/layouts/AdminLayout.tsx`
+### SL-5 · `web/src/pages/**` 与 `web/src/utils/page-registry.ts`
 
-新增前端页面通常还需在侧边栏菜单数组里追加一项（含权限点字符串）。
-**SL-4 与 SL-5 是配对的两个文件**——只加路由不加菜单项，页面能访问但导航不出来；
-只加菜单不加路由，点击后白屏。
+页面文件路径必须与 SL-4 菜单行的 `component` 字段**逐字一致**。
+**SL-4 与 SL-5 是配对的两处**——只有页面没有菜单行，导航不出来也没有路由；
+只有菜单行没有页面，点开是「页面不存在」占位。
 
-> ⚠️ 这不是"共享层"意义上的冲突点（两个人同时加两个不同页面时，Git 通常能自动合并两条
-> 相邻但不同的新增行），登记在这里是因为**遗漏是静默的**：两个文件缺一个都不报错，
-> 只在人工点击验证时才会发现。
+> ⚠️ 遗漏是**静默的**：两处缺一个都不报错，只在人工点击验证时才会发现。
+> `web/src/utils/__tests__` 里有「种子菜单的 component 全部能解析」的测试，新增菜单时同步补上。
 
 ### 跨模块契约（多层共同消费）
 
-### SL-6 · `weiran-common/src/main/java/com/weiran/common/error/WeiranErrors.java`
+### SL-6 · `weiran-common/src/main/java/com/weiran/common/error/CommonErrors.java`
 
-跨模块错误码基座。**刻意冻结为小集合**——模块专属错误码应定义在各自模块的 `error` 包里，
-不要往这里加：每多一个常量，就多一处所有依赖 `weiran-common` 的模块都要一起重新编译的耦合点。
-这条与其余几条方向相反：**不是"该加就加"，而是"新增前先确认真的是跨模块概念"**。
+跨模块错误码基座（五位数字，前三位 = HTTP 状态）。**刻意冻结为小集合**——模块专属错误码应定义在各自模块
+domain 的 `error` 包里。前端 `web/src/utils/request.ts` 依赖 `40100`（清令牌跳登录）与 `40101`（不清令牌）的区分，
+改这两个码必须同步前端。**不是"该加就加"，而是"新增前先确认真的是跨模块概念"**。
 
-### SL-7 · `weiran-common/src/main/java/com/weiran/common/page/{PageQuery,PageResult}.java`
+### SL-7 · `weiran-common/src/main/java/com/weiran/common/{page,response}/*`
 
-跨模块分页契约，被 `weiran-system-*` 与前端 `web/src/lib/role.ts` 的 TS 镜像共同依赖。
-改动签名需要同步检查所有消费方，且前端的 TS 接口定义**没有自动同步机制**，改了后端要手动改前端。
+跨模块分页与响应包络契约（`{code, message, data}`、`{list, total, page, pageSize}`），
+被全部后端模块与前端 `web/src/types/api.ts` 共同依赖。TS 定义**没有自动同步机制**，改了后端要手动改前端，
+并同步 `docs/01-架构与接口契约.md`。
 
-### 序号型资源（本仓库暂无）
+### 序号型资源
 
-暂无 Flyway/Liquibase 或带序号的 migration 文件——数据库结构变更目前依赖手写 SQL
-并与 PHP 侧的 `weiran-v1` 迁移文件人工核对（宪法 CP-7），不存在"序号台账"意义上的冲突点。
-详见 [`state/waitlist-workflow.md`](../../state/waitlist-workflow.md)。**若日后引入 migration 工具，
-在此补一条 `SL-N` 登记序号文件与台账文件**，参照的正是这个类别过去在其他项目里的形态。
+**Flyway 迁移版本号**（`V<yyyyMMddHHmm>__<module>_<desc>.sql`，全仓全局唯一）与 **`sys_menu` 的 id** 是本仓库的序号型资源。
+两个 change 取到同一版本号或同一菜单 id 时，合并后 Flyway 启动失败或主键冲突。
+已合入的迁移不可修改（宪法 CP-7）。
 
 ---
 
@@ -162,26 +161,21 @@
 ## 三、横切关注点（决定 `proposal.md` 的漏项防线）
 
 > 这几项在本仓库最容易漏，漏了 L8 也发现不了（因为 spec 里根本没写）。
-> **与 mono4ts 不同：本系统目前只有 RBAC/JWT 登录一个业务域**（`weiran-system`），
-> 多租户、数据范围、工作流绑定等概念**尚未引入**，下面按"存在/不存在"如实标注，
-> 不要因为条目存在就假设对应机制已经落地。
+> 下面按"存在/不存在"如实标注，不要因为条目存在就假设对应机制已经落地。
 
-### CC-1 · 权限点（`pam_permission`）
+### CC-1 · 权限点（`sys_menu.permission`）
 
-已实现。新增受保护的接口/页面需要在 `pam_permission` 表登记新权限点，并在前端
-`AdminLayout.tsx` 的菜单项上标注对应的 `hasPermission(...)` 字符串。
+已实现。权限码形如 `system:user:create`，登记为 `sys_menu` 的 button 行（Flyway 迁移，见 SL-4）；
+后端接口用 `@RequiresPermission`，前端用 `<Permission code>` / `usePermission()`。超管角色 `super_admin` 放行一切。
 
-### CC-2 · 菜单（前端概念，无后端表）
+### CC-2 · 菜单（后端 `sys_menu` 驱动）
 
-**本仓库没有后端菜单表**（不存在 `sys_menu` 一类的持久化菜单）。菜单是纯前端硬编码数组
-（`web/src/layouts/AdminLayout.tsx`），每项用权限点字符串做展示条件。新增页面若要出现在
-导航里，改的是这个数组，不是数据库。`docs/10-模块映射.md` 记录了一个未落地的提案
-（`PermissionContributor` Bean 汇总入库）——写 design 时若涉及菜单，按"当前是前端硬编码"
-的现实来写，不要假设提案已实现。
+已实现。菜单树由 `/api/auth/menus` 下发并驱动前端动态路由；管理页 `/system/menus`。
+新增页面按 §一 SL-4/SL-5 同时登记菜单行与页面文件。
 
 ### CC-3 · 数据范围（`data-scope`）
 
-**尚未引入**。本系统暂无按部门/角色过滤数据可见范围的机制。
+**尚未引入**。本系统暂无按部门/角色过滤数据可见范围的机制（部门字段已存在于 `sys_user`）。
 
 ### CC-4 · 多租户隔离（`tenant`）
 
@@ -189,14 +183,13 @@
 
 ### CC-5 · 审计日志（`audit-context`）
 
-**已知缺失**，见 [`state/waitlist.md`](../../state/waitlist.md) T-003：
-`pam_account` 只更新 `login_times`/`logined_at` 两个字段，没有逐次登录的审计记录表，
-查不到"谁在什么时候从哪个 IP 登录过"。`LoginLogView` 目前是从账号自身字段合成的假单条记录，
-不是真实的按次审计。涉及登录/权限变更相关的 design 时需要显式提及这个已知缺口。
+已实现两类：登录日志（`sys_login_log`，登录/登出成功与失败都记）与操作日志（写接口标 `@OperationLog`，
+由 `weiran-platform` 异步落库 `sys_operation_log`，请求体按字段名脱敏）。新增写接口**必须**标 `@OperationLog`。
+尚无「变更前后数据 diff」。
 
 ### CC-6 · 字段脱敏（`masking`）
 
-**尚未引入**。
+**仅日志层**：`SensitiveDataMasker` 对操作日志请求体中的 password/token 等字段打码。响应数据脱敏尚未引入。
 
 ### CC-7 · 幂等（`idempotency`）
 
@@ -208,7 +201,7 @@
 
 ### CC-9 · 工作流绑定（`workflow-biz-binding`）
 
-**不适用**。本系统目前不含审批流程引擎，`weiran-system` 是唯一已建的业务域（账号/RBAC/JWT）。
+**不适用**。本系统目前不含审批流程引擎。
 
 ---
 
@@ -219,7 +212,8 @@
 ### TG-1 · 共享契约层 `weiran-common`
 
 对应 `exec/plan.md` 的 Layer 0，**串行先做**，完成后冻结签名。
-涉及面：跨模块错误码 / 分页契约。改动影响所有依赖 `weiran-common` 的模块，需重新编译整个仓库。
+涉及面：跨模块错误码 / 分页 / 响应契约，以及 `weiran-framework`（认证、权限、操作日志、统一响应）。
+改动影响所有业务模块，需重新编译整个仓库。
 **不涉及就整组删掉。**
 
 ### TG-2 · 领域层 `*-domain` / `*-api`
@@ -229,39 +223,39 @@
 
 ### TG-3 · 应用与基础设施层 `*-application` / `*-infrastructure`
 
-涉及面：用例编排 / 事务边界（application）；MyBatis-Plus / JWT / 密码算法等框架实现
+涉及面：用例编排 / 事务边界（application）；MyBatis-Plus / JWT / BCrypt 等框架实现与 Flyway 迁移
 （infrastructure）。端口的实现只允许出现在这一层。**不涉及就整组删掉。**
 
 ### TG-4 · 适配层 `*-adapter`
 
-涉及面：Controller / 认证过滤器。每个模块用 `@AutoConfiguration` 自我登记，
+涉及面：Controller / 请求 DTO 校验 / `@RequiresPermission` / `@OperationLog`。每个模块用 `@AutoConfiguration` 自我登记，
 不在 `weiran-app` 写 `@ComponentScan`。**不涉及就整组删掉。**
 
 ### TG-5 · 前端 `web`
 
-涉及面：页面 / 路由（`App.tsx`）、菜单项（`AdminLayout.tsx`）、数据请求 hook、复用组件、
+涉及面：页面（`src/pages/**`，路由由菜单驱动）、数据请求 hook（`src/hooks/queries/*`）、类型（`src/types/api.ts`）、复用组件、
 权限控制、空态与错误态。每条都要带需求 ID。**不涉及就整组删掉。**
 
 ---
 
 ## 五、影响的包（决定 `proposal.md` 的影响面声明）
 
-### PK-1 · `weiran-common`
+### PK-1 · `weiran-common` / `weiran-framework`
 
-跨模块通用：错误码基座、分页契约。改动影响面最广，任何新增常量都需要谨慎评估
-（见 §一 SL-6 的冻结原则）。
+跨模块通用：错误码、分页与响应契约（common）；统一响应、全局异常、认证拦截、权限注解、操作日志切面、
+MyBatis-Plus 配置（framework）。改动影响面最广（见 §一 SL-6/SL-7）。
 
-### PK-2 · `weiran-system-*`（api/domain/application/infrastructure/adapter）
+### PK-2 · `weiran-system-*` / `weiran-platform-*`（api/domain/application/infrastructure/adapter）
 
-账号 / RBAC / JWT 登录，DDD 五层。当前唯一已落地的业务域模块。
+`weiran-system`：认证 / 用户 / 角色 / 菜单 / 部门 / 登录日志。`weiran-platform`：字典 / 系统配置 / 操作日志。均为 DDD 五层。
 
 ### PK-3 · `weiran-app`
 
-可执行应用，只做依赖聚合，没有业务代码。新增模块时在此追加依赖行（见 §一 SL-3）。
+可执行应用，只做依赖聚合与集成测试（Testcontainers MySQL），没有业务代码。新增模块时在此追加依赖行（见 §一 SL-3）。
 
-### PK-4 · `web`
+### PK-4 · `web`（仓库根目录 `../web`）
 
-前端：Vite + React 19 + TanStack Query。单 SPA 入口，路由与菜单登记见 §一 SL-4/SL-5。
+前端：Vite + React 19 + Semi UI + TanStack Query。路由由菜单驱动，页面登记见 §一 SL-4/SL-5。
 
 ---
 
@@ -277,26 +271,25 @@
 
 ### DS-2 · API Design
 
-路由 / 方法 / 所属模块 / 请求关键字段 / 返回关键字段 / 权限点。统一响应包络由 wuli3 底座的
-`ApiResponseBodyAdvice` 产生（`{code, message, timestamp, requestId, data}`，**code 是字符串
-`"0"`**），不在本仓库自行定义，design 里不需要重新设计包络本身，只需声明业务字段。
+路由 / 方法 / 所属模块 / 请求关键字段 / 返回关键字段 / 权限点 / 是否 `@OperationLog`。统一响应包络
+`{code, message, data}`（**code 是数字，0 为成功**）由 `weiran-framework` 的 `ApiResponseBodyAdvice` 产生，
+design 里只声明业务字段；新接口同步写进 `docs/01-架构与接口契约.md`。
 
 ### DS-3 · Database Design
 
-表 / 动作 / 关键字段 / 索引。**本仓库没有 migration 工具**（见 §一「序号型资源」），
-需要在 design 里写清楚：改动是否需要手写 DDL、是否需要去 `weiran-v1` 核对迁移文件
-（涉及 `pam_*` 表时是宪法 CP-7 的硬要求）。
+表 / 动作 / 关键字段 / 索引，以及**新 Flyway 脚本的文件名（版本号）与所在模块**（宪法 CP-7：只追加、不修改）。
+涉及菜单/权限点的，写清新增 `sys_menu` 行的 id。
 
 ### DS-4 · 权限与已知缺口
 
-权限点设计、菜单挂载（前端硬编码，见 CC-2）、是否涉及 CC-5 提到的审计日志已知缺口。
+权限码设计、菜单挂载（`sys_menu` 迁移行，见 CC-1/CC-2）、是否需要 `@OperationLog`（CC-5）。
 
 ### DS-5 · 分层与装配
 
 依赖方向是否符合 `adapter → application → domain`、`infrastructure → domain`；
 新模块的 `@AutoConfiguration` 与 `.imports` 登记方式（参照 `weiran-system-adapter`/
-`weiran-system-infrastructure` 已有的两个文件）。
+`weiran-system-infrastructure`），Mapper 的 `@MapperScan` 写在本模块 infrastructure 的自动配置里。
 
 ### DS-6 · 前端设计
 
-页面/路由（`App.tsx`）、菜单项（`AdminLayout.tsx`）、数据请求方式、复用组件、权限控制点。
+页面文件与对应菜单行（SL-4/SL-5）、数据请求 hook、复用组件、按钮权限控制点。

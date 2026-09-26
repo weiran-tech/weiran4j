@@ -4,10 +4,9 @@ context: |
   所有产出物(提案、规格、设计、任务)必须用简体中文撰写。
   技术术语(如 API、REST、Gradle、MyBatis-Plus、JWT)可保留英文原文,说明文字用中文。
 
-  项目形态:weiran4j 是 monorepo —— Java 后端(Gradle 多模块,JDK 21,基于公司底座
-  wuli3-gradle)+ 前端 web(pnpm/Vite/React)。它是 PHP 项目 weiran-v1(Laravel 10)
-  的重做,迁移期两套系统会并行读写同一套 pam_* 表,因此任何涉及表结构的改动都必须
-  同时说明对 PHP 侧的影响。
+  项目形态:weiran4j 是 monorepo —— Java 后端(Gradle 多模块,JDK 21,Spring Boot 3.5 +
+  MyBatis-Plus + Flyway + MySQL 8,DDD 五层)+ 前端 web(pnpm/Vite/React 19/Semi UI)。
+  2026-09-26 起不再兼容 PHP weiran-v1;前后端契约以 weiran4j/docs/01-架构与接口契约.md 为准。
 
 # ─────────────────────────────────────────────────────────────────────────────
 # rules —— 逐 artifact 的硬约束
@@ -33,7 +32,7 @@ rules:
     - "反查引用必须放在最后一轮:先确定改哪些符号,再算影响面。顺序颠倒等于全仓扫描。"
     - "精读超过 10 个文件仍未收敛,说明需求边界没划清 —— 回 L0 补澄清,不要继续读。"
     - "必须写明本次「不会碰的目录」。L8 区分「必要连带」与「越界扩大」需要这条基线。"
-    - "**涉及 `pam_*` 表的改动必须去 `/Users/duoli/Projects/duoli-weiran/weiran-v1` 核对 PHP 侧现状**(迁移文件与 Model),并写明本次改动对 PHP 侧是否破坏性。两套系统并行期,只看 Java 侧等于只看了一半。"
+    - "**涉及表结构的改动只能新增 Flyway 脚本**(宪法 CP-7),写明新脚本的版本号与所在模块;不得修改已存在的迁移脚本。"
 
   proposal:
     - "必须包含 `## Capabilities` 一节,每个能力名用反引号包裹的 kebab-case,且与 `specs/<能力名>/spec.md` 一一对应。多一个或少一个都会被 check.mjs 判错。"

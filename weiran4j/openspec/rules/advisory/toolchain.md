@@ -45,36 +45,38 @@ palantir-java-format 需要 javac 内部 API 的模块开放(`--add-exports`),
 `JAVA_HOME=$(/usr/libexec/java_home -v 21)`,或用 `mise` 自动切换。
 换版本后如果仍然报错,`./gradlew --stop` 杀掉旧 daemon 再试。
 
-### 底座 wuli3 只在本地 Maven 仓库里
+### 复用的 daemon 会让 palantir 在所有文件上报 `NoClassDefFoundError`
 
-**症状**:新 clone 的仓库直接构建失败,报找不到 `com.kjs.wuli3:*:0.1.0-SNAPSHOT`,
-**错误信息不会提示需要先发布底座**。CI 同样无法直接构建。
+**症状**(2026-09-26 实测):`spotlessJavaCheck` 在**几乎所有文件**上报
+`palantir-java-format(java.lang.NoClassDefFoundError) Could not initialize class com.palantir.javaformat.java.ImportOrderer`,
+构建 2~3 秒就失败。同一份代码,另一个进程刚刚全绿。
 
-`settings.gradle.kts` 现在挂着 `mavenLocal()`。首次构建前必须先发布底座:
+`Could not initialize class` 的意思是:这个 daemon 里 palantir 的静态初始化**曾经失败过一次**,
+此后同一 JVM 内每次使用都直接报这个错——与当前文件内容无关。实测在**多个进程/agent 共用
+同一个 Gradle 用户目录**时出现(一方的 daemon 被另一方复用)。
 
-```bash
-git clone git@github.com:Y-cs/wuli3-gradle.git && cd wuli3-gradle
-./gradlew publishToMavenLocal -x test
-```
+**处置**:`./gradlew --stop` 后重跑,或直接 `./gradlew check --no-daemon`。验证用的全量构建优先 `--no-daemon`。
 
-已登记为 [`state/waitlist.md`](../../state/waitlist.md) 的 T-002,
-拿到公司 Nexus 地址后关闭。
+### 两个 `clean check` 同时跑会互相删 build 目录
+
+**症状**:集成测试**全部**在加载 Spring 上下文时失败,日志里夹着
+`FileNotFoundException: .../build/jacoco/test.exec` 或
+`NoSuchFileException: .../test-results/test/binary/in-progress-results-generic.bin`。
+
+另一个进程(人或 agent)的 `clean` 删掉了本次构建正在用的编译产物与测试结果。
+**同一工作区同一时刻只跑一个 Gradle 构建**,与 `project.md` WT-0 的「工作区只有一个」同理。
 
 ---
 
 ## 跨项目契约
 
-### 统一响应体的 `code` 是**字符串**,不是数字
+### 统一响应体的 `code` 是**数字 0**,别从旧代码搬字符串判断
 
-**症状**:从别处(尤其 PHP 侧 weiran-v1)搬来的前端代码里 `code !== 0` **恒为真**,
-表现是「接口明明 200 且数据正常,前端却一律走错误分支」。不报错,只是永远走错分支。
+**症状**:从 weiran4j 旧版(wuli3 底座时期,`code === "0"` 字符串)或 PHP 侧 weiran-v1
+(`status === 0`)搬来的前端代码,**永远走错误分支**或永远走成功分支——不报错,只是判错。
 
-两套系统的响应格式不同:
-
-| | 形状 | 成功判据 |
-|---|---|---|
-| PHP(weiran-v1) | `{status, message, data}` | `status === 0`(数字) |
-| weiran4j(走 wuli3 底座) | `{code, message, timestamp, requestId, data}` | `code === "0"`(**字符串**) |
+2026-09-26 重写(D-008)后的唯一格式:`{code, message, data}`,**`code === 0`(数字)为成功**,
+失败为五位数字错误码(前三位即 HTTP 状态,如 `40100`)。见 `docs/01-架构与接口契约.md` §4。
 
 ---
 

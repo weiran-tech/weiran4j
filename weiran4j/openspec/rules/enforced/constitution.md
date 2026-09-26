@@ -24,6 +24,7 @@
 依赖只能从外向内：`adapter` → `application` → `domain`，`infrastructure` → `domain`。
 `domain` 不依赖任何其他层；`infrastructure` 与 `adapter` 之间不得直接依赖。
 外层需要内层能力时，由内层定义端口（`domain/port`），外层实现。
+`weiran-framework`（Spring 基础设施）属于外层：`*-domain` 与 `*-api` 只能依赖 `weiran-common`。
 
 **为什么**：反过来的依赖不会立刻报错，只会让「换实现」这条自由度在某天悄悄消失。
 
@@ -39,7 +40,7 @@
 ### CP-4 · 版本号只有一个来源
 
 所有第三方依赖版本由 `weiran-dependencies` BOM 决定；模块的 `build.gradle.kts` 里
-**不允许出现版本号**。底座 wuli3 与 Spring Boot BOM 已经管住的依赖，
+**不允许出现版本号**。Spring Boot BOM 与 MyBatis-Plus BOM 已经管住的依赖，
 不在 `weiran-dependencies` 里复述。
 
 **为什么**：复述一次就多一处会过期的事实，而过期的那处不会报错，只会在某次升级后行为分叉。
@@ -60,25 +61,26 @@ Checkstyle、Spotless、SpotBugs、Forbidden APIs、Error Prone/NullAway 的配�
 
 **为什么**：一次模块级关闭会永久掩盖此后所有同类问题，而没有人会回来重新收紧它。
 
-## 迁移期约束
+## 数据与凭据
 
-### CP-7 · pam_* 表结构改动必须双向核对
+### CP-7 · 表结构只经 Flyway 迁移变更，已发布的迁移永不修改
 
-任何涉及 `pam_account` / `pam_role` / `pam_permission` / `pam_permission_role` /
-`pam_role_account` / `pam_token` 的结构改动，必须先核对
-`/Users/duoli/Projects/duoli-weiran/weiran-v1` 的迁移文件与 Model，
-并在 `proposal.md` 写明对 PHP 侧是否破坏性。
+所有表结构与种子数据的变化只能以新增 Flyway 脚本的方式落地
+（`weiran-*-infrastructure/src/main/resources/db/migration/<module>/V<yyyyMMddHHmm>__<module>_<desc>.sql`）。
+已合入主干的脚本不得修改或删除，要纠正就追加新脚本。不手写 DDL 到任何环境。
 
-**为什么**：迁移期两套系统并行读写同一套表。只看 Java 侧等于只看了一半，
-而另一半的故障会记在 PHP 项目的账上。
+**为什么**：Flyway 以校验和识别已执行的脚本。改一个已执行过的脚本，
+所有已部署的库启动即失败（checksum mismatch）；更糟的是有人为了让它启动去 `repair`，
+于是不同环境的真实结构从此分叉，而没有任何文件记录这件事。
 
-### CP-8 · 历史密码算法只用于校验，永不用于生成
+### CP-8 · 密码只用 BCrypt，令牌吊销只走 token_version
 
-PHP 时代的 `md5(sha1(明文 + 注册时间) + password_key)` 只允许出现在校验回落路径上。
-新哈希一律 BCrypt；历史哈希验通后必须就地重哈希。
+密码哈希一律 BCrypt（`spring-security-crypto`），不得引入其它哈希算法或「兼容」分支。
+改密码、管理员重置密码、禁用账号时必须递增 `sys_user.token_version`；
+JWT 携带 `ver`，认证时与库中值比对。不得用黑名单表或延长/缩短 TTL 代替吊销。
 
-**为什么**：md5 与 sha1 均已破且无工作因子。保留它是为了不把存量用户锁在门外，
-不是为了让这个算法继续产生新数据。
+**为什么**：无状态 JWT 在过期前一直有效，改完密码旧令牌还能用，等于改密码没有意义。
+`token_version` 是这套架构里唯一让「立即失效」成立的机制，绕开它的任何写法都会留下窗口期。
 
 ## 安全
 
@@ -87,8 +89,9 @@ PHP 时代的 `md5(sha1(明文 + 注册时间) + password_key)` 只允许出现�
 密钥、令牌、密码哈希不得出现在仓库文件、日志输出或异常消息里。
 配置一律走环境变量或 Jasypt 加密，仓内只放 `.env.example` 占位。
 
-**为什么**：weiran-v1 的 `README.md` 里至今明文躺着阿里云 AccessKey 与推送 SECRET，
-且已进入 git 历史无法撤销。这条是那次教训的落地。
+**为什么**：密钥一旦进入 git 历史就无法撤销，只能轮换。前身项目 weiran-v1 的 README
+里至今明文躺着云服务 AccessKey，这条是那次教训的落地。本地配置走 gitignore 掉的
+`config/application-local.yml`，部署走 `WEIRAN_*` 环境变量。
 
 ### CP-10 · 认证失败不泄露账号存在性
 
@@ -100,7 +103,8 @@ PHP 时代的 `md5(sha1(明文 + 注册时间) + password_key)` 只允许出现�
 
 ### CP-11 · 错误码归属决定 HTTP 状态，不靠 Controller 判断
 
-错误的 HTTP 状态由 `ErrorMetadata` 的 `origin` 与 `WebErrorStatusResolver` 决定。
+错误的 HTTP 状态由 `ErrorCode.httpStatus()` 决定（五位错误码的前三位即 HTTP 状态，见
+`weiran-common` 的 `CommonErrors`），由 `weiran-framework` 的全局异常处理器统一输出。
 Controller 不得手写状态码，也不得捕获业务异常自行转换。
 
 **为什么**：状态码一旦在 Controller 里手写，同一个错误在不同入口就会返回不同状态，
