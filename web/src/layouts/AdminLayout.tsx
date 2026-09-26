@@ -1,88 +1,177 @@
-import { Layout, Nav, Avatar, Dropdown } from '@douyinfe/semi-ui';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchCurrentAccount, hasPermission, logout } from '../lib/auth';
+import { Avatar, Breadcrumb, Button, Dropdown, Layout, Nav, Spin } from '@douyinfe/semi-ui';
+import type { NavItemPropsWithItems, SubNavProps } from '@douyinfe/semi-ui/lib/es/navigation';
+import { ChevronDown, LogOut, PanelLeftClose, PanelLeftOpen, UserRound } from 'lucide-react';
+import { Suspense, useMemo, useState } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { HOME_PATH, config } from '@/config';
+import { useAuth } from '@/hooks/useAuth';
+import type { MenuNode } from '@/types/api';
+import { renderNavIcon } from '@/utils/icons';
+import { findMenuTrail, normalizePath, type MenuRoute } from '@/utils/menu';
+import { TabsBar } from './TabsBar';
+import { useTabs } from './useTabs';
+import './AdminLayout.css';
 
-/**
- * 菜单项不带图标：`@douyinfe/semi-icons` 未随 `@douyinfe/semi-ui` 安装
- * （两者是独立包，`semi-ui` 本身只导出通用 `Icon` 组件，不含具体图标），
- * 本次不为了图标新增依赖，保持纯文字菜单。
- */
-interface NavItem {
-    itemKey: string;
-    text: string;
+const COLLAPSED_KEY = 'weiran_sider_collapsed';
+const EXTERNAL_PREFIX = 'external:';
+
+/** 非菜单驱动的固定页面标题 */
+const STATIC_TITLES: Record<string, string> = {
+    [HOME_PATH]: '首页',
+    '/profile': '个人中心',
+    '/403': '无权限',
+};
+
+type NavItem = NavItemPropsWithItems | SubNavProps;
+
+/** 菜单树 → Semi Nav items：跳过按钮、禁用、隐藏节点；外链用特殊 key 在新窗口打开 */
+export function toNavItems(menus: readonly MenuNode[]): NavItem[] {
+    const items: NavItem[] = [];
+    for (const m of menus) {
+        if (m.type === 'button' || m.status !== 'enabled' || !m.visible) continue;
+        const icon = renderNavIcon(m.icon);
+        if (m.type === 'directory') {
+            const children = toNavItems(m.children ?? []);
+            if (children.length === 0) continue;
+            items.push({ itemKey: `dir:${m.id}`, text: m.title, icon, items: children });
+        } else if (m.path) {
+            const itemKey = m.isExternal ? `${EXTERNAL_PREFIX}${m.path}` : normalizePath(m.path);
+            items.push({ itemKey, text: m.title, icon });
+        }
+    }
+    return items;
 }
 
-const { Header, Sider, Content } = Layout;
-
-/**
- * 后台管理布局壳子：侧边菜单 + 顶部栏 + 内容区。
- *
- * 菜单项按权限点过滤显隐（`admin-console-shell` spec FR-002），真正的访问控制在后端，
- * 这里只是体验优化。新增业务模块页面只需要在 `App.tsx` 追加子路由 + 这里追加一个菜单项，
- * 不需要改动本组件的结构（FR-004）。
- */
-export function AdminLayout() {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const queryClient = useQueryClient();
-    const { data: account } = useQuery({ queryKey: ['auth', 'me'], queryFn: fetchCurrentAccount });
-
-    function onLogout() {
-        logout();
-        queryClient.clear();
-        void navigate('/login', { replace: true });
+function readCollapsed(): boolean {
+    try {
+        return localStorage.getItem(COLLAPSED_KEY) === '1';
+    } catch {
+        return false;
     }
+}
 
-    const candidateItems: (NavItem | false)[] = [
-        hasPermission(account ?? null, 'weiran-system:role.index') && { itemKey: '/roles', text: '角色管理' },
-        hasPermission(account ?? null, 'weiran-system:account.index') && { itemKey: '/accounts', text: '账号管理' },
-        hasPermission(account ?? null, 'weiran-system:ban.index') && { itemKey: '/bans', text: '风险拦截' },
-    ];
-    const items = candidateItems.filter((item): item is NavItem => Boolean(item));
+interface AdminLayoutProps {
+    menus: MenuNode[];
+    routes: MenuRoute[];
+}
+
+export function AdminLayout({ menus, routes }: AdminLayoutProps) {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const { user, logout } = useAuth();
+    const [collapsed, setCollapsed] = useState(readCollapsed);
+
+    const pathname = normalizePath(location.pathname);
+    const navItems = useMemo(() => toNavItems(menus), [menus]);
+    const trail = useMemo(() => findMenuTrail(menus, pathname), [menus, pathname]);
+    const defaultOpenKeys = useMemo(() => trail.filter((m) => m.type === 'directory').map((m) => `dir:${m.id}`), [trail]);
+
+    const title = useMemo(() => {
+        const route = routes.find((r) => r.path === pathname);
+        return route?.title ?? STATIC_TITLES[pathname] ?? null;
+    }, [routes, pathname]);
+
+    const { tabs, close, closeOthers, closeAll } = useTabs(pathname, title);
+    const go = (key: string | null) => {
+        if (key) void navigate(key);
+    };
+
+    const toggleCollapsed = () => {
+        setCollapsed((c) => {
+            try {
+                localStorage.setItem(COLLAPSED_KEY, c ? '0' : '1');
+            } catch {
+                // 忽略
+            }
+            return !c;
+        });
+    };
+
+    const breadcrumbs = trail.length ? trail.map((m) => m.title) : title ? [title] : [];
 
     return (
-        <Layout style={{ height: '100vh' }}>
-            <Sider>
+        <Layout className="admin-layout">
+            <Layout.Sider className="admin-layout__sider">
                 <Nav
-                    selectedKeys={[location.pathname]}
-                    items={items}
-                    onSelect={(data) => {
-                        if (typeof data.itemKey === 'string') {
-                            void navigate(data.itemKey);
+                    className="admin-layout__nav"
+                    items={navItems}
+                    selectedKeys={[pathname]}
+                    defaultOpenKeys={defaultOpenKeys}
+                    isCollapsed={collapsed}
+                    onSelect={({ itemKey }) => {
+                        const key = String(itemKey);
+                        if (key.startsWith(EXTERNAL_PREFIX)) {
+                            window.open(key.slice(EXTERNAL_PREFIX.length), '_blank', 'noopener');
+                        } else {
+                            void navigate(key);
                         }
                     }}
-                    header={{ text: 'weiran4j 后台' }}
-                />
-            </Sider>
-            <Layout>
-                <Header
-                    style={{
-                        display: 'flex',
-                        justifyContent: 'flex-end',
-                        alignItems: 'center',
-                        padding: '0 24px',
-                        background: 'var(--semi-color-bg-1)',
+                    header={{
+                        text: config.appTitle,
+                        logo: <span className="admin-layout__logo">W</span>,
                     }}
-                >
-                    {account && (
-                        <Dropdown
-                            render={
-                                <Dropdown.Menu>
-                                    <Dropdown.Item onClick={onLogout}>退出登录</Dropdown.Item>
-                                </Dropdown.Menu>
-                            }
-                        >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                                <Avatar size="small">{account.displayName.slice(0, 1)}</Avatar>
-                                <span>{account.displayName}</span>
+                    footer={{
+                        children: (
+                            <Button
+                                theme="borderless"
+                                type="tertiary"
+                                icon={collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+                                aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'}
+                                onClick={toggleCollapsed}
+                            />
+                        ),
+                    }}
+                />
+            </Layout.Sider>
+            <Layout className="admin-layout__main">
+                <Layout.Header className="admin-layout__header">
+                    <Breadcrumb>
+                        {breadcrumbs.map((b, i) => (
+                            <Breadcrumb.Item key={`${i}-${b}`}>{b}</Breadcrumb.Item>
+                        ))}
+                    </Breadcrumb>
+                    <Dropdown
+                        position="bottomRight"
+                        render={
+                            <Dropdown.Menu>
+                                <Dropdown.Item icon={<UserRound size={14} />} onClick={() => void navigate('/profile')}>
+                                    个人中心
+                                </Dropdown.Item>
+                                <Dropdown.Divider />
+                                <Dropdown.Item icon={<LogOut size={14} />} onClick={() => void logout()}>
+                                    退出登录
+                                </Dropdown.Item>
+                            </Dropdown.Menu>
+                        }
+                    >
+                        <span className="admin-layout__user">
+                            <Avatar size="small" color="blue" {...(user?.avatar ? { src: user.avatar } : {})}>
+                                {(user?.nickname || user?.username || '?').slice(0, 1)}
+                            </Avatar>
+                            <span>{user?.nickname || user?.username}</span>
+                            <ChevronDown size={14} />
+                        </span>
+                    </Dropdown>
+                </Layout.Header>
+                <TabsBar
+                    tabs={tabs}
+                    activeKey={pathname}
+                    onSelect={(key) => void navigate(key)}
+                    onClose={(key) => go(close(key))}
+                    onCloseOthers={(key) => go(closeOthers(key))}
+                    onCloseAll={() => go(closeAll())}
+                />
+                <Layout.Content className="admin-layout__content">
+                    <Suspense
+                        fallback={
+                            <div className="page-loading">
+                                <Spin size="large" />
                             </div>
-                        </Dropdown>
-                    )}
-                </Header>
-                <Content style={{ padding: 24, overflow: 'auto' }}>
-                    <Outlet />
-                </Content>
+                        }
+                    >
+                        <Outlet />
+                    </Suspense>
+                </Layout.Content>
             </Layout>
         </Layout>
     );

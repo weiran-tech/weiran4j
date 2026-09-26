@@ -1,10 +1,16 @@
+import '@douyinfe/semi-ui/react19-adapter';
 import '@testing-library/jest-dom/vitest';
+import { cleanup } from '@testing-library/react';
+import { afterEach } from 'vitest';
+
+afterEach(() => {
+    cleanup();
+    localStorage.clear();
+    sessionStorage.clear();
+});
 
 /**
- * jsdom 不实现 Canvas 2D 上下文，而 Semi Design 的部分组件（如 `Avatar` 的加载动画）
- * 内部用 `lottie-web` 做动效，未取到 context 会在渲染时直接抛 TypeError 崩掉整个测试文件——
- * 不是被测代码的 bug，是测试环境缺失浏览器能力。给最小可用的 stub 而不装
- * `jest-canvas-mock` 这类专门的包：这里只需要不崩，不需要真的绘制。
+ * jsdom 不实现 Canvas 2D 上下文，Semi 部分组件内部会取它；给最小 stub，只求不崩。
  */
 if (typeof HTMLCanvasElement !== 'undefined') {
     const fakeContext = new Proxy(
@@ -17,15 +23,26 @@ if (typeof HTMLCanvasElement !== 'undefined') {
     HTMLCanvasElement.prototype.getContext = (() => fakeContext) as unknown as typeof HTMLCanvasElement.prototype.getContext;
 }
 
-/**
- * jsdom 不实现 `ResizeObserver`，而 Semi Design 的布局类组件（`Form`、`Card` 等）
- * 内部用它监听容器尺寸变化——未取到构造函数会在挂载时直接抛 ReferenceError 崩掉整个测试文件，
- * 同样不是被测代码的 bug。给最小可用的 no-op 实现。
- */
+/** jsdom 不实现 ResizeObserver，Semi 的 Table / Form 等挂载时会用到 */
 if (typeof globalThis.ResizeObserver === 'undefined') {
     globalThis.ResizeObserver = class ResizeObserver {
         observe() {}
         unobserve() {}
         disconnect() {}
     };
+}
+
+/** jsdom 不实现 matchMedia，Semi 的响应式组件会调用 */
+if (typeof window !== 'undefined' && !window.matchMedia) {
+    window.matchMedia = (query: string) =>
+        ({
+            matches: false,
+            media: query,
+            onchange: null,
+            addListener: () => {},
+            removeListener: () => {},
+            addEventListener: () => {},
+            removeEventListener: () => {},
+            dispatchEvent: () => false,
+        }) as MediaQueryList;
 }

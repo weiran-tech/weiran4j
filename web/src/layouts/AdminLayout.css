@@ -1,0 +1,107 @@
+.admin-layout {
+    height: 100vh;
+}
+
+.admin-layout__sider {
+    background: var(--semi-color-bg-1);
+    border-right: 1px solid var(--semi-color-border);
+}
+
+.admin-layout__nav {
+    height: 100%;
+}
+
+.admin-layout__logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--semi-color-primary);
+    color: #fff;
+    font-weight: 600;
+}
+
+.admin-layout__main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-layout__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 52px;
+    padding: 0 16px;
+    background: var(--semi-color-bg-1);
+    border-bottom: 1px solid var(--semi-color-border);
+}
+
+.admin-layout__user {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: var(--semi-color-text-0);
+}
+
+.admin-layout__content {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+    background: var(--semi-color-fill-0);
+}
+
+.admin-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 38px;
+    padding: 0 8px;
+    background: var(--semi-color-bg-1);
+    border-bottom: 1px solid var(--semi-color-border);
+}
+
+.admin-tabs__list {
+    display: flex;
+    flex: 1;
+    gap: 4px;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.admin-tabs__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--semi-color-text-1);
+    user-select: none;
+}
+
+.admin-tabs__tab:hover {
+    background: var(--semi-color-fill-0);
+}
+
+.admin-tabs__tab--active {
+    background: var(--semi-color-primary-light-default);
+    color: var(--semi-color-primary);
+}
+
+.admin-tabs__close {
+    display: inline-flex;
+    border-radius: 4px;
+    padding: 1px;
+}
+
+.admin-tabs__close:hover {
+    background: var(--semi-color-fill-1);
+}
