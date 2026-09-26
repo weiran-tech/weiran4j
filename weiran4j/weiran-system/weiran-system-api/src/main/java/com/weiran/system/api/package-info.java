@@ -1,8 +1,7 @@
 /**
- * weiran-system 对外契约。
+ * weiran-system 对外契约：应用服务接口、命令对象与视图 DTO。
  *
- * <p>只放 DTO 与对外服务接口。本层不依赖 Spring、不依赖领域层——它是给别的模块和
- * 适配层看的那张脸，一旦引入实现依赖，跨模块调用方就会连带拖进整套实现。
+ * <p>字段名与 {@code docs/01-架构与接口契约.md} §6.1–6.6 一一对应，改字段先改契约。
  */
 @NullMarked
 package com.weiran.system.api;

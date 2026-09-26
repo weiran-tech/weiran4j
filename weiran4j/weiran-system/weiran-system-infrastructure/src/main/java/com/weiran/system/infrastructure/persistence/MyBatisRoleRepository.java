@@ -1,137 +1,202 @@
 package com.weiran.system.infrastructure.persistence;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.weiran.common.page.PageQuery;
 import com.weiran.common.page.PageResult;
-import com.weiran.system.domain.port.RoleRepository;
-import com.weiran.system.domain.rbac.PermissionRef;
-import com.weiran.system.domain.rbac.RoleAggregate;
-import com.weiran.system.infrastructure.persistence.entity.PamPermissionDO;
-import com.weiran.system.infrastructure.persistence.entity.PamRoleDO;
-import com.weiran.system.infrastructure.persistence.mapper.PamPermissionMapper;
-import com.weiran.system.infrastructure.persistence.mapper.PamPermissionRoleMapper;
-import com.weiran.system.infrastructure.persistence.mapper.PamRoleAccountMapper;
-import com.weiran.system.infrastructure.persistence.mapper.PamRoleMapper;
+import com.weiran.common.status.EnableStatus;
+import com.weiran.framework.persistence.Likes;
+import com.weiran.framework.persistence.MybatisPages;
+import com.weiran.system.domain.role.Role;
+import com.weiran.system.domain.role.RoleCriteria;
+import com.weiran.system.domain.role.RoleRepository;
+import com.weiran.system.infrastructure.persistence.entity.SysRoleDO;
+import com.weiran.system.infrastructure.persistence.entity.SysRoleMenuDO;
+import com.weiran.system.infrastructure.persistence.entity.SysUserRoleDO;
+import com.weiran.system.infrastructure.persistence.mapper.SysRoleMapper;
+import com.weiran.system.infrastructure.persistence.mapper.SysRoleMenuMapper;
+import com.weiran.system.infrastructure.persistence.mapper.SysUserRoleMapper;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.Nullable;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-/**
- * 基于 MyBatis-Plus 的角色仓储实现。
- *
- * <p>与只读的 {@code MyBatisRbacRepository}（登录鉴权链路）各自持有独立的 Mapper，
- * 不共享同一个 Mapper 类——见 design.md「Role/Permission 写模型设计决策」。
- */
-@RequiredArgsConstructor
-public class MyBatisRoleRepository implements RoleRepository {
+/** {@link RoleRepository} 的 MyBatis-Plus 实现。 */
+public class MybatisRoleRepository implements RoleRepository {
 
-    private final PamRoleMapper roleMapper;
+    private final SysRoleMapper roleMapper;
 
-    private final PamPermissionMapper permissionMapper;
+    private final SysRoleMenuMapper roleMenuMapper;
 
-    private final PamPermissionRoleMapper permissionRoleMapper;
+    private final SysUserRoleMapper userRoleMapper;
 
-    private final PamRoleAccountMapper roleAccountMapper;
-
-    @Override
-    public PageResult<RoleAggregate> list(
-            final PageQuery page, final @Nullable String accountType, final @Nullable Boolean enabled) {
-        final IPage<PamRoleDO> result = this.roleMapper.selectPage(
-                new Page<>(page.page(), page.size()),
-                Wrappers.<PamRoleDO>lambdaQuery()
-                        .eq(accountType != null, PamRoleDO::getType, accountType)
-                        .eq(enabled != null, PamRoleDO::getIsEnable, enabled != null && enabled ? 1 : 0));
-        return PageResult.of(
-                result.getRecords().stream()
-                        .map(MyBatisRoleRepository::toDomain)
-                        .toList(),
-                result.getTotal(),
-                page);
+    /** 构造仓储。 */
+    public MybatisRoleRepository(
+            final SysRoleMapper roleMapper,
+            final SysRoleMenuMapper roleMenuMapper,
+            final SysUserRoleMapper userRoleMapper) {
+        this.roleMapper = roleMapper;
+        this.roleMenuMapper = roleMenuMapper;
+        this.userRoleMapper = userRoleMapper;
     }
 
     @Override
-    public Optional<RoleAggregate> findById(final long roleId) {
-        return Optional.ofNullable(this.roleMapper.selectById(roleId)).map(MyBatisRoleRepository::toDomain);
+    public Optional<Role> findById(final long id) {
+        return Optional.ofNullable(this.roleMapper.selectById(id)).map(MybatisRoleRepository::toDomain);
     }
 
     @Override
-    public RoleAggregate insert(final RoleAggregate role) {
-        final PamRoleDO record = MyBatisRoleRepository.toDO(role);
-        this.roleMapper.insert(record);
-        return role.toBuilder().id(record.getId()).build();
+    public boolean existsByCode(final String code) {
+        return this.roleMapper.exists(Wrappers.lambdaQuery(SysRoleDO.class).eq(SysRoleDO::getCode, code));
     }
 
     @Override
-    public void update(final RoleAggregate role) {
-        this.roleMapper.update(
-                null,
-                Wrappers.<PamRoleDO>lambdaUpdate()
-                        .eq(PamRoleDO::getId, role.getId())
-                        .set(PamRoleDO::getTitle, role.getTitle())
-                        .set(PamRoleDO::getDescription, role.getDescription())
-                        .set(PamRoleDO::getIsEnable, role.isEnabled() ? 1 : 0));
-    }
-
-    @Override
-    public void delete(final long roleId) {
-        this.roleMapper.deleteById(roleId);
-        this.roleAccountMapper.deleteByRoleId(roleId);
-        this.permissionRoleMapper.deleteByRoleId(roleId);
-    }
-
-    @Override
-    public List<Long> findPermissionIds(final long roleId) {
-        return this.permissionRoleMapper.selectPermissionIdsByRoleId(roleId);
-    }
-
-    @Override
-    public void replacePermissions(final long roleId, final List<Long> permissionIds) {
-        this.permissionRoleMapper.deleteByRoleId(roleId);
-        for (final Long permissionId : permissionIds) {
-            this.permissionRoleMapper.insert(permissionId, roleId);
+    public long save(final Role role) {
+        final SysRoleDO row = MybatisRoleRepository.toDataObject(role);
+        if (row.getId() == null) {
+            this.roleMapper.insert(row);
+        } else {
+            this.roleMapper.updateById(row);
         }
+        return row.getId();
     }
 
     @Override
-    public List<PermissionRef> listAllPermissions() {
-        return this.permissionMapper.selectList(null).stream()
-                .map(MyBatisRoleRepository::toDomain)
+    public void deleteById(final long id) {
+        this.roleMenuMapper.delete(Wrappers.lambdaQuery(SysRoleMenuDO.class).eq(SysRoleMenuDO::getRoleId, id));
+        this.roleMapper.deleteById(id);
+    }
+
+    @Override
+    public PageResult<Role> page(final RoleCriteria criteria, final PageQuery pageQuery) {
+        final String keyword = criteria.keyword();
+        final EnableStatus status = criteria.status();
+        final LambdaQueryWrapper<SysRoleDO> wrapper = Wrappers.lambdaQuery(SysRoleDO.class)
+                .and(
+                        keyword != null,
+                        w -> w.like(SysRoleDO::getName, Likes.escape(keyword))
+                                .or()
+                                .like(SysRoleDO::getCode, Likes.escape(keyword)))
+                .eq(status != null, SysRoleDO::getStatus, status == null ? null : status.value())
+                .orderByAsc(SysRoleDO::getSort)
+                .orderByAsc(SysRoleDO::getId);
+        return MybatisPages.toResult(
+                this.roleMapper.selectPage(MybatisPages.of(pageQuery), wrapper),
+                pageQuery,
+                MybatisRoleRepository::toDomain);
+    }
+
+    @Override
+    public List<Role> findEnabled() {
+        return this.roleMapper
+                .selectList(Wrappers.lambdaQuery(SysRoleDO.class)
+                        .eq(SysRoleDO::getStatus, EnableStatus.ENABLED.value())
+                        .orderByAsc(SysRoleDO::getSort)
+                        .orderByAsc(SysRoleDO::getId))
+                .stream()
+                .map(MybatisRoleRepository::toDomain)
                 .toList();
     }
 
-    private static RoleAggregate toDomain(final PamRoleDO record) {
-        return RoleAggregate.builder()
-                .id(record.getId())
-                .name(record.getName())
-                .title(record.getTitle())
-                .description(record.getDescription())
-                .accountType(record.getType())
-                .enabled(record.getIsEnable() != null && record.getIsEnable() == 1)
-                .system(record.getIsSystem() != null && record.getIsSystem() == 1)
+    @Override
+    public List<Role> findByIds(final Collection<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return this.roleMapper
+                .selectList(Wrappers.lambdaQuery(SysRoleDO.class)
+                        .in(SysRoleDO::getId, ids)
+                        .orderByAsc(SysRoleDO::getSort)
+                        .orderByAsc(SysRoleDO::getId))
+                .stream()
+                .map(MybatisRoleRepository::toDomain)
+                .toList();
+    }
+
+    @Override
+    public long countUsers(final long roleId) {
+        return this.userRoleMapper.selectCount(
+                Wrappers.lambdaQuery(SysUserRoleDO.class).eq(SysUserRoleDO::getRoleId, roleId));
+    }
+
+    @Override
+    public Map<Long, Long> countUsersByRoleIds(final Collection<Long> roleIds) {
+        final Map<Long, Long> result = new HashMap<>();
+        if (roleIds.isEmpty()) {
+            return result;
+        }
+        final QueryWrapper<SysUserRoleDO> wrapper = new QueryWrapper<SysUserRoleDO>()
+                .select("role_id AS roleId", "COUNT(*) AS userCount")
+                .in("role_id", roleIds)
+                .groupBy("role_id");
+        for (final Map<String, Object> row : this.userRoleMapper.selectMaps(wrapper)) {
+            final Object roleId = row.get("roleId");
+            final Object count = row.get("userCount");
+            if (roleId instanceof final Number id && count instanceof final Number value) {
+                result.put(id.longValue(), value.longValue());
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public Set<Long> findMenuIds(final long roleId) {
+        return this.findMenuIdsByRoleIds(List.of(roleId));
+    }
+
+    @Override
+    public Set<Long> findMenuIdsByRoleIds(final Collection<Long> roleIds) {
+        if (roleIds.isEmpty()) {
+            return Set.of();
+        }
+        return this.roleMenuMapper
+                .selectList(Wrappers.lambdaQuery(SysRoleMenuDO.class)
+                        .in(SysRoleMenuDO::getRoleId, roleIds)
+                        .orderByAsc(SysRoleMenuDO::getMenuId))
+                .stream()
+                .map(SysRoleMenuDO::getMenuId)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    @Override
+    public void replaceMenus(final long roleId, final Collection<Long> menuIds) {
+        this.roleMenuMapper.delete(Wrappers.lambdaQuery(SysRoleMenuDO.class).eq(SysRoleMenuDO::getRoleId, roleId));
+        for (final Long menuId : new LinkedHashSet<>(menuIds)) {
+            final SysRoleMenuDO link = new SysRoleMenuDO();
+            link.setRoleId(roleId);
+            link.setMenuId(menuId);
+            this.roleMenuMapper.insert(link);
+        }
+    }
+
+    private static Role toDomain(final SysRoleDO row) {
+        return Role.builder()
+                .id(row.getId())
+                .name(row.getName())
+                .code(row.getCode())
+                .description(row.getDescription())
+                .sort(row.getSort() == null ? 0 : row.getSort())
+                .status(EnableStatus.of(row.getStatus()))
+                .builtin(Boolean.TRUE.equals(row.getIsBuiltin()))
+                .createdAt(row.getCreatedAt())
+                .updatedAt(row.getUpdatedAt())
                 .build();
     }
 
-    private static PamRoleDO toDO(final RoleAggregate role) {
-        final PamRoleDO record = new PamRoleDO();
-        record.setName(role.getName());
-        record.setTitle(role.getTitle());
-        record.setDescription(role.getDescription());
-        record.setType(role.getAccountType());
-        record.setIsEnable(role.isEnabled() ? 1 : 0);
-        record.setIsSystem(role.isSystem() ? 1 : 0);
-        return record;
-    }
-
-    private static PermissionRef toDomain(final PamPermissionDO record) {
-        return PermissionRef.builder()
-                .id(record.getId())
-                .name(record.getName())
-                .title(record.getTitle())
-                .group(record.getGroup())
-                .module(record.getModule())
-                .build();
+    private static SysRoleDO toDataObject(final Role role) {
+        final SysRoleDO row = new SysRoleDO();
+        row.setId(role.getId());
+        row.setName(role.getName());
+        row.setCode(role.getCode());
+        row.setDescription(role.getDescription());
+        row.setSort(role.getSort());
+        row.setStatus(role.getStatus().value());
+        row.setIsBuiltin(role.isBuiltin());
+        return row;
     }
 }

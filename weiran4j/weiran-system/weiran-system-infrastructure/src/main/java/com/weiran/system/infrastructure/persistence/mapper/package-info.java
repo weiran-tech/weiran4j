@@ -1,5 +1,5 @@
 /**
- * MyBatis Mapper 接口。
+ * MyBatis-Plus Mapper。
  */
 @NullMarked
 package com.weiran.system.infrastructure.persistence.mapper;

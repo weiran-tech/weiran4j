@@ -1,33 +1,12 @@
-spring:
-  datasource:
-    url: jdbc:h2:mem:weiran;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: ""
-  sql:
-    init:
-      mode: always
-      schema-locations: classpath:schema.sql
-
-application:
-  service:
-    service-code: weiran
-
+# 集成测试配置：数据源由 Testcontainers 的 @ServiceConnection 注入，这里不写 URL。
 weiran:
   system:
-    # 测试用低强度，只为让每个用例的登录不至于花掉半秒；生产走 application.yml 的 10。
+    # 测试用低强度，只为让每次建用户 / 改密不至于花掉上百毫秒；种子数据的 cost 10 哈希照样能校验。
     bcrypt-strength: 4
     jwt:
-      secret: test-only-secret-key-at-least-32-bytes-long
-      issuer: weiran4j
+      secret: integration-test-secret-key-at-least-32-bytes
       ttl: 1h
-
-mybatis-plus:
-  configuration:
-    map-underscore-to-camel-case: true
-  global-config:
-    banner: false
 
 logging:
   level:
-    com.weiran: DEBUG
+    com.weiran: INFO

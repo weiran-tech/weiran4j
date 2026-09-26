@@ -1,74 +1,97 @@
 package com.weiran.system.adapter.web;
 
-import com.kjs.wuli3.web.context.ClientIpResolver;
-import com.weiran.system.adapter.auth.PrincipalHolder;
-import com.weiran.system.adapter.web.dto.LoginRequest;
+import com.weiran.common.response.ApiResponse;
+import com.weiran.framework.auth.CurrentUser;
+import com.weiran.framework.auth.PublicApi;
+import com.weiran.framework.log.OperationLog;
+import com.weiran.framework.web.ClientIpResolver;
+import com.weiran.system.adapter.web.request.ChangePasswordRequest;
+import com.weiran.system.adapter.web.request.LoginRequest;
+import com.weiran.system.adapter.web.request.UpdateProfileRequest;
 import com.weiran.system.api.auth.AuthService;
-import com.weiran.system.api.auth.CurrentAccountView;
+import com.weiran.system.api.auth.ChangePasswordCommand;
+import com.weiran.system.api.auth.ClientContext;
+import com.weiran.system.api.auth.CurrentUserView;
 import com.weiran.system.api.auth.LoginCommand;
 import com.weiran.system.api.auth.LoginResult;
-import com.weiran.system.domain.rbac.AuthorizedPrincipal;
+import com.weiran.system.api.auth.UpdateProfileCommand;
+import com.weiran.system.api.menu.MenuNode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 认证接口。
+ * 认证接口 {@code /api/auth}。
  *
- * <p>返回值是裸的业务对象——wuli3 的 {@code ApiResponseBodyAdvice} 会统一包成
- * {@code {code, message, timestamp, requestId, data}}，这里手动包一层反而会套两层。
- *
- * <p>路径沿用 PHP 版的 {@code /api/v1/...} 前缀，让前端可以逐接口灰度切流，
- * 而不是必须整体切换。
+ * <p>登录 / 登出写的是登录日志（sys_login_log），不再重复记操作日志。
  */
 @RestController
-@RequestMapping("/api/v1/auth")
-@RequiredArgsConstructor
+@RequestMapping("/api/auth")
 public class AuthController {
 
     private final AuthService authService;
 
-    private final PrincipalHolder principalHolder;
-
-    private final ClientIpResolver clientIpResolver;
-
-    /** 通行证 + 密码登录。 */
-    @PostMapping("/login")
-    public LoginResult login(@Valid @RequestBody final LoginRequest request, final HttpServletRequest servletRequest) {
-        final LoginCommand command = new LoginCommand(
-                request.passport(),
-                request.password(),
-                request.effectiveGuard(),
-                request.effectiveDeviceId(),
-                this.clientIpResolver.resolve(servletRequest));
-
-        return this.authService.login(command);
+    /** 构造控制器。 */
+    public AuthController(final AuthService authService) {
+        this.authService = authService;
     }
 
-    /**
-     * 取当前登录账号及其角色、权限。
-     *
-     * <p>前端据此渲染菜单与按钮，因此权限集合必须完整下发，不能分页或裁剪。
-     *
-     * <p>直接读 {@link PrincipalHolder} 而不是再解析一次令牌：认证已在
-     * {@code WeiranAuthContextResolver} 里完成，重新解析等于每个请求多一次验签与多一轮查库。
-     */
-    @GetMapping("/me")
-    public CurrentAccountView me() {
-        final AuthorizedPrincipal principal = this.principalHolder.require();
-        final List<String> roles = new ArrayList<>(principal.roleNames());
-        final List<String> permissions = new ArrayList<>(principal.permissionNames());
-        roles.sort(null);
-        permissions.sort(null);
+    /** 登录。 */
+    @PublicApi
+    @PostMapping("/login")
+    public LoginResult login(@Valid @RequestBody final LoginRequest request, final HttpServletRequest http) {
+        return this.authService.login(
+                new LoginCommand(request.username(), request.password()), AuthController.clientOf(http));
+    }
 
-        return new CurrentAccountView(
-                principal.accountId(), principal.displayName(), principal.accountType(), roles, permissions);
+    /** 登出。 */
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(final HttpServletRequest http) {
+        this.authService.logout(CurrentUser.require().id(), AuthController.clientOf(http));
+        return ApiResponse.ok();
+    }
+
+    /** 当前用户。 */
+    @GetMapping("/me")
+    public CurrentUserView me() {
+        return this.authService.me(CurrentUser.require().id());
+    }
+
+    /** 当前用户可见菜单树。 */
+    @GetMapping("/menus")
+    public List<MenuNode> menus() {
+        return this.authService.menus(CurrentUser.require().id());
+    }
+
+    /** 修改个人资料。 */
+    @OperationLog(module = "个人中心", description = "修改个人资料")
+    @PutMapping("/profile")
+    public ApiResponse<Void> updateProfile(@Valid @RequestBody final UpdateProfileRequest request) {
+        this.authService.updateProfile(
+                CurrentUser.require().id(),
+                new UpdateProfileCommand(
+                        request.nickname(), request.email(), request.phone(), request.avatar(), request.gender()));
+        return ApiResponse.ok();
+    }
+
+    /** 修改自己的密码。 */
+    @OperationLog(module = "个人中心", description = "修改密码")
+    @PutMapping("/password")
+    public ApiResponse<Void> changePassword(@Valid @RequestBody final ChangePasswordRequest request) {
+        this.authService.changePassword(
+                CurrentUser.require().id(), new ChangePasswordCommand(request.oldPassword(), request.newPassword()));
+        return ApiResponse.ok();
+    }
+
+    static ClientContext clientOf(final HttpServletRequest http) {
+        final String userAgent = http.getHeader(HttpHeaders.USER_AGENT);
+        return new ClientContext(ClientIpResolver.resolve(http), userAgent == null ? "" : userAgent);
     }
 }

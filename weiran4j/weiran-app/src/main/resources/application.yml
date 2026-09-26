@@ -2,39 +2,42 @@ spring:
   application:
     name: weiran4j
   datasource:
-    url: ${WEIRAN_DB_URL:jdbc:mysql://127.0.0.1:3306/weiran?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
+    url: ${WEIRAN_DB_URL:jdbc:mysql://127.0.0.1:3306/weiran4j?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}
     username: ${WEIRAN_DB_USERNAME:root}
     password: ${WEIRAN_DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  flyway:
+    enabled: true
+    # 递归扫描：各模块 infrastructure 把脚本放在 db/migration/<module>/ 下。
+    locations: classpath:db/migration
+  web:
+    # 校验提示语（如「不能为空」）按固定中文输出，不随客户端 Accept-Language 漂移。
+    locale: zh_CN
+    locale-resolver: fixed
 
 server:
   port: ${WEIRAN_PORT:3300}
-
-# wuli3 web starter：serviceCode 会成为错误码前缀（WEIRAN.SYSTEM.BAD_CREDENTIALS）
-application:
-  service:
-    service-code: weiran
-
-wuli3:
-  web:
-    response:
-      wrapper-enabled: true
-      exception-handler-enabled: true
 
 weiran:
   system:
     bcrypt-strength: 10
     jwt:
-      # 生产环境必须由环境变量注入，至少 32 字节。仓库里不放真实密钥。
+      # 生产环境必须由环境变量注入，至少 32 字节；缺失或过短时应用启动失败。仓库里不放真实密钥。
       secret: ${WEIRAN_JWT_SECRET:}
-      issuer: weiran4j
-      ttl: 7d
+      ttl: ${WEIRAN_JWT_TTL:12h}
 
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
   global-config:
     banner: false
+
+# OpenAPI 文档默认关闭，只在 local profile 打开（见 application-local.yml）。
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 
 logging:
   level:

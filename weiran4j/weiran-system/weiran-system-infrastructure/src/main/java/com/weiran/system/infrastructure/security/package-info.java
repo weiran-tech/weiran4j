@@ -1,5 +1,5 @@
 /**
- * 认证相关的基础设施实现：密码哈希、密码指纹、JWT 签发。
+ * 令牌与密码：JWT HS256 编解码、BCrypt 哈希。
  */
 @NullMarked
 package com.weiran.system.infrastructure.security;

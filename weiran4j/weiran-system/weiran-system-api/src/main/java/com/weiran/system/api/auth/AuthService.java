@@ -1,17 +1,30 @@
 package com.weiran.system.api.auth;
 
-/**
- * 认证对外服务。
- *
- * <p>适配层与其他业务模块只依赖这个接口，实现在 application 层。
- *
- * <p>这里没有「按令牌取当前用户」的方法：令牌解析已经由适配层的
- * {@code WeiranAuthContextResolver} 在请求入口完成一次，结果放在请求级的授权快照里。
- * 再开一个按令牌查询的入口，等于让同一件事有两条路径——两条路径迟早会在
- * 「令牌失效判定」这类细节上分叉。跨模块需要「当前是谁」时读授权快照，不要重新解析令牌。
- */
+import com.weiran.system.api.menu.MenuNode;
+import java.util.List;
+
+/** 认证服务。 */
 public interface AuthService {
 
-    /** 用通行证与密码登录，成功返回访问令牌。 */
-    LoginResult login(LoginCommand command);
+    /**
+     * 用户名密码登录；成功与失败都会写登录日志。
+     *
+     * @throws com.weiran.common.error.BizException 用户名或密码错误（40101）、账号已禁用（40301）
+     */
+    LoginResult login(LoginCommand command, ClientContext client);
+
+    /** 登出：只写登出日志（JWT 无状态，前端丢弃令牌即可）。 */
+    void logout(long userId, ClientContext client);
+
+    /** 当前用户信息。 */
+    CurrentUserView me(long userId);
+
+    /** 当前用户可见的菜单树（只含目录与菜单）。 */
+    List<MenuNode> menus(long userId);
+
+    /** 修改个人资料。 */
+    void updateProfile(long userId, UpdateProfileCommand command);
+
+    /** 修改自己的密码；成功后令牌版本加一，旧令牌全部失效。 */
+    void changePassword(long userId, ChangePasswordCommand command);
 }

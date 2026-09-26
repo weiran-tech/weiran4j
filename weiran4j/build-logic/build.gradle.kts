@@ -6,7 +6,7 @@ group = "com.weiran.gradle"
 version = providers.gradleProperty("weiran.build-logic.version").get()
 
 dependencies {
-    // 版本与 wuli3-gradle 底座 build-logic 保持一致，避免两仓质量门禁行为漂移。
+    // 质量工具链插件版本只在这里声明；升级时同步检查 QualityConventionsPlugin 里的工具版本。
     implementation("com.github.spotbugs.snom:spotbugs-gradle-plugin:6.5.8")
     implementation("com.diffplug.spotless:com.diffplug.spotless.gradle.plugin:8.9.0")
     implementation("de.thetaphi:forbiddenapis:3.10")

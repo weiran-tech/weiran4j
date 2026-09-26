@@ -1,7 +1,5 @@
 /**
- * MyBatis-Plus 表映射对象。
- *
- * <p>命名一律 {@code *DO}，与领域模型区分开。这些类不允许出现在端口签名或跨层传递中。
+ * MyBatis-Plus 表映射对象（整类 {@code @NullUnmarked}，空值在映射边界处理）。
  */
 @NullMarked
 package com.weiran.system.infrastructure.persistence.entity;

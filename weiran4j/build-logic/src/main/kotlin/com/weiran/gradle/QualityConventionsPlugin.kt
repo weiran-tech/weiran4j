@@ -21,7 +21,7 @@ import org.gradle.kotlin.dsl.withType
 /**
  * 静态质量门禁：Checkstyle、Spotless、SpotBugs、Forbidden APIs、Error Prone + NullAway。
  *
- * 规则集与 wuli3-gradle 底座逐条对齐——两仓行为一旦漂移，底座升级就会在业务侧炸开。
+ * 规则集是全仓唯一来源，模块只能通过 `weiranConventions {}` 调整覆盖率门槛，不能改规则本身。
  * 其中 Forbidden APIs 的签名表是「禁用 `java.util.Date` / `Calendar` / `java.sql.Date|Time|Timestamp`」
  * 这条约束的实际落地位置，不是靠 code review 看住的。
  */
@@ -76,6 +76,8 @@ class QualityConventionsPlugin : Plugin<Project> {
                 "errorprone"("com.google.errorprone:error_prone_core:2.50.0")
                 "errorprone"("com.uber.nullaway:nullaway:0.13.7")
                 "compileOnly"("org.jspecify:jspecify")
+                // 测试代码会继承/引用带 @NullUnmarked 的主代码类型，javac 需要能解析到注解类。
+                "testCompileOnly"("org.jspecify:jspecify")
             }
 
             tasks.withType<Checkstyle>().configureEach {

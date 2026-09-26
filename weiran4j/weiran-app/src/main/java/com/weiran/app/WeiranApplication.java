@@ -4,17 +4,15 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * weiran4j 应用入口。
+ * weiran4j 启动类。
  *
- * <p>这里不写 {@code @ComponentScan} 的包范围：各业务模块通过
- * {@code META-INF/spring/...AutoConfiguration.imports} 自行登记装配，
- * 应用只负责把它们放进 classpath。新增模块时改 {@code build.gradle.kts} 的依赖即可，
- * 不用回来改扫描路径。
+ * <p>刻意不写 {@code @ComponentScan} / {@code @MapperScan}：framework、system、platform 各层都用
+ * {@code AutoConfiguration.imports} 自我登记，新增业务模块时这里只需要在 build 脚本里加依赖。
  */
 @SpringBootApplication
 public class WeiranApplication {
 
-    /** 启动应用。 */
+    /** 启动入口。 */
     public static void main(final String[] args) {
         SpringApplication.run(WeiranApplication.class, args);
     }

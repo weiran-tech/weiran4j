@@ -1,0 +1,12 @@
+# local profile 的仓内默认值：只放与环境无关、可以进版本库的开关。
+# 数据库账号、JWT 密钥等本机配置写在仓库根的 config/application-local.yml（已 gitignore），
+# bootRun 会额外加载那里，同名键以那里为准。
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+logging:
+  level:
+    com.weiran: DEBUG

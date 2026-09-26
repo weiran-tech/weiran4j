@@ -1,108 +1,52 @@
 package com.weiran.system.infrastructure.autoconfigure;
 
-import com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration;
-import com.kjs.wuli3.core.time.ClockProvider;
-import com.weiran.system.domain.port.AccessTokenIssuer;
-import com.weiran.system.domain.port.AccountRepository;
-import com.weiran.system.domain.port.BanRepository;
-import com.weiran.system.domain.port.PasswordHasher;
-import com.weiran.system.domain.port.PasswordStampFactory;
-import com.weiran.system.domain.port.RbacRepository;
-import com.weiran.system.domain.port.RoleRepository;
-import com.weiran.system.infrastructure.persistence.MyBatisAccountRepository;
-import com.weiran.system.infrastructure.persistence.MyBatisBanRepository;
-import com.weiran.system.infrastructure.persistence.MyBatisRbacRepository;
-import com.weiran.system.infrastructure.persistence.MyBatisRoleRepository;
-import com.weiran.system.infrastructure.persistence.mapper.PamAccountMapper;
-import com.weiran.system.infrastructure.persistence.mapper.PamBanMapper;
-import com.weiran.system.infrastructure.persistence.mapper.PamPermissionMapper;
-import com.weiran.system.infrastructure.persistence.mapper.PamPermissionRoleMapper;
-import com.weiran.system.infrastructure.persistence.mapper.PamRoleAccountMapper;
-import com.weiran.system.infrastructure.persistence.mapper.PamRoleMapper;
-import com.weiran.system.infrastructure.persistence.mapper.RbacMapper;
-import com.weiran.system.infrastructure.security.BCryptWithLegacyPasswordHasher;
-import com.weiran.system.infrastructure.security.JwtAccessTokenIssuer;
-import com.weiran.system.infrastructure.security.JwtProperties;
-import com.weiran.system.infrastructure.security.Sha256PasswordStampFactory;
-import java.time.ZoneId;
+import com.weiran.system.domain.auth.TokenCodec;
+import com.weiran.system.domain.user.PasswordHasher;
+import com.weiran.system.infrastructure.persistence.MybatisDepartmentRepository;
+import com.weiran.system.infrastructure.persistence.MybatisLoginLogRepository;
+import com.weiran.system.infrastructure.persistence.MybatisMenuRepository;
+import com.weiran.system.infrastructure.persistence.MybatisRoleRepository;
+import com.weiran.system.infrastructure.persistence.MybatisUserRepository;
+import com.weiran.system.infrastructure.security.BCryptPasswordHasher;
+import com.weiran.system.infrastructure.security.JwtTokenCodec;
+import com.weiran.system.infrastructure.security.SystemSecurityProperties;
+import java.time.Clock;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 
 /**
- * weiran-system 基础设施装配。
+ * weiran-system 基础设施自动配置：Mapper 扫描、仓储实现、JWT 与 BCrypt。
  *
- * <p>每个端口实现都带 {@link ConditionalOnMissingBean}：业务方要换实现只需自己声明一个同类型 Bean，
- * 不必排除整个自动配置。
- *
- * <p>Mapper 扫描范围由本模块自己声明，而不是让应用去写 {@code @MapperScan}：
- * MyBatis 默认从 {@code @SpringBootApplication} 所在包往下扫，而本模块的包
- * （{@code com.weiran.system.infrastructure}）不在应用包（{@code com.weiran.app}）之下，
- * 靠默认扫描永远扫不到。把它写在这里，新增模块时应用侧不需要任何改动。
+ * <p>Flyway 脚本在 {@code classpath:db/migration/system/} 下，由应用统一的
+ * {@code spring.flyway.locations=classpath:db/migration} 递归发现，不需要在这里登记。
  */
-@AutoConfiguration(after = MybatisPlusAutoConfiguration.class)
+@AutoConfiguration
 @MapperScan("com.weiran.system.infrastructure.persistence.mapper")
-@EnableConfigurationProperties({SystemInfrastructureProperties.class, JwtProperties.class})
+@EnableConfigurationProperties(SystemSecurityProperties.class)
+@Import({
+    MybatisUserRepository.class,
+    MybatisRoleRepository.class,
+    MybatisMenuRepository.class,
+    MybatisDepartmentRepository.class,
+    MybatisLoginLogRepository.class
+})
 public class SystemInfrastructureAutoConfiguration {
 
-    /**
-     * 系统时钟。
-     *
-     * <p>抽成 Bean 是为了让用例的时间相关分支（限期封禁、令牌过期）在测试里可以被固定；
-     * 时区取 JVM 默认，需要钉死时区的部署用 {@code TZ} 环境变量或自己声明该 Bean。
-     */
+    /** JWT 编解码；密钥不合法时启动失败。 */
     @Bean
     @ConditionalOnMissingBean
-    public ClockProvider weiranClockProvider() {
-        return ClockProvider.system(ZoneId.systemDefault());
+    public TokenCodec tokenCodec(final SystemSecurityProperties properties, final Clock clock) {
+        return new JwtTokenCodec(properties.jwt().secret(), properties.jwt().ttl(), clock);
     }
 
+    /** BCrypt 密码哈希。 */
     @Bean
     @ConditionalOnMissingBean
-    public PasswordHasher weiranPasswordHasher(final SystemInfrastructureProperties properties) {
-        return new BCryptWithLegacyPasswordHasher(properties.getBcryptStrength());
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public PasswordStampFactory weiranPasswordStampFactory() {
-        return new Sha256PasswordStampFactory();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public AccessTokenIssuer weiranAccessTokenIssuer(
-            final JwtProperties jwtProperties, final ClockProvider clockProvider) {
-        return new JwtAccessTokenIssuer(jwtProperties, clockProvider);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public AccountRepository weiranAccountRepository(final PamAccountMapper accountMapper) {
-        return new MyBatisAccountRepository(accountMapper);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public RbacRepository weiranRbacRepository(final RbacMapper rbacMapper) {
-        return new MyBatisRbacRepository(rbacMapper);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public RoleRepository weiranRoleRepository(
-            final PamRoleMapper roleMapper,
-            final PamPermissionMapper permissionMapper,
-            final PamPermissionRoleMapper permissionRoleMapper,
-            final PamRoleAccountMapper roleAccountMapper) {
-        return new MyBatisRoleRepository(roleMapper, permissionMapper, permissionRoleMapper, roleAccountMapper);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public BanRepository weiranBanRepository(final PamBanMapper banMapper) {
-        return new MyBatisBanRepository(banMapper);
+    public PasswordHasher passwordHasher(final SystemSecurityProperties properties) {
+        return new BCryptPasswordHasher(properties.bcryptStrength());
     }
 }

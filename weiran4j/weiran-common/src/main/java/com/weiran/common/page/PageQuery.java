@@ -1,37 +1,41 @@
 package com.weiran.common.page;
 
 /**
- * 分页入参契约。
+ * 分页请求。
+ *
+ * <p>构造时即规范化：{@code page} 从 1 开始，小于 1 按 1；{@code pageSize} 默认 20、上限 200，
+ * 越界值被钳到边界而不是报错——分页参数错误不值得让一次列表查询失败。
  *
  * @param page 页码，从 1 开始
- * @param size 每页条数
+ * @param pageSize 每页条数，1–200
  */
-public record PageQuery(int page, int size) {
+public record PageQuery(int page, int pageSize) {
 
-    /** 页码下界。 */
-    public static final int MIN_PAGE = 1;
+    /** 默认页码。 */
+    public static final int DEFAULT_PAGE = 1;
 
-    /** 每页条数上界，防止调用方一次拉全表。 */
-    public static final int MAX_SIZE = 200;
+    /** 默认每页条数。 */
+    public static final int DEFAULT_PAGE_SIZE = 20;
 
-    private static final int DEFAULT_SIZE = 20;
+    /** 每页条数上限。 */
+    public static final int MAX_PAGE_SIZE = 200;
 
+    /** 规范化页码与每页条数。 */
     public PageQuery {
-        if (page < PageQuery.MIN_PAGE) {
-            throw new IllegalArgumentException("page must be >= " + PageQuery.MIN_PAGE);
+        page = Math.max(page, PageQuery.DEFAULT_PAGE);
+        if (pageSize < 1) {
+            pageSize = PageQuery.DEFAULT_PAGE_SIZE;
         }
-        if (size < 1 || size > PageQuery.MAX_SIZE) {
-            throw new IllegalArgumentException("size must be in [1, " + PageQuery.MAX_SIZE + "]");
-        }
+        pageSize = Math.min(pageSize, PageQuery.MAX_PAGE_SIZE);
     }
 
-    /** 返回默认分页（第一页，每页 {@value #DEFAULT_SIZE} 条）。 */
-    public static PageQuery firstPage() {
-        return new PageQuery(PageQuery.MIN_PAGE, PageQuery.DEFAULT_SIZE);
+    /** 第一页、默认条数。 */
+    public static PageQuery defaults() {
+        return new PageQuery(PageQuery.DEFAULT_PAGE, PageQuery.DEFAULT_PAGE_SIZE);
     }
 
-    /** 返回该分页对应的偏移量，供 SQL LIMIT 使用。 */
+    /** 当前页第一条记录的偏移量。 */
     public long offset() {
-        return (long) (this.page - 1) * this.size;
+        return (long) (this.page - 1) * this.pageSize;
     }
 }

@@ -5,8 +5,8 @@ import org.gradle.api.Project
 /**
  * 约定插件的可调开关。
  *
- * 默认值与 wuli3-gradle 底座保持一致；需要放宽时在 `gradle.properties` 或模块级
- * `-P` 参数里覆盖，不要在模块 build 脚本里重复配置质量规则。
+ * 全局默认值在这里；需要调整时在根 `gradle.properties` 或 `-P` 参数里覆盖，模块级差异
+ * 走 `weiranConventions {}`（见 [WeiranConventionsExtension]），不要在模块 build 脚本里重复配置质量规则。
  */
 internal object ConventionProperties {
     const val DEFAULT_BOM_COORDINATES = "com.weiran:weiran-dependencies:0.1.0-SNAPSHOT"
