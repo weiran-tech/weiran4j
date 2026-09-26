@@ -1,0 +1,38 @@
+{
+  "$schema-note": "openspec 流程中【必须被程序读取】的项目事实。其余项目事实以自由文本写在 templates/ 的 openspec:slot 槽里。改本文件后跑 `node openspec/check.mjs` 验证。",
+  "commands-note": "L7 硬闸门的命令清单，**这是唯一事实源**：`L7/evidence-missing` 按这里的键名要求 `exec/evidence/<键>.log` 逐个存在且非空。命令从仓库根执行：后端在 `weiran4j/` 下走 Gradle wrapper（必须 JDK 21，否则 palantir-java-format 失败），前端走仓库根的 pnpm 工作区。后端 `check` 已包含 test、Checkstyle、SpotBugs、Spotless、Forbidden APIs、Error Prone/NullAway 与 Testcontainers 集成测试（需要 Docker）。用 `--no-daemon`：复用的 daemon 曾让 palantir 在所有文件上报 NoClassDefFoundError（见 rules/advisory/toolchain.md）。",
+  "commands": {
+    "build": "(cd weiran4j && JAVA_HOME=${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)} ./gradlew assemble --no-daemon) && pnpm --filter @weiran/web build",
+    "test": "(cd weiran4j && JAVA_HOME=${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)} ./gradlew test --no-daemon) && pnpm --filter @weiran/web test",
+    "lint": "(cd weiran4j && JAVA_HOME=${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)} ./gradlew check --no-daemon) && pnpm --filter @weiran/web lint"
+  },
+  "sourcePaths": [
+    "weiran4j/weiran-common",
+    "weiran4j/weiran-framework",
+    "weiran4j/weiran-system",
+    "weiran4j/weiran-platform",
+    "weiran4j/weiran-app",
+    "web/src"
+  ],
+  "checks-note": "项目级检查插件。rules-index.mjs 守 CLAUDE.md 的规则索引表（`openspec/rules/` 不会被自动注入提示词，那张表是它唯一的唤起途径）；components-registry.mjs 守 `rules/advisory/components.md` 的组件登记完整性（新增未登记即报错）；state-waitlist.mjs 守 `state/bizs/*.md` 的文件内 `#NN` 编号（重号、悬空引用、已废止的 T-NN/B-NN）；spec-xref / worktree-orphan / ratchet 与技术栈无关。mono4ts 的 drizzle-journal.mjs 不适用（本仓用 Flyway），Flyway 版本号的唯一性目前由 Flyway 自身在启动时校验。",
+  "checks": [
+    "./guards/rules-index.mjs",
+    "./guards/components-registry.mjs",
+    "./guards/state-waitlist.mjs",
+    "./guards/spec-xref.mjs",
+    "./guards/worktree-orphan.mjs",
+    "./guards/ratchet.mjs"
+  ],
+  "capabilities": {
+    "legacyChangeNamed": [],
+    "knownArchiveDrift": []
+  },
+  "ratchet": {
+    "$note": "存量棘轮：把宪法里「MUST NOT 新增 X」这类条款变成可执行约束。baseline 是唯一事实源，rules/enforced/constitution.md 只引用它不复述数字。新仓暂无存量，规则为空——真正出现要冻住的存量时再加，不要为了让文件非空而编造规则。",
+    "rules": []
+  },
+  "componentsRegistry": {
+    "$note": "确实不该进 components.md 的文件（纯内部实现）列在这里，逐条写理由。",
+    "exempt": []
+  }
+}

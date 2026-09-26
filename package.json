@@ -6,6 +6,9 @@
     "dev": "pnpm --filter @weiran/web dev",
     "build": "pnpm --filter @weiran/web build",
     "test": "pnpm --filter @weiran/web test",
-    "lint": "pnpm --filter @weiran/web lint"
+    "lint": "pnpm --filter @weiran/web lint",
+    "openspec:check": "node openspec/check.mjs",
+    "openspec:validate": "openspec validate --strict --changes --no-interactive",
+    "hooks:install": "git config core.hooksPath .githooks"
   }
 }

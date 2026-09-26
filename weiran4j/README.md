@@ -7,7 +7,7 @@
 | ---- | --------------------------------------------------------------------------------- |
 | 后端 | JDK 21 · Gradle 9 · Spring Boot 3.5 · MyBatis-Plus · Flyway · MySQL 8 · JWT(jjwt)  |
 | 分层 | DDD 五层（api / domain / application / infrastructure / adapter）                  |
-| 前端 | pnpm · Vite · React 19 · Semi UI · TanStack Query · React Router 7（位于 `../web`） |
+| 前端 | pnpm · Vite · React 19 · Semi UI · TanStack Query · React Router 7（位于仓库根 `web/`） |
 | 流程 | openspec（L0–L10 闸门）                                                           |
 
 ## 快速开始
@@ -46,8 +46,8 @@ cd .. && pnpm install && pnpm dev      # 默认 5373，/api 代理到 3300
 
 | 文档 | 内容 |
 | --- | --- |
-| [`CLAUDE.md`](CLAUDE.md) | 开发约定、分层规矩、门禁硬约束（AI 与人都读这份） |
+| [`CLAUDE.md`](../CLAUDE.md)(仓库根) | 开发约定、分层规矩、门禁硬约束（AI 与人都读这份） |
 | [`docs/01-架构与接口契约.md`](docs/01-架构与接口契约.md) | **前后端唯一契约**：模块、表结构、种子数据、全部接口与错误码 |
 | [`docs/00-决策记录.md`](docs/00-决策记录.md) | 关键决策与理由，只增不改（重写见 D-008） |
-| [`openspec/rules/enforced/constitution.md`](openspec/rules/enforced/constitution.md) | 跨 change 的工程不变量 CP-1…CP-11 |
-| [`openspec/design/README.md`](openspec/design/README.md) | openspec 流水线怎么用 |
+| [`openspec/rules/enforced/constitution.md`](../openspec/rules/enforced/constitution.md) | 跨 change 的工程不变量 CP-1…CP-11 |
+| [`openspec/design/README.md`](../openspec/design/README.md) | openspec 流水线怎么用 |

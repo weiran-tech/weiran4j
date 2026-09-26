@@ -1,0 +1,11 @@
+npm notice run @weiran/web@0.1.0 npx
+npm notice run 'vitest' run
+
+ RUN  v4.1.11 /Users/duoli/Projects/duoli-weiran/weiran4j/web
+
+
+ Test Files  6 passed (6)
+      Tests  20 passed (20)
+   Start at  07:06:37
+   Duration  5.98s (transform 12.76s, setup 1.03s, import 19.72s, tests 615ms, environment 3.89s)
+

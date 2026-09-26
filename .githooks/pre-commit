@@ -1,0 +1,17 @@
+#!/bin/sh
+# OpenSpec 结构校验(门禁 ②)—— 只在本次提交碰到相关文件时才跑,保持提交速度。
+# 安装:pnpm hooks:install(等价于 git config core.hooksPath .githooks)
+# 绕过:git commit --no-verify(应急用;本仓库暂无 CI 兜底,见 openspec/state/bizs/artifact.md#05)
+#
+# 路径必须覆盖 openspec 各守卫实际扫描的目录:components-registry 扫 web/src,
+# sourcePaths 覆盖 weiran4j/ —— 只匹配 openspec/ 等于给「加组件不登记」开了后门。
+
+changed=$(git diff --cached --name-only --diff-filter=ACMRD)
+
+echo "$changed" | grep -qE '^(openspec/|weiran4j/|web/|CLAUDE\.md|AGENTS\.md)' || exit 0
+
+echo "openspec check ..."
+if ! node openspec/check.mjs; then
+  echo "openspec check 未通过。修复后重新提交,或用 git commit --no-verify 应急绕过。"
+  exit 1
+fi

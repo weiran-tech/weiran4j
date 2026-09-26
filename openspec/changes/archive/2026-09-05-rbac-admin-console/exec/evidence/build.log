@@ -1,0 +1,56 @@
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+> Task :assemble UP-TO-DATE
+> Task :weiran-dependencies:assemble UP-TO-DATE
+> Task :weiran-system-domain:processResources NO-SOURCE
+> Task :weiran-system-api:processResources NO-SOURCE
+> Task :weiran-system-application:processResources NO-SOURCE
+> Task :weiran-app:processResources UP-TO-DATE
+> Task :weiran-system-infrastructure:processResources UP-TO-DATE
+> Task :weiran-system-adapter:processResources UP-TO-DATE
+> Task :weiran-app:sourcesJar
+> Task :weiran-system-application:sourcesJar
+> Task :weiran-system-domain:sourcesJar
+> Task :weiran-system-api:sourcesJar
+> Task :weiran-system-adapter:sourcesJar
+> Task :weiran-system-infrastructure:sourcesJar
+> Task :weiran-common:compileJava UP-TO-DATE
+> Task :weiran-common:processResources NO-SOURCE
+> Task :weiran-common:classes UP-TO-DATE
+> Task :weiran-common:jar UP-TO-DATE
+> Task :weiran-system-api:compileJava UP-TO-DATE
+> Task :weiran-system-domain:compileJava UP-TO-DATE
+> Task :weiran-system-api:classes UP-TO-DATE
+> Task :weiran-system-domain:classes UP-TO-DATE
+> Task :weiran-system-domain:jar UP-TO-DATE
+> Task :weiran-system-api:jar UP-TO-DATE
+> Task :weiran-system-domain:assemble
+> Task :weiran-system-api:assemble
+> Task :weiran-common:sourcesJar
+> Task :weiran-common:assemble
+> Task :weiran-system-application:compileJava UP-TO-DATE
+> Task :weiran-system-application:classes UP-TO-DATE
+> Task :weiran-system-application:jar UP-TO-DATE
+> Task :weiran-system-application:assemble
+> Task :weiran-system-infrastructure:compileJava UP-TO-DATE
+> Task :weiran-system-infrastructure:classes UP-TO-DATE
+> Task :weiran-system-infrastructure:jar UP-TO-DATE
+> Task :weiran-system-infrastructure:assemble
+> Task :weiran-system-adapter:compileJava UP-TO-DATE
+> Task :weiran-system-adapter:classes UP-TO-DATE
+> Task :weiran-system-adapter:jar UP-TO-DATE
+> Task :weiran-system-adapter:assemble
+> Task :weiran-app:compileJava UP-TO-DATE
+> Task :weiran-app:classes UP-TO-DATE
+> Task :weiran-app:resolveMainClassName UP-TO-DATE
+> Task :weiran-app:bootJar
+> Task :weiran-app:jar SKIPPED
+> Task :weiran-app:assemble
+
+BUILD SUCCESSFUL in 1s
+29 actionable tasks: 8 executed, 21 up-to-date
