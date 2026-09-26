@@ -46,3 +46,9 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
             dispatchEvent: () => false,
         }) as MediaQueryList;
 }
+
+/** jsdom 的 Range 没有布局方法，Semi Typography 计算省略号时会调用（如主题切换后重新测量面包屑） */
+if (typeof Range !== 'undefined' && !Range.prototype.getBoundingClientRect) {
+    Range.prototype.getBoundingClientRect = () => new DOMRect(0, 0, 0, 0);
+    Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
+}

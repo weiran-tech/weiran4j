@@ -1,0 +1,28 @@
+/*
+ * 响应式断点 —— CSS 侧单一来源，与 src/lib/breakpoints.ts 保持一致。
+ *
+ * 由 postcss-custom-media + @csstools/postcss-global-data 注入到所有 CSS（见 web/postcss.config.js），
+ * 样式里统一写 `@media (--md-down) { ... }`，不要再硬编码 px 断点。
+ *
+ *   token  | px   | down(max-width) | up(min-width)
+ *   -------|------|-----------------|---------------
+ *   xs     | 480  | 479             | 480
+ *   sm     | 576  | 575             | 576
+ *   md     | 768  | 767             | 768
+ *   lg     | 992  | 991             | 992
+ *   xl     | 1200 | 1199            | 1200
+ *
+ * down 系列与 breakpoints.ts 的 mediaDown() 一致（max-width: bp - 1），CSS 与 JS 在同一像素边界切换。
+ */
+
+@custom-media --xs-down (max-width: 479px);
+@custom-media --sm-down (max-width: 575px);
+@custom-media --md-down (max-width: 767px);
+@custom-media --lg-down (max-width: 991px);
+@custom-media --xl-down (max-width: 1199px);
+
+@custom-media --xs-up (min-width: 480px);
+@custom-media --sm-up (min-width: 576px);
+@custom-media --md-up (min-width: 768px);
+@custom-media --lg-up (min-width: 992px);
+@custom-media --xl-up (min-width: 1200px);

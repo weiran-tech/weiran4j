@@ -84,9 +84,9 @@ export default function OperationLogsPage() {
     };
 
     const columns: ColumnProps<OperationLogView>[] = [
-        { title: '操作人', dataIndex: 'username', width: 120, render: (v: string | null) => v || '—' },
-        { title: '模块', dataIndex: 'module', width: 120 },
-        { title: '描述', dataIndex: 'description', width: 160 },
+        { title: '操作人', dataIndex: 'username', width: 110, render: (v: string | null) => v || '—' },
+        { title: '模块', dataIndex: 'module', width: 110 },
+        { title: '描述', dataIndex: 'description', width: 150 },
         {
             title: '请求',
             dataIndex: 'path',
@@ -99,15 +99,15 @@ export default function OperationLogsPage() {
                 </span>
             ),
         },
-        { title: '结果', dataIndex: 'success', width: 80, render: (v: boolean) => <StatusTag value={v} /> },
-        { title: '耗时', dataIndex: 'durationMs', width: 90, render: (v: number) => `${v} ms` },
-        { title: 'IP', dataIndex: 'ip', width: 130, render: (v: string | null) => v || '—' },
-        { title: '时间', dataIndex: 'createdAt', width: 170 },
+        { title: '结果', dataIndex: 'success', width: 72, render: (v: boolean) => <StatusTag value={v} /> },
+        { title: '耗时', dataIndex: 'durationMs', width: 80, render: (v: number) => `${v} ms` },
+        { title: 'IP', dataIndex: 'ip', width: 120, render: (v: string | null) => v || '—' },
+        { title: '时间', dataIndex: 'createdAt', width: 164 },
         {
             title: '操作',
             dataIndex: 'actions',
             fixed: 'right',
-            width: 80,
+            width: 72,
             render: (_: unknown, r: OperationLogView) => (
                 <Button theme="borderless" size="small" onClick={() => setDetailId(r.id)}>
                     详情
@@ -165,7 +165,7 @@ export default function OperationLogsPage() {
                 columns={columns}
                 dataSource={data?.list ?? []}
                 loading={isFetching}
-                scroll={{ x: 1300 }}
+                scroll={{ x: 1100 }}
                 pagination={{
                     currentPage: page,
                     pageSize,

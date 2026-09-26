@@ -37,7 +37,7 @@ export default function MenusPage() {
         {
             title: '菜单名称',
             dataIndex: 'title',
-            width: 240,
+            width: 200,
             render: (v: string, r: MenuNode) => (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     {renderIcon(r.icon, 14)}
@@ -48,24 +48,24 @@ export default function MenusPage() {
         {
             title: '类型',
             dataIndex: 'type',
-            width: 80,
+            width: 72,
             render: (v: MenuType) => (
                 <Tag size="small" color={TYPE_TAG[v].color}>
                     {TYPE_TAG[v].text}
                 </Tag>
             ),
         },
-        { title: '路由路径', dataIndex: 'path', width: 180, render: (v: string | null) => v || '—' },
-        { title: '组件', dataIndex: 'component', width: 240, render: (v: string | null) => v || '—' },
-        { title: '权限码', dataIndex: 'permission', width: 200, render: (v: string | null) => v || '—' },
-        { title: '排序', dataIndex: 'sort', width: 70 },
+        { title: '路由路径', dataIndex: 'path', width: 150, render: (v: string | null) => v || '—' },
+        { title: '组件', dataIndex: 'component', render: (v: string | null) => v || '—' },
+        { title: '权限码', dataIndex: 'permission', width: 160, render: (v: string | null) => v || '—' },
+        { title: '排序', dataIndex: 'sort', width: 60 },
         {
             title: '显示',
             dataIndex: 'visible',
-            width: 70,
+            width: 64,
             render: (v: boolean, r: MenuNode) => (r.type === 'button' ? '—' : v ? '是' : '否'),
         },
-        { title: '状态', dataIndex: 'status', width: 80, render: (v: Status) => <StatusTag value={v} /> },
+        { title: '状态', dataIndex: 'status', width: 72, render: (v: Status) => <StatusTag value={v} /> },
     ];
 
     if (hasAnyPermission('system:menu:create', 'system:menu:update', 'system:menu:delete')) {
@@ -73,7 +73,7 @@ export default function MenusPage() {
             title: '操作',
             dataIndex: 'actions',
             fixed: 'right',
-            width: 200,
+            width: 180,
             render: (_: unknown, record: MenuNode) => (
                 <Space spacing={4}>
                     {record.type !== 'button' && (
@@ -127,7 +127,7 @@ export default function MenusPage() {
                 pagination={false}
                 expandedRowKeys={expandedKeys ?? defaultExpanded}
                 onExpandedRowsChange={(rows) => setExpandedKeys((rows ?? []).map((r) => (r as MenuNode).id))}
-                scroll={{ x: 1400 }}
+                scroll={{ x: 1110 }}
             />
             {target && <MenuFormModal target={target} tree={data ?? []} onClose={() => setTarget(null)} />}
         </PageContainer>

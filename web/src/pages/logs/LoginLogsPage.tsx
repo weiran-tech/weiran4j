@@ -39,21 +39,21 @@ export default function LoginLogsPage() {
     };
 
     const columns: ColumnProps<LoginLogView>[] = [
-        { title: '用户名', dataIndex: 'username', width: 130 },
+        { title: '用户名', dataIndex: 'username', width: 120 },
         {
             title: '事件',
             dataIndex: 'eventType',
-            width: 80,
+            width: 72,
             render: (v: string) => (
                 <Tag size="small" color={v === 'login' ? 'blue' : 'grey'}>
                     {v === 'login' ? '登录' : '登出'}
                 </Tag>
             ),
         },
-        { title: '结果', dataIndex: 'status', width: 80, render: (v: string) => <StatusTag value={v} /> },
-        { title: 'IP', dataIndex: 'ip', width: 140, render: (v: string | null) => v || '—' },
-        { title: '浏览器', dataIndex: 'browser', width: 140, render: (v: string | null) => v || '—' },
-        { title: '操作系统', dataIndex: 'os', width: 140, render: (v: string | null) => v || '—' },
+        { title: '结果', dataIndex: 'status', width: 72, render: (v: string) => <StatusTag value={v} /> },
+        { title: 'IP', dataIndex: 'ip', width: 130, render: (v: string | null) => v || '—' },
+        { title: '浏览器', dataIndex: 'browser', width: 130, render: (v: string | null) => v || '—' },
+        { title: '操作系统', dataIndex: 'os', width: 130, render: (v: string | null) => v || '—' },
         {
             title: '信息',
             dataIndex: 'message',
@@ -63,7 +63,7 @@ export default function LoginLogsPage() {
                 </Typography.Text>
             ),
         },
-        { title: '时间', dataIndex: 'createdAt', width: 170 },
+        { title: '时间', dataIndex: 'createdAt', width: 164 },
     ];
 
     return (
@@ -118,7 +118,7 @@ export default function LoginLogsPage() {
                 columns={columns}
                 dataSource={data?.list ?? []}
                 loading={isFetching}
-                scroll={{ x: 1200 }}
+                scroll={{ x: 1050 }}
                 pagination={{
                     currentPage: page,
                     pageSize,

@@ -1,107 +1,766 @@
+/* AdminLayout —— 飞书风格侧边栏（移植自 mono4ts，仅 vertical 布局） */
+
 .admin-layout {
+    display: flex;
+    flex-direction: column;
     height: 100vh;
+    overflow: hidden;
 }
 
-.admin-layout__sider {
-    background: var(--semi-color-bg-1);
-    border-right: 1px solid var(--semi-color-border);
+/* ===== 主体：侧边栏 + 主区并排 ===== */
+.admin-body {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+    min-height: 0;
 }
 
-.admin-layout__nav {
-    height: 100%;
+/* ===== 侧边栏 ===== */
+.admin-sidebar {
+    width: var(--sidebar-width);
+    background: var(--color-sidebar-bg);
+    flex-shrink: 0;
+    transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    border-right: 1px solid var(--color-border);
 }
 
-.admin-layout__logo {
+.admin-sidebar--collapsed {
+    width: var(--sidebar-collapsed-width);
+}
+
+.admin-sidebar__brand {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    background: var(--semi-color-primary);
-    color: #fff;
-    font-weight: 600;
+    gap: 8px;
+    max-width: 100%;
+    border: 0;
+    padding: 0 4px 0 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    overflow: visible;
 }
 
-.admin-layout__main {
+.admin-sidebar__title {
+    color: var(--color-sidebar-title);
+    font-size: 16px;
+    font-weight: 600;
+    white-space: nowrap;
     min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 1;
+    transition: opacity 0.15s ease 0.18s;
+}
+
+/* Semi Nav 宽度交给外层 aside 控制 */
+.admin-sidebar__nav.semi-navigation {
+    height: 100%;
+    width: 100%;
+    background: var(--color-sidebar-bg);
+    border-right: none;
     display: flex;
     flex-direction: column;
 }
 
-.admin-layout__header {
+/* 修复 Semi Nav 内部布局：让 inner 与 header-list-outer 正确分配高度，菜单区独立滚动 */
+.admin-sidebar__nav .semi-navigation-inner {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.admin-sidebar__nav .semi-navigation-header-list-outer {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.admin-sidebar__nav.semi-navigation-collapsed {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.admin-sidebar__nav .semi-navigation-header {
+    height: var(--header-height);
+    padding: 0 14px;
+    border-bottom: none;
+    flex-shrink: 0;
+    overflow: visible;
+}
+
+.admin-sidebar__nav .semi-navigation-header .semi-navigation-header-logo {
+    margin-right: 0;
+    max-width: 100%;
+    overflow: visible;
+}
+
+.admin-sidebar__nav .semi-navigation-list-wrapper {
+    padding: 4px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+/* 侧边栏菜单极窄滚动条 */
+.admin-sidebar__nav .semi-navigation-list-wrapper::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+.admin-sidebar__nav .semi-navigation-list-wrapper::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 4px;
+}
+
+.admin-sidebar__nav .semi-navigation-list-wrapper::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-text-secondary);
+}
+
+.admin-sidebar__nav .semi-navigation-list-wrapper::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* 紧凑菜单项：减小内边距，去掉 Semi 默认的固定高度与 margin-bottom；一级与子级字体一致 */
+.admin-sidebar__nav .semi-navigation-item,
+.admin-sidebar__nav .semi-navigation-sub-title {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+    font-size: 13px;
+    height: auto !important;
+    min-height: 34px;
+    margin-bottom: 0 !important;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    color: var(--color-sidebar-text);
+}
+
+.admin-sidebar__nav .semi-navigation-item-text,
+.admin-sidebar__nav .semi-navigation-sub-title-text {
+    font-weight: 500;
+    letter-spacing: 0.2px;
+}
+
+.admin-sidebar__nav .semi-navigation-item,
+.admin-sidebar__nav .semi-navigation-sub {
+    border-radius: 6px;
+}
+
+/* 紧凑布局：去掉 Semi 默认的子项 margin-top */
+.admin-sidebar__nav .semi-navigation-sub .semi-navigation-item,
+.admin-sidebar__nav .semi-navigation-sub .semi-navigation-sub-wrap {
+    margin-top: 2px !important;
+}
+
+/* hover 只高亮被悬停的那一项，不让父容器发光 */
+.admin-sidebar__nav .semi-navigation-item-normal:hover,
+.admin-sidebar__nav .semi-navigation-sub-title:hover {
+    background: var(--color-sidebar-hover);
+}
+
+.admin-sidebar__nav .semi-navigation-sub-wrap:hover,
+.admin-sidebar__nav .semi-navigation-sub:hover {
+    background: transparent;
+}
+
+/* 选中态：底色 + 文字跟随主题色（深色下为白字） */
+.admin-sidebar__nav .semi-navigation-item-selected,
+.admin-sidebar__nav .semi-navigation-sub-selected {
+    background: var(--color-sidebar-active) !important;
+}
+
+.admin-sidebar__nav .semi-navigation-item-selected,
+.admin-sidebar__nav .semi-navigation-item-selected .semi-navigation-item-icon {
+    color: var(--color-sidebar-text-active);
+}
+
+.admin-sidebar__nav .semi-navigation-footer {
+    border-top: 1px solid var(--color-border);
+    padding: 8px !important;
+    height: 48px !important;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.admin-sidebar__nav .semi-navigation-footer .semi-button {
+    width: 100%;
+    justify-content: flex-start;
+    height: 32px !important;
+    padding: 0 8px !important;
+    color: var(--color-text-secondary);
+}
+
+/* ----- 折叠态 ----- */
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-header {
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-header .semi-navigation-header-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.admin-sidebar__nav.semi-navigation-collapsed .admin-sidebar__brand {
+    justify-content: center;
+    width: 100%;
+    padding: 0;
+}
+
+.admin-sidebar__nav.semi-navigation-collapsed .admin-sidebar__title {
+    display: none;
+}
+
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-list-wrapper {
+    width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-list {
+    width: 100%;
+}
+
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-item,
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-sub {
+    width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+    justify-content: center;
+}
+
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-sub-wrap {
+    margin-bottom: 0;
+}
+
+/* 防止 Semi 的 transition: all 让图标位移速度不一 */
+.admin-sidebar__nav .semi-navigation-item-icon {
+    transition: none !important;
+}
+
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-item-icon {
+    margin-right: 0;
+    width: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 目录项图标在 .semi-navigation-item-inner 里，靠它居中（叶子项图标直接在 li 上） */
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-item-inner {
+    justify-content: center;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-sub-title {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* 折叠时选中的叶子项去掉底色，与目录项一致 */
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-item-selected {
+    background: transparent !important;
+}
+
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-item-icon-info {
+    margin: 0 !important;
+}
+
+/* 折叠时移除文字 / 箭头占位（淡出由 Semi 自带的 opacity 过渡处理） */
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-item-text,
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-sub-title-text {
+    max-width: 0 !important;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-item-icon-toggle-right,
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-item-icon-toggle-left {
+    max-width: 0 !important;
+    overflow: hidden;
+    margin: 0 !important;
+}
+
+.admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-footer .semi-button {
+    justify-content: center;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* 折叠时 Semi 弹出的子菜单：限制最大高度 + 极窄滚动条 */
+.semi-navigation-popup {
+    max-height: calc(100vh - 20px) !important;
+    overflow-y: auto !important;
+}
+
+.semi-navigation-popup::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+.semi-navigation-popup::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 4px;
+}
+
+/* ----- 子级缩进（展开态） ----- */
+.admin-sidebar__nav:not(.semi-navigation-collapsed) .semi-navigation-sub > .semi-navigation-item-normal,
+.admin-sidebar__nav:not(.semi-navigation-collapsed) .semi-navigation-sub > .semi-navigation-sub-wrap > .semi-navigation-sub-title {
+    padding-left: 28px !important;
+}
+
+.admin-sidebar__nav:not(.semi-navigation-collapsed) .semi-navigation-sub .semi-navigation-sub > .semi-navigation-item-normal,
+.admin-sidebar__nav:not(.semi-navigation-collapsed) .semi-navigation-sub .semi-navigation-sub > .semi-navigation-sub-wrap > .semi-navigation-sub-title {
+    padding-left: 44px !important;
+}
+
+.admin-sidebar__nav:not(.semi-navigation-collapsed) .semi-navigation-sub .semi-navigation-sub .semi-navigation-sub > .semi-navigation-item-normal {
+    padding-left: 60px !important;
+}
+
+/* ===== 主区 ===== */
+.admin-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+}
+
+/* ----- 顶栏 ----- */
+.admin-header {
+    height: var(--header-height);
+    background: var(--color-layout-bg);
+    border-bottom: 1px solid var(--color-border);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 52px;
-    padding: 0 16px;
-    background: var(--semi-color-bg-1);
-    border-bottom: 1px solid var(--semi-color-border);
+    padding: 0 20px;
+    gap: 12px;
+    flex-shrink: 0;
 }
 
-.admin-layout__user {
-    display: inline-flex;
+.admin-header__breadcrumb {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.admin-header__breadcrumb .semi-breadcrumb {
+    flex-wrap: nowrap;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.admin-header__breadcrumb .semi-breadcrumb-item-title {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.admin-header__user {
+    display: flex;
     align-items: center;
     gap: 8px;
+    margin-left: 4px;
     cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--radius);
+    color: var(--color-text);
+    transition: background 0.15s;
+}
+
+.admin-header__user:hover {
+    background: var(--color-layout-hover);
+}
+
+.admin-header__username {
+    font-size: 13px;
+    color: var(--color-text);
+}
+
+.admin-header__caret {
+    color: var(--color-text-secondary);
+}
+
+.admin-theme-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition:
+        background 0.15s,
+        color 0.15s;
+}
+
+.admin-theme-btn:hover {
+    background: var(--color-layout-hover);
+    color: var(--color-text);
+}
+
+@media (--lg-down) {
+    .admin-header__username,
+    .admin-header__caret {
+        display: none;
+    }
+}
+
+@media (--sm-down) {
+    .admin-header {
+        padding: 0 10px;
+        gap: 8px;
+    }
+}
+
+/* ===== 主题色面板（顶栏「主题色」按钮的弹层） ===== */
+.theme-color-panel {
+    width: 248px;
+    padding: 12px;
+}
+
+.theme-color-panel__title {
+    margin-bottom: 10px;
+    font-size: 13px;
+    font-weight: 500;
     color: var(--semi-color-text-0);
 }
 
-.admin-layout__content {
-    flex: 1;
-    overflow: auto;
-    padding: 16px;
-    background: var(--semi-color-fill-0);
+.theme-color-picker {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
-.admin-tabs {
+.theme-color-swatch {
+    position: relative;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition:
+        transform 0.15s,
+        box-shadow 0.15s;
+    flex-shrink: 0;
+}
+
+.theme-color-swatch:hover {
+    transform: scale(1.12);
+}
+
+.theme-color-swatch--active {
+    box-shadow:
+        0 0 0 2px var(--semi-color-bg-3),
+        0 0 0 4px currentColor;
+}
+
+.theme-color-swatch__check {
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
-    gap: 4px;
-    height: 38px;
-    padding: 0 8px;
-    background: var(--semi-color-bg-1);
-    border-bottom: 1px solid var(--semi-color-border);
+    justify-content: center;
+    color: #fff;
+    pointer-events: none;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
 }
 
-.admin-tabs__list {
+.theme-color-swatch--custom {
+    background: conic-gradient(#e11d48, #f59e0b, #059669, #0891b2, #4f46e5, #c026d3, #e11d48);
+    overflow: hidden;
+}
+
+.theme-color-swatch--custom.theme-color-swatch--active {
+    box-shadow:
+        0 0 0 2px var(--semi-color-bg-3),
+        0 0 0 4px var(--semi-color-primary);
+}
+
+/* 原生取色器铺满色块但不可见，点击色块即打开系统取色 */
+.theme-color-swatch__input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    border: 0;
+}
+
+/* ----- 多页签栏 ----- */
+.admin-tabs-bar {
     display: flex;
-    flex: 1;
-    gap: 4px;
-    min-width: 0;
+    align-items: stretch;
+    background: var(--color-layout-bg);
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.admin-tabs-bar__scroll {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 16px;
     overflow-x: auto;
+    flex: 1;
+    min-width: 0;
     scrollbar-width: none;
 }
 
-.admin-tabs__tab {
-    display: inline-flex;
+.admin-tabs-bar__scroll::-webkit-scrollbar {
+    height: 0;
+}
+
+/* 右侧「全部页签」下拉：固定在最右，不随页签滚动 */
+.admin-tabs-bar__switcher {
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    background: var(--color-layout-bg);
+    border-left: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.admin-tab-item {
+    position: relative;
+    display: flex;
     align-items: center;
     gap: 4px;
-    flex-shrink: 0;
-    height: 28px;
-    padding: 0 10px;
-    border-radius: 6px;
-    cursor: pointer;
+    padding: 10px 0;
     font-size: 13px;
-    color: var(--semi-color-text-1);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
     user-select: none;
+    outline: none;
+    transition: color 0.15s;
 }
 
-.admin-tabs__tab:hover {
-    background: var(--semi-color-fill-0);
+.admin-tab-item:hover,
+.admin-tab-item:focus-visible {
+    color: var(--color-text);
 }
 
-.admin-tabs__tab--active {
-    background: var(--semi-color-primary-light-default);
-    color: var(--semi-color-primary);
+.admin-tab-item--active,
+.admin-tab-item--active:hover {
+    color: var(--color-primary);
+    font-weight: 500;
 }
 
-.admin-tabs__close {
+.admin-tab-item--active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--color-primary);
+    border-radius: 2px 2px 0 0;
+}
+
+.admin-tab-item__text {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-tab-item__close {
     display: inline-flex;
-    border-radius: 4px;
-    padding: 1px;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border: none;
+    background: transparent;
+    border-radius: 3px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 0;
+    opacity: 0;
+    transition:
+        opacity 0.15s,
+        background 0.15s;
 }
 
-.admin-tabs__close:hover {
+.admin-tab-item__close:hover {
+    opacity: 1;
     background: var(--semi-color-fill-1);
+}
+
+.admin-tab-item--active .admin-tab-item__close,
+.admin-tab-item:hover .admin-tab-item__close,
+.admin-tab-item__close:focus-visible {
+    opacity: 1;
+}
+
+/* ----- 内容区 ----- */
+.admin-content {
+    flex: 1;
+    padding: 12px;
+    background: var(--color-bg);
+    overflow: auto;
+    scrollbar-gutter: stable;
+    position: relative;
+}
+
+@media (--sm-down) {
+    .admin-tabs-bar__scroll {
+        padding: 0 10px;
+        gap: 10px;
+    }
+
+    .admin-content {
+        padding: 8px;
+    }
+}
+
+/* ===== 移动端顶栏与导航抽屉（< md） ===== */
+.admin-mobile-header {
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    background: var(--color-layout-bg);
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+}
+
+.admin-mobile-header__menu,
+.admin-mobile-header__brand {
+    border: 0;
+    background: transparent;
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.admin-mobile-header__menu {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius);
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.admin-mobile-header__menu:hover,
+.admin-mobile-header__brand:hover {
+    background: var(--color-layout-hover);
+}
+
+.admin-mobile-header__brand {
+    min-width: 0;
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    border-radius: var(--radius);
+    padding: 0 6px;
+    text-align: left;
+    font: inherit;
+}
+
+.admin-mobile-header__title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.admin-mobile-header .admin-header__actions {
+    flex: 0 0 auto;
+    gap: 2px;
+}
+
+.admin-mobile-nav-sheet .semi-sidesheet-inner {
+    max-width: 86vw;
+}
+
+.admin-mobile-nav-sheet__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--color-text);
+    cursor: pointer;
+    padding: 0;
+    font: inherit;
+    font-weight: 600;
+}
+
+.admin-mobile-nav.semi-navigation {
+    width: 100%;
+    height: calc(100vh - var(--header-height));
+    background: var(--color-sidebar-bg);
+    border-right: 0;
+}
+
+.admin-mobile-nav .semi-navigation-list-wrapper {
+    padding: 8px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.admin-mobile-nav .semi-navigation-item,
+.admin-mobile-nav .semi-navigation-sub-title {
+    min-height: 42px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.admin-mobile-nav .semi-navigation-item-selected {
+    background: var(--color-sidebar-active) !important;
+    color: var(--color-sidebar-text-active);
+}
+
+.admin-mobile-nav .semi-navigation-sub > .semi-navigation-item-normal,
+.admin-mobile-nav .semi-navigation-sub > .semi-navigation-sub-wrap > .semi-navigation-sub-title {
+    padding-left: 28px !important;
+}
+
+.admin-mobile-nav .semi-navigation-sub .semi-navigation-sub > .semi-navigation-item-normal,
+.admin-mobile-nav .semi-navigation-sub .semi-navigation-sub > .semi-navigation-sub-wrap > .semi-navigation-sub-title {
+    padding-left: 44px !important;
+}
+
+.admin-mobile-nav .semi-navigation-sub .semi-navigation-sub .semi-navigation-sub > .semi-navigation-item-normal {
+    padding-left: 60px !important;
 }

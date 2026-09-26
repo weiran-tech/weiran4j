@@ -57,9 +57,9 @@ export default function UsersPage() {
     };
 
     const columns: ColumnProps<UserView>[] = [
-        { title: '用户名', dataIndex: 'username', width: 130 },
-        { title: '昵称', dataIndex: 'nickname', width: 120 },
-        { title: '部门', dataIndex: 'departmentName', width: 130, render: (v: string | null) => v || '—' },
+        { title: '用户名', dataIndex: 'username', width: 100 },
+        { title: '昵称', dataIndex: 'nickname', width: 100 },
+        { title: '部门', dataIndex: 'departmentName', width: 100, render: (v: string | null) => v || '—' },
         {
             title: '角色',
             dataIndex: 'roleNames',
@@ -72,11 +72,11 @@ export default function UsersPage() {
                       ))
                     : '—',
         },
-        { title: '手机', dataIndex: 'phone', width: 130, render: (v: string | null) => v || '—' },
-        { title: '性别', dataIndex: 'gender', width: 80, render: (v: string | null) => <DictTag dictCode="sys_user_gender" value={v} /> },
-        { title: '状态', dataIndex: 'status', width: 80, render: (v: Status) => <StatusTag value={v} /> },
-        { title: '最后登录', dataIndex: 'lastLoginAt', width: 170, render: (v: string | null) => v || '—' },
-        { title: '创建时间', dataIndex: 'createdAt', width: 170 },
+        { title: '手机', dataIndex: 'phone', width: 116, render: (v: string | null) => v || '—' },
+        { title: '性别', dataIndex: 'gender', width: 64, render: (v: string | null) => <DictTag dictCode="sys_user_gender" value={v} /> },
+        { title: '状态', dataIndex: 'status', width: 72, render: (v: Status) => <StatusTag value={v} /> },
+        { title: '最后登录', dataIndex: 'lastLoginAt', width: 164, render: (v: string | null) => v || '—' },
+        { title: '创建时间', dataIndex: 'createdAt', width: 164 },
     ];
 
     if (hasAnyPermission('system:user:update', 'system:user:reset-password', 'system:user:delete')) {
@@ -84,7 +84,7 @@ export default function UsersPage() {
             title: '操作',
             dataIndex: 'actions',
             fixed: 'right',
-            width: 200,
+            width: 176,
             render: (_: unknown, record: UserView) => (
                 <Space spacing={4}>
                     <Permission code="system:user:update">
@@ -149,7 +149,7 @@ export default function UsersPage() {
                 columns={columns}
                 dataSource={data?.list ?? []}
                 loading={isFetching}
-                scroll={{ x: 1300 }}
+                scroll={{ x: 1130 }}
                 pagination={{
                     currentPage: page,
                     pageSize,

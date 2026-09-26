@@ -1,9 +1,10 @@
-import { Avatar, Descriptions, Tag, Typography } from '@douyinfe/semi-ui';
+import { Avatar, Descriptions, Tag } from '@douyinfe/semi-ui';
 import dayjs from 'dayjs';
-import { PageContainer } from '@/components/PageContainer';
 import { DictTag } from '@/components/DictTag';
+import { PageContainer } from '@/components/PageContainer';
 import { config } from '@/config';
 import { useAuth } from '@/hooks/useAuth';
+import './DashboardPage.css';
 
 function greeting(): string {
     const h = dayjs().hour();
@@ -18,21 +19,35 @@ export default function DashboardPage() {
     const { user } = useAuth();
     if (!user) return null;
 
+    const name = user.nickname || user.username;
+    const isSuper = user.permissions.includes('*');
+    const stats = [
+        { label: '所属部门', value: user.departmentName || '—' },
+        { label: '角色', value: user.roles.length },
+        { label: '权限', value: isSuper ? '全部' : user.permissions.length },
+    ];
+
     return (
         <>
-            <PageContainer>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <Avatar size="large" color="blue" {...(user.avatar ? { src: user.avatar } : {})}>
-                        {(user.nickname || user.username).slice(0, 1)}
-                    </Avatar>
-                    <div>
-                        <Typography.Title heading={4} style={{ margin: 0 }}>
-                            {greeting()}，{user.nickname || user.username}
-                        </Typography.Title>
-                        <Typography.Text type="tertiary">欢迎使用 {config.appTitle}</Typography.Text>
+            <section className="dashboard-hero">
+                <Avatar size="large" className="dashboard-hero__avatar" {...(user.avatar ? { src: user.avatar } : {})}>
+                    {name.slice(0, 1)}
+                </Avatar>
+                <div>
+                    <div className="dashboard-hero__title">
+                        {greeting()}，{name}
                     </div>
+                    <div className="dashboard-hero__desc">欢迎使用 {config.appTitle}</div>
                 </div>
-            </PageContainer>
+            </section>
+            <div className="dashboard-stats">
+                {stats.map((s) => (
+                    <div key={s.label} className="stat-card">
+                        <div className="stat-card__value">{s.value}</div>
+                        <div className="stat-card__label">{s.label}</div>
+                    </div>
+                ))}
+            </div>
             <PageContainer title="当前用户">
                 <Descriptions
                     align="left"
@@ -55,7 +70,7 @@ export default function DashboardPage() {
                         },
                         {
                             key: '权限',
-                            value: user.permissions.includes('*') ? '全部权限（超级管理员）' : `${user.permissions.length} 项`,
+                            value: isSuper ? '全部权限（超级管理员）' : `${user.permissions.length} 项`,
                         },
                     ]}
                 />

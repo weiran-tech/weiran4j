@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import { PermissionContext } from '@/hooks/usePermission';
 import { createQueryClient } from '@/lib/query';
+import { ThemeProvider } from '@/providers/ThemeProvider';
 
 /** data 本身，或 `(init, url) => data | Response` */
 export type MockHandler = unknown;
@@ -46,14 +47,16 @@ interface RenderOptions {
     permissions?: string[];
 }
 
-/** 带 QueryClient（每个用例独立）、MemoryRouter、权限上下文渲染 */
+/** 带 QueryClient（每个用例独立）、主题、MemoryRouter、权限上下文渲染 */
 export function renderWithProviders(ui: ReactElement, { route = '/', permissions = ['*'] }: RenderOptions = {}) {
     const client = createQueryClient();
     const result = render(
         <QueryClientProvider client={client}>
-            <PermissionContext.Provider value={permissions}>
-                <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>
-            </PermissionContext.Provider>
+            <ThemeProvider>
+                <PermissionContext.Provider value={permissions}>
+                    <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>
+                </PermissionContext.Provider>
+            </ThemeProvider>
         </QueryClientProvider>,
     );
     return { ...result, client };

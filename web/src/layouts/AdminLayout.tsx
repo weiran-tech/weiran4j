@@ -1,14 +1,17 @@
-import { Avatar, Breadcrumb, Button, Dropdown, Layout, Nav, Spin } from '@douyinfe/semi-ui';
-import type { NavItemPropsWithItems, SubNavProps } from '@douyinfe/semi-ui/lib/es/navigation';
-import { ChevronDown, LogOut, PanelLeftClose, PanelLeftOpen, UserRound } from 'lucide-react';
+import { Avatar, Breadcrumb, Button, Dropdown, Nav, SideSheet, Spin } from '@douyinfe/semi-ui';
+import type { NavItemPropsWithItems, OnSelectedData, SubNavProps } from '@douyinfe/semi-ui/lib/es/navigation';
+import { ChevronDown, LogOut, Menu as MenuIcon, PanelLeftClose, PanelLeftOpen, UserRound } from 'lucide-react';
 import { Suspense, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { AppLogo } from '@/components/AppLogo';
 import { HOME_PATH, config } from '@/config';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 import type { MenuNode } from '@/types/api';
 import { renderNavIcon } from '@/utils/icons';
 import { findMenuTrail, normalizePath, type MenuRoute } from '@/utils/menu';
 import { TabsBar } from './TabsBar';
+import { ThemeColorButton, ThemeModeButton } from './ThemeSwitcher';
 import { useTabs } from './useTabs';
 import './AdminLayout.css';
 
@@ -55,11 +58,17 @@ interface AdminLayoutProps {
     routes: MenuRoute[];
 }
 
+/**
+ * 后台外壳（vertical 布局）：左侧菜单 + 顶栏（面包屑、主题、用户）+ 多页签 + 内容区。
+ * 小于 md（768px）时侧边栏收进抽屉，由移动端顶栏的菜单按钮打开。
+ */
 export function AdminLayout({ menus, routes }: AdminLayoutProps) {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
+    const isMobile = useIsMobile();
     const [collapsed, setCollapsed] = useState(readCollapsed);
+    const [mobileNavVisible, setMobileNavVisible] = useState(false);
 
     const pathname = normalizePath(location.pathname);
     const navItems = useMemo(() => toNavItems(menus), [menus]);
@@ -87,92 +96,162 @@ export function AdminLayout({ menus, routes }: AdminLayoutProps) {
         });
     };
 
+    const handleNavSelect = ({ itemKey }: OnSelectedData) => {
+        const key = String(itemKey);
+        if (key.startsWith(EXTERNAL_PREFIX)) {
+            window.open(key.slice(EXTERNAL_PREFIX.length), '_blank', 'noopener');
+        } else {
+            setMobileNavVisible(false);
+            void navigate(key);
+        }
+    };
+
+    const goHome = () => {
+        setMobileNavVisible(false);
+        void navigate(HOME_PATH);
+    };
+
     const breadcrumbs = trail.length ? trail.map((m) => m.title) : title ? [title] : [];
+    const displayName = user?.nickname || user?.username;
+
+    const headerActions = (
+        <div className="admin-header__actions">
+            <ThemeColorButton />
+            <ThemeModeButton />
+            <Dropdown
+                position="bottomRight"
+                render={
+                    <Dropdown.Menu>
+                        <Dropdown.Item icon={<UserRound size={14} />} onClick={() => void navigate('/profile')}>
+                            个人中心
+                        </Dropdown.Item>
+                        <Dropdown.Divider />
+                        <Dropdown.Item icon={<LogOut size={14} />} onClick={() => void logout()}>
+                            退出登录
+                        </Dropdown.Item>
+                    </Dropdown.Menu>
+                }
+            >
+                <span className="admin-header__user">
+                    <Avatar size="extra-small" color="blue" {...(user?.avatar ? { src: user.avatar } : {})}>
+                        {(displayName || '?').slice(0, 1)}
+                    </Avatar>
+                    <span className="admin-header__username">{displayName}</span>
+                    <ChevronDown size={14} className="admin-header__caret" />
+                </span>
+            </Dropdown>
+        </div>
+    );
 
     return (
-        <Layout className="admin-layout">
-            <Layout.Sider className="admin-layout__sider">
-                <Nav
-                    className="admin-layout__nav"
-                    items={navItems}
-                    selectedKeys={[pathname]}
-                    defaultOpenKeys={defaultOpenKeys}
-                    isCollapsed={collapsed}
-                    onSelect={({ itemKey }) => {
-                        const key = String(itemKey);
-                        if (key.startsWith(EXTERNAL_PREFIX)) {
-                            window.open(key.slice(EXTERNAL_PREFIX.length), '_blank', 'noopener');
-                        } else {
-                            void navigate(key);
+        <div className="admin-layout">
+            {isMobile && (
+                <>
+                    <header className="admin-mobile-header">
+                        <button type="button" className="admin-mobile-header__menu" aria-label="打开导航菜单" onClick={() => setMobileNavVisible(true)}>
+                            <MenuIcon size={20} strokeWidth={1.8} />
+                        </button>
+                        <button type="button" className="admin-mobile-header__brand" onClick={goHome}>
+                            <AppLogo size={26} />
+                            <span className="admin-mobile-header__title">{title ?? config.appTitle}</span>
+                        </button>
+                        {headerActions}
+                    </header>
+                    <SideSheet
+                        className="admin-mobile-nav-sheet"
+                        title={
+                            <button type="button" className="admin-mobile-nav-sheet__brand" onClick={goHome}>
+                                <AppLogo size={26} />
+                                <span>{config.appTitle}</span>
+                            </button>
                         }
-                    }}
-                    header={{
-                        text: config.appTitle,
-                        logo: <span className="admin-layout__logo">W</span>,
-                    }}
-                    footer={{
-                        children: (
-                            <Button
-                                theme="borderless"
-                                type="tertiary"
-                                icon={collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-                                aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'}
-                                onClick={toggleCollapsed}
-                            />
-                        ),
-                    }}
-                />
-            </Layout.Sider>
-            <Layout className="admin-layout__main">
-                <Layout.Header className="admin-layout__header">
-                    <Breadcrumb>
-                        {breadcrumbs.map((b, i) => (
-                            <Breadcrumb.Item key={`${i}-${b}`}>{b}</Breadcrumb.Item>
-                        ))}
-                    </Breadcrumb>
-                    <Dropdown
-                        position="bottomRight"
-                        render={
-                            <Dropdown.Menu>
-                                <Dropdown.Item icon={<UserRound size={14} />} onClick={() => void navigate('/profile')}>
-                                    个人中心
-                                </Dropdown.Item>
-                                <Dropdown.Divider />
-                                <Dropdown.Item icon={<LogOut size={14} />} onClick={() => void logout()}>
-                                    退出登录
-                                </Dropdown.Item>
-                            </Dropdown.Menu>
-                        }
+                        visible={mobileNavVisible}
+                        onCancel={() => setMobileNavVisible(false)}
+                        placement="left"
+                        width="min(86vw, 320px)"
+                        bodyStyle={{ padding: 0 }}
                     >
-                        <span className="admin-layout__user">
-                            <Avatar size="small" color="blue" {...(user?.avatar ? { src: user.avatar } : {})}>
-                                {(user?.nickname || user?.username || '?').slice(0, 1)}
-                            </Avatar>
-                            <span>{user?.nickname || user?.username}</span>
-                            <ChevronDown size={14} />
-                        </span>
-                    </Dropdown>
-                </Layout.Header>
-                <TabsBar
-                    tabs={tabs}
-                    activeKey={pathname}
-                    onSelect={(key) => void navigate(key)}
-                    onClose={(key) => go(close(key))}
-                    onCloseOthers={(key) => go(closeOthers(key))}
-                    onCloseAll={() => go(closeAll())}
-                />
-                <Layout.Content className="admin-layout__content">
-                    <Suspense
-                        fallback={
-                            <div className="page-loading">
-                                <Spin size="large" />
+                        <Nav
+                            className="admin-mobile-nav"
+                            mode="vertical"
+                            items={navItems}
+                            selectedKeys={[pathname]}
+                            defaultOpenKeys={defaultOpenKeys}
+                            onSelect={handleNavSelect}
+                        />
+                    </SideSheet>
+                </>
+            )}
+            <div className="admin-body">
+                {!isMobile && (
+                    <aside className={`admin-sidebar${collapsed ? ' admin-sidebar--collapsed' : ''}`}>
+                        <Nav
+                            className="admin-sidebar__nav"
+                            mode="vertical"
+                            items={navItems}
+                            selectedKeys={[pathname]}
+                            defaultOpenKeys={defaultOpenKeys}
+                            isCollapsed={collapsed}
+                            bodyStyle={{ paddingTop: 8 }}
+                            onSelect={handleNavSelect}
+                            header={{
+                                logo: (
+                                    <button type="button" className="admin-sidebar__brand" onClick={goHome}>
+                                        <AppLogo size={28} />
+                                        <span className="admin-sidebar__title">{config.appTitle}</span>
+                                    </button>
+                                ),
+                            }}
+                            footer={{
+                                children: (
+                                    <Button
+                                        theme="borderless"
+                                        type="tertiary"
+                                        icon={collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+                                        aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'}
+                                        onClick={toggleCollapsed}
+                                    >
+                                        {collapsed ? null : '收起侧边栏'}
+                                    </Button>
+                                ),
+                            }}
+                        />
+                    </aside>
+                )}
+                <div className="admin-main">
+                    {!isMobile && (
+                        <header className="admin-header">
+                            <div className="admin-header__breadcrumb">
+                                <Breadcrumb>
+                                    {breadcrumbs.map((b, i) => (
+                                        <Breadcrumb.Item key={`${i}-${b}`}>{b}</Breadcrumb.Item>
+                                    ))}
+                                </Breadcrumb>
                             </div>
-                        }
-                    >
-                        <Outlet />
-                    </Suspense>
-                </Layout.Content>
-            </Layout>
-        </Layout>
+                            {headerActions}
+                        </header>
+                    )}
+                    <TabsBar
+                        tabs={tabs}
+                        activeKey={pathname}
+                        onSelect={(key) => void navigate(key)}
+                        onClose={(key) => go(close(key))}
+                        onCloseOthers={(key) => go(closeOthers(key))}
+                        onCloseAll={() => go(closeAll())}
+                    />
+                    <main className="admin-content">
+                        <Suspense
+                            fallback={
+                                <div className="page-loading">
+                                    <Spin size="large" />
+                                </div>
+                            }
+                        >
+                            <Outlet />
+                        </Suspense>
+                    </main>
+                </div>
+            </div>
+        </div>
     );
 }

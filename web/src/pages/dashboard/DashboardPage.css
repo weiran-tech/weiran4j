@@ -1,0 +1,70 @@
+/* 首页：欢迎横幅 + 概览卡片 */
+
+.dashboard-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    border-radius: 8px;
+    overflow: hidden;
+    color: #fff;
+    background-color: var(--semi-color-primary-active);
+    background-image: linear-gradient(
+        120deg,
+        var(--semi-color-primary) 0%,
+        color-mix(in srgb, var(--semi-color-primary-active) 70%, #0b1530) 100%
+    );
+}
+
+/* 右侧同心环装饰（与登录页品牌栏同源） */
+.dashboard-hero::after {
+    content: '';
+    position: absolute;
+    width: 260px;
+    height: 260px;
+    right: -60px;
+    top: -120px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.16);
+    box-shadow:
+        0 0 0 36px rgba(255, 255, 255, 0.04),
+        0 0 0 72px rgba(255, 255, 255, 0.03);
+    pointer-events: none;
+}
+
+.dashboard-hero__avatar.semi-avatar {
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+
+.dashboard-hero__title {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.dashboard-hero__desc {
+    margin-top: 4px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin: 12px 0;
+}
+
+@media (--md-down) {
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-hero {
+        padding: 16px;
+    }
+}

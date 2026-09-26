@@ -11,10 +11,14 @@ import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
 import { config } from './config';
 import { queryClient } from './lib/query';
+import { bootstrapTheme } from './lib/theme';
+import { ThemeProvider } from './providers/ThemeProvider';
 import './styles/global.css';
 
 dayjs.locale('zh-cn');
 document.title = config.appTitle;
+// 挂载前同步应用已存主题（明暗 + 主色），避免深色用户首屏闪白
+bootstrapTheme();
 
 const container = document.getElementById('root');
 if (!container) {
@@ -25,9 +29,11 @@ createRoot(container).render(
     <StrictMode>
         <QueryClientProvider client={queryClient}>
             <LocaleProvider locale={zh_CN}>
-                <BrowserRouter>
-                    <App />
-                </BrowserRouter>
+                <ThemeProvider>
+                    <BrowserRouter>
+                        <App />
+                    </BrowserRouter>
+                </ThemeProvider>
             </LocaleProvider>
         </QueryClientProvider>
     </StrictMode>,

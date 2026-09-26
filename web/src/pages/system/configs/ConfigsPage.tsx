@@ -137,9 +137,9 @@ export default function ConfigsPage() {
             dataIndex: 'configValue',
             render: (v: string) => <Typography.Text ellipsis={{ showTooltip: true }} style={{ maxWidth: 320 }}>{v}</Typography.Text>,
         },
-        { title: '类型', dataIndex: 'configType', width: 90 },
+        { title: '类型', dataIndex: 'configType', width: 80 },
         { title: '描述', dataIndex: 'description', render: (v: string | null) => v || '—' },
-        { title: '更新时间', dataIndex: 'updatedAt', width: 170 },
+        { title: '更新时间', dataIndex: 'updatedAt', width: 164 },
     ];
 
     if (hasAnyPermission('system:config:update', 'system:config:delete')) {
@@ -147,7 +147,7 @@ export default function ConfigsPage() {
             title: '操作',
             dataIndex: 'actions',
             fixed: 'right',
-            width: 140,
+            width: 120,
             render: (_: unknown, record: ConfigView) => (
                 <Space spacing={4}>
                     <Permission code="system:config:update">

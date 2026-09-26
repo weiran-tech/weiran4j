@@ -55,7 +55,7 @@ export default function RolesPage() {
         {
             title: '角色名称',
             dataIndex: 'name',
-            width: 160,
+            width: 150,
             render: (v: string, r: RoleView) => (
                 <Space spacing={4}>
                     {v}
@@ -67,12 +67,12 @@ export default function RolesPage() {
                 </Space>
             ),
         },
-        { title: '角色编码', dataIndex: 'code', width: 160 },
+        { title: '角色编码', dataIndex: 'code', width: 140 },
         { title: '描述', dataIndex: 'description', render: (v: string | null) => v || '—' },
-        { title: '排序', dataIndex: 'sort', width: 80 },
-        { title: '用户数', dataIndex: 'userCount', width: 80 },
-        { title: '状态', dataIndex: 'status', width: 80, render: (v: Status) => <StatusTag value={v} /> },
-        { title: '创建时间', dataIndex: 'createdAt', width: 170 },
+        { title: '排序', dataIndex: 'sort', width: 64 },
+        { title: '用户数', dataIndex: 'userCount', width: 72 },
+        { title: '状态', dataIndex: 'status', width: 72, render: (v: Status) => <StatusTag value={v} /> },
+        { title: '创建时间', dataIndex: 'createdAt', width: 164 },
     ];
 
     if (hasAnyPermission('system:role:update', 'system:role:assign-menu', 'system:role:delete')) {
@@ -80,7 +80,7 @@ export default function RolesPage() {
             title: '操作',
             dataIndex: 'actions',
             fixed: 'right',
-            width: 220,
+            width: 190,
             render: (_: unknown, record: RoleView) => (
                 <Space spacing={4}>
                     <Permission code="system:role:update">
@@ -142,7 +142,7 @@ export default function RolesPage() {
                 columns={columns}
                 dataSource={data?.list ?? []}
                 loading={isFetching}
-                scroll={{ x: 1100 }}
+                scroll={{ x: 1000 }}
                 pagination={{
                     currentPage: page,
                     pageSize,

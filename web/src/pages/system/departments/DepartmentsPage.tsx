@@ -120,13 +120,13 @@ export default function DepartmentsPage() {
     const allKeys = useMemo(() => flattenTree(tree).map((d) => d.id), [tree]);
 
     const columns: ColumnProps<DepartmentNode>[] = [
-        { title: '部门名称', dataIndex: 'name', width: 240 },
-        { title: '部门编码', dataIndex: 'code', width: 140 },
-        { title: '负责人', dataIndex: 'leaderName', width: 120, render: (v: string | null) => v || '—' },
-        { title: '联系电话', dataIndex: 'phone', width: 140, render: (v: string | null) => v || '—' },
-        { title: '排序', dataIndex: 'sort', width: 70 },
-        { title: '状态', dataIndex: 'status', width: 80, render: (v: Status) => <StatusTag value={v} /> },
-        { title: '创建时间', dataIndex: 'createdAt', width: 170 },
+        { title: '部门名称', dataIndex: 'name', width: 220 },
+        { title: '部门编码', dataIndex: 'code', width: 120 },
+        { title: '负责人', dataIndex: 'leaderName', width: 100, render: (v: string | null) => v || '—' },
+        { title: '联系电话', dataIndex: 'phone', width: 120, render: (v: string | null) => v || '—' },
+        { title: '排序', dataIndex: 'sort', width: 64 },
+        { title: '状态', dataIndex: 'status', width: 72, render: (v: Status) => <StatusTag value={v} /> },
+        { title: '创建时间', dataIndex: 'createdAt', width: 164 },
     ];
 
     if (hasAnyPermission('system:department:create', 'system:department:update', 'system:department:delete')) {
@@ -134,7 +134,7 @@ export default function DepartmentsPage() {
             title: '操作',
             dataIndex: 'actions',
             fixed: 'right',
-            width: 200,
+            width: 180,
             render: (_: unknown, record: DepartmentNode) => (
                 <Space spacing={4}>
                     <Permission code="system:department:create">
@@ -194,7 +194,7 @@ export default function DepartmentsPage() {
                 loading={isFetching}
                 pagination={false}
                 defaultExpandAllRows
-                scroll={{ x: 1100 }}
+                scroll={{ x: 1050 }}
             />
             {target && <DepartmentFormModal target={target} tree={data ?? []} onClose={() => setTarget(null)} />}
         </PageContainer>
