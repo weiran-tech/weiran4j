@@ -129,7 +129,7 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 | [`rules/enforced/project.md`](openspec/rules/enforced/project.md) | 新增 Gradle 模块前、**新增页面/菜单前（§一 SL-4/SL-5：菜单行与页面文件配对）**、取 Flyway 版本号或菜单 id 前（序号型资源）；判断能不能与他人同时推进时（§二 WT-N，本仓库没有 worktree）；写 `proposal.md`/`tasks.md`/`design.md` 前（§三～六 CC/PK/TG/DS-N） | ✅ `TEMPLATE/profile-rows` |
 | [`rules/advisory/components.md`](openspec/rules/advisory/components.md) | **写 `web/` 的页面或组件前 —— 先查再造**；**给侧边菜单加图标时**（目录节点必须用 `renderNavIcon()`）；删除组件或改其对外协议后回来改这里 | 🟡 只查「新增未登记」（`REPO/components-unregistered`），不查描述对不对 |
 | [`rules/advisory/pitfalls.md`](openspec/rules/advisory/pitfalls.md) | 走 OpenSpec 流水线的**每一层**开工前，读对应那一节（L0–L10 分节）；**尤其**产出 L7 证据前（`git stash` 会让刚写好的证据全部失效）、判定「本次不修」时（只写在 `verify.md` 里等于把它埋了） | ❌ 无 —— 全靠这张表唤起 |
-| [`rules/advisory/toolchain.md`](openspec/rules/advisory/toolchain.md) | **构建报 `palantir-java-format(...)` 相关错误时**（`InvocationTargetException` / `NoClassDefFoundError`，那不是代码问题）；**集成测试成片失败、日志里有 `NoSuchFileException ... build/` 时**（有人同时在跑 `clean`）；**从旧版或别处搬前端代码时**（`code` 现为数字 `0`） | ❌ 无 —— 全靠这张表唤起 |
+| [`rules/advisory/toolchain.md`](openspec/rules/advisory/toolchain.md) | **构建报 `palantir-java-format(...)` 相关错误时**（`InvocationTargetException` / `NoClassDefFoundError`，那不是代码问题）；**集成测试成片失败、日志里有 `NoSuchFileException ... build/` 时**（有人同时在跑 `clean`）；**编译报「类 X 是公共的, 应在名为 X.java 的文件中声明」、或改过类名大小写准备提交时**（macOS 上 git 会吞掉只改大小写的重命名）；**从旧版或别处搬前端代码时**（`code` 现为数字 `0`） | ❌ 无 —— 全靠这张表唤起 |
 
 **分工**：`enforced/constitution.md` 管**代码不变量**（CP-N），`enforced/project.md` 管
 **项目结构事实**（SL/WT/CC/PK/TG/DS-N），`advisory/components.md` 管**可复用的前端公共组件**，

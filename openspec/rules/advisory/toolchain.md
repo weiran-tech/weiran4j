@@ -57,6 +57,21 @@ palantir-java-format 需要 javac 内部 API 的模块开放(`--add-exports`),
 
 **处置**:`./gradlew --stop` 后重跑,或直接 `./gradlew check --no-daemon`。验证用的全量构建优先 `--no-daemon`。
 
+### 只改大小写的文件重命名,在 macOS 上会被 git 吞掉
+
+**症状**(2026-09-26 实测):本机构建一直是绿的,换个时间点(`git switch` / 新 clone / IDE 里跑 `bootRun`)
+突然编译失败:`类 MybatisRoleRepository 是公共的, 应在名为 MybatisRoleRepository.java 的文件中声明`,
+而磁盘上的文件叫 `MyBatisRoleRepository.java`。Linux / CI 上 clone 下来**必然**失败。
+
+macOS 的文件系统不区分大小写,git 默认 `core.ignorecase=true`。把 `MyBatisXxx.java` 换成 `MybatisXxx.java`
+时,git 把它当成**同一个文件的内容修改**(`git show --name-status` 显示 `M` 而不是 `R`),
+提交里存的仍是旧大小写;此后任何按提交内容重写工作区的操作(switch / checkout / clone)都会把旧名字写回来。
+提交前本机的构建是绿的 —— 那时磁盘上的名字恰好是对的,所以**任何本地验证都拦不住它**。
+
+**处置**:两步 `git mv`(`git mv A.java A.java.tmp && git mv A.java.tmp a.java`),确认 `git status` 显示 `R`。
+**提交前自查**:改过类名大小写后,`git diff --cached --name-status` 里应该是 `R`;
+或全仓扫一遍「`public class` 名与文件名不一致」的 `.java`。
+
 ### 两个 `clean check` 同时跑会互相删 build 目录
 
 **症状**:集成测试**全部**在加载 Spring 上下文时失败,日志里夹着
