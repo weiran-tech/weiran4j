@@ -2,6 +2,9 @@ package com.weiran.system.infrastructure.persistence;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.weiran.common.page.PageQuery;
 import com.weiran.common.page.PageResult;
 import com.weiran.common.status.EnableStatus;
@@ -28,14 +31,28 @@ import java.util.stream.Collectors;
 /** {@link UserRepository} 的 MyBatis-Plus 实现。 */
 public class MybatisUserRepository implements UserRepository {
 
+    /**
+     * 显式把 updated_at 赋回原值，抵消列定义上的 {@code on update current_timestamp}。
+     *
+     * <p>用于登录、界面偏好、收藏菜单这类非「用户数据变更」的定向更新：updated_at 只反映资料 / 状态 / 角色 / 密码等真实变更，
+     * 不被每次登录与前端自动保存刷新。
+     */
+    private static final String KEEP_UPDATED_AT = "updated_at = updated_at";
+
+    private static final TypeReference<List<Long>> LONG_LIST = new TypeReference<>() {};
+
     private final SysUserMapper userMapper;
 
     private final SysUserRoleMapper userRoleMapper;
 
+    private final ObjectMapper objectMapper;
+
     /** 构造仓储。 */
-    public MybatisUserRepository(final SysUserMapper userMapper, final SysUserRoleMapper userRoleMapper) {
+    public MybatisUserRepository(
+            final SysUserMapper userMapper, final SysUserRoleMapper userRoleMapper, final ObjectMapper objectMapper) {
         this.userMapper = userMapper;
         this.userRoleMapper = userRoleMapper;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -99,6 +116,7 @@ public class MybatisUserRepository implements UserRepository {
         this.userMapper.update(Wrappers.lambdaUpdate(SysUserDO.class)
                 .set(SysUserDO::getLastLoginAt, at)
                 .set(SysUserDO::getLastLoginIp, ip)
+                .setSql(MybatisUserRepository.KEEP_UPDATED_AT)
                 .eq(SysUserDO::getId, id));
     }
 
@@ -115,6 +133,47 @@ public class MybatisUserRepository implements UserRepository {
     public void revokeTokens(final long id) {
         this.userMapper.update(Wrappers.lambdaUpdate(SysUserDO.class)
                 .setSql("token_version = token_version + 1")
+                .eq(SysUserDO::getId, id));
+    }
+
+    @Override
+    public Optional<String> findPreferences(final long id) {
+        return Optional.ofNullable(this.userMapper.selectOne(Wrappers.lambdaQuery(SysUserDO.class)
+                        .select(SysUserDO::getId, SysUserDO::getPreferences)
+                        .eq(SysUserDO::getId, id)))
+                .map(SysUserDO::getPreferences);
+    }
+
+    @Override
+    public void updatePreferences(final long id, final String preferencesJson) {
+        // 与 recordLogin 一样不带实体、不动 updated_at / updated_by：这是本人的高频自动保存，不是一次「修改用户」。
+        this.userMapper.update(Wrappers.lambdaUpdate(SysUserDO.class)
+                .set(SysUserDO::getPreferences, preferencesJson)
+                .setSql(MybatisUserRepository.KEEP_UPDATED_AT)
+                .eq(SysUserDO::getId, id));
+    }
+
+    @Override
+    public List<Long> findFavoriteMenuIds(final long id) {
+        return Optional.ofNullable(this.userMapper.selectOne(Wrappers.lambdaQuery(SysUserDO.class)
+                        .select(SysUserDO::getId, SysUserDO::getFavoriteMenus)
+                        .eq(SysUserDO::getId, id)))
+                .map(SysUserDO::getFavoriteMenus)
+                .map(json -> this.parseMenuIds(id, json))
+                .orElse(List.of());
+    }
+
+    @Override
+    public void updateFavoriteMenuIds(final long id, final List<Long> menuIds) {
+        final String json;
+        try {
+            json = this.objectMapper.writeValueAsString(menuIds);
+        } catch (final JsonProcessingException ex) {
+            throw new IllegalStateException("收藏菜单序列化失败", ex);
+        }
+        this.userMapper.update(Wrappers.lambdaUpdate(SysUserDO.class)
+                .set(SysUserDO::getFavoriteMenus, json)
+                .setSql(MybatisUserRepository.KEEP_UPDATED_AT)
                 .eq(SysUserDO::getId, id));
     }
 
@@ -203,6 +262,14 @@ public class MybatisUserRepository implements UserRepository {
             link.setUserId(userId);
             link.setRoleId(roleId);
             this.userRoleMapper.insert(link);
+        }
+    }
+
+    private List<Long> parseMenuIds(final long userId, final String json) {
+        try {
+            return List.copyOf(this.objectMapper.readValue(json, MybatisUserRepository.LONG_LIST));
+        } catch (final JsonProcessingException ex) {
+            throw new IllegalStateException("sys_user.favorite_menus 不是合法的 ID 数组，userId=" + userId, ex);
         }
     }
 

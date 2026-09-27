@@ -45,6 +45,18 @@ public interface UserRepository {
     /** 定向更新：令牌版本原子加一（禁用账号时吊销已签发令牌）。 */
     void revokeTokens(long id);
 
+    /** 界面偏好的原始 JSON 对象文本；从未保存过（或用户不存在）时为空。 */
+    Optional<String> findPreferences(long id);
+
+    /** 定向更新：全量覆盖界面偏好（JSON 对象文本）。 */
+    void updatePreferences(long id, String preferencesJson);
+
+    /** 收藏的菜单 ID，按收藏顺序；从未保存过时为空列表。只读原样存储值，不做权限过滤。 */
+    List<Long> findFavoriteMenuIds(long id);
+
+    /** 定向更新：全量覆盖收藏的菜单 ID。 */
+    void updateFavoriteMenuIds(long id, List<Long> menuIds);
+
     /** 删除用户及其角色关联。 */
     void deleteById(long id);
 

@@ -2,6 +2,7 @@ package com.weiran.system.api.auth;
 
 import com.weiran.system.api.menu.MenuNode;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /** 认证服务。 */
 public interface AuthService {
@@ -27,4 +28,33 @@ public interface AuthService {
 
     /** 修改自己的密码；成功后令牌版本加一，旧令牌全部失效。 */
     void changePassword(long userId, ChangePasswordCommand command);
+
+    /** 界面偏好的原始 JSON 对象文本；从未保存过返回 {@code null}。 */
+    @Nullable
+    String preferences(long userId);
+
+    /**
+     * 全量覆盖界面偏好。「必须是 JSON 对象」由调用方在解析请求体时保证。
+     *
+     * @param preferencesJson 序列化后的 JSON 对象文本
+     * @throws com.weiran.common.error.BizException 超过 16KB（40000）
+     */
+    void updatePreferences(long userId, String preferencesJson);
+
+    /** 收藏的菜单 ID，按收藏顺序；已删除、已禁用或当前已无权访问的菜单被过滤掉。 */
+    List<Long> favoriteMenus(long userId);
+
+    /**
+     * 全量覆盖收藏菜单：去重后最多 50 个，每个都必须是当前用户可访问的菜单页面。
+     *
+     * @throws com.weiran.common.error.BizException 超过上限或包含不可访问的菜单（40000）
+     */
+    void updateFavoriteMenus(long userId, List<Long> menuIds);
+
+    /**
+     * 校验当前用户的密码（锁屏解锁用）。不签发令牌、不改令牌版本、不写登录日志。
+     *
+     * @throws com.weiran.common.error.BizException 密码错误（40101）
+     */
+    void verifyPassword(long userId, String password);
 }

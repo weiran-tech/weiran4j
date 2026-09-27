@@ -95,4 +95,16 @@ class AuthorizationTest {
         assertThat(Authorization.effectiveRoleIds(roles)).containsExactly(2L);
         assertThat(authorization.visibleMenus(this.menus)).isEmpty();
     }
+
+    @Test
+    @DisplayName("可收藏的页面只含启用的 menu 节点：超管为全部启用菜单，普通用户为授予的菜单，不含目录与按钮")
+    void accessiblePageIds() {
+        final Authorization superAdmin = Authorization.of(
+                List.of(AuthorizationTest.role(1, Authorization.SUPER_ADMIN_ROLE, EnableStatus.ENABLED)), Set.of());
+        assertThat(superAdmin.accessiblePageIds(this.menus)).containsExactlyInAnyOrder(1L, 3L);
+
+        final Authorization regular = Authorization.of(
+                List.of(AuthorizationTest.role(2, "viewer", EnableStatus.ENABLED)), Set.of(3L, 4L, 100L));
+        assertThat(regular.accessiblePageIds(this.menus)).containsExactly(3L);
+    }
 }

@@ -1,5 +1,9 @@
 package com.weiran.system.adapter.web;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.weiran.common.error.BizException;
 import com.weiran.common.response.ApiResponse;
 import com.weiran.framework.auth.CurrentUser;
 import com.weiran.framework.auth.PublicApi;
@@ -7,7 +11,9 @@ import com.weiran.framework.log.OperationLog;
 import com.weiran.framework.web.ClientIpResolver;
 import com.weiran.system.adapter.web.request.ChangePasswordRequest;
 import com.weiran.system.adapter.web.request.LoginRequest;
+import com.weiran.system.adapter.web.request.SaveFavoriteMenusRequest;
 import com.weiran.system.adapter.web.request.UpdateProfileRequest;
+import com.weiran.system.adapter.web.request.VerifyPasswordRequest;
 import com.weiran.system.api.auth.AuthService;
 import com.weiran.system.api.auth.ChangePasswordCommand;
 import com.weiran.system.api.auth.ClientContext;
@@ -38,9 +44,12 @@ public class AuthController {
 
     private final AuthService authService;
 
+    private final ObjectMapper objectMapper;
+
     /** 构造控制器。 */
-    public AuthController(final AuthService authService) {
+    public AuthController(final AuthService authService, final ObjectMapper objectMapper) {
         this.authService = authService;
+        this.objectMapper = objectMapper;
     }
 
     /** 登录。 */
@@ -87,6 +96,60 @@ public class AuthController {
     public ApiResponse<Void> changePassword(@Valid @RequestBody final ChangePasswordRequest request) {
         this.authService.changePassword(
                 CurrentUser.require().id(), new ChangePasswordCommand(request.oldPassword(), request.newPassword()));
+        return ApiResponse.ok();
+    }
+
+    /** 当前用户的界面偏好；从未保存过返回 null。 */
+    @GetMapping("/preferences")
+    public ApiResponse<JsonNode> preferences() {
+        final String json = this.authService.preferences(CurrentUser.require().id());
+        if (json == null) {
+            return ApiResponse.ok(null);
+        }
+        try {
+            return ApiResponse.ok(this.objectMapper.readTree(json));
+        } catch (final JsonProcessingException ex) {
+            throw new IllegalStateException("sys_user.preferences 不是合法的 JSON", ex);
+        }
+    }
+
+    /**
+     * 全量覆盖界面偏好。
+     *
+     * <p>不记操作日志：前端改任何设置都会防抖后自动保存，记下来只会淹没真正有意义的操作。
+     */
+    @PutMapping("/preferences")
+    public ApiResponse<Void> updatePreferences(@RequestBody final JsonNode body) {
+        if (!body.isObject()) {
+            throw BizException.badRequest("preferences: 必须是 JSON 对象");
+        }
+        final String json;
+        try {
+            json = this.objectMapper.writeValueAsString(body);
+        } catch (final JsonProcessingException ex) {
+            throw new IllegalStateException("偏好序列化失败", ex);
+        }
+        this.authService.updatePreferences(CurrentUser.require().id(), json);
+        return ApiResponse.ok();
+    }
+
+    /** 收藏的菜单 ID（按收藏顺序，已失效的自动过滤）。 */
+    @GetMapping("/favorite-menus")
+    public List<Long> favoriteMenus() {
+        return this.authService.favoriteMenus(CurrentUser.require().id());
+    }
+
+    /** 全量覆盖收藏菜单。 */
+    @PutMapping("/favorite-menus")
+    public ApiResponse<Void> updateFavoriteMenus(@Valid @RequestBody final SaveFavoriteMenusRequest request) {
+        this.authService.updateFavoriteMenus(CurrentUser.require().id(), request.menuIds());
+        return ApiResponse.ok();
+    }
+
+    /** 校验当前用户密码（锁屏解锁）：不改令牌、不写登录日志。 */
+    @PostMapping("/verify-password")
+    public ApiResponse<Void> verifyPassword(@Valid @RequestBody final VerifyPasswordRequest request) {
+        this.authService.verifyPassword(CurrentUser.require().id(), request.password());
         return ApiResponse.ok();
     }
 

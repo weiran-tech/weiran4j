@@ -2,6 +2,7 @@ package com.weiran.system.domain.auth;
 
 import com.weiran.system.domain.hierarchy.Hierarchy;
 import com.weiran.system.domain.menu.Menu;
+import com.weiran.system.domain.menu.MenuType;
 import com.weiran.system.domain.role.Role;
 import java.util.Collection;
 import java.util.HashMap;
@@ -102,6 +103,14 @@ public final class Authorization {
                 .filter(Menu::isNavigable)
                 .filter(menu -> allowed.contains(menu.requireId()))
                 .toList();
+    }
+
+    /** 可访问的菜单页面 ID（可见菜单中类型为 menu 的节点，不含目录），用于校验收藏菜单。 */
+    public Set<Long> accessiblePageIds(final List<Menu> allMenus) {
+        return this.visibleMenus(allMenus).stream()
+                .filter(menu -> menu.getType() == MenuType.MENU)
+                .map(Menu::requireId)
+                .collect(Collectors.toSet());
     }
 
     /** 自身与全部祖先都启用的菜单 ID。 */

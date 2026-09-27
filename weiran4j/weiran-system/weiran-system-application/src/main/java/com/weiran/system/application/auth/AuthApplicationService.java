@@ -23,15 +23,18 @@ import com.weiran.system.domain.loginlog.LoginLog;
 import com.weiran.system.domain.loginlog.LoginLogRepository;
 import com.weiran.system.domain.menu.Menu;
 import com.weiran.system.domain.menu.MenuRepository;
+import com.weiran.system.domain.user.FavoriteMenus;
 import com.weiran.system.domain.user.Gender;
 import com.weiran.system.domain.user.PasswordHasher;
 import com.weiran.system.domain.user.PasswordPolicy;
 import com.weiran.system.domain.user.User;
+import com.weiran.system.domain.user.UserPreferences;
 import com.weiran.system.domain.user.UserRepository;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.transaction.annotation.Transactional;
@@ -193,6 +196,46 @@ public class AuthApplicationService implements AuthService {
         this.userRepository.changePassword(
                 userId, this.passwordHasher.hash(command.newPassword()), LocalDateTime.now(this.clock));
         this.cache.evict(userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public @Nullable String preferences(final long userId) {
+        return this.userRepository.findPreferences(userId).orElse(null);
+    }
+
+    @Override
+    @Transactional
+    public void updatePreferences(final long userId, final String preferencesJson) {
+        UserPreferences.validateSize(preferencesJson);
+        this.userRepository.updatePreferences(userId, preferencesJson);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Long> favoriteMenus(final long userId) {
+        return FavoriteMenus.retainAccessible(
+                this.userRepository.findFavoriteMenuIds(userId), this.accessiblePageIds(userId));
+    }
+
+    @Override
+    @Transactional
+    public void updateFavoriteMenus(final long userId, final List<Long> menuIds) {
+        this.requireUser(userId);
+        this.userRepository.updateFavoriteMenuIds(
+                userId, FavoriteMenus.normalize(menuIds, this.accessiblePageIds(userId)));
+    }
+
+    @Override
+    public void verifyPassword(final long userId, final String password) {
+        final User user = this.requireUser(userId);
+        if (!this.passwordHasher.matches(password, user.getPasswordHash())) {
+            throw new BizException(CommonErrors.BAD_CREDENTIALS, "密码错误");
+        }
+    }
+
+    private Set<Long> accessiblePageIds(final long userId) {
+        return this.authorizationResolver.resolve(userId).accessiblePageIds(this.menuRepository.findAll());
     }
 
     private User requireUser(final long userId) {

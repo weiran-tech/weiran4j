@@ -14,7 +14,12 @@
 > [`Gender.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/user/Gender.java)、
 > [`MybatisUserRepository.java`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/java/com/weiran/system/infrastructure/persistence/MybatisUserRepository.java) /
 > [`SysUserDO.java`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/java/com/weiran/system/infrastructure/persistence/entity/SysUserDO.java)、
-> [`V202609260001__system_init_schema.sql`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/V202609260001__system_init_schema.sql)、
+> [`V202609260001__system_init_schema.sql`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/V202609260001__system_init_schema.sql) /
+> [`V202609270001__system_user_preferences.sql`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/V202609270001__system_user_preferences.sql)、
+> 个人偏好 / 收藏 / 锁屏：[`AuthController.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/system/adapter/web/AuthController.java) →
+> [`AuthApplicationService.java`](../../../weiran4j/weiran-system/weiran-system-application/src/main/java/com/weiran/system/application/auth/AuthApplicationService.java)，
+> 领域规则 [`UserPreferences.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/user/UserPreferences.java) /
+> [`FavoriteMenus.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/user/FavoriteMenus.java)、
 > [`UsersPage.tsx`](../../../web/src/pages/system/users/UsersPage.tsx) /
 > [`UserFormModal.tsx`](../../../web/src/pages/system/users/UserFormModal.tsx) /
 > [`ResetPasswordModal.tsx`](../../../web/src/pages/system/users/ResetPasswordModal.tsx)、
@@ -34,6 +39,7 @@
 | 接口前缀 | `/api/users` |
 | 权限码 | `system:user:list`（列表/详情）· `system:user:create` · `system:user:update` · `system:user:delete` · `system:user:reset-password`；`GET /options` 仅需登录 |
 | 种子 | `admin`（id=1，内置，初始密码 `admin123`，部门「总公司」，绑定 `super_admin`） |
+| 个人数据列 | `preferences json null`（界面偏好）· `favorite_menus json null`（收藏菜单 ID 数组），2026-09-27 由 `V202609270001` 追加；只经 `/api/auth/preferences`、`/api/auth/favorite-menus` 读写，不在用户管理页出现 |
 
 ## 1. 列表
 
@@ -84,6 +90,19 @@
 `token_version` / `last_login_at` / `last_login_ip` / `password_updated_at` 由各自用例定向更新（见 §3）；
 `is_builtin` 只能由种子写入；`created_at/updated_at/created_by/updated_by` 为审计列，自动填充。
 
+**`updated_at` 口径**：只反映资料 / 状态 / 部门 / 角色 / 密码 / 令牌版本等真实变更（编辑用户、改资料、改密、重置密码、禁用时刷新）。
+列定义带 `on update current_timestamp`，因此**登录（`recordLogin`）、PUT 偏好、PUT 收藏**三条定向更新显式写
+`updated_at = updated_at` 抵消自动刷新（`MybatisUserRepository.KEEP_UPDATED_AT`）；这三条也不填 `updated_by`。
+
+**本人数据列**（不在用户表单中，只由本人经 `/api/auth/*` 读写，见 §3）：
+
+| 列 | 类型 | 写入口径 |
+| --- | --- | --- |
+| `preferences` | `json null` | 任意 JSON **对象**，序列化后 ≤ 16KB（`UserPreferences.MAX_BYTES`，按 UTF-8 字节计）；非对象或超限 40000；全量覆盖；后端不解析字段含义（事实源为前端 `usePreferences.tsx`）。MySQL JSON 列会规整键顺序，读回的对象键序可能与写入时不同 |
+| `favorite_menus` | `json null` | 菜单 ID 数组，按收藏顺序；PUT 去重（保留首次位置）后 ≤ 50 个（`FavoriteMenus.MAX_SIZE`），每个 ID 必须在 `Authorization.accessiblePageIds` 内（可见菜单中 `type=menu` 的节点：自身与祖先均启用、本人有权限，超管为全部启用菜单），否则 40000；读取时按同一口径过滤，不回写库 |
+
+`SysUserDO` 上这两列标 `select = false` + `insertStrategy/updateStrategy = NEVER`：用户行的常规查询不带出它们，只由仓储专用方法显式 `select` 与定向 `UPDATE`。
+
 **重置密码弹窗**（`ResetPasswordModal`）：只有「新密码」一项，前后端校验口径同上表「初始密码」。
 
 ## 3. 动作
@@ -96,6 +115,11 @@
 | 删除（行，`Popconfirm`） | `DELETE /api/users/{id}` | `system:user:delete` | ✅ 删除用户 | 内置用户 40901「内置用户不可删除」；删除自己 40901「不能删除当前登录用户」；同时删 `sys_user_role`。前端只对内置用户禁用按钮，删自己靠后端拦 |
 | —（下拉数据源） | `GET /api/users/options` | 仅登录 | — | 启用用户 `[{id, username, nickname}]`，部门负责人下拉在用 |
 | —（详情） | `GET /api/users/{id}` | `system:user:list` | — | 前端页面未调用 |
+| —（本人，界面偏好读） | `GET /api/auth/preferences` | 仅登录 | — | 原样返回存储的对象；从未保存返回 `null` |
+| —（本人，界面偏好写） | `PUT /api/auth/preferences` | 仅登录 | ❌ 刻意不记（前端 500ms 防抖高频写） | 见 §2「本人数据列」；定向 `UPDATE preferences`（`updatePreferences`），不刷新 `updated_at`、不填 `updated_by` |
+| —（本人，收藏菜单读） | `GET /api/auth/favorite-menus` | 仅登录 | — | `number[]`，按收藏顺序；已删除 / 已禁用 / 已无权访问的 ID 过滤掉；从未保存返回 `[]` |
+| —（本人，收藏菜单写） | `PUT /api/auth/favorite-menus` | 仅登录 | ❌ 不记 | `{menuIds}`（`@NotNull`）；规则见 §2；定向 `UPDATE favorite_menus`（`updateFavoriteMenuIds`），不刷新 `updated_at` |
+| —（本人，锁屏解锁） | `POST /api/auth/verify-password` | 仅登录 | ❌ 不记 | `{password}`（`@NotBlank` ≤ 64）；BCrypt 比对当前用户密码，正确返回 `null`，错误 40101「密码错误」；**不签发令牌、不改 `token_version`、不写登录日志**；无失败次数限制 |
 
 按钮显隐：无对应权限时 `Permission` 不渲染（非 disabled）；「删除」对内置用户为 disabled。
 
@@ -109,7 +133,8 @@
 ## 5. 说明与建议
 
 - **写入方式**：仓储对 `sys_user` 一律「定向更新」，每个用例只 `SET` 自己负责的列（`updateProfile` / `updateAccount` /
-  `recordLogin` / `changePassword` / `revokeTokens`），`SysUserDO` 上密码、令牌版本、登录信息标 `updateStrategy = NEVER`。
+  `recordLogin` / `changePassword` / `revokeTokens` / `updatePreferences` / `updateFavoriteMenuIds`），`SysUserDO` 上密码、令牌版本、登录信息、
+  偏好与收藏标 `updateStrategy = NEVER`。
   因此登录、改密、禁用之间不会互相覆盖；但管理员编辑这六列之间仍是后写覆盖（见 #01）。
 - **令牌吊销**：改密 / 管理员重置 / 启用→禁用三处让 `token_version` 原子加一。编辑用户若未改变启用状态，令牌不受影响。
 - **授权快照缓存**：编辑、删除、重置密码都会 `cache.evict(userId)`；前端当前登录人自己的 `me` / 菜单查询
@@ -145,6 +170,15 @@
 ## 7. changelog
 
 新条目插在本节最上方（按日期倒序，新在上）。
+
+**2026-09-27**
+- **#07 ✅ P? 追加个人偏好、收藏菜单与锁屏密码校验**
+  `V202609270001` 给 `sys_user` 追加 `preferences`、`favorite_menus` 两个 JSON 列；新增 `GET/PUT /api/auth/preferences`、
+  `GET/PUT /api/auth/favorite-menus`、`POST /api/auth/verify-password`（口径见 §2「本人数据列」与 §3）。
+  两列均定向更新，不参与用户整行读取；领域规则 `UserPreferences`（16KB）与 `FavoriteMenus`（≤ 50、去重、可访问）有纯单测，
+  接口由 `PreferencesIT` 覆盖。
+  同日起登录、PUT 偏好、PUT 收藏三条定向更新显式写 `updated_at = updated_at`，`sys_user.updated_at` 不再被登录与界面自动保存刷新
+  （此前每次登录都会刷新它）；改密 / 重置 / 禁用等真实变更照常刷新。口径见 §2。
 
 **2026-09-26**
 - **#06 ✅ P? D-008 框架重写时建立本文件**
