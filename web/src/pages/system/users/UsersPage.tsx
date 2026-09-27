@@ -1,7 +1,6 @@
 import { Button, DatePicker, Input, InputNumber, Select, Space, Table, Tag, Toast } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import dayjs from 'dayjs';
-import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { DepartmentTreeSelect } from '@/components/DepartmentTreeSelect';
 import { DictSelect } from '@/components/DictSelect';
@@ -234,7 +233,7 @@ export default function UsersPage() {
     })();
 
     // 列宽合计（含弹性列「角色」按 ROLE_MIN_WIDTH 计）1114：1440 宽下最窄的是双列布局，表格可用 1115，四种导航布局都平铺操作列、不出横向滚动；
-    // 再窄时操作列收成「更多」（useCompactActions），仍放不下才横向滚动（操作列固定在右侧）。
+    // 视口 < 992（便捷搜索隐藏）时操作列收成「…」（useCompactActions）；其间放不下就横向滚动（操作列固定在右侧）。
     // 各固定列已压到「内容 + 24 内边距」：时间 158（156 时小数宽度会把时分秒挤到第二行）；手机 116（Inter 数字不等宽，最宽的 11 位约 91）；
     // 性别 52；5 位 ID 64；用户名 / 部门是普通文字，79 即可，超长时自然折行。加列前先实测再算，加列前先实测再算
     const columns: ColumnProps<UserView>[] = [
@@ -331,8 +330,8 @@ export default function UsersPage() {
     }
 
     const { columns: settledColumns, columnSettings } = useColumnSettings('system/users', columns);
-    // 表格容器放不下「操作列平铺」时的全部列，就把操作列收成一个「更多」按钮，避免固定列遮住横向滚动的数据
-    const { ref: tableBoxRef, columns: tableColumns } = useActionsColumn(settledColumns, userActions, ROLE_MIN_WIDTH);
+    // 窄屏（与便捷搜索隐藏同一断点）操作列收成「…」
+    const { columns: tableColumns } = useActionsColumn(settledColumns, userActions);
 
     return (
         <PageContainer>
@@ -345,7 +344,7 @@ export default function UsersPage() {
                 conditions={conditions}
                 leading={
                     <Permission code="system:user:create">
-                        <Button type="primary" theme="solid" icon={<Plus size={14} />} onClick={() => setEditing(null)}>
+                        <Button type="primary" theme="solid" onClick={() => setEditing(null)}>
                             新增用户
                         </Button>
                     </Permission>
@@ -480,28 +479,26 @@ export default function UsersPage() {
                 />
                 <DepartmentTreeSelect value={draft.departmentId} onChange={(departmentId) => setDraft((d) => ({ ...d, departmentId }))} />
             </SearchToolbar>
-            <div ref={tableBoxRef}>
-                <Table<UserView>
-                    {...tableProps}
-                    rowKey="id"
-                    columns={tableColumns}
-                    dataSource={data?.list ?? []}
-                    loading={isFetching}
-                    scroll={{ x: tableScrollX(tableColumns, ROLE_MIN_WIDTH) }}
-                    pagination={{
-                        currentPage: page,
-                        pageSize,
-                        pageSizeOpts,
-                        total: data?.total ?? 0,
-                        showSizeChanger: true,
-                        showTotal: true,
-                        onChange: (p, s) => {
-                            setPage(p);
-                            setPageSize(s);
-                        },
-                    }}
-                />
-            </div>
+            <Table<UserView>
+                {...tableProps}
+                rowKey="id"
+                columns={tableColumns}
+                dataSource={data?.list ?? []}
+                loading={isFetching}
+                scroll={{ x: tableScrollX(tableColumns, ROLE_MIN_WIDTH) }}
+                pagination={{
+                    currentPage: page,
+                    pageSize,
+                    pageSizeOpts,
+                    total: data?.total ?? 0,
+                    showSizeChanger: true,
+                    showTotal: true,
+                    onChange: (p, s) => {
+                        setPage(p);
+                        setPageSize(s);
+                    },
+                }}
+            />
             {editing !== undefined && <UserFormModal record={editing} onClose={() => setEditing(undefined)} />}
             {resetting && <ResetPasswordModal user={resetting} onClose={() => setResetting(null)} />}
         </PageContainer>

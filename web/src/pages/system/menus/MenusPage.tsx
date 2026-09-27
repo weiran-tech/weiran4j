@@ -1,6 +1,5 @@
 import { Button, Table, Tag, Toast, Typography } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
-import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useColumnSettings } from '@/components/ColumnSettings';
 import { PageContainer } from '@/components/PageContainer';
@@ -125,7 +124,7 @@ export default function MenusPage() {
     }
 
     const { columns: settledColumns, columnSettings } = useColumnSettings('system/menus', columns);
-    const { ref: tableBoxRef, columns: tableColumns } = useActionsColumn(settledColumns, menuActions, COMPONENT_MIN_WIDTH);
+    const { columns: tableColumns } = useActionsColumn(settledColumns, menuActions);
 
     return (
         <PageContainer>
@@ -136,30 +135,23 @@ export default function MenusPage() {
                 treeExpand={{ expanded: allExpanded, onToggle: () => setExpandedKeys(allExpanded ? [] : allKeys) }}
                 leading={
                     <Permission code="system:menu:create">
-                        <Button
-                            type="primary"
-                            theme="solid"
-                            icon={<Plus size={14} />}
-                            onClick={() => setTarget({ mode: 'create', parent: null })}
-                        >
+                        <Button type="primary" theme="solid" onClick={() => setTarget({ mode: 'create', parent: null })}>
                             新增菜单
                         </Button>
                     </Permission>
                 }
             />
-            <div ref={tableBoxRef}>
-                <Table<MenuNode>
-                    {...tableProps}
-                    rowKey="id"
-                    columns={tableColumns}
-                    scroll={{ x: tableScrollX(tableColumns, COMPONENT_MIN_WIDTH) }}
-                    dataSource={tree}
-                    loading={isFetching}
-                    pagination={false}
-                    expandedRowKeys={expandedKeys ?? defaultExpanded}
-                    onExpandedRowsChange={(rows) => setExpandedKeys((rows ?? []).map((r) => (r as MenuNode).id))}
-                />
-            </div>
+            <Table<MenuNode>
+                {...tableProps}
+                rowKey="id"
+                columns={tableColumns}
+                scroll={{ x: tableScrollX(tableColumns, COMPONENT_MIN_WIDTH) }}
+                dataSource={tree}
+                loading={isFetching}
+                pagination={false}
+                expandedRowKeys={expandedKeys ?? defaultExpanded}
+                onExpandedRowsChange={(rows) => setExpandedKeys((rows ?? []).map((r) => (r as MenuNode).id))}
+            />
             {target && <MenuFormModal target={target} tree={data ?? []} onClose={() => setTarget(null)} />}
         </PageContainer>
     );

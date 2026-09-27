@@ -399,6 +399,41 @@ body[theme-mode='dark'] ::-webkit-scrollbar-thumb:hover {
     }
 }
 
+/* 高级面板的操作行（搜索 / 重置 + 窄屏的展开 / 收起）：在字段区之外，吸在内容区底部，面板比一屏高时仍可点 */
+.search-advanced__actions {
+    position: sticky;
+    /* 抵消 .admin-content 的 12px 底部内边距：否则吸底后下面露出一截正在滚动的字段 */
+    bottom: -12px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 -20px -20px;
+    padding: 12px 20px 20px;
+    border-radius: 0 0 8px 8px;
+    background: var(--semi-color-bg-0);
+}
+
+/* 展开 / 收起只在窄屏出现（宽屏字段区不限高） */
+.search-advanced__more {
+    display: none !important;
+}
+
+/* 窄屏（与便捷搜索隐藏同一断点）：字段区限高只露两行——每项 58（标签 20 + 间距 8 + 控件 32 取整后实测）+ 行间距 16；
+   收起时字段区内可纵向滚动（键盘 Tab 到下面的字段也会自动滚进来），「展开」则去掉限高 */
+@media (--lg-down) {
+    .search-advanced:not(.search-advanced--expanded) .search-advanced__fields {
+        max-height: calc(58px * 2 + 16px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .search-advanced__more {
+        display: inline-flex !important;
+    }
+}
+
 .search-field {
     display: flex;
     flex-direction: column;

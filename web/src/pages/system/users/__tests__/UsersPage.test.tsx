@@ -243,6 +243,24 @@ describe('UsersPage', () => {
             expect(within(toolbar).getByText('禁用')).toBeInTheDocument();
         });
 
+        it('面板的「展开 / 收起」切换字段区（窄屏限高两行、可滚动由样式实现）；搜索 / 重置在字段区之外', async () => {
+            mockFetch(routes());
+            renderWithProviders(<UsersPage />);
+            await screen.findByText('alice');
+            fireEvent.click(screen.getByRole('button', { name: '高级筛选' }));
+            const panel = screen.getByRole('region', { name: '高级筛选' });
+            const more = within(panel).getByRole('button', { name: /展开/ });
+            expect(more).toHaveAttribute('aria-expanded', 'false');
+            expect(panel).not.toHaveClass('search-advanced--expanded');
+            fireEvent.click(more);
+            expect(within(panel).getByRole('button', { name: /收起/ })).toHaveAttribute('aria-expanded', 'true');
+            expect(panel).toHaveClass('search-advanced--expanded');
+            // 操作行不在（会被限高裁掉的）字段区里
+            const fields = panel.querySelector('.search-advanced__fields') as HTMLElement;
+            expect(within(fields).queryByRole('button', { name: '搜索' })).toBeNull();
+            expect(within(panel.querySelector('.search-advanced__actions') as HTMLElement).getByRole('button', { name: '搜索' })).toBeInTheDocument();
+        });
+
         it('面板「搜索」发出单字段参数；已选条件显示可读值，删掉一个即去掉该参数并回第 1 页、面板控件清空（FR-006 / FR-007）', async () => {
             const { calls } = mockFetch(routes());
             renderWithProviders(<UsersPage />);

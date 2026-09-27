@@ -1,8 +1,8 @@
 import { Button, Dropdown, Modal, Popconfirm, Space } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { MoreHorizontal } from 'lucide-react';
-import { useCallback, useRef, useState } from 'react';
-import { tableScrollX } from '@/hooks/useTableDefaults';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { mediaDown } from '@/lib/breakpoints';
 import { usePermission } from '@/hooks/usePermission';
 
 export interface TableAction {
@@ -18,12 +18,12 @@ export interface TableAction {
     permission?: string;
 }
 
-/** 操作列收起后的宽度：一个「更多」按钮 + 单元格左右内边距 */
-export const COMPACT_ACTIONS_WIDTH = 76;
+/** 操作列收起后的宽度：「…」图标按钮 24 + 左右内边距 24 = 48，取表头「操作」两字（26 + 24）不折行的 52 */
+export const COMPACT_ACTIONS_WIDTH = 52;
 
 /**
- * 表格操作列：平铺为文字按钮；`compact` 时收成一个「更多」按钮，点击弹出菜单列出全部操作，
- * 避免窄屏横向滚动时固定在右侧的操作列遮住数据。是否收起用同文件的 `useCompactActions` 判断。
+ * 表格操作列：平铺为文字按钮；`compact` 时收成一个「…」图标按钮（aria-label「更多操作」），点击弹出菜单列出全部操作。
+ * 是否收起用同文件的 `useCompactActions`（与便捷搜索隐藏同一断点）。
  */
 export function TableActions({ actions, compact = false }: { actions: readonly TableAction[]; compact?: boolean }) {
     const { hasPermission } = usePermission();
@@ -65,9 +65,7 @@ export function TableActions({ actions, compact = false }: { actions: readonly T
                     </Dropdown.Menu>
                 }
             >
-                <Button theme="borderless" size="small" icon={<MoreHorizontal size={14} />} aria-label="更多操作">
-                    更多
-                </Button>
+                <Button theme="borderless" size="small" icon={<MoreHorizontal size={16} />} aria-label="更多操作" />
             </Dropdown>
         );
     }
@@ -105,48 +103,31 @@ export function TableActions({ actions, compact = false }: { actions: readonly T
 }
 
 /**
- * 表格容器放不下全部列（宽度 < requiredWidth，即操作列平铺时的 scroll.x）时返回 compact=true。
- * 把返回的 ref 挂到表格外层块级容器上；容器宽度不随表格列宽变化，收起后不会反过来触发展开（无抖动）。
- * 没有 ResizeObserver 的环境（jsdom）恒为 false。
+ * 操作列是否收成「…」：与「便捷搜索隐藏」同一断点（视口 < 992px，即 `mediaDown('lg')`，对应样式里的 `--lg-down`）。
+ * 不按表格容器宽度判断：992px 以上即使表格需要横向滚动，操作列也保持平铺（固定在右侧）。
  */
-export function useCompactActions(requiredWidth: number): [(el: HTMLElement | null) => void, boolean] {
-    const [width, setWidth] = useState<number | null>(null);
-    const observer = useRef<ResizeObserver | null>(null);
-    const ref = useCallback((el: HTMLElement | null) => {
-        observer.current?.disconnect();
-        observer.current = null;
-        if (!el || typeof ResizeObserver === 'undefined') return;
-        const ro = new ResizeObserver((entries) => {
-            const w = entries[0]?.contentRect.width;
-            if (w !== undefined) setWidth(Math.floor(w));
-        });
-        ro.observe(el);
-        observer.current = ro;
-    }, []);
-    return [ref, width !== null && width < requiredWidth];
+export function useCompactActions(): boolean {
+    return useMediaQuery(mediaDown('lg'));
 }
 
 /**
  * 列表页操作列的完整接法（约定见 `openspec/rules/advisory/list-view.md` 二.3）：
- * 在**应用列设置之后**的列里找到 `dataIndex: 'actions'` 那列，按它平铺时的宽度（`width`）算出所需总宽交给
- * `useCompactActions`，再把这一列换成 `TableActions`（放不下时收成「更多」、列宽改为 `COMPACT_ACTIONS_WIDTH`）。
- * 返回的 `ref` 挂在表格外层块级容器上；没有操作列（无权限）时原样返回。
+ * 把 `dataIndex: 'actions'` 那列换成 `TableActions`；窄屏（`useCompactActions`）时收成「…」、列宽改为 `COMPACT_ACTIONS_WIDTH`。
+ * 传入列设置之后的列；没有操作列（无权限）时原样返回。
  */
 export function useActionsColumn<T extends object>(
     columns: ColumnProps<T>[],
     actionsOf: (record: T) => TableAction[],
-    flexMin?: number,
-): { ref: (el: HTMLElement | null) => void; columns: ColumnProps<T>[]; compact: boolean } {
-    const [ref, compact] = useCompactActions(tableScrollX(columns, flexMin));
-    const mapped = columns.map(
-        (c): ColumnProps<T> =>
-            c.dataIndex === 'actions'
-                ? {
-                      ...c,
-                      ...(compact ? { width: COMPACT_ACTIONS_WIDTH } : {}),
-                      render: (_: unknown, record: T) => <TableActions actions={actionsOf(record)} compact={compact} />,
-                  }
-                : c,
+): { columns: ColumnProps<T>[]; compact: boolean } {
+    const compact = useCompactActions();
+    const mapped = columns.map((c): ColumnProps<T> =>
+        c.dataIndex === 'actions'
+            ? {
+                  ...c,
+                  ...(compact ? { width: COMPACT_ACTIONS_WIDTH } : {}),
+                  render: (_: unknown, record: T) => <TableActions actions={actionsOf(record)} compact={compact} />,
+              }
+            : c,
     );
-    return { ref, columns: mapped, compact };
+    return { columns: mapped, compact };
 }

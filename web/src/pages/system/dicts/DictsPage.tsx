@@ -50,8 +50,8 @@ function DictItemsPanel({ dict }: { dict: DictView }) {
     if (canEdit) {
         columns.push({ title: '操作', dataIndex: 'actions', fixed: 'right', width: 130 });
     }
-    // 右栏较窄：放不下时操作列收成「更多」
-    const { ref: tableBoxRef, columns: tableColumns } = useActionsColumn(columns, itemActions);
+    // 窄屏（与便捷搜索隐藏同一断点）操作列收成「…」
+    const { columns: tableColumns } = useActionsColumn(columns, itemActions);
 
     return (
         <PageContainer
@@ -64,18 +64,16 @@ function DictItemsPanel({ dict }: { dict: DictView }) {
                 )
             }
         >
-            <div ref={tableBoxRef}>
-                <Table<DictItemView>
-                    {...tableProps}
-                    rowKey="id"
-                    columns={tableColumns}
-                    // 设了 scroll.x 固定的「操作」列才生效（右栏窄时可横向滚动）
-                    scroll={{ x: tableScrollX(tableColumns) }}
-                    dataSource={data ?? []}
-                    loading={isFetching}
-                    pagination={false}
-                />
-            </div>
+            <Table<DictItemView>
+                {...tableProps}
+                rowKey="id"
+                columns={tableColumns}
+                // 设了 scroll.x 固定的「操作」列才生效（右栏窄时可横向滚动）
+                scroll={{ x: tableScrollX(tableColumns) }}
+                dataSource={data ?? []}
+                loading={isFetching}
+                pagination={false}
+            />
             {editing !== undefined && <DictItemFormModal dictId={dict.id} record={editing} onClose={() => setEditing(undefined)} />}
         </PageContainer>
     );

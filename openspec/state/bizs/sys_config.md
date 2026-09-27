@@ -74,7 +74,7 @@
 | --- | --- | --- | --- | --- |
 | 新增配置（工具栏最左） | `POST /api/configs` → `{id}` | `system:config:create` | ✅ 系统配置 / 新增配置 | 见 §2 |
 | 编辑（行） | `PUT /api/configs/{id}` | `system:config:update` | ✅ 修改配置 | 404 配置不存在；内置项改键 40901；新值按新类型校验 |
-| 删除（行「操作」列，确认后执行；表格放不下时收在「更多」菜单里） | `DELETE /api/configs/{id}` | `system:config:delete` | ✅ 删除配置 | 内置 40901「内置配置不可删除」（前端按钮 disabled） |
+| 删除（行「操作」列，确认后执行；窄屏（< 992px）收在「…」菜单里） | `DELETE /api/configs/{id}` | `system:config:delete` | ✅ 删除配置 | 内置 40901「内置配置不可删除」（前端按钮 disabled） |
 | —（公开读取） | `GET /api/configs/public/{key}` | 免登录 | — | 键不以 `sys.site.` 开头 40300「该配置不允许公开读取」；查不到 40400；因库排序规则大小写不敏感，查回后用库里的真实键再判一次前缀 |
 | —（详情） | `GET /api/configs/{id}` | `system:config:list` | — | 前端页面未调用 |
 
@@ -107,7 +107,7 @@
 
 **2026-09-27**
 - **#04 ✅ P3 系统配置列表按 `rules/advisory/list-view.md` 约定改造**
-  「新增配置」移到工具栏最左；操作列（编辑 / 删除）改用 `TableActions`，放不下时收成「更多」；加刷新按钮与「已选条件」（关键字）。
+  「新增配置」移到工具栏最左；操作列（编辑 / 删除）改用 `TableActions`，窄屏（< 992px）收成「…」；加刷新按钮与「已选条件」（关键字）。
 
 **2026-09-26**
 - **#03 ✅ P? D-008 框架重写时建立本文件**

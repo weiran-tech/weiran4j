@@ -1,5 +1,5 @@
 import { Button, Space, Tooltip } from '@douyinfe/semi-ui';
-import { ListCollapse, ListTree, RefreshCw, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, ListCollapse, ListTree, RefreshCw, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useId, useState, type ReactNode } from 'react';
 
 /** 已生效的一个查询条件，渲染成工具栏下方可删除的标签 */
@@ -69,6 +69,9 @@ export function SearchToolbar({
     conditions,
 }: SearchToolbarProps) {
     const [advancedOpen, setAdvancedOpen] = useState(false);
+    /** 窄屏下高级面板字段区是否展开全部（默认只露两行，见 global.css 的 .search-advanced） */
+    const [fieldsExpanded, setFieldsExpanded] = useState(false);
+    const fieldsId = useId();
     const panelId = useId();
     const hasAdvanced = advanced !== undefined;
 
@@ -77,18 +80,27 @@ export function SearchToolbar({
             <div className="search-toolbar">
                 <Space wrap spacing={8}>
                     {leading}
-                    {/* 有高级筛选时，窄屏隐藏工具栏里的便捷搜索（高级面板是替代入口）；display: contents 不影响平时的排版 */}
-                    {hasAdvanced ? <span className="search-toolbar__quick">{children}</span> : children}
-                    {onSearch &&
-                        (hasAdvanced ? (
-                            <Tooltip content="查询">
-                                <Button type="primary" theme="solid" icon={<Search size={16} />} aria-label="查询" onClick={onSearch} />
-                            </Tooltip>
-                        ) : (
-                            <Button type="primary" icon={<Search size={14} />} onClick={onSearch}>
-                                查询
-                            </Button>
-                        ))}
+                    {hasAdvanced ? (
+                        // 有高级筛选时，便捷搜索（筛选控件 + 图标查询按钮）整体在窄屏隐藏，高级面板是替代入口；
+                        // display: contents 不影响平时的排版
+                        <span className="search-toolbar__quick">
+                            {children}
+                            {onSearch && (
+                                <Tooltip content="查询">
+                                    <Button type="primary" theme="solid" icon={<Search size={16} />} aria-label="查询" onClick={onSearch} />
+                                </Tooltip>
+                            )}
+                        </span>
+                    ) : (
+                        <>
+                            {children}
+                            {onSearch && (
+                                <Button type="primary" icon={<Search size={14} />} onClick={onSearch}>
+                                    查询
+                                </Button>
+                            )}
+                        </>
+                    )}
                     {onReset && !hasAdvanced && (
                         <Button type="tertiary" icon={<RotateCcw size={14} />} onClick={onReset}>
                             重置
@@ -135,20 +147,43 @@ export function SearchToolbar({
                 )}
             </div>
             {hasAdvanced && advancedOpen && (
-                <div className="search-advanced" id={panelId} role="region" aria-label="高级筛选">
-                    <div className="search-advanced__fields">{advanced}</div>
-                    <Space spacing={12}>
-                        {onSearch && (
-                            <Button type="primary" theme="solid" onClick={onSearch}>
-                                搜索
-                            </Button>
-                        )}
-                        {onReset && (
-                            <Button type="tertiary" theme="outline" onClick={onReset}>
-                                重置
-                            </Button>
-                        )}
-                    </Space>
+                <div
+                    className={`search-advanced${fieldsExpanded ? ' search-advanced--expanded' : ''}`}
+                    id={panelId}
+                    role="region"
+                    aria-label="高级筛选"
+                >
+                    {/* 窄屏（便捷搜索被隐藏时）字段区限高、只露两行，由下方箭头按钮展开 / 收起；宽屏不限高、不显示按钮 */}
+                    <div className="search-advanced__fields" id={fieldsId}>
+                        {advanced}
+                    </div>
+                    {/* 操作行在字段区之外且吸底：无论字段区收起、展开还是超出一屏，搜索 / 重置都可点 */}
+                    <div className="search-advanced__actions">
+                        <Space spacing={12}>
+                            {onSearch && (
+                                <Button type="primary" theme="solid" onClick={onSearch}>
+                                    搜索
+                                </Button>
+                            )}
+                            {onReset && (
+                                <Button type="tertiary" theme="outline" onClick={onReset}>
+                                    重置
+                                </Button>
+                            )}
+                        </Space>
+                        <Button
+                            className="search-advanced__more"
+                            theme="borderless"
+                            size="small"
+                            icon={fieldsExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                            iconPosition="right"
+                            aria-expanded={fieldsExpanded}
+                            aria-controls={fieldsId}
+                            onClick={() => setFieldsExpanded((v) => !v)}
+                        >
+                            {fieldsExpanded ? '收起' : '展开'}
+                        </Button>
+                    </div>
                 </div>
             )}
             {conditions && conditions.length > 0 && (

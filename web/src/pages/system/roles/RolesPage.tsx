@@ -1,6 +1,5 @@
 import { Button, Input, Space, Table, Tag, Toast } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
-import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { DictSelect } from '@/components/DictSelect';
 import { useColumnSettings } from '@/components/ColumnSettings';
@@ -124,7 +123,7 @@ export default function RolesPage() {
     }
 
     const { columns: settledColumns, columnSettings } = useColumnSettings('system/roles', columns);
-    const { ref: tableBoxRef, columns: tableColumns } = useActionsColumn(settledColumns, roleActions);
+    const { columns: tableColumns } = useActionsColumn(settledColumns, roleActions);
 
     return (
         <PageContainer>
@@ -137,7 +136,7 @@ export default function RolesPage() {
                 conditions={conditions}
                 leading={
                     <Permission code="system:role:create">
-                        <Button type="primary" theme="solid" icon={<Plus size={14} />} onClick={() => setEditing(null)}>
+                        <Button type="primary" theme="solid" onClick={() => setEditing(null)}>
                             新增角色
                         </Button>
                     </Permission>
@@ -158,28 +157,26 @@ export default function RolesPage() {
                     onChange={(v) => setDraft((d) => ({ ...d, status: v as Status | undefined }))}
                 />
             </SearchToolbar>
-            <div ref={tableBoxRef}>
-                <Table<RoleView>
-                    {...tableProps}
-                    rowKey="id"
-                    columns={tableColumns}
-                    dataSource={data?.list ?? []}
-                    loading={isFetching}
-                    scroll={{ x: tableScrollX(tableColumns) }}
-                    pagination={{
-                        currentPage: page,
-                        pageSize,
-                        pageSizeOpts,
-                        total: data?.total ?? 0,
-                        showSizeChanger: true,
-                        showTotal: true,
-                        onChange: (p, s) => {
-                            setPage(p);
-                            setPageSize(s);
-                        },
-                    }}
-                />
-            </div>
+            <Table<RoleView>
+                {...tableProps}
+                rowKey="id"
+                columns={tableColumns}
+                dataSource={data?.list ?? []}
+                loading={isFetching}
+                scroll={{ x: tableScrollX(tableColumns) }}
+                pagination={{
+                    currentPage: page,
+                    pageSize,
+                    pageSizeOpts,
+                    total: data?.total ?? 0,
+                    showSizeChanger: true,
+                    showTotal: true,
+                    onChange: (p, s) => {
+                        setPage(p);
+                        setPageSize(s);
+                    },
+                }}
+            />
             {editing !== undefined && <RoleFormModal record={editing} onClose={() => setEditing(undefined)} />}
             {assigning && <RoleMenuSheet role={assigning} onClose={() => setAssigning(null)} />}
         </PageContainer>

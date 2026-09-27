@@ -1,7 +1,6 @@
 import { Button, Form, Input, Modal, Space, Table, Tag, Toast, Typography } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
-import { Plus } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useColumnSettings } from '@/components/ColumnSettings';
 import { PageContainer } from '@/components/PageContainer';
@@ -187,7 +186,7 @@ export default function ConfigsPage() {
     const conditions: SearchCondition[] = keyword ? [{ key: 'keyword', label: '关键字', value: keyword, onRemove: reset }] : [];
 
     const { columns: settledColumns, columnSettings } = useColumnSettings('system/configs', columns);
-    const { ref: tableBoxRef, columns: tableColumns } = useActionsColumn(settledColumns, configActions);
+    const { columns: tableColumns } = useActionsColumn(settledColumns, configActions);
 
     return (
         <PageContainer>
@@ -200,7 +199,7 @@ export default function ConfigsPage() {
                 conditions={conditions}
                 leading={
                     <Permission code="system:config:create">
-                        <Button type="primary" theme="solid" icon={<Plus size={14} />} onClick={() => setEditing(null)}>
+                        <Button type="primary" theme="solid" onClick={() => setEditing(null)}>
                             新增配置
                         </Button>
                     </Permission>
@@ -215,28 +214,26 @@ export default function ConfigsPage() {
                     style={{ width: 220 }}
                 />
             </SearchToolbar>
-            <div ref={tableBoxRef}>
-                <Table<ConfigView>
-                    {...tableProps}
-                    rowKey="id"
-                    columns={tableColumns}
-                    dataSource={data?.list ?? []}
-                    loading={isFetching}
-                    scroll={{ x: tableScrollX(tableColumns) }}
-                    pagination={{
-                        currentPage: page,
-                        pageSize,
-                        pageSizeOpts,
-                        total: data?.total ?? 0,
-                        showSizeChanger: true,
-                        showTotal: true,
-                        onChange: (p, s) => {
-                            setPage(p);
-                            setPageSize(s);
-                        },
-                    }}
-                />
-            </div>
+            <Table<ConfigView>
+                {...tableProps}
+                rowKey="id"
+                columns={tableColumns}
+                dataSource={data?.list ?? []}
+                loading={isFetching}
+                scroll={{ x: tableScrollX(tableColumns) }}
+                pagination={{
+                    currentPage: page,
+                    pageSize,
+                    pageSizeOpts,
+                    total: data?.total ?? 0,
+                    showSizeChanger: true,
+                    showTotal: true,
+                    onChange: (p, s) => {
+                        setPage(p);
+                        setPageSize(s);
+                    },
+                }}
+            />
             {editing !== undefined && <ConfigFormModal record={editing} onClose={() => setEditing(undefined)} />}
         </PageContainer>
     );

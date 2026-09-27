@@ -2,7 +2,6 @@ import { Button, Form, Modal, Table, Toast } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import type { TreeNodeData } from '@douyinfe/semi-ui/lib/es/tree';
-import { Plus } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { toDepartmentTreeData } from '@/components/DepartmentTreeSelect';
 import { DictSelect } from '@/components/DictSelect';
@@ -180,7 +179,7 @@ export default function DepartmentsPage() {
     }
 
     const { columns: settledColumns, columnSettings } = useColumnSettings('system/departments', columns);
-    const { ref: tableBoxRef, columns: tableColumns } = useActionsColumn(settledColumns, departmentActions);
+    const { columns: tableColumns } = useActionsColumn(settledColumns, departmentActions);
 
     return (
         <PageContainer>
@@ -197,12 +196,7 @@ export default function DepartmentsPage() {
                 conditions={conditions}
                 leading={
                     <Permission code="system:department:create">
-                        <Button
-                            type="primary"
-                            theme="solid"
-                            icon={<Plus size={14} />}
-                            onClick={() => setTarget({ mode: 'create', parent: null })}
-                        >
+                        <Button type="primary" theme="solid" onClick={() => setTarget({ mode: 'create', parent: null })}>
                             新增部门
                         </Button>
                     </Permission>
@@ -215,19 +209,17 @@ export default function DepartmentsPage() {
                     onChange={(v) => setDraftStatus(v as Status | undefined)}
                 />
             </SearchToolbar>
-            <div ref={tableBoxRef}>
-                <Table<DepartmentNode>
-                    {...tableProps}
-                    rowKey="id"
-                    columns={tableColumns}
-                    dataSource={tree}
-                    loading={isFetching}
-                    pagination={false}
-                    expandedRowKeys={expandedKeys ?? allKeys}
-                    onExpandedRowsChange={(rows) => setExpandedKeys((rows ?? []).map((r) => (r as DepartmentNode).id))}
-                    scroll={{ x: tableScrollX(tableColumns) }}
-                />
-            </div>
+            <Table<DepartmentNode>
+                {...tableProps}
+                rowKey="id"
+                columns={tableColumns}
+                dataSource={tree}
+                loading={isFetching}
+                pagination={false}
+                expandedRowKeys={expandedKeys ?? allKeys}
+                onExpandedRowsChange={(rows) => setExpandedKeys((rows ?? []).map((r) => (r as DepartmentNode).id))}
+                scroll={{ x: tableScrollX(tableColumns) }}
+            />
             {target && <DepartmentFormModal target={target} tree={data ?? []} onClose={() => setTarget(null)} />}
         </PageContainer>
     );

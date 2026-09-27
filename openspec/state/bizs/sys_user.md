@@ -57,7 +57,7 @@
 | 7 | 状态 | `status` | `StatusTag` |
 | 8 | 最后登录 | `last_login_at` | 空值 `—` |
 | 9 | 创建时间 | `created_at` | 原值 |
-| 10 | 操作 | — | 有 `update` / `reset-password` / `delete` 任一权限才出现该列;固定在右侧;表格容器放不下全部列时收成一个「更多」按钮(`TableActions` + `useCompactActions`) |
+| 10 | 操作 | — | 有 `update` / `reset-password` / `delete` 任一权限才出现该列;固定在右侧;窄屏（< 992px，与便捷搜索隐藏同一断点）收成「…」图标按钮(`TableActions` + `useCompactActions`) |
 
 列宽合计 1114(弹性列「角色」按 78 计),1440 宽下四种导航布局都平铺操作列;手机 116、时间 158 按最坏数据算,不折行(见 `rules/advisory/list-view.md` 二.4)。
 
@@ -127,7 +127,7 @@
 | 新增用户（工具栏） | `POST /api/users` → `{id}` | `system:user:create` | ✅ 用户管理 / 新增用户 | 见 §2；`token_version=0`，`password_updated_at=now` |
 | 编辑（行） | `PUT /api/users/{id}` | `system:user:update` | ✅ 修改用户 | 404 用户不存在；定向更新昵称/邮箱/手机/性别/部门/状态六列（`updateAccount`），再全量覆盖角色；启用 → 禁用时 `token_version + 1`（原子加一），该用户已签发令牌立即失效；授权快照缓存按用户失效 |
 | 重置密码（行） | `PUT /api/users/{id}/password` | `system:user:reset-password` | ✅ 重置密码（请求体 `password` 被脱敏为 `******`） | 定向更新密码与 `password_updated_at`，`token_version + 1` |
-| 删除（行「操作」列，确认后执行；表格放不下时收在「更多」菜单里） | `DELETE /api/users/{id}` | `system:user:delete` | ✅ 删除用户 | 内置用户 40901「内置用户不可删除」；删除自己 40901「不能删除当前登录用户」；同时删 `sys_user_role`。前端只对内置用户禁用按钮，删自己靠后端拦 |
+| 删除（行「操作」列，确认后执行；窄屏（< 992px）收在「…」菜单里） | `DELETE /api/users/{id}` | `system:user:delete` | ✅ 删除用户 | 内置用户 40901「内置用户不可删除」；删除自己 40901「不能删除当前登录用户」；同时删 `sys_user_role`。前端只对内置用户禁用按钮，删自己靠后端拦 |
 | —（下拉数据源） | `GET /api/users/options` | 仅登录 | — | 启用用户 `[{id, username, nickname}]`，部门负责人下拉在用 |
 | —（详情） | `GET /api/users/{id}` | `system:user:list` | — | 前端页面未调用 |
 | —（本人，界面偏好读） | `GET /api/auth/preferences` | 仅登录 | — | 原样返回存储的对象；从未保存返回 `null` |
