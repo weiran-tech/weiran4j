@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { defaultPreferences, type UserPreferences } from '@/hooks/usePreferences';
 import { PREFERENCES_STORAGE_KEY } from '@/lib/preferences-storage';
 import { renderWithProviders } from '@/test/helpers';
-import { applyColumnState, COLUMN_SETTINGS_PREFIX, readColumnState, useColumnSettings } from '../ColumnSettings';
+import { applyColumnState, COLUMN_SETTINGS_PREFIX, readColumnState, reorderKeys, useColumnSettings } from '../ColumnSettings';
 
 interface Row {
     id: number;
@@ -65,10 +65,18 @@ describe('useColumnSettings / ColumnSettings', () => {
 
         fireEvent.click(within(panel).getByRole('checkbox', { name: '编码' }));
         await waitFor(() => expect(headers()).toEqual(['名称', '状态', '操作']));
-        fireEvent.click(within(panel).getByRole('button', { name: '上移 状态' }));
+        // 键盘：聚焦「状态」的拖动把手按 ↑，上移一位
+        fireEvent.keyDown(within(panel).getByRole('button', { name: '拖动排序 状态' }), { key: 'ArrowUp' });
         await waitFor(() => expect(headers()).toEqual(['名称', '状态', '操作']));
-        fireEvent.click(within(panel).getByRole('button', { name: '下移 名称' }));
+        // 拖放：把「名称」拖到「状态」那一行松开
+        const row = (title: string) => within(panel).getByRole('button', { name: `拖动排序 ${title}` }).closest('li') as HTMLElement;
+        fireEvent.dragStart(row('名称'));
+        fireEvent.dragOver(row('状态'));
+        expect(row('状态')).toHaveClass('column-settings__item--over');
+        fireEvent.drop(row('状态'));
         await waitFor(() => expect(headers()).toEqual(['状态', '名称', '操作']));
+        // 没有上移 / 下移按钮了
+        expect(within(panel).queryByRole('button', { name: /上移|下移/ })).toBeNull();
 
         expect(JSON.parse(localStorage.getItem(`${COLUMN_SETTINGS_PREFIX}test/table`) ?? 'null')).toEqual({
             order: ['status', 'name', 'code'],
@@ -97,5 +105,15 @@ describe('useColumnSettings / ColumnSettings', () => {
         expect(screen.queryByRole('button', { name: '列设置' })).toBeNull();
         expect(headers()).toEqual(['名称', '编码', '状态', '操作']);
         expect(localStorage.getItem(`${COLUMN_SETTINGS_PREFIX}test/table`)).not.toBeNull();
+    });
+});
+
+describe('reorderKeys', () => {
+    it('把 from 的项移到 to；越界或原地不变', () => {
+        expect(reorderKeys(['a', 'b', 'c'], 0, 2)).toEqual(['b', 'c', 'a']);
+        expect(reorderKeys(['a', 'b', 'c'], 2, 0)).toEqual(['c', 'a', 'b']);
+        expect(reorderKeys(['a', 'b', 'c'], 0, -1)).toEqual(['a', 'b', 'c']);
+        expect(reorderKeys(['a', 'b', 'c'], 2, 3)).toEqual(['a', 'b', 'c']);
+        expect(reorderKeys(['a', 'b', 'c'], 1, 1)).toEqual(['a', 'b', 'c']);
     });
 });

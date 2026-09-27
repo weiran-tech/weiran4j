@@ -37,4 +37,13 @@ public enum Gender {
                 .findFirst()
                 .orElseThrow(() -> BizException.badRequest("gender: 取值只能是 male、female 或 unknown"));
     }
+
+    /**
+     * 解析查询条件：空或空白表示不过滤（返回 null），非法值抛 40000。
+     *
+     * <p>不能用 {@link #of}：它把空值解析成 {@link #UNKNOWN}，拿来过滤会让「不传」变成「只查未知性别」。
+     */
+    public static @Nullable Gender filterOf(final @Nullable String value) {
+        return value == null || value.isBlank() ? null : Gender.of(value);
+    }
 }

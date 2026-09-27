@@ -1,4 +1,4 @@
-import { Button, Popconfirm, Space, Table, Tag, Toast, Typography } from '@douyinfe/semi-ui';
+import { Button, Table, Tag, Toast, Typography } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -7,6 +7,7 @@ import { PageContainer } from '@/components/PageContainer';
 import { Permission } from '@/components/Permission';
 import { SearchToolbar } from '@/components/SearchToolbar';
 import { StatusTag } from '@/components/StatusTag';
+import { useActionsColumn, type TableAction } from '@/components/TableActions';
 import { useDeleteMenu, useMenuTree } from '@/hooks/queries/menus';
 import { usePermission } from '@/hooks/usePermission';
 import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
@@ -38,7 +39,7 @@ function codeText(v: string | null) {
 export default function MenusPage() {
     const { tableProps } = useTableDefaults();
     const { hasAnyPermission } = usePermission();
-    const { data, isFetching } = useMenuTree();
+    const { data, isFetching, refetch } = useMenuTree();
     const deleteMenu = useDeleteMenu();
     const [target, setTarget] = useState<MenuFormTarget | null>(null);
     const [expandedKeys, setExpandedKeys] = useState<(string | number)[] | null>(null);
@@ -46,9 +47,22 @@ export default function MenusPage() {
     const tree = useMemo(() => pruneEmptyChildren(data ?? []), [data]);
     // 默认展开目录与菜单两级，按钮行收起
     const defaultExpanded = useMemo(
-        () => flattenTree(tree).filter((m) => m.type === 'directory').map((m) => m.id),
+        () =>
+            flattenTree(tree)
+                .filter((m) => m.type === 'directory')
+                .map((m) => m.id),
         [tree],
     );
+    // 「展开树状」开关：只要有节点没展开就显示「全部展开」
+    const allKeys = useMemo(
+        () =>
+            flattenTree(tree)
+                .filter((m) => m.children?.length)
+                .map((m) => m.id),
+        [tree],
+    );
+    const currentExpanded = expandedKeys ?? defaultExpanded;
+    const allExpanded = allKeys.length > 0 && allKeys.every((k) => currentExpanded.includes(k));
 
     const columns: ColumnProps<MenuNode>[] = [
         {
@@ -85,71 +99,67 @@ export default function MenusPage() {
         { title: '状态', dataIndex: 'status', width: 72, render: (v: Status) => <StatusTag value={v} /> },
     ];
 
+    const menuActions = (record: MenuNode): TableAction[] => [
+        ...(record.type !== 'button'
+            ? [
+                  {
+                      key: 'create-child',
+                      label: '新增子项',
+                      permission: 'system:menu:create',
+                      onClick: () => setTarget({ mode: 'create', parent: record }),
+                  },
+              ]
+            : []),
+        { key: 'edit', label: '编辑', permission: 'system:menu:update', onClick: () => setTarget({ mode: 'edit', record }) },
+        {
+            key: 'delete',
+            label: '删除',
+            permission: 'system:menu:delete',
+            danger: true,
+            confirm: { title: '确定删除该菜单？', content: '有子节点时不能删除；删除会同时解除角色授权' },
+            onClick: () => deleteMenu.mutate(record.id, { onSuccess: () => Toast.success('已删除') }),
+        },
+    ];
     if (hasAnyPermission('system:menu:create', 'system:menu:update', 'system:menu:delete')) {
-        columns.push({
-            title: '操作',
-            dataIndex: 'actions',
-            fixed: 'right',
-            width: 180,
-            render: (_: unknown, record: MenuNode) => (
-                <Space spacing={4}>
-                    {record.type !== 'button' && (
-                        <Permission code="system:menu:create">
-                            <Button theme="borderless" size="small" onClick={() => setTarget({ mode: 'create', parent: record })}>
-                                新增子项
-                            </Button>
-                        </Permission>
-                    )}
-                    <Permission code="system:menu:update">
-                        <Button theme="borderless" size="small" onClick={() => setTarget({ mode: 'edit', record })}>
-                            编辑
-                        </Button>
-                    </Permission>
-                    <Permission code="system:menu:delete">
-                        <Popconfirm
-                            title="确定删除该菜单？"
-                            content="有子节点时不能删除；删除会同时解除角色授权"
-                            onConfirm={() => deleteMenu.mutate(record.id, { onSuccess: () => Toast.success('已删除') })}
-                        >
-                            <Button theme="borderless" type="danger" size="small">
-                                删除
-                            </Button>
-                        </Popconfirm>
-                    </Permission>
-                </Space>
-            ),
-        });
+        columns.push({ title: '操作', dataIndex: 'actions', fixed: 'right', width: 180 });
     }
 
-    const { columns: tableColumns, columnSettings } = useColumnSettings('system/menus', columns);
+    const { columns: settledColumns, columnSettings } = useColumnSettings('system/menus', columns);
+    const { ref: tableBoxRef, columns: tableColumns } = useActionsColumn(settledColumns, menuActions, COMPONENT_MIN_WIDTH);
 
     return (
         <PageContainer>
             <SearchToolbar
                 tools={columnSettings}
-                actions={
-                    <>
-                        <Button onClick={() => setExpandedKeys(flattenTree(tree).map((m) => m.id))}>全部展开</Button>
-                        <Button onClick={() => setExpandedKeys([])}>全部收起</Button>
-                        <Permission code="system:menu:create">
-                            <Button type="primary" theme="solid" icon={<Plus size={14} />} onClick={() => setTarget({ mode: 'create', parent: null })}>
-                                新增菜单
-                            </Button>
-                        </Permission>
-                    </>
+                onRefresh={() => void refetch()}
+                refreshing={isFetching}
+                treeExpand={{ expanded: allExpanded, onToggle: () => setExpandedKeys(allExpanded ? [] : allKeys) }}
+                leading={
+                    <Permission code="system:menu:create">
+                        <Button
+                            type="primary"
+                            theme="solid"
+                            icon={<Plus size={14} />}
+                            onClick={() => setTarget({ mode: 'create', parent: null })}
+                        >
+                            新增菜单
+                        </Button>
+                    </Permission>
                 }
             />
-            <Table<MenuNode>
-                {...tableProps}
-                rowKey="id"
-                columns={tableColumns}
-                scroll={{ x: tableScrollX(tableColumns, COMPONENT_MIN_WIDTH) }}
-                dataSource={tree}
-                loading={isFetching}
-                pagination={false}
-                expandedRowKeys={expandedKeys ?? defaultExpanded}
-                onExpandedRowsChange={(rows) => setExpandedKeys((rows ?? []).map((r) => (r as MenuNode).id))}
-            />
+            <div ref={tableBoxRef}>
+                <Table<MenuNode>
+                    {...tableProps}
+                    rowKey="id"
+                    columns={tableColumns}
+                    scroll={{ x: tableScrollX(tableColumns, COMPONENT_MIN_WIDTH) }}
+                    dataSource={tree}
+                    loading={isFetching}
+                    pagination={false}
+                    expandedRowKeys={expandedKeys ?? defaultExpanded}
+                    onExpandedRowsChange={(rows) => setExpandedKeys((rows ?? []).map((r) => (r as MenuNode).id))}
+                />
+            </div>
             {target && <MenuFormModal target={target} tree={data ?? []} onClose={() => setTarget(null)} />}
         </PageContainer>
     );

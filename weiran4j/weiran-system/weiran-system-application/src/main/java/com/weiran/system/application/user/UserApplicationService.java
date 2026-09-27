@@ -79,7 +79,19 @@ public class UserApplicationService implements UserService {
         final Long departmentId = query.departmentId();
         final Set<Long> departmentIds = departmentId == null ? null : this.departmentScope(departmentId);
         final UserCriteria criteria = new UserCriteria(
-                Texts.trimToNull(query.keyword()), EnableStatus.filterOf(query.status()), departmentIds);
+                Texts.trimToNull(query.keyword()),
+                EnableStatus.filterOf(query.status()),
+                departmentIds,
+                Texts.trimToNull(query.username()),
+                query.userId(),
+                Texts.trimToNull(query.phone()),
+                Texts.trimToNull(query.email()),
+                query.roleId(),
+                Gender.filterOf(query.gender()),
+                query.createdStartTime(),
+                query.createdEndTime(),
+                query.lastLoginStartTime(),
+                query.lastLoginEndTime());
         final PageResult<User> page = this.userRepository.page(criteria, pageQuery);
         final List<UserView> views = this.toViews(page.list());
         return new PageResult<>(views, page.total(), page.page(), page.pageSize());

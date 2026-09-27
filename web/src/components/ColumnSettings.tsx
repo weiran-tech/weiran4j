@@ -1,6 +1,6 @@
 import { Button, Checkbox, Popover, Tooltip } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
-import { ArrowDown, ArrowUp, Columns3 } from 'lucide-react';
+import { GripVertical, Settings } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { usePreferences } from '@/hooks/usePreferences';
 import './ColumnSettings.css';
@@ -84,16 +84,28 @@ interface ColumnSettingsProps {
     onReset: () => void;
 }
 
-/** 列设置按钮 + 弹层：勾选显隐、上移下移调整顺序、恢复默认；至少保留一列 */
+/** 把 keys 中 from 位置的项移到 to 位置（拖放 / 键盘排序共用）；越界或原地返回原数组 */
+export function reorderKeys(keys: readonly string[], from: number, to: number): string[] {
+    if (from === to || from < 0 || to < 0 || from >= keys.length || to >= keys.length) return [...keys];
+    const next = [...keys];
+    const [item] = next.splice(from, 1);
+    if (item !== undefined) next.splice(to, 0, item);
+    return next;
+}
+
+/**
+ * 列设置按钮（齿轮）+ 弹层：勾选显隐、拖放调整顺序、恢复默认；至少保留一列。
+ * 排序用原生拖放：拖动每行左侧的把手到目标行松开；把手本身是可聚焦的按钮，键盘聚焦后 ↑ / ↓ 同样移动（不能只靠鼠标）。
+ */
 export function ColumnSettings({ columns, hidden, onChange, onReset }: ColumnSettingsProps) {
     const keys = columns.map((c) => c.key);
     const visibleCount = keys.filter((k) => !hidden.includes(k)).length;
-    const move = (index: number, delta: number) => {
-        const next = [...keys];
-        const [item] = next.splice(index, 1);
-        if (item === undefined) return;
-        next.splice(index + delta, 0, item);
-        onChange({ order: next, hidden });
+    const [dragging, setDragging] = useState<string | null>(null);
+    const [over, setOver] = useState<string | null>(null);
+    const moveTo = (from: number, to: number) => onChange({ order: reorderKeys(keys, from, to), hidden });
+    const endDrag = () => {
+        setDragging(null);
+        setOver(null);
     };
     const content = (
         <div className="column-settings" aria-label="列设置">
@@ -107,7 +119,47 @@ export function ColumnSettings({ columns, hidden, onChange, onReset }: ColumnSet
                 {columns.map((c, i) => {
                     const shown = !hidden.includes(c.key);
                     return (
-                        <li key={c.key} className="column-settings__item">
+                        <li
+                            key={c.key}
+                            className={[
+                                'column-settings__item',
+                                dragging === c.key ? 'column-settings__item--dragging' : '',
+                                over === c.key && dragging !== c.key ? 'column-settings__item--over' : '',
+                            ]
+                                .filter(Boolean)
+                                .join(' ')}
+                            draggable
+                            onDragStart={(e) => {
+                                setDragging(c.key);
+                                // Firefox 不设数据就不触发拖放
+                                e.dataTransfer?.setData('text/plain', c.key);
+                                if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+                            }}
+                            onDragOver={(e) => {
+                                if (dragging === null) return;
+                                e.preventDefault();
+                                if (over !== c.key) setOver(c.key);
+                            }}
+                            onDrop={(e) => {
+                                e.preventDefault();
+                                if (dragging !== null) moveTo(keys.indexOf(dragging), i);
+                                endDrag();
+                            }}
+                            onDragEnd={endDrag}
+                        >
+                            <button
+                                type="button"
+                                className="column-settings__handle"
+                                aria-label={`拖动排序 ${c.title}`}
+                                title="拖动调整顺序（键盘：↑ / ↓）"
+                                onKeyDown={(e) => {
+                                    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+                                    e.preventDefault();
+                                    moveTo(i, e.key === 'ArrowUp' ? i - 1 : i + 1);
+                                }}
+                            >
+                                <GripVertical size={14} />
+                            </button>
                             <Checkbox
                                 checked={shown}
                                 disabled={shown && visibleCount <= 1}
@@ -117,26 +169,6 @@ export function ColumnSettings({ columns, hidden, onChange, onReset }: ColumnSet
                             >
                                 {c.title}
                             </Checkbox>
-                            <span className="column-settings__moves">
-                                <Button
-                                    size="small"
-                                    theme="borderless"
-                                    type="tertiary"
-                                    icon={<ArrowUp size={13} />}
-                                    aria-label={`上移 ${c.title}`}
-                                    disabled={i === 0}
-                                    onClick={() => move(i, -1)}
-                                />
-                                <Button
-                                    size="small"
-                                    theme="borderless"
-                                    type="tertiary"
-                                    icon={<ArrowDown size={13} />}
-                                    aria-label={`下移 ${c.title}`}
-                                    disabled={i === columns.length - 1}
-                                    onClick={() => move(i, 1)}
-                                />
-                            </span>
                         </li>
                     );
                 })}
@@ -147,7 +179,7 @@ export function ColumnSettings({ columns, hidden, onChange, onReset }: ColumnSet
         <Popover trigger="click" position="bottomRight" content={content}>
             <span>
                 <Tooltip content="列设置">
-                    <Button type="tertiary" icon={<Columns3 size={14} />} aria-label="列设置" />
+                    <Button type="tertiary" icon={<Settings size={14} />} aria-label="列设置" />
                 </Tooltip>
             </span>
         </Popover>

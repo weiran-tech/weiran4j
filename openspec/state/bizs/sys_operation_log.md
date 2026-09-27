@@ -105,7 +105,7 @@ User-Agent、时间、错误信息（有才显示）；请求体是 JSON 时格�
 
 ## 4. 用到的公共组件
 
-- `PageContainer`、`SearchToolbar`、`StatusTag`
+- `PageContainer`、`SearchToolbar`（`conditions` / `onRefresh`）、`StatusTag`
 - 工具函数（非组件）：`utils/date.ts` 的 `toTimeRange`
 
 ## 5. 说明与建议
@@ -134,6 +134,10 @@ User-Agent、时间、错误信息（有才显示）；请求体是 JSON 时格�
 ## 7. changelog
 
 新条目插在本节最上方（按日期倒序，新在上）。
+
+**2026-09-27**
+- **#06 ✅ P3 操作日志列表按 `rules/advisory/list-view.md` 约定改造**
+  加刷新按钮与「已选条件」（操作人、模块、结果、时间范围）；IP 列 120 → 130（最宽 IPv4 不折行）、时间列 164 → 158；清空日期选择器不再留下空的时间条件。
 
 **2026-09-26**
 - **#05 ✅ P? D-008 框架重写时建立本文件**

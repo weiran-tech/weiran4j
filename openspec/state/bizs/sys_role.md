@@ -76,10 +76,10 @@
 
 | 按钮 | 接口 | 权限码 | `@OperationLog` | 业务规则 / 错误码 |
 | --- | --- | --- | --- | --- |
-| 新增角色（工具栏） | `POST /api/roles` → `{id}` | `system:role:create` | ✅ 角色管理 / 新增角色 | 见 §2；`is_builtin=false` |
+| 新增角色（工具栏最左） | `POST /api/roles` → `{id}` | `system:role:create` | ✅ 角色管理 / 新增角色 | 见 §2；`is_builtin=false` |
 | 编辑（行） | `PUT /api/roles/{id}` | `system:role:update` | ✅ 修改角色 | 404 角色不存在；内置角色改编码或禁用 40901；编码查重 40900；成功后全部授权快照失效 |
 | 分配权限（行） | `PUT /api/roles/{id}/menus` | `system:role:assign-menu` | ✅ 分配菜单 | 全量覆盖 `sys_role_menu`（先删后插，去重后按 ID 排序）；成功后全部授权快照失效 |
-| 删除（行，`Popconfirm`） | `DELETE /api/roles/{id}` | `system:role:delete` | ✅ 删除角色 | 内置角色 40901「内置角色不可删除」；仍有用户绑定 40901「角色下仍有 N 个用户，请先解除绑定」；同时删 `sys_role_menu`。前端只对内置角色禁用按钮；有用户时 `Popconfirm` 仅提示人数，确认后由后端拒绝 |
+| 删除（行「操作」列，确认后执行；表格放不下时收在「更多」菜单里） | `DELETE /api/roles/{id}` | `system:role:delete` | ✅ 删除角色 | 内置角色 40901「内置角色不可删除」；仍有用户绑定 40901「角色下仍有 N 个用户，请先解除绑定」；同时删 `sys_role_menu`。前端只对内置角色禁用按钮；有用户时确认框仅提示人数，确认后由后端拒绝 |
 | —（下拉数据源） | `GET /api/roles/options` | 仅登录 | — | 启用角色 `[{id, name, code}]`，按 `sort`、`id`；用户表单在用 |
 | —（详情） | `GET /api/roles/{id}` | `system:role:list` | — | `RoleView` + `menuIds`（升序）；分配权限侧滑在用 |
 
@@ -88,7 +88,7 @@
 
 ## 4. 用到的公共组件
 
-- `PageContainer`、`SearchToolbar`、`Permission`
+- `PageContainer`、`SearchToolbar`（`leading` / `conditions` / `onRefresh`）、`TableActions`（`useActionsColumn`）、`Permission`
 - `StatusTag`（列表）与 `STATUS_OPTIONS`（表单）
 - `DictSelect`（状态筛选，字典 `sys_common_status`）
 - 工具函数（非组件）：`utils/menu.ts` 的 `applyMenuCheck`、`flattenTree`
@@ -116,6 +116,10 @@
 ## 7. changelog
 
 新条目插在本节最上方（按日期倒序，新在上）。
+
+**2026-09-27**
+- **#05 ✅ P3 角色列表按 `rules/advisory/list-view.md` 约定改造**
+  「新增角色」移到工具栏最左；操作列（编辑 / 分配权限 / 删除）改用 `TableActions`，表格容器放不下时收成「更多」；加刷新按钮与「已选条件」（关键字、状态名称）。
 
 **2026-09-26**
 - **#04 ✅ P? D-008 框架重写时建立本文件**

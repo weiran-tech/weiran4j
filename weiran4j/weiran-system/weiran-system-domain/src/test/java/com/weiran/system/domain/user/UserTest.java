@@ -97,4 +97,17 @@ class UserTest {
         assertThat(Gender.FEMALE.value()).isEqualTo("female");
         assertThatThrownBy(() -> Gender.of("x")).isInstanceOf(BizException.class);
     }
+
+    @Test
+    @DisplayName("性别过滤条件：空与空白不过滤，合法值解析，非法值 40000")
+    void parsesGenderFilter() {
+        assertThat(Gender.filterOf(null)).isNull();
+        assertThat(Gender.filterOf(" ")).isNull();
+        assertThat(Gender.filterOf("female")).isEqualTo(Gender.FEMALE);
+        assertThat(Gender.filterOf("unknown")).isEqualTo(Gender.UNKNOWN);
+        assertThatThrownBy(() -> Gender.filterOf("x"))
+                .isInstanceOfSatisfying(
+                        BizException.class,
+                        e -> assertThat(e.getErrorCode().code()).isEqualTo(40000));
+    }
 }

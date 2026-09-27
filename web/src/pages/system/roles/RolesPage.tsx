@@ -1,4 +1,4 @@
-import { Button, Input, Popconfirm, Space, Table, Tag, Toast } from '@douyinfe/semi-ui';
+import { Button, Input, Space, Table, Tag, Toast } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
@@ -6,8 +6,10 @@ import { DictSelect } from '@/components/DictSelect';
 import { useColumnSettings } from '@/components/ColumnSettings';
 import { PageContainer } from '@/components/PageContainer';
 import { Permission } from '@/components/Permission';
-import { SearchToolbar } from '@/components/SearchToolbar';
+import { SearchToolbar, type SearchCondition } from '@/components/SearchToolbar';
 import { StatusTag } from '@/components/StatusTag';
+import { useActionsColumn, type TableAction } from '@/components/TableActions';
+import { useDictOptions } from '@/hooks/queries/dicts';
 import { useDeleteRole, useRoleList } from '@/hooks/queries/roles';
 import { usePermission } from '@/hooks/usePermission';
 import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
@@ -41,7 +43,7 @@ export default function RolesPage() {
     const [editing, setEditing] = useState<RoleView | null | undefined>(undefined);
     const [assigning, setAssigning] = useState<RoleView | null>(null);
 
-    const { data, isFetching } = useRoleList(toQuery(filters, page, pageSize));
+    const { data, isFetching, refetch } = useRoleList(toQuery(filters, page, pageSize));
     const deleteRole = useDeleteRole();
 
     const search = () => {
@@ -53,6 +55,29 @@ export default function RolesPage() {
         setFilters(EMPTY_FILTERS);
         setPage(1);
     };
+
+    // 已选条件只反映已生效的查询；删掉一个即清空该字段（草稿一并清）并回第 1 页
+    const statusOptions = useDictOptions('sys_common_status');
+    const remove = (field: keyof Filters) => () => {
+        setFilters((f) => ({ ...f, [field]: EMPTY_FILTERS[field] }));
+        setDraft((d) => ({ ...d, [field]: EMPTY_FILTERS[field] }));
+        setPage(1);
+    };
+    const conditions: SearchCondition[] = [
+        ...(filters.keyword.trim()
+            ? [{ key: 'keyword', label: '关键字', value: filters.keyword.trim(), onRemove: remove('keyword') }]
+            : []),
+        ...(filters.status
+            ? [
+                  {
+                      key: 'status',
+                      label: '状态',
+                      value: statusOptions.find((o) => o.value === filters.status)?.label ?? filters.status,
+                      onRemove: remove('status'),
+                  },
+              ]
+            : []),
+    ];
 
     const columns: ColumnProps<RoleView>[] = [
         {
@@ -78,41 +103,28 @@ export default function RolesPage() {
         { title: '创建时间', dataIndex: 'createdAt', width: 164 },
     ];
 
+    const roleActions = (record: RoleView): TableAction[] => [
+        { key: 'edit', label: '编辑', permission: 'system:role:update', onClick: () => setEditing(record) },
+        { key: 'assign', label: '分配权限', permission: 'system:role:assign-menu', onClick: () => setAssigning(record) },
+        {
+            key: 'delete',
+            label: '删除',
+            permission: 'system:role:delete',
+            danger: true,
+            disabled: record.isBuiltin,
+            confirm: {
+                title: '确定删除该角色？',
+                ...(record.userCount > 0 ? { content: `仍有 ${record.userCount} 个用户绑定该角色` } : {}),
+            },
+            onClick: () => deleteRole.mutate(record.id, { onSuccess: () => Toast.success('已删除') }),
+        },
+    ];
     if (hasAnyPermission('system:role:update', 'system:role:assign-menu', 'system:role:delete')) {
-        columns.push({
-            title: '操作',
-            dataIndex: 'actions',
-            fixed: 'right',
-            width: 190,
-            render: (_: unknown, record: RoleView) => (
-                <Space spacing={4}>
-                    <Permission code="system:role:update">
-                        <Button theme="borderless" size="small" onClick={() => setEditing(record)}>
-                            编辑
-                        </Button>
-                    </Permission>
-                    <Permission code="system:role:assign-menu">
-                        <Button theme="borderless" size="small" onClick={() => setAssigning(record)}>
-                            分配权限
-                        </Button>
-                    </Permission>
-                    <Permission code="system:role:delete">
-                        <Popconfirm
-                            title="确定删除该角色？"
-                            content={record.userCount > 0 ? `仍有 ${record.userCount} 个用户绑定该角色` : undefined}
-                            onConfirm={() => deleteRole.mutate(record.id, { onSuccess: () => Toast.success('已删除') })}
-                        >
-                            <Button theme="borderless" type="danger" size="small" disabled={record.isBuiltin}>
-                                删除
-                            </Button>
-                        </Popconfirm>
-                    </Permission>
-                </Space>
-            ),
-        });
+        columns.push({ title: '操作', dataIndex: 'actions', fixed: 'right', width: 190 });
     }
 
-    const { columns: tableColumns, columnSettings } = useColumnSettings('system/roles', columns);
+    const { columns: settledColumns, columnSettings } = useColumnSettings('system/roles', columns);
+    const { ref: tableBoxRef, columns: tableColumns } = useActionsColumn(settledColumns, roleActions);
 
     return (
         <PageContainer>
@@ -120,7 +132,10 @@ export default function RolesPage() {
                 tools={columnSettings}
                 onSearch={search}
                 onReset={reset}
-                actions={
+                onRefresh={() => void refetch()}
+                refreshing={isFetching}
+                conditions={conditions}
+                leading={
                     <Permission code="system:role:create">
                         <Button type="primary" theme="solid" icon={<Plus size={14} />} onClick={() => setEditing(null)}>
                             新增角色
@@ -143,26 +158,28 @@ export default function RolesPage() {
                     onChange={(v) => setDraft((d) => ({ ...d, status: v as Status | undefined }))}
                 />
             </SearchToolbar>
-            <Table<RoleView>
-                {...tableProps}
-                rowKey="id"
-                columns={tableColumns}
-                dataSource={data?.list ?? []}
-                loading={isFetching}
-                scroll={{ x: tableScrollX(tableColumns) }}
-                pagination={{
-                    currentPage: page,
-                    pageSize,
-                    pageSizeOpts,
-                    total: data?.total ?? 0,
-                    showSizeChanger: true,
-                    showTotal: true,
-                    onChange: (p, s) => {
-                        setPage(p);
-                        setPageSize(s);
-                    },
-                }}
-            />
+            <div ref={tableBoxRef}>
+                <Table<RoleView>
+                    {...tableProps}
+                    rowKey="id"
+                    columns={tableColumns}
+                    dataSource={data?.list ?? []}
+                    loading={isFetching}
+                    scroll={{ x: tableScrollX(tableColumns) }}
+                    pagination={{
+                        currentPage: page,
+                        pageSize,
+                        pageSizeOpts,
+                        total: data?.total ?? 0,
+                        showSizeChanger: true,
+                        showTotal: true,
+                        onChange: (p, s) => {
+                            setPage(p);
+                            setPageSize(s);
+                        },
+                    }}
+                />
+            </div>
             {editing !== undefined && <RoleFormModal record={editing} onClose={() => setEditing(undefined)} />}
             {assigning && <RoleMenuSheet role={assigning} onClose={() => setAssigning(null)} />}
         </PageContainer>

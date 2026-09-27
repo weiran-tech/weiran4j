@@ -3,12 +3,12 @@ import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { useState } from 'react';
 import { useColumnSettings } from '@/components/ColumnSettings';
 import { PageContainer } from '@/components/PageContainer';
-import { SearchToolbar } from '@/components/SearchToolbar';
+import { SearchToolbar, type SearchCondition } from '@/components/SearchToolbar';
 import { StatusTag } from '@/components/StatusTag';
 import { useOperationLogDetail, useOperationLogs } from '@/hooks/queries/logs';
 import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
 import type { OperationLogQuery, OperationLogView } from '@/types/api';
-import { toTimeRange } from '@/utils/date';
+import { formatTimeRange, toTimeRange } from '@/utils/date';
 
 /** 请求体是 JSON 就格式化，否则原样展示 */
 export function prettyBody(body: string | null | undefined): string {
@@ -79,12 +79,35 @@ export default function OperationLogsPage() {
         ...(filters.success !== undefined ? { success: filters.success } : {}),
         ...toTimeRange(filters.range),
     };
-    const { data, isFetching } = useOperationLogs(query);
+    const { data, isFetching, refetch } = useOperationLogs(query);
 
     const search = () => {
         setFilters(draft);
         setPage(1);
     };
+    const reset = () => {
+        setDraft(EMPTY_FILTERS);
+        setFilters(EMPTY_FILTERS);
+        setPage(1);
+    };
+
+    // 已选条件只反映已生效的查询；删掉一个即清空该字段（草稿一并清）并回第 1 页
+    const remove = (field: keyof Filters) => () => {
+        setFilters((f) => ({ ...f, [field]: EMPTY_FILTERS[field] }));
+        setDraft((d) => ({ ...d, [field]: EMPTY_FILTERS[field] }));
+        setPage(1);
+    };
+    const range = formatTimeRange(filters.range);
+    const conditions: SearchCondition[] = [
+        ...(filters.username.trim()
+            ? [{ key: 'username', label: '操作人', value: filters.username.trim(), onRemove: remove('username') }]
+            : []),
+        ...(filters.module.trim() ? [{ key: 'module', label: '模块', value: filters.module.trim(), onRemove: remove('module') }] : []),
+        ...(filters.success !== undefined
+            ? [{ key: 'success', label: '结果', value: filters.success ? '成功' : '失败', onRemove: remove('success') }]
+            : []),
+        ...(range ? [{ key: 'range', label: '时间', value: range, onRemove: remove('range') }] : []),
+    ];
 
     const columns: ColumnProps<OperationLogView>[] = [
         { title: '操作人', dataIndex: 'username', width: 110, render: (v: string | null) => v || '—' },
@@ -104,8 +127,9 @@ export default function OperationLogsPage() {
         },
         { title: '结果', dataIndex: 'success', width: 72, render: (v: boolean) => <StatusTag value={v} /> },
         { title: '耗时', dataIndex: 'durationMs', width: 80, render: (v: number) => `${v} ms` },
-        { title: 'IP', dataIndex: 'ip', width: 120, render: (v: string | null) => v || '—' },
-        { title: '时间', dataIndex: 'createdAt', width: 164 },
+        // IP 130：最宽的 IPv4（255.255.255.255）约 104 + 24 内边距，窄了会折行（list-view.md 二.4）
+        { title: 'IP', dataIndex: 'ip', width: 130, render: (v: string | null) => v || '—' },
+        { title: '时间', dataIndex: 'createdAt', width: 158 },
         {
             title: '操作',
             dataIndex: 'actions',
@@ -126,11 +150,10 @@ export default function OperationLogsPage() {
             <SearchToolbar
                 tools={columnSettings}
                 onSearch={search}
-                onReset={() => {
-                    setDraft(EMPTY_FILTERS);
-                    setFilters(EMPTY_FILTERS);
-                    setPage(1);
-                }}
+                onReset={reset}
+                onRefresh={() => void refetch()}
+                refreshing={isFetching}
+                conditions={conditions}
             >
                 <Input
                     placeholder="操作人"
@@ -162,7 +185,7 @@ export default function OperationLogsPage() {
                 <DatePicker
                     type="dateTimeRange"
                     value={draft.range ?? []}
-                    onChange={(v) => setDraft((d) => ({ ...d, range: Array.isArray(v) ? (v as Date[]) : undefined }))}
+                    onChange={(v) => setDraft((d) => ({ ...d, range: Array.isArray(v) && v.length ? (v as Date[]) : undefined }))}
                     style={{ width: 360 }}
                 />
             </SearchToolbar>

@@ -3,12 +3,12 @@ import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { useState } from 'react';
 import { useColumnSettings } from '@/components/ColumnSettings';
 import { PageContainer } from '@/components/PageContainer';
-import { SearchToolbar } from '@/components/SearchToolbar';
+import { SearchToolbar, type SearchCondition } from '@/components/SearchToolbar';
 import { StatusTag } from '@/components/StatusTag';
 import { useLoginLogs } from '@/hooks/queries/logs';
 import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
 import type { LoginLogQuery, LoginLogView } from '@/types/api';
-import { toTimeRange } from '@/utils/date';
+import { formatTimeRange, toTimeRange } from '@/utils/date';
 
 interface Filters {
     username: string;
@@ -18,6 +18,15 @@ interface Filters {
 }
 
 const EMPTY_FILTERS: Filters = { username: '', status: undefined, eventType: undefined, range: undefined };
+
+const EVENT_OPTIONS = [
+    { label: '登录', value: 'login' },
+    { label: '登出', value: 'logout' },
+];
+const STATUS_OPTIONS = [
+    { label: '成功', value: 'success' },
+    { label: '失败', value: 'fail' },
+];
 
 export default function LoginLogsPage() {
     const [draft, setDraft] = useState<Filters>(EMPTY_FILTERS);
@@ -34,12 +43,38 @@ export default function LoginLogsPage() {
         ...(filters.eventType ? { eventType: filters.eventType } : {}),
         ...toTimeRange(filters.range),
     };
-    const { data, isFetching } = useLoginLogs(query);
+    const { data, isFetching, refetch } = useLoginLogs(query);
 
     const search = () => {
         setFilters(draft);
         setPage(1);
     };
+    const reset = () => {
+        setDraft(EMPTY_FILTERS);
+        setFilters(EMPTY_FILTERS);
+        setPage(1);
+    };
+
+    // 已选条件只反映已生效的查询；删掉一个即清空该字段（草稿一并清）并回第 1 页
+    const remove = (field: keyof Filters) => () => {
+        setFilters((f) => ({ ...f, [field]: EMPTY_FILTERS[field] }));
+        setDraft((d) => ({ ...d, [field]: EMPTY_FILTERS[field] }));
+        setPage(1);
+    };
+    const labelOf = (options: { label: string; value: string }[], v: string) => options.find((o) => o.value === v)?.label ?? v;
+    const range = formatTimeRange(filters.range);
+    const conditions: SearchCondition[] = [
+        ...(filters.username.trim()
+            ? [{ key: 'username', label: '用户名', value: filters.username.trim(), onRemove: remove('username') }]
+            : []),
+        ...(filters.eventType
+            ? [{ key: 'eventType', label: '事件', value: labelOf(EVENT_OPTIONS, filters.eventType), onRemove: remove('eventType') }]
+            : []),
+        ...(filters.status
+            ? [{ key: 'status', label: '结果', value: labelOf(STATUS_OPTIONS, filters.status), onRemove: remove('status') }]
+            : []),
+        ...(range ? [{ key: 'range', label: '时间', value: range, onRemove: remove('range') }] : []),
+    ];
 
     const columns: ColumnProps<LoginLogView>[] = [
         { title: '用户名', dataIndex: 'username', width: 120 },
@@ -76,11 +111,10 @@ export default function LoginLogsPage() {
             <SearchToolbar
                 tools={columnSettings}
                 onSearch={search}
-                onReset={() => {
-                    setDraft(EMPTY_FILTERS);
-                    setFilters(EMPTY_FILTERS);
-                    setPage(1);
-                }}
+                onReset={reset}
+                onRefresh={() => void refetch()}
+                refreshing={isFetching}
+                conditions={conditions}
             >
                 <Input
                     placeholder="用户名"
@@ -94,10 +128,7 @@ export default function LoginLogsPage() {
                     placeholder="事件"
                     value={draft.eventType}
                     onChange={(v) => setDraft((d) => ({ ...d, eventType: v as Filters['eventType'] }))}
-                    optionList={[
-                        { label: '登录', value: 'login' },
-                        { label: '登出', value: 'logout' },
-                    ]}
+                    optionList={EVENT_OPTIONS}
                     showClear
                     style={{ width: 110 }}
                 />
@@ -105,17 +136,14 @@ export default function LoginLogsPage() {
                     placeholder="结果"
                     value={draft.status}
                     onChange={(v) => setDraft((d) => ({ ...d, status: v as Filters['status'] }))}
-                    optionList={[
-                        { label: '成功', value: 'success' },
-                        { label: '失败', value: 'fail' },
-                    ]}
+                    optionList={STATUS_OPTIONS}
                     showClear
                     style={{ width: 110 }}
                 />
                 <DatePicker
                     type="dateTimeRange"
                     value={draft.range ?? []}
-                    onChange={(v) => setDraft((d) => ({ ...d, range: Array.isArray(v) ? (v as Date[]) : undefined }))}
+                    onChange={(v) => setDraft((d) => ({ ...d, range: Array.isArray(v) && v.length ? (v as Date[]) : undefined }))}
                     style={{ width: 360 }}
                 />
             </SearchToolbar>

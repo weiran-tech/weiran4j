@@ -17,6 +17,7 @@ import com.weiran.system.api.user.UserQuery;
 import com.weiran.system.api.user.UserService;
 import com.weiran.system.api.user.UserView;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,16 +44,40 @@ public class UserController {
         this.userService = userService;
     }
 
-    /** 分页查询。 */
+    /** 分页查询：{@code keyword} 为三列模糊的快速搜索，其余为高级筛选的单字段条件（契约 §6.2）。 */
     @RequiresPermission("system:user:list")
     @GetMapping
     public PageResult<UserView> page(
             @RequestParam(required = false) final @Nullable String keyword,
             @RequestParam(required = false) final @Nullable String status,
             @RequestParam(required = false) final @Nullable Long departmentId,
+            @RequestParam(required = false) final @Nullable String username,
+            @RequestParam(required = false) final @Nullable Long userId,
+            @RequestParam(required = false) final @Nullable String phone,
+            @RequestParam(required = false) final @Nullable String email,
+            @RequestParam(required = false) final @Nullable Long roleId,
+            @RequestParam(required = false) final @Nullable String gender,
+            @RequestParam(required = false) final @Nullable LocalDateTime createdStartTime,
+            @RequestParam(required = false) final @Nullable LocalDateTime createdEndTime,
+            @RequestParam(required = false) final @Nullable LocalDateTime lastLoginStartTime,
+            @RequestParam(required = false) final @Nullable LocalDateTime lastLoginEndTime,
             @RequestParam(defaultValue = "1") final int page,
             @RequestParam(defaultValue = "20") final int pageSize) {
-        return this.userService.page(new UserQuery(keyword, status, departmentId), new PageQuery(page, pageSize));
+        final UserQuery query = new UserQuery(
+                keyword,
+                status,
+                departmentId,
+                username,
+                userId,
+                phone,
+                email,
+                roleId,
+                gender,
+                createdStartTime,
+                createdEndTime,
+                lastLoginStartTime,
+                lastLoginEndTime);
+        return this.userService.page(query, new PageQuery(page, pageSize));
     }
 
     /** 启用用户下拉。 */

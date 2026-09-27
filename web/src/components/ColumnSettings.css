@@ -26,17 +26,42 @@
 .column-settings__item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 2px 4px 2px 8px;
+    gap: 4px;
+    padding: 2px 8px 2px 2px;
     border-radius: 4px;
+    border-top: 2px solid transparent;
 }
 
 .column-settings__item:hover {
     background: var(--semi-color-fill-0);
 }
 
-.column-settings__moves {
+/* 拖动中：被拖的行变淡，悬停的目标行上沿出现主色插入线 */
+.column-settings__item--dragging {
+    opacity: 0.4;
+}
+
+.column-settings__item--over {
+    border-top-color: var(--semi-color-primary);
+}
+
+.column-settings__handle {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 24px;
+    padding: 0;
     flex-shrink: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--semi-color-text-2);
+    cursor: grab;
+}
+
+.column-settings__handle:hover,
+.column-settings__handle:focus-visible {
+    background: var(--semi-color-fill-1);
+    color: var(--semi-color-text-0);
 }

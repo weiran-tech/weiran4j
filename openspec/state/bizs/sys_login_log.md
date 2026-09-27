@@ -90,7 +90,7 @@
 
 ## 4. 用到的公共组件
 
-- `PageContainer`、`SearchToolbar`、`StatusTag`
+- `PageContainer`、`SearchToolbar`（`conditions` / `onRefresh`）、`StatusTag`
 - 工具函数（非组件）：`utils/date.ts` 的 `toTimeRange`（时间范围 → `startTime/endTime`）
 
 ## 5. 说明与建议
@@ -110,6 +110,10 @@
 ## 7. changelog
 
 新条目插在本节最上方（按日期倒序，新在上）。
+
+**2026-09-27**
+- **#03 ✅ P3 登录日志列表按 `rules/advisory/list-view.md` 约定改造**
+  加刷新按钮与「已选条件」（用户名、事件 / 结果名称、时间范围）；清空日期选择器不再留下空的时间条件。
 
 **2026-09-26**
 - **#02 ✅ P? D-008 框架重写时建立本文件**

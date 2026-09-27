@@ -1,4 +1,4 @@
-import { Button, Form, Input, Modal, Popconfirm, Space, Table, Tag, Toast, Typography } from '@douyinfe/semi-ui';
+import { Button, Form, Input, Modal, Space, Table, Tag, Toast, Typography } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { Plus } from 'lucide-react';
@@ -6,7 +6,8 @@ import { useRef, useState } from 'react';
 import { useColumnSettings } from '@/components/ColumnSettings';
 import { PageContainer } from '@/components/PageContainer';
 import { Permission } from '@/components/Permission';
-import { SearchToolbar } from '@/components/SearchToolbar';
+import { SearchToolbar, type SearchCondition } from '@/components/SearchToolbar';
+import { useActionsColumn, type TableAction } from '@/components/TableActions';
 import { useConfigList, useDeleteConfig, useSaveConfig } from '@/hooks/queries/configs';
 import { usePermission } from '@/hooks/usePermission';
 import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
@@ -51,7 +52,12 @@ function ConfigFormModal({ record, onClose }: { record: ConfigView | null; onClo
         if (!v) return;
         await save.mutateAsync({
             id: record?.id,
-            body: { configKey: v.configKey.trim(), configValue: v.configValue ?? '', configType: v.configType, description: v.description || null },
+            body: {
+                configKey: v.configKey.trim(),
+                configValue: v.configValue ?? '',
+                configType: v.configType,
+                description: v.description || null,
+            },
         });
         Toast.success(isEdit ? '已保存' : '已创建');
         onClose();
@@ -97,7 +103,10 @@ function ConfigFormModal({ record, onClose }: { record: ConfigView | null; onClo
                     rules={[
                         {
                             validator: (_r: unknown, value: unknown) =>
-                                validateConfigValue(api.current?.getValue('configType') ?? 'string', typeof value === 'string' ? value : '') === null,
+                                validateConfigValue(
+                                    api.current?.getValue('configType') ?? 'string',
+                                    typeof value === 'string' ? value : '',
+                                ) === null,
                             message: '配置值与类型不匹配（number 需为数字，boolean 需为 true/false，json 需可解析）',
                         },
                     ]}
@@ -116,7 +125,7 @@ export default function ConfigsPage() {
     const { tableProps, pageSize: defaultPageSize, pageSizeOpts } = useTableDefaults();
     const [pageSize, setPageSize] = useState(defaultPageSize);
     const [editing, setEditing] = useState<ConfigView | null | undefined>(undefined);
-    const { data, isFetching } = useConfigList({ page, pageSize, ...(keyword ? { keyword } : {}) });
+    const { data, isFetching, refetch } = useConfigList({ page, pageSize, ...(keyword ? { keyword } : {}) });
     const deleteConfig = useDeleteConfig();
 
     const columns: ColumnProps<ConfigView>[] = [
@@ -138,36 +147,31 @@ export default function ConfigsPage() {
         {
             title: '配置值',
             dataIndex: 'configValue',
-            render: (v: string) => <Typography.Text ellipsis={{ showTooltip: true }} style={{ maxWidth: 320 }}>{v}</Typography.Text>,
+            render: (v: string) => (
+                <Typography.Text ellipsis={{ showTooltip: true }} style={{ maxWidth: 320 }}>
+                    {v}
+                </Typography.Text>
+            ),
         },
         { title: '类型', dataIndex: 'configType', width: 80 },
         { title: '描述', dataIndex: 'description', render: (v: string | null) => v || '—' },
         { title: '更新时间', dataIndex: 'updatedAt', width: 164 },
     ];
 
+    const configActions = (record: ConfigView): TableAction[] => [
+        { key: 'edit', label: '编辑', permission: 'system:config:update', onClick: () => setEditing(record) },
+        {
+            key: 'delete',
+            label: '删除',
+            permission: 'system:config:delete',
+            danger: true,
+            disabled: record.isBuiltin,
+            confirm: { title: '确定删除该配置？' },
+            onClick: () => deleteConfig.mutate(record.id, { onSuccess: () => Toast.success('已删除') }),
+        },
+    ];
     if (hasAnyPermission('system:config:update', 'system:config:delete')) {
-        columns.push({
-            title: '操作',
-            dataIndex: 'actions',
-            fixed: 'right',
-            width: 120,
-            render: (_: unknown, record: ConfigView) => (
-                <Space spacing={4}>
-                    <Permission code="system:config:update">
-                        <Button theme="borderless" size="small" onClick={() => setEditing(record)}>
-                            编辑
-                        </Button>
-                    </Permission>
-                    <Permission code="system:config:delete">
-                        <Popconfirm title="确定删除该配置？" onConfirm={() => deleteConfig.mutate(record.id, { onSuccess: () => Toast.success('已删除') })}>
-                            <Button theme="borderless" type="danger" size="small" disabled={record.isBuiltin}>
-                                删除
-                            </Button>
-                        </Popconfirm>
-                    </Permission>
-                </Space>
-            ),
-        });
+        columns.push({ title: '操作', dataIndex: 'actions', fixed: 'right', width: 120 });
     }
 
     const search = () => {
@@ -175,19 +179,26 @@ export default function ConfigsPage() {
         setPage(1);
     };
 
-    const { columns: tableColumns, columnSettings } = useColumnSettings('system/configs', columns);
+    const reset = () => {
+        setDraft('');
+        setKeyword('');
+        setPage(1);
+    };
+    const conditions: SearchCondition[] = keyword ? [{ key: 'keyword', label: '关键字', value: keyword, onRemove: reset }] : [];
+
+    const { columns: settledColumns, columnSettings } = useColumnSettings('system/configs', columns);
+    const { ref: tableBoxRef, columns: tableColumns } = useActionsColumn(settledColumns, configActions);
 
     return (
         <PageContainer>
             <SearchToolbar
                 tools={columnSettings}
                 onSearch={search}
-                onReset={() => {
-                    setDraft('');
-                    setKeyword('');
-                    setPage(1);
-                }}
-                actions={
+                onReset={reset}
+                onRefresh={() => void refetch()}
+                refreshing={isFetching}
+                conditions={conditions}
+                leading={
                     <Permission code="system:config:create">
                         <Button type="primary" theme="solid" icon={<Plus size={14} />} onClick={() => setEditing(null)}>
                             新增配置
@@ -195,28 +206,37 @@ export default function ConfigsPage() {
                     </Permission>
                 }
             >
-                <Input placeholder="配置键 / 描述" value={draft} onChange={setDraft} onEnterPress={search} showClear style={{ width: 220 }} />
+                <Input
+                    placeholder="配置键 / 描述"
+                    value={draft}
+                    onChange={setDraft}
+                    onEnterPress={search}
+                    showClear
+                    style={{ width: 220 }}
+                />
             </SearchToolbar>
-            <Table<ConfigView>
-                {...tableProps}
-                rowKey="id"
-                columns={tableColumns}
-                dataSource={data?.list ?? []}
-                loading={isFetching}
-                scroll={{ x: tableScrollX(tableColumns) }}
-                pagination={{
-                    currentPage: page,
-                    pageSize,
-                    pageSizeOpts,
-                    total: data?.total ?? 0,
-                    showSizeChanger: true,
-                    showTotal: true,
-                    onChange: (p, s) => {
-                        setPage(p);
-                        setPageSize(s);
-                    },
-                }}
-            />
+            <div ref={tableBoxRef}>
+                <Table<ConfigView>
+                    {...tableProps}
+                    rowKey="id"
+                    columns={tableColumns}
+                    dataSource={data?.list ?? []}
+                    loading={isFetching}
+                    scroll={{ x: tableScrollX(tableColumns) }}
+                    pagination={{
+                        currentPage: page,
+                        pageSize,
+                        pageSizeOpts,
+                        total: data?.total ?? 0,
+                        showSizeChanger: true,
+                        showTotal: true,
+                        onChange: (p, s) => {
+                            setPage(p);
+                            setPageSize(s);
+                        },
+                    }}
+                />
+            </div>
             {editing !== undefined && <ConfigFormModal record={editing} onClose={() => setEditing(undefined)} />}
         </PageContainer>
     );

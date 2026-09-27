@@ -32,6 +32,7 @@ rules/
 | 文件 | 管什么 |
 |---|---|
 | [`components.md`](advisory/components.md) | **可复用的前端公共组件**(先查再造);新增未登记会被 `components-registry` 拦 |
+| [`list-view.md`](advisory/list-view.md) | **列表页(搜索栏 + 表格)的约定**:工具栏布局、高级筛选、已选条件、表头 / 操作列 / 列宽预算 / 列设置 |
 | [`pitfalls.md`](advisory/pitfalls.md) | **流水线各层踩过的坑**(L0–L10 分节) |
 | [`toolchain.md`](advisory/toolchain.md) | **工具行为与代码库欠账**:前三者都装不下的既有事实 |
 

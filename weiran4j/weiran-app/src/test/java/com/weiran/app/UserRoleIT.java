@@ -129,6 +129,89 @@ class UserRoleIT extends IntegrationTestSupport {
         assertThat(links).isZero();
     }
 
+    /** 用户分页结果里的用户 ID（保持返回顺序，便于断言重复）。 */
+    private List<Long> userIds(final String admin, final String query) {
+        final ResponseEntity<JsonNode> response = this.get("/api/users?pageSize=100&" + query, admin);
+        IntegrationTestSupport.assertOk(response);
+        final List<Long> ids = new ArrayList<>();
+        IntegrationTestSupport.data(response)
+                .path("list")
+                .forEach(node -> ids.add(node.path("id").asLong()));
+        return ids;
+    }
+
+    @Test
+    @DisplayName("高级筛选：用户名 / ID / 手机 / 邮箱精确匹配，角色去重，性别，时间闭区间与从未登录，多条件交集，非法值 40000")
+    void advancedFilters() {
+        final String admin = this.adminToken();
+        final long role1 = this.createRole(admin, IntegrationTestSupport.unique("adv"), List.of());
+        final long role2 = this.createRole(admin, IntegrationTestSupport.unique("adv"), List.of());
+        final String nameA = IntegrationTestSupport.unique("adva");
+        final String phoneA = "139" + String.format("%08d", Math.floorMod(System.nanoTime(), 100_000_000L));
+        final Map<String, Object> bodyA = UserRoleIT.newUser(nameA, List.of(role1, role2));
+        bodyA.put("phone", phoneA);
+        bodyA.put("gender", "female");
+        final long idA = this.create("/api/users", admin, bodyA);
+        final long idB = this.create(
+                "/api/users", admin, UserRoleIT.newUser(IntegrationTestSupport.unique("advb"), List.of(role1)));
+
+        // 单字段精确匹配：前缀不命中
+        assertThat(this.userIds(admin, "username=" + nameA)).containsExactly(idA);
+        assertThat(this.userIds(admin, "username=" + nameA.substring(0, nameA.length() - 1)))
+                .doesNotContain(idA);
+        assertThat(this.userIds(admin, "userId=" + idA)).containsExactly(idA);
+        final ResponseEntity<JsonNode> missing = this.get("/api/users?userId=999999999", admin);
+        IntegrationTestSupport.assertOk(missing);
+        assertThat(IntegrationTestSupport.data(missing).path("total").asLong()).isZero();
+        assertThat(this.userIds(admin, "phone=" + phoneA)).containsExactly(idA);
+        assertThat(this.userIds(admin, "phone=" + phoneA.substring(0, 7))).doesNotContain(idA);
+        assertThat(this.userIds(admin, "email=" + nameA + "@example.com")).containsExactly(idA);
+
+        // 角色：一人多角色也只出现一次，total 与去重后条数一致
+        final ResponseEntity<JsonNode> byRole = this.get("/api/users?pageSize=100&roleId=" + role1, admin);
+        assertThat(IntegrationTestSupport.data(byRole).path("total").asLong()).isEqualTo(2L);
+        assertThat(this.userIds(admin, "roleId=" + role1)).containsExactlyInAnyOrder(idA, idB);
+        assertThat(this.userIds(admin, "roleId=" + role2)).containsExactly(idA);
+
+        // 性别：按值过滤，非法值 40000；不传性别时不过滤（B 为 male 仍在）
+        final ResponseEntity<JsonNode> females = this.get("/api/users?pageSize=100&gender=female", admin);
+        assertThat(IntegrationTestSupport.data(females).path("list").findValuesAsText("gender"))
+                .containsOnly("female");
+        assertThat(this.userIds(admin, "gender=female")).contains(idA).doesNotContain(idB);
+        assertThat(this.userIds(admin, "roleId=" + role1)).contains(idB);
+        IntegrationTestSupport.assertError(this.get("/api/users?gender=x", admin), HttpStatus.BAD_REQUEST, 40000);
+
+        // 创建时间闭区间：边界时刻包含
+        final String createdAt = IntegrationTestSupport.data(this.get("/api/users/" + idA, admin))
+                .path("createdAt")
+                .asText();
+        assertThat(this.userIds(
+                        admin, "username=" + nameA + "&createdStartTime=" + createdAt + "&createdEndTime=" + createdAt))
+                .containsExactly(idA);
+        assertThat(this.userIds(admin, "username=" + nameA + "&createdEndTime=2000-01-01 00:00:00"))
+                .isEmpty();
+        // 前端 URLSearchParams 把空格编码成 +，后端须按空格解析
+        assertThat(this.userIds(admin, "username=" + nameA + "&createdStartTime=" + createdAt.replace(' ', '+')))
+                .containsExactly(idA);
+
+        // 最后登录时间：从未登录的用户被排除，登录后命中
+        final String since = "lastLoginStartTime=2000-01-01 00:00:00";
+        assertThat(this.userIds(admin, "username=" + nameA + "&" + since)).isEmpty();
+        this.tokenOf(nameA, UserRoleIT.PASSWORD);
+        assertThat(this.userIds(admin, "username=" + nameA + "&" + since)).containsExactly(idA);
+        assertThat(this.userIds(admin, "username=admin&" + since)).hasSize(1);
+
+        // 多条件交集
+        assertThat(this.userIds(admin, "keyword=" + nameA + "&gender=female&roleId=" + role1))
+                .containsExactly(idA);
+        assertThat(this.userIds(admin, "keyword=" + nameA + "&gender=male")).isEmpty();
+
+        // 非法数字与时间格式
+        IntegrationTestSupport.assertError(this.get("/api/users?userId=abc", admin), HttpStatus.BAD_REQUEST, 40000);
+        IntegrationTestSupport.assertError(
+                this.get("/api/users?createdStartTime=2026-13-01", admin), HttpStatus.BAD_REQUEST, 40000);
+    }
+
     @Test
     @DisplayName("用户名重复 40900，弱密码与非法角色 40000，内置用户删除 / 禁用 40901")
     void userRules() {

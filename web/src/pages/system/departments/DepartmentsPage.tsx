@@ -1,4 +1,4 @@
-import { Button, Form, Modal, Popconfirm, Space, Table, Toast } from '@douyinfe/semi-ui';
+import { Button, Form, Modal, Table, Toast } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import type { TreeNodeData } from '@douyinfe/semi-ui/lib/es/tree';
@@ -9,8 +9,10 @@ import { DictSelect } from '@/components/DictSelect';
 import { useColumnSettings } from '@/components/ColumnSettings';
 import { PageContainer } from '@/components/PageContainer';
 import { Permission } from '@/components/Permission';
-import { SearchToolbar } from '@/components/SearchToolbar';
+import { SearchToolbar, type SearchCondition } from '@/components/SearchToolbar';
 import { STATUS_OPTIONS, StatusTag } from '@/components/StatusTag';
+import { useActionsColumn, type TableAction } from '@/components/TableActions';
+import { useDictOptions } from '@/hooks/queries/dicts';
 import { useDeleteDepartment, useDepartmentTree, useSaveDepartment } from '@/hooks/queries/departments';
 import { useUserOptions } from '@/hooks/queries/users';
 import { usePermission } from '@/hooks/usePermission';
@@ -90,7 +92,14 @@ function DepartmentFormModal({ target, tree, onClose }: { target: Target; tree: 
                 labelPosition="left"
                 labelWidth={90}
             >
-                <Form.TreeSelect field="parentId" label="上级部门" treeData={parentTree} style={{ width: '100%' }} expandAll filterTreeNode />
+                <Form.TreeSelect
+                    field="parentId"
+                    label="上级部门"
+                    treeData={parentTree}
+                    style={{ width: '100%' }}
+                    expandAll
+                    filterTreeNode
+                />
                 <Form.Input field="name" label="部门名称" maxLength={64} rules={[{ required: true, message: '请输入部门名称' }]} />
                 <Form.Input field="code" label="部门编码" maxLength={64} rules={[{ required: true, message: '请输入部门编码' }]} />
                 <Form.Select
@@ -115,12 +124,29 @@ export default function DepartmentsPage() {
     const { hasAnyPermission } = usePermission();
     const [draftStatus, setDraftStatus] = useState<Status | undefined>(undefined);
     const [status, setStatus] = useState<Status | undefined>(undefined);
-    const { data, isFetching } = useDepartmentTree(status);
+    const { data, isFetching, refetch } = useDepartmentTree(status);
     const deleteDepartment = useDeleteDepartment();
     const [target, setTarget] = useState<Target | null>(null);
 
     const tree = useMemo(() => pruneEmptyChildren(data ?? []), [data]);
     const allKeys = useMemo(() => flattenTree(tree).map((d) => d.id), [tree]);
+    // 展开状态受控：null 表示全部展开（默认），「展开树状」按钮在全部展开与全部收起间切换
+    const [expandedKeys, setExpandedKeys] = useState<number[] | null>(null);
+    const allExpanded = expandedKeys === null || (allKeys.length > 0 && allKeys.every((k) => expandedKeys.includes(k)));
+    const statusOptions = useDictOptions('sys_common_status');
+    const conditions: SearchCondition[] = status
+        ? [
+              {
+                  key: 'status',
+                  label: '状态',
+                  value: statusOptions.find((o) => o.value === status)?.label ?? status,
+                  onRemove: () => {
+                      setDraftStatus(undefined);
+                      setStatus(undefined);
+                  },
+              },
+          ]
+        : [];
 
     const columns: ColumnProps<DepartmentNode>[] = [
         { title: '部门名称', dataIndex: 'name', width: 220 },
@@ -132,41 +158,29 @@ export default function DepartmentsPage() {
         { title: '创建时间', dataIndex: 'createdAt', width: 164 },
     ];
 
+    const departmentActions = (record: DepartmentNode): TableAction[] => [
+        {
+            key: 'create-child',
+            label: '新增下级',
+            permission: 'system:department:create',
+            onClick: () => setTarget({ mode: 'create', parent: record }),
+        },
+        { key: 'edit', label: '编辑', permission: 'system:department:update', onClick: () => setTarget({ mode: 'edit', record }) },
+        {
+            key: 'delete',
+            label: '删除',
+            permission: 'system:department:delete',
+            danger: true,
+            confirm: { title: '确定删除该部门？', content: '有下级部门或仍有用户时不能删除' },
+            onClick: () => deleteDepartment.mutate(record.id, { onSuccess: () => Toast.success('已删除') }),
+        },
+    ];
     if (hasAnyPermission('system:department:create', 'system:department:update', 'system:department:delete')) {
-        columns.push({
-            title: '操作',
-            dataIndex: 'actions',
-            fixed: 'right',
-            width: 180,
-            render: (_: unknown, record: DepartmentNode) => (
-                <Space spacing={4}>
-                    <Permission code="system:department:create">
-                        <Button theme="borderless" size="small" onClick={() => setTarget({ mode: 'create', parent: record })}>
-                            新增下级
-                        </Button>
-                    </Permission>
-                    <Permission code="system:department:update">
-                        <Button theme="borderless" size="small" onClick={() => setTarget({ mode: 'edit', record })}>
-                            编辑
-                        </Button>
-                    </Permission>
-                    <Permission code="system:department:delete">
-                        <Popconfirm
-                            title="确定删除该部门？"
-                            content="有下级部门或仍有用户时不能删除"
-                            onConfirm={() => deleteDepartment.mutate(record.id, { onSuccess: () => Toast.success('已删除') })}
-                        >
-                            <Button theme="borderless" type="danger" size="small">
-                                删除
-                            </Button>
-                        </Popconfirm>
-                    </Permission>
-                </Space>
-            ),
-        });
+        columns.push({ title: '操作', dataIndex: 'actions', fixed: 'right', width: 180 });
     }
 
-    const { columns: tableColumns, columnSettings } = useColumnSettings('system/departments', columns);
+    const { columns: settledColumns, columnSettings } = useColumnSettings('system/departments', columns);
+    const { ref: tableBoxRef, columns: tableColumns } = useActionsColumn(settledColumns, departmentActions);
 
     return (
         <PageContainer>
@@ -177,9 +191,18 @@ export default function DepartmentsPage() {
                     setDraftStatus(undefined);
                     setStatus(undefined);
                 }}
-                actions={
+                onRefresh={() => void refetch()}
+                refreshing={isFetching}
+                treeExpand={{ expanded: allExpanded, onToggle: () => setExpandedKeys(allExpanded ? [] : null) }}
+                conditions={conditions}
+                leading={
                     <Permission code="system:department:create">
-                        <Button type="primary" theme="solid" icon={<Plus size={14} />} onClick={() => setTarget({ mode: 'create', parent: null })}>
+                        <Button
+                            type="primary"
+                            theme="solid"
+                            icon={<Plus size={14} />}
+                            onClick={() => setTarget({ mode: 'create', parent: null })}
+                        >
                             新增部门
                         </Button>
                     </Permission>
@@ -192,17 +215,19 @@ export default function DepartmentsPage() {
                     onChange={(v) => setDraftStatus(v as Status | undefined)}
                 />
             </SearchToolbar>
-            <Table<DepartmentNode>
-                {...tableProps}
-                key={allKeys.join(',')}
-                rowKey="id"
-                columns={tableColumns}
-                dataSource={tree}
-                loading={isFetching}
-                pagination={false}
-                defaultExpandAllRows
-                scroll={{ x: tableScrollX(tableColumns) }}
-            />
+            <div ref={tableBoxRef}>
+                <Table<DepartmentNode>
+                    {...tableProps}
+                    rowKey="id"
+                    columns={tableColumns}
+                    dataSource={tree}
+                    loading={isFetching}
+                    pagination={false}
+                    expandedRowKeys={expandedKeys ?? allKeys}
+                    onExpandedRowsChange={(rows) => setExpandedKeys((rows ?? []).map((r) => (r as DepartmentNode).id))}
+                    scroll={{ x: tableScrollX(tableColumns) }}
+                />
+            </div>
             {target && <DepartmentFormModal target={target} tree={data ?? []} onClose={() => setTarget(null)} />}
         </PageContainer>
     );

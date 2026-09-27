@@ -47,6 +47,7 @@
 
 | # | 列表列 | 来源 | 渲染 |
 | --- | --- | --- | --- |
+| 0 | ID | `id` | 原值(宽 64,5 位以内不折行) |
 | 1 | 用户名 | `username` | 原值 |
 | 2 | 昵称 | `nickname` | 原值 |
 | 3 | 部门 | 派生：`department_id → sys_department.name` | 空值 `—` |
@@ -56,17 +57,31 @@
 | 7 | 状态 | `status` | `StatusTag` |
 | 8 | 最后登录 | `last_login_at` | 空值 `—` |
 | 9 | 创建时间 | `created_at` | 原值 |
-| 10 | 操作 | — | 有 `update` / `reset-password` / `delete` 任一权限才出现该列 |
+| 10 | 操作 | — | 有 `update` / `reset-password` / `delete` 任一权限才出现该列;固定在右侧;表格容器放不下全部列时收成一个「更多」按钮(`TableActions` + `useCompactActions`) |
+
+列宽合计 1114(弹性列「角色」按 78 计),1440 宽下四种导航布局都平铺操作列;手机 116、时间 158 按最坏数据算,不折行(见 `rules/advisory/list-view.md` 二.4)。
 
 `UserView` 还返回 `email`、`avatar`、`lastLoginIp`、`isBuiltin`、`roleIds`、`updatedAt`，列表未展示；**绝不返回** `password` / `token_version`。
 
-**筛选项**（点「查询」才生效，「重置」清空并回第 1 页）：
+**搜索栏**（按设计稿 `wuli-design/testing.pen`「用户列表」）：最左「新增用户」→ 常用筛选（下表三项）→ 图标「查询」→「高级筛选」开关
+（默认收起，展开后面板为设计稿的 10 个单字段条件 +「搜索 / 重置」，所属部门 / 状态与工具栏共用草稿）；右侧工具「列设置」「刷新」。点查询后，工具栏下方出现
+「已选条件」胶囊标签（原值或可读名称：状态 / 部门 / 角色 / 性别取名称，时间显示「开始 ~ 结束」），× 删除单个条件并立即重查、回第 1 页，「清空」= 重置。
+
+**筛选项**（点「查询」才生效，「重置」/「清空」清空并回第 1 页）：
 
 | 控件 | 参数 | 后端口径 |
 | --- | --- | --- |
 | 输入框「用户名 / 昵称 / 手机」 | `keyword` | 三列 `LIKE` 模糊（`OR`），前后空白去除 |
 | `DictSelect`（字典 `sys_common_status`） | `status` | 等值；非 `enabled/disabled` 返回 40000 |
 | `DepartmentTreeSelect` | `departmentId` | **含全部子部门**（`Hierarchy.selfAndDescendantsOf`） |
+| 高级筛选「用户名」 | `username` | 等值（去首尾空白），不模糊 |
+| 高级筛选「用户 ID」（整数输入） | `userId` | 等值；非数字 40000 |
+| 高级筛选「手机号」「邮箱」 | `phone` / `email` | 等值（去首尾空白），不模糊 |
+| 高级筛选「角色」（`useRoleOptions`，只列启用角色） | `roleId` | 拥有该角色（子查询，一人只出一行）；已禁用角色在下拉里选不到，但接口参数对其照常生效 |
+| 高级筛选「性别」（字典 `sys_user_gender`） | `gender` | 等值；非 `male/female/unknown` 返回 40000（`Gender.filterOf`，空白不过滤） |
+| 高级筛选「创建时间」「最后登录时间」（按天） | `createdStartTime` / `createdEndTime`、`lastLoginStartTime` / `lastLoginEndTime` | 闭区间，前端补成当天 `00:00:00` / `23:59:59`；可单边；传登录时间任一端即排除从未登录；格式错 40000 |
+
+全部条件（含 `keyword`）取交集；开始晚于结束返回空页。
 
 **分页**：`page` 默认 1、`pageSize` 默认 20；后端越界值钳到边界（`pageSize` 上限 200），不报错。前端可切换每页条数、显示总数。
 
@@ -112,7 +127,7 @@
 | 新增用户（工具栏） | `POST /api/users` → `{id}` | `system:user:create` | ✅ 用户管理 / 新增用户 | 见 §2；`token_version=0`，`password_updated_at=now` |
 | 编辑（行） | `PUT /api/users/{id}` | `system:user:update` | ✅ 修改用户 | 404 用户不存在；定向更新昵称/邮箱/手机/性别/部门/状态六列（`updateAccount`），再全量覆盖角色；启用 → 禁用时 `token_version + 1`（原子加一），该用户已签发令牌立即失效；授权快照缓存按用户失效 |
 | 重置密码（行） | `PUT /api/users/{id}/password` | `system:user:reset-password` | ✅ 重置密码（请求体 `password` 被脱敏为 `******`） | 定向更新密码与 `password_updated_at`，`token_version + 1` |
-| 删除（行，`Popconfirm`） | `DELETE /api/users/{id}` | `system:user:delete` | ✅ 删除用户 | 内置用户 40901「内置用户不可删除」；删除自己 40901「不能删除当前登录用户」；同时删 `sys_user_role`。前端只对内置用户禁用按钮，删自己靠后端拦 |
+| 删除（行「操作」列，确认后执行；表格放不下时收在「更多」菜单里） | `DELETE /api/users/{id}` | `system:user:delete` | ✅ 删除用户 | 内置用户 40901「内置用户不可删除」；删除自己 40901「不能删除当前登录用户」；同时删 `sys_user_role`。前端只对内置用户禁用按钮，删自己靠后端拦 |
 | —（下拉数据源） | `GET /api/users/options` | 仅登录 | — | 启用用户 `[{id, username, nickname}]`，部门负责人下拉在用 |
 | —（详情） | `GET /api/users/{id}` | `system:user:list` | — | 前端页面未调用 |
 | —（本人，界面偏好读） | `GET /api/auth/preferences` | 仅登录 | — | 原样返回存储的对象；从未保存返回 `null` |
@@ -125,7 +140,7 @@
 
 ## 4. 用到的公共组件
 
-- `PageContainer`、`SearchToolbar`、`Permission`
+- `PageContainer`、`SearchToolbar`（含 `leading` / `advanced` + `SearchField` / `conditions` / `onRefresh`）、`Permission`
 - `StatusTag`（列表状态列）与 `STATUS_OPTIONS`（表单状态单选）
 - `DictTag`（性别列）、`DictSelect`（状态筛选，字典 `sys_common_status`）
 - `DepartmentTreeSelect`（部门筛选）与 `useDepartmentTreeData`（表单部门树）
@@ -172,6 +187,12 @@
 新条目插在本节最上方（按日期倒序，新在上）。
 
 **2026-09-27**
+- **#08 ✅ P3 设计稿高级筛选的 8 个字段后端不支持，面板暂未放出**
+  由 change `user-advanced-filter` 关闭：`GET /api/users` 新增 `username` / `userId` / `phone` / `email`（精确）、`roleId`、`gender`、
+  创建时间与最后登录时间范围（闭区间）；契约 §6.2 同步；高级筛选面板按设计稿放出 10 个字段（「是否启用」与状态同义未做）。
+- **#09 ✅ P3 搜索栏按设计稿改造**
+  「新增用户」移到最左；查询按钮改图标 + 高级筛选开关（默认收起）；右侧工具按约定只出列设置、刷新；
+  新增「已选条件」胶囊标签（可逐个删除、清空）。随 change `user-advanced-filter` 一并提交（该 change 同时补齐了后端字段，见 #08）。
 - **#07 ✅ P? 追加个人偏好、收藏菜单与锁屏密码校验**
   `V202609270001` 给 `sys_user` 追加 `preferences`、`favorite_menus` 两个 JSON 列；新增 `GET/PUT /api/auth/preferences`、
   `GET/PUT /api/auth/favorite-menus`、`POST /api/auth/verify-password`（口径见 §2「本人数据列」与 §3）。

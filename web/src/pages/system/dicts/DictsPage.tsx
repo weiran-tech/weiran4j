@@ -1,14 +1,15 @@
-import { Button, Dropdown, Empty, Modal, Pagination, Popconfirm, Space, Table, Tag, Toast } from '@douyinfe/semi-ui';
+import { Button, Dropdown, Empty, Modal, Pagination, Table, Tag, Toast } from '@douyinfe/semi-ui';
 import type { TagProps } from '@douyinfe/semi-ui/lib/es/tag';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { MoreHorizontal, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { NavListItem, NavListPanel } from '@/components/NavListPanel';
+import { useActionsColumn, type TableAction } from '@/components/TableActions';
 import { PageContainer } from '@/components/PageContainer';
 import { StatusTag } from '@/components/StatusTag';
 import { useDeleteDict, useDeleteDictItem, useDictItems, useDictList } from '@/hooks/queries/dicts';
 import { usePermission } from '@/hooks/usePermission';
-import { useTableDefaults } from '@/hooks/useTableDefaults';
+import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
 import type { DictItemView, DictView, Status } from '@/types/api';
 import { DictFormModal, DictItemFormModal } from './DictFormModals';
 
@@ -36,30 +37,21 @@ function DictItemsPanel({ dict }: { dict: DictView }) {
         { title: '状态', dataIndex: 'status', width: 80, render: (v: Status) => <StatusTag value={v} /> },
         { title: '备注', dataIndex: 'remark', render: (v: string | null) => v || '—' },
     ];
+    const itemActions = (record: DictItemView): TableAction[] => [
+        { key: 'edit', label: '编辑', onClick: () => setEditing(record) },
+        {
+            key: 'delete',
+            label: '删除',
+            danger: true,
+            confirm: { title: '确定删除该字典项？' },
+            onClick: () => deleteItem.mutate({ dictId: dict.id, itemId: record.id }, { onSuccess: () => Toast.success('已删除') }),
+        },
+    ];
     if (canEdit) {
-        columns.push({
-            title: '操作',
-            dataIndex: 'actions',
-            width: 130,
-            render: (_: unknown, record: DictItemView) => (
-                <Space spacing={4}>
-                    <Button theme="borderless" size="small" onClick={() => setEditing(record)}>
-                        编辑
-                    </Button>
-                    <Popconfirm
-                        title="确定删除该字典项？"
-                        onConfirm={() =>
-                            deleteItem.mutate({ dictId: dict.id, itemId: record.id }, { onSuccess: () => Toast.success('已删除') })
-                        }
-                    >
-                        <Button theme="borderless" type="danger" size="small">
-                            删除
-                        </Button>
-                    </Popconfirm>
-                </Space>
-            ),
-        });
+        columns.push({ title: '操作', dataIndex: 'actions', fixed: 'right', width: 130 });
     }
+    // 右栏较窄：放不下时操作列收成「更多」
+    const { ref: tableBoxRef, columns: tableColumns } = useActionsColumn(columns, itemActions);
 
     return (
         <PageContainer
@@ -72,7 +64,18 @@ function DictItemsPanel({ dict }: { dict: DictView }) {
                 )
             }
         >
-            <Table<DictItemView> {...tableProps} rowKey="id" columns={columns} dataSource={data ?? []} loading={isFetching} pagination={false} />
+            <div ref={tableBoxRef}>
+                <Table<DictItemView>
+                    {...tableProps}
+                    rowKey="id"
+                    columns={tableColumns}
+                    // 设了 scroll.x 固定的「操作」列才生效（右栏窄时可横向滚动）
+                    scroll={{ x: tableScrollX(tableColumns) }}
+                    dataSource={data ?? []}
+                    loading={isFetching}
+                    pagination={false}
+                />
+            </div>
             {editing !== undefined && <DictItemFormModal dictId={dict.id} record={editing} onClose={() => setEditing(undefined)} />}
         </PageContainer>
     );
@@ -161,12 +164,7 @@ export default function DictsPage() {
                             </Dropdown.Menu>
                         }
                     >
-                        <Button
-                            theme="borderless"
-                            size="small"
-                            aria-label={`${dict.name}的操作`}
-                            icon={<MoreHorizontal size={14} />}
-                        />
+                        <Button theme="borderless" size="small" aria-label={`${dict.name}的操作`} icon={<MoreHorizontal size={14} />} />
                     </Dropdown>
                 ),
             })}

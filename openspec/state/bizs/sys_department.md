@@ -69,16 +69,16 @@
 
 | 按钮 | 接口 | 权限码 | `@OperationLog` | 业务规则 / 错误码 |
 | --- | --- | --- | --- | --- |
-| 新增部门（工具栏）/ 新增下级（行） | `POST /api/departments` → `{id}` | `system:department:create` | ✅ 部门管理 / 新增部门 | 见 §2 |
+| 新增部门（工具栏最左）/ 新增下级（行） | `POST /api/departments` → `{id}` | `system:department:create` | ✅ 部门管理 / 新增部门 | 见 §2 |
 | 编辑（行） | `PUT /api/departments/{id}` | `system:department:update` | ✅ 修改部门 | 404 部门不存在；见 §2 |
-| 删除（行，`Popconfirm`） | `DELETE /api/departments/{id}` | `system:department:delete` | ✅ 删除部门 | 有下级 40901「请先删除下级部门」；仍有用户 40901「部门下仍有 N 个用户，请先调整用户部门」。前端不预判，确认后由后端拒绝 |
+| 删除（行「操作」列，确认后执行；表格放不下时收在「更多」菜单里） | `DELETE /api/departments/{id}` | `system:department:delete` | ✅ 删除部门 | 有下级 40901「请先删除下级部门」；仍有用户 40901「部门下仍有 N 个用户，请先调整用户部门」。前端不预判，确认后由后端拒绝 |
 | —（详情） | `GET /api/departments/{id}` | `system:department:list` | — | 单节点、`children` 为空；前端页面未调用 |
 
 部门变更不影响授权，不清授权快照缓存。
 
 ## 4. 用到的公共组件
 
-- `PageContainer`、`SearchToolbar`、`Permission`
+- `PageContainer`、`SearchToolbar`（`leading` / `conditions` / `onRefresh`）、`TableActions`（`useActionsColumn`）、`Permission`
 - `StatusTag`（列表）与 `STATUS_OPTIONS`（表单）
 - `DictSelect`（状态筛选，字典 `sys_common_status`）
 - `DepartmentTreeSelect.tsx` 导出的 `toDepartmentTreeData`（表单上级部门树）
@@ -105,6 +105,10 @@
 ## 7. changelog
 
 新条目插在本节最上方（按日期倒序，新在上）。
+
+**2026-09-27**
+- **#04 ✅ P3 部门列表按 `rules/advisory/list-view.md` 约定改造**
+  「新增部门」移到工具栏最左；展开状态改为受控（默认全部展开），右侧工具新增「展开树状」开关；操作列（新增下级 / 编辑 / 删除）改用 `TableActions`，放不下时收成「更多」；加刷新按钮与「已选条件」（状态名称）。
 
 **2026-09-26**
 - **#03 ✅ P? D-008 框架重写时建立本文件**

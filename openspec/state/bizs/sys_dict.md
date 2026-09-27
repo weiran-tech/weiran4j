@@ -101,7 +101,7 @@
 | 删除（字典条目「…」，`Modal.confirm`） | `DELETE /api/dicts/{id}` | `system:dict:delete` | ✅ 删除字典 | 内置 40901「内置字典不可删除」（前端菜单项 disabled）；**级联删除全部字典项**；删的是当前选中字典时改选当前页第一项 |
 | 新增字典项（右栏） | `POST /api/dicts/{id}/items` → `{id}` | `system:dict:update` | ✅ 新增字典项 | 字典不存在 404；值重复 40900 |
 | 编辑（字典项行） | `PUT /api/dicts/{id}/items/{itemId}` | `system:dict:update` | ✅ 修改字典项 | 字典项不存在或不属于该字典 404 |
-| 删除（字典项行，`Popconfirm`） | `DELETE /api/dicts/{id}/items/{itemId}` | `system:dict:update` | ✅ 删除字典项 | 同上 404；无内置保护 |
+| 删除（字典项行「操作」列，确认后执行；右栏放不下时收在「更多」菜单里） | `DELETE /api/dicts/{id}/items/{itemId}` | `system:dict:update` | ✅ 删除字典项 | 同上 404；无内置保护 |
 | —（下拉 / 标签数据源） | `GET /api/dicts/code/{code}/items` | 仅登录 | — | 编码不存在 404；**字典禁用时返回空数组**；只返回启用项 |
 | —（详情） | `GET /api/dicts/{id}` | `system:dict:list` | — | 前端页面未调用 |
 
@@ -137,6 +137,8 @@
 新条目插在本节最上方（按日期倒序，新在上）。
 
 **2026-09-27**
+- **#07 ✅ P3 字典项列表按 `rules/advisory/list-view.md` 约定改造**
+  右栏字典项表格：操作列（编辑 / 删除）固定在右侧（补 `scroll.x`）并改用 `TableActions`，右栏放不下时收成「更多」。
 - **#06 ✅ P3 字典左栏改为 mono4ts 的导航列表**
   左栏由表格改为公共组件 `NavListPanel`：「名称 · 编码」+ 创建时间、停用 / 内置小标签、条目「…」菜单（编辑 / 删除）、
   标题栏「…」菜单（刷新 / 新增字典）、默认选中第一项。未走 openspec change（纯前端展示改版）。

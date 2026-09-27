@@ -188,6 +188,8 @@ public class MybatisUserRepository implements UserRepository {
         final String keyword = criteria.keyword();
         final EnableStatus status = criteria.status();
         final Set<Long> departmentIds = criteria.departmentIds();
+        final Gender gender = criteria.gender();
+        final Long roleId = criteria.roleId();
         final LambdaQueryWrapper<SysUserDO> wrapper = Wrappers.lambdaQuery(SysUserDO.class)
                 .and(
                         keyword != null,
@@ -198,6 +200,18 @@ public class MybatisUserRepository implements UserRepository {
                                 .like(SysUserDO::getPhone, Likes.escape(keyword)))
                 .eq(status != null, SysUserDO::getStatus, status == null ? null : status.value())
                 .in(departmentIds != null, SysUserDO::getDepartmentId, departmentIds)
+                .eq(criteria.username() != null, SysUserDO::getUsername, criteria.username())
+                .eq(criteria.userId() != null, SysUserDO::getId, criteria.userId())
+                .eq(criteria.phone() != null, SysUserDO::getPhone, criteria.phone())
+                .eq(criteria.email() != null, SysUserDO::getEmail, criteria.email())
+                .eq(gender != null, SysUserDO::getGender, gender == null ? null : gender.value())
+                .ge(criteria.createdFrom() != null, SysUserDO::getCreatedAt, criteria.createdFrom())
+                .le(criteria.createdTo() != null, SysUserDO::getCreatedAt, criteria.createdTo())
+                // 对可空列的比较天然排除 NULL：传了登录时间任一端，从未登录的用户即被排除
+                .ge(criteria.lastLoginFrom() != null, SysUserDO::getLastLoginAt, criteria.lastLoginFrom())
+                .le(criteria.lastLoginTo() != null, SysUserDO::getLastLoginAt, criteria.lastLoginTo())
+                // 子查询而非 join：一人多角色也只出一行，total 正确；role_id 走参数绑定
+                .apply(roleId != null, "id in (select user_id from sys_user_role where role_id = {0})", roleId)
                 .orderByAsc(SysUserDO::getId);
         return MybatisPages.toResult(
                 this.userMapper.selectPage(MybatisPages.of(pageQuery), wrapper),

@@ -133,10 +133,27 @@ export interface UserView {
     updatedAt: string;
 }
 
+/** `GET /api/users` 查询参数（契约 §6.2）：`keyword` 为三列模糊的快速搜索，其余为高级筛选的单字段条件 */
 export interface UserQuery extends PageQuery {
     keyword?: string;
     status?: Status;
     departmentId?: number;
+    /** 用户名，精确匹配 */
+    username?: string;
+    userId?: number;
+    /** 手机号，精确匹配 */
+    phone?: string;
+    /** 邮箱，精确匹配 */
+    email?: string;
+    /** 拥有该角色 */
+    roleId?: number;
+    gender?: Gender;
+    /** `yyyy-MM-dd HH:mm:ss`，闭区间 */
+    createdStartTime?: string;
+    createdEndTime?: string;
+    /** `yyyy-MM-dd HH:mm:ss`，闭区间；传任一端即排除从未登录的用户 */
+    lastLoginStartTime?: string;
+    lastLoginEndTime?: string;
 }
 
 export interface UserCreateRequest {

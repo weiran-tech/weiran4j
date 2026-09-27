@@ -51,7 +51,7 @@
 | 8 | 状态 | `status` | `StatusTag` |
 | 9 | 操作 | — | 有 `create` / `update` / `delete` 任一权限才出现 |
 
-工具栏：「全部展开」「全部收起」；默认只展开目录行（按钮行收起）。`keep_alive`、`is_external` 不在列表展示。
+工具栏：右侧「展开树状」开关（全部展开 ↔ 全部收起）、列设置、刷新；默认只展开目录行（按钮行收起）。`keep_alive`、`is_external` 不在列表展示。
 
 ## 2. 字段与表单
 
@@ -80,9 +80,9 @@
 
 | 按钮 | 接口 | 权限码 | `@OperationLog` | 业务规则 / 错误码 |
 | --- | --- | --- | --- | --- |
-| 新增菜单（工具栏）/ 新增子项（行，按钮行不显示） | `POST /api/menus` → `{id}` | `system:menu:create` | ✅ 菜单管理 / 新增菜单 | 见 §2；成功后全部授权快照失效 |
+| 新增菜单（工具栏最左）/ 新增子项（行，按钮行不显示） | `POST /api/menus` → `{id}` | `system:menu:create` | ✅ 菜单管理 / 新增菜单 | 见 §2；成功后全部授权快照失效 |
 | 编辑（行） | `PUT /api/menus/{id}` | `system:menu:update` | ✅ 修改菜单 | 404 菜单不存在；上级合法性、类型组合同 §2；成功后全部授权快照失效 |
-| 删除（行，`Popconfirm`） | `DELETE /api/menus/{id}` | `system:menu:delete` | ✅ 删除菜单 | 有子节点 40901「请先删除子菜单」；同时删 `sys_role_menu` 里该菜单的授权 |
+| 删除（行「操作」列，确认后执行；表格放不下时收在「更多」菜单里） | `DELETE /api/menus/{id}` | `system:menu:delete` | ✅ 删除菜单 | 有子节点 40901「请先删除子菜单」；同时删 `sys_role_menu` 里该菜单的授权 |
 | —（详情） | `GET /api/menus/{id}` | `system:menu:list` | — | 单节点、`children` 为空；前端页面未调用 |
 
 保存 / 删除成功后前端让 `menuKeys.all` 与 `authKeys.menus`（侧边栏）失效，但不让 `authKeys.me` 失效（见 #02）。
@@ -94,7 +94,7 @@
 
 ## 4. 用到的公共组件
 
-- `PageContainer`、`SearchToolbar`（仅用作右侧操作区与 `tools` 列设置）、`Permission`
+- `PageContainer`、`SearchToolbar`（`leading` 新增、`treeExpand` 展开树状、`onRefresh`、`tools` 列设置）、`TableActions`（`useActionsColumn`）、`Permission`
 - `ColumnSettings` 的 `useColumnSettings('system/menus', …)`（偏好 `showTableColumnSettings`，列的显隐与顺序存本机）
 - `StatusTag`（列表）与 `STATUS_OPTIONS`（表单）
 - `IconPicker`（表单图标，经 Semi `withField` 包装）
@@ -123,6 +123,8 @@
 新条目插在本节最上方（按日期倒序，新在上）。
 
 **2026-09-27**
+- **#05 ✅ P3 菜单列表按 `rules/advisory/list-view.md` 约定改造**
+  「新增菜单」移到工具栏最左；原「全部展开」「全部收起」两个文字按钮换成右侧工具的「展开树状」开关；操作列（新增子项 / 编辑 / 删除）改用 `TableActions`，放不下时收成「更多」；加刷新按钮。
 - **#01 ✅ P3 「缓存」（`keep_alive`）可保存但前端切换页签不保活**
   原症状：表单与 `types/api.ts` 读写 `keepAlive`，后端原样落库并在 `MenuNode` 返回，但前端除表单与类型定义外无任何地方读取它；
   `AdminLayout` 内容区只有一个 `<Outlet />`，开关打开后切走再切回，页面筛选条件、分页、滚动位置全部重置。
