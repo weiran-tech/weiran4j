@@ -1,0 +1,179 @@
+/* 锁屏遮罩（移植自 mono4ts AdminLayout.css 的 lock-screen 段） */
+.lock-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0c1a2e 100%);
+    backdrop-filter: blur(10px);
+    animation: lockFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.lock-screen--leaving {
+    animation: lockFadeOut 0.38s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@keyframes lockFadeIn {
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0);
+    }
+    to {
+        opacity: 1;
+        backdrop-filter: blur(10px);
+    }
+}
+
+@keyframes lockFadeOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(1.04);
+    }
+}
+
+.lock-screen__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: min(320px, calc(100vw - 32px));
+    animation: lockContentIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+}
+
+@keyframes lockContentIn {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.lock-screen__time {
+    font-size: 72px;
+    font-weight: 200;
+    letter-spacing: 4px;
+    color: #fff;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.lock-screen__colon {
+    animation: lock-blink 1s step-end infinite;
+}
+
+@keyframes lock-blink {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
+
+.lock-screen__date {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 0.5px;
+}
+
+.lock-screen__user {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.lock-screen__username {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+}
+
+.lock-screen__form {
+    width: 100%;
+    margin-top: 8px;
+}
+
+.lock-screen__form--shake {
+    animation: lock-shake 0.45s ease;
+}
+
+@keyframes lock-shake {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    15% {
+        transform: translateX(-8px);
+    }
+    30% {
+        transform: translateX(8px);
+    }
+    45% {
+        transform: translateX(-6px);
+    }
+    60% {
+        transform: translateX(6px);
+    }
+    75% {
+        transform: translateX(-3px);
+    }
+    90% {
+        transform: translateX(3px);
+    }
+}
+
+.lock-screen__input.semi-input-wrapper {
+    background: rgba(0, 0, 0, 0.25);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.lock-screen__input.semi-input-wrapper-focus {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.lock-screen__input .semi-input,
+.lock-screen__input .semi-input-prefix,
+.lock-screen__input .semi-input-modebtn,
+.lock-screen__input .semi-input-prefix svg,
+.lock-screen__input .semi-input-modebtn svg {
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.lock-screen__input .semi-input::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.lock-screen__error {
+    font-size: 12px;
+    color: var(--semi-color-danger);
+    margin-top: 6px;
+    text-align: center;
+}
+
+/* 「重新登录」：Semi tertiary 文字色是给浅色背景的，深色遮罩上看不见 */
+.lock-screen__relogin.semi-button {
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.lock-screen__relogin.semi-button:hover,
+.lock-screen__relogin.semi-button:focus-visible {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.lock-screen__relogin.semi-button:active {
+    background: rgba(255, 255, 255, 0.16);
+}

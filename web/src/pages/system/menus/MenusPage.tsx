@@ -1,13 +1,15 @@
-import { Button, Popconfirm, Space, Table, Tag, Toast } from '@douyinfe/semi-ui';
+import { Button, Popconfirm, Space, Table, Tag, Toast, Typography } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useColumnSettings } from '@/components/ColumnSettings';
 import { PageContainer } from '@/components/PageContainer';
 import { Permission } from '@/components/Permission';
 import { SearchToolbar } from '@/components/SearchToolbar';
 import { StatusTag } from '@/components/StatusTag';
 import { useDeleteMenu, useMenuTree } from '@/hooks/queries/menus';
 import { usePermission } from '@/hooks/usePermission';
+import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
 import type { MenuNode, MenuType, Status } from '@/types/api';
 import { renderIcon } from '@/utils/icons';
 import { flattenTree, pruneEmptyChildren } from '@/utils/menu';
@@ -19,7 +21,22 @@ const TYPE_TAG: Record<MenuType, { text: string; color: 'blue' | 'green' | 'oran
     button: { text: '按钮', color: 'orange' },
 };
 
+/** 组件路径（如 system/configs/ConfigsPage）作为唯一的弹性列，至少给这么宽 */
+const COMPONENT_MIN_WIDTH = 180;
+
+/** 路径 / 组件 / 权限码：单行省略 + 悬停看全文，不在单词中间折行 */
+function codeText(v: string | null) {
+    return v ? (
+        <Typography.Text ellipsis={{ showTooltip: true }} style={{ width: '100%' }}>
+            {v}
+        </Typography.Text>
+    ) : (
+        '—'
+    );
+}
+
 export default function MenusPage() {
+    const { tableProps } = useTableDefaults();
     const { hasAnyPermission } = usePermission();
     const { data, isFetching } = useMenuTree();
     const deleteMenu = useDeleteMenu();
@@ -37,7 +54,7 @@ export default function MenusPage() {
         {
             title: '菜单名称',
             dataIndex: 'title',
-            width: 200,
+            width: 180,
             render: (v: string, r: MenuNode) => (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     {renderIcon(r.icon, 14)}
@@ -55,9 +72,9 @@ export default function MenusPage() {
                 </Tag>
             ),
         },
-        { title: '路由路径', dataIndex: 'path', width: 150, render: (v: string | null) => v || '—' },
-        { title: '组件', dataIndex: 'component', render: (v: string | null) => v || '—' },
-        { title: '权限码', dataIndex: 'permission', width: 160, render: (v: string | null) => v || '—' },
+        { title: '路由路径', dataIndex: 'path', width: 140, render: codeText },
+        { title: '组件', dataIndex: 'component', render: codeText },
+        { title: '权限码', dataIndex: 'permission', width: 150, render: codeText },
         { title: '排序', dataIndex: 'sort', width: 60 },
         {
             title: '显示',
@@ -104,9 +121,12 @@ export default function MenusPage() {
         });
     }
 
+    const { columns: tableColumns, columnSettings } = useColumnSettings('system/menus', columns);
+
     return (
         <PageContainer>
             <SearchToolbar
+                tools={columnSettings}
                 actions={
                     <>
                         <Button onClick={() => setExpandedKeys(flattenTree(tree).map((m) => m.id))}>全部展开</Button>
@@ -120,14 +140,15 @@ export default function MenusPage() {
                 }
             />
             <Table<MenuNode>
+                {...tableProps}
                 rowKey="id"
-                columns={columns}
+                columns={tableColumns}
+                scroll={{ x: tableScrollX(tableColumns, COMPONENT_MIN_WIDTH) }}
                 dataSource={tree}
                 loading={isFetching}
                 pagination={false}
                 expandedRowKeys={expandedKeys ?? defaultExpanded}
                 onExpandedRowsChange={(rows) => setExpandedKeys((rows ?? []).map((r) => (r as MenuNode).id))}
-                scroll={{ x: 1110 }}
             />
             {target && <MenuFormModal target={target} tree={data ?? []} onClose={() => setTarget(null)} />}
         </PageContainer>

@@ -7,12 +7,14 @@ interface SearchToolbarProps {
     children?: ReactNode;
     /** 右侧操作（新增等） */
     actions?: ReactNode;
+    /** 右侧最末的工具按钮（列设置等，见 ColumnSettings） */
+    tools?: ReactNode;
     onSearch?: () => void;
     onReset?: () => void;
 }
 
 /** 列表页顶部：左侧筛选 + 查询/重置，右侧操作按钮 */
-export function SearchToolbar({ children, actions, onSearch, onReset }: SearchToolbarProps) {
+export function SearchToolbar({ children, actions, tools, onSearch, onReset }: SearchToolbarProps) {
     return (
         <div className="search-toolbar">
             <Space wrap spacing={8}>
@@ -28,7 +30,12 @@ export function SearchToolbar({ children, actions, onSearch, onReset }: SearchTo
                     </Button>
                 )}
             </Space>
-            {actions && <Space spacing={8}>{actions}</Space>}
+            {(actions || tools) && (
+                <Space spacing={8}>
+                    {actions}
+                    {tools}
+                </Space>
+            )}
         </div>
     );
 }

@@ -3,6 +3,7 @@ import { render } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
+import { PreferencesProvider } from '@/hooks/PreferencesProvider';
 import { PermissionContext } from '@/hooks/usePermission';
 import { createQueryClient } from '@/lib/query';
 import { ThemeProvider } from '@/providers/ThemeProvider';
@@ -47,16 +48,18 @@ interface RenderOptions {
     permissions?: string[];
 }
 
-/** 带 QueryClient（每个用例独立）、主题、MemoryRouter、权限上下文渲染 */
+/** 带 QueryClient（每个用例独立）、偏好 + 主题、MemoryRouter、权限上下文渲染 */
 export function renderWithProviders(ui: ReactElement, { route = '/', permissions = ['*'] }: RenderOptions = {}) {
     const client = createQueryClient();
     const result = render(
         <QueryClientProvider client={client}>
-            <ThemeProvider>
-                <PermissionContext.Provider value={permissions}>
-                    <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>
-                </PermissionContext.Provider>
-            </ThemeProvider>
+            <PreferencesProvider>
+                <ThemeProvider>
+                    <PermissionContext.Provider value={permissions}>
+                        <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>
+                    </PermissionContext.Provider>
+                </ThemeProvider>
+            </PreferencesProvider>
         </QueryClientProvider>,
     );
     return { ...result, client };
@@ -64,4 +67,10 @@ export function renderWithProviders(ui: ReactElement, { route = '/', permissions
 
 export function page<T>(list: T[], total = list.length) {
     return { list, total, page: 1, pageSize: 20 };
+}
+
+/** 测试用 JWT：只有载荷有意义（`sub` = 用户 id），签名是假的；前端只解码不验签 */
+export function fakeJwt(userId: number): string {
+    const b64 = (o: object) => btoa(JSON.stringify(o)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+    return `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: String(userId), username: `u${userId}`, ver: 0 })}.sig`;
 }

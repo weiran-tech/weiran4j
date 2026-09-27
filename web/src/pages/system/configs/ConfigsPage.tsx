@@ -3,11 +3,13 @@ import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { Plus } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { useColumnSettings } from '@/components/ColumnSettings';
 import { PageContainer } from '@/components/PageContainer';
 import { Permission } from '@/components/Permission';
 import { SearchToolbar } from '@/components/SearchToolbar';
 import { useConfigList, useDeleteConfig, useSaveConfig } from '@/hooks/queries/configs';
 import { usePermission } from '@/hooks/usePermission';
+import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
 import type { ConfigType, ConfigView } from '@/types/api';
 
 interface ConfigForm {
@@ -111,7 +113,8 @@ export default function ConfigsPage() {
     const [draft, setDraft] = useState('');
     const [keyword, setKeyword] = useState('');
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(20);
+    const { tableProps, pageSize: defaultPageSize, pageSizeOpts } = useTableDefaults();
+    const [pageSize, setPageSize] = useState(defaultPageSize);
     const [editing, setEditing] = useState<ConfigView | null | undefined>(undefined);
     const { data, isFetching } = useConfigList({ page, pageSize, ...(keyword ? { keyword } : {}) });
     const deleteConfig = useDeleteConfig();
@@ -172,9 +175,12 @@ export default function ConfigsPage() {
         setPage(1);
     };
 
+    const { columns: tableColumns, columnSettings } = useColumnSettings('system/configs', columns);
+
     return (
         <PageContainer>
             <SearchToolbar
+                tools={columnSettings}
                 onSearch={search}
                 onReset={() => {
                     setDraft('');
@@ -192,14 +198,16 @@ export default function ConfigsPage() {
                 <Input placeholder="配置键 / 描述" value={draft} onChange={setDraft} onEnterPress={search} showClear style={{ width: 220 }} />
             </SearchToolbar>
             <Table<ConfigView>
+                {...tableProps}
                 rowKey="id"
-                columns={columns}
+                columns={tableColumns}
                 dataSource={data?.list ?? []}
                 loading={isFetching}
-                scroll={{ x: 1000 }}
+                scroll={{ x: tableScrollX(tableColumns) }}
                 pagination={{
                     currentPage: page,
                     pageSize,
+                    pageSizeOpts,
                     total: data?.total ?? 0,
                     showSizeChanger: true,
                     showTotal: true,

@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { toDepartmentTreeData } from '@/components/DepartmentTreeSelect';
 import { DictSelect } from '@/components/DictSelect';
+import { useColumnSettings } from '@/components/ColumnSettings';
 import { PageContainer } from '@/components/PageContainer';
 import { Permission } from '@/components/Permission';
 import { SearchToolbar } from '@/components/SearchToolbar';
@@ -13,6 +14,7 @@ import { STATUS_OPTIONS, StatusTag } from '@/components/StatusTag';
 import { useDeleteDepartment, useDepartmentTree, useSaveDepartment } from '@/hooks/queries/departments';
 import { useUserOptions } from '@/hooks/queries/users';
 import { usePermission } from '@/hooks/usePermission';
+import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
 import type { DepartmentNode, Status } from '@/types/api';
 import { collectSubtreeIds, flattenTree, pruneEmptyChildren } from '@/utils/menu';
 
@@ -109,6 +111,7 @@ function DepartmentFormModal({ target, tree, onClose }: { target: Target; tree: 
 }
 
 export default function DepartmentsPage() {
+    const { tableProps } = useTableDefaults();
     const { hasAnyPermission } = usePermission();
     const [draftStatus, setDraftStatus] = useState<Status | undefined>(undefined);
     const [status, setStatus] = useState<Status | undefined>(undefined);
@@ -163,9 +166,12 @@ export default function DepartmentsPage() {
         });
     }
 
+    const { columns: tableColumns, columnSettings } = useColumnSettings('system/departments', columns);
+
     return (
         <PageContainer>
             <SearchToolbar
+                tools={columnSettings}
                 onSearch={() => setStatus(draftStatus)}
                 onReset={() => {
                     setDraftStatus(undefined);
@@ -187,14 +193,15 @@ export default function DepartmentsPage() {
                 />
             </SearchToolbar>
             <Table<DepartmentNode>
+                {...tableProps}
                 key={allKeys.join(',')}
                 rowKey="id"
-                columns={columns}
+                columns={tableColumns}
                 dataSource={tree}
                 loading={isFetching}
                 pagination={false}
                 defaultExpandAllRows
-                scroll={{ x: 1050 }}
+                scroll={{ x: tableScrollX(tableColumns) }}
             />
             {target && <DepartmentFormModal target={target} tree={data ?? []} onClose={() => setTarget(null)} />}
         </PageContainer>

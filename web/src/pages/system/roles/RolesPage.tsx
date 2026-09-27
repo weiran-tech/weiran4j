@@ -3,12 +3,14 @@ import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { DictSelect } from '@/components/DictSelect';
+import { useColumnSettings } from '@/components/ColumnSettings';
 import { PageContainer } from '@/components/PageContainer';
 import { Permission } from '@/components/Permission';
 import { SearchToolbar } from '@/components/SearchToolbar';
 import { StatusTag } from '@/components/StatusTag';
 import { useDeleteRole, useRoleList } from '@/hooks/queries/roles';
 import { usePermission } from '@/hooks/usePermission';
+import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
 import type { RoleQuery, RoleView, Status } from '@/types/api';
 import { RoleFormModal } from './RoleFormModal';
 import { RoleMenuSheet } from './RoleMenuSheet';
@@ -34,7 +36,8 @@ export default function RolesPage() {
     const [draft, setDraft] = useState<Filters>(EMPTY_FILTERS);
     const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(20);
+    const { tableProps, pageSize: defaultPageSize, pageSizeOpts } = useTableDefaults();
+    const [pageSize, setPageSize] = useState(defaultPageSize);
     const [editing, setEditing] = useState<RoleView | null | undefined>(undefined);
     const [assigning, setAssigning] = useState<RoleView | null>(null);
 
@@ -109,9 +112,12 @@ export default function RolesPage() {
         });
     }
 
+    const { columns: tableColumns, columnSettings } = useColumnSettings('system/roles', columns);
+
     return (
         <PageContainer>
             <SearchToolbar
+                tools={columnSettings}
                 onSearch={search}
                 onReset={reset}
                 actions={
@@ -138,14 +144,16 @@ export default function RolesPage() {
                 />
             </SearchToolbar>
             <Table<RoleView>
+                {...tableProps}
                 rowKey="id"
-                columns={columns}
+                columns={tableColumns}
                 dataSource={data?.list ?? []}
                 loading={isFetching}
-                scroll={{ x: 1000 }}
+                scroll={{ x: tableScrollX(tableColumns) }}
                 pagination={{
                     currentPage: page,
                     pageSize,
+                    pageSizeOpts,
                     total: data?.total ?? 0,
                     showSizeChanger: true,
                     showTotal: true,

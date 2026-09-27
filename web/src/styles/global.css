@@ -151,6 +151,11 @@ body {
     padding-right: 6px;
 }
 
+/* 斑马纹（偏好 tableStriped；Semi Table 没有 striped 属性，className 由 hooks/useTableDefaults 给出） */
+.weiran-table--striped .semi-table-tbody > .semi-table-row:nth-child(even) > .semi-table-row-cell {
+    background: var(--semi-color-fill-0);
+}
+
 /* 窄屏分页：隐藏「显示第 x 条…」与「总页数」文案，只留页码，避免被挤成多行 */
 @media (--md-down) {
     .semi-table-pagination-info,

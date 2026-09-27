@@ -69,7 +69,7 @@
 | 排序 | `Form.InputNumber` | 恒显示 | `min=0` | 可空；新增 0，编辑保持原值 | `sort int` 默认 0 |
 | 显示 | `Form.Switch` | 非按钮 | 无 | 可空；新增 `true`，编辑保持原值 | `visible tinyint(1)` 默认 1 |
 | 外链 | `Form.Switch` | `type=menu` | 无 | 可空；新增 `false`，编辑保持原值 | `is_external tinyint(1)` 默认 0 |
-| 缓存 ⚠️ | `Form.Switch` | `type=menu` 且非外链 | 无 | 可空；新增 `false`，编辑保持原值 | `keep_alive tinyint(1)` 默认 0 |
+| 缓存 | `Form.Switch` | `type=menu` 且非外链 | 无 | 可空；新增 `false`，编辑保持原值 | `keep_alive tinyint(1)` 默认 0 |
 | 状态 | `Form.RadioGroup` | 恒显示 | 无 | 新增 `enabled`，编辑保持原值 | `status varchar(16)` 默认 `enabled` |
 
 `toRequest` 的清洗：按钮一律提交 `path/component/icon = null`、`visible=true`、`keepAlive=false`、`isExternal=false`；
@@ -94,7 +94,8 @@
 
 ## 4. 用到的公共组件
 
-- `PageContainer`、`SearchToolbar`（仅用作右侧操作区）、`Permission`
+- `PageContainer`、`SearchToolbar`（仅用作右侧操作区与 `tools` 列设置）、`Permission`
+- `ColumnSettings` 的 `useColumnSettings('system/menus', …)`（偏好 `showTableColumnSettings`，列的显隐与顺序存本机）
 - `StatusTag`（列表）与 `STATUS_OPTIONS`（表单）
 - `IconPicker`（表单图标，经 Semi `withField` 包装）
 - 工具函数（非组件）：`utils/icons.tsx` 的 `renderIcon`；`utils/menu.ts` 的 `flattenTree`、`pruneEmptyChildren`、`collectSubtreeIds`
@@ -104,14 +105,10 @@
 - **禁用的传递性**：一个目录被禁用后，其下全部菜单与按钮的权限码都不再生效、也不出现在导航中（`Authorization.enabledIds`
   逐级检查祖先），即使子节点自身仍是启用状态。
 - **权限码与按钮**：权限码挂在 `type=button` 的节点上；`type=menu` 也可以带权限码（种子里 1–11 号菜单即如此）。
-- 建议：若要让「缓存」开关生效，布局层需要引入保活容器；否则建议前端隐藏该开关，避免误导（#01）。
+- **「缓存」开关**：由 `layouts/KeepAliveOutlet` 消费——用户偏好「页面缓存」（`enablePageCache`）开启且启用多页签时，`keepAlive=true` 的页面切换页签保留状态、关页签即释放（#01）。
 
 ## 6. 已知问题汇总
 
-- **#01 ⚠️ P3 「缓存」（`keep_alive`）可保存但前端切换页签不保活**
-  表单与 `types/api.ts` 读写 `keepAlive`，后端原样落库并在 `MenuNode` 返回；但前端除表单与类型定义外无任何地方读取它。
-  `AdminLayout` 内容区只有一个 `<Outlet />`，页签（`useTabs`）只维护「开着哪些 key」，切换页签即切换路由、旧页面卸载。
-  症状：开关打开后切走再切回，页面筛选条件、分页、滚动位置全部重置。已声明为知情接受。
 - **#02 🔴 P3 改菜单的权限码或状态后，当前登录人的按钮权限不刷新**
   `useSaveMenu` / `useDeleteMenu` 成功后让 `authKeys.menus`（侧边栏）失效，但不让 `authKeys.me` 失效；
   `me.permissions` 是 `staleTime: Infinity`。症状：改掉或禁用一个按钮节点后，侧边栏已更新，页面上 `Permission`
@@ -124,6 +121,15 @@
 ## 7. changelog
 
 新条目插在本节最上方（按日期倒序，新在上）。
+
+**2026-09-27**
+- **#01 ✅ P3 「缓存」（`keep_alive`）可保存但前端切换页签不保活**
+  原症状：表单与 `types/api.ts` 读写 `keepAlive`，后端原样落库并在 `MenuNode` 返回，但前端除表单与类型定义外无任何地方读取它；
+  `AdminLayout` 内容区只有一个 `<Outlet />`，开关打开后切走再切回，页面筛选条件、分页、滚动位置全部重置。
+  解决：偏好系统第二阶段新增 `layouts/KeepAliveOutlet`（React 19 `<Activity>`，移植自 mono4ts）。`keepAlive=true` 的页面在
+  偏好「页面缓存」（`enablePageCache`，默认开）开启且启用多页签时隐藏保活，关闭页签即释放，最多 10 个 LRU，`.admin-content` 滚动位置按页恢复；
+  用户关掉该偏好或多页签时不缓存。隐藏期间页面 Effects 卸载（定时器、订阅暂停），state 保留。
+  测试：`layouts/__tests__/NavPreferences.test.tsx`（enablePageCache 组）、`layouts/__tests__/KeepAliveOutlet.test.ts`。
 
 **2026-09-26**
 - **#04 ✅ P? D-008 框架重写时建立本文件**

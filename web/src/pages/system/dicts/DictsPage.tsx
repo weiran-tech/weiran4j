@@ -3,17 +3,20 @@ import type { TagProps } from '@douyinfe/semi-ui/lib/es/tag';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
+import { useColumnSettings } from '@/components/ColumnSettings';
 import { PageContainer } from '@/components/PageContainer';
 import { Permission } from '@/components/Permission';
 import { SearchToolbar } from '@/components/SearchToolbar';
 import { StatusTag } from '@/components/StatusTag';
 import { useDeleteDict, useDeleteDictItem, useDictItems, useDictList } from '@/hooks/queries/dicts';
 import { usePermission } from '@/hooks/usePermission';
+import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
 import type { DictItemView, DictView, Status } from '@/types/api';
 import { DictFormModal, DictItemFormModal } from './DictFormModals';
 
 /** 右侧：选中字典的字典项 */
 function DictItemsPanel({ dict }: { dict: DictView }) {
+    const { tableProps } = useTableDefaults();
     const { hasPermission } = usePermission();
     const { data, isFetching } = useDictItems(dict.id);
     const deleteItem = useDeleteDictItem();
@@ -71,7 +74,7 @@ function DictItemsPanel({ dict }: { dict: DictView }) {
                 )
             }
         >
-            <Table<DictItemView> rowKey="id" columns={columns} dataSource={data ?? []} loading={isFetching} pagination={false} />
+            <Table<DictItemView> {...tableProps} rowKey="id" columns={columns} dataSource={data ?? []} loading={isFetching} pagination={false} />
             {editing !== undefined && <DictItemFormModal dictId={dict.id} record={editing} onClose={() => setEditing(undefined)} />}
         </PageContainer>
     );
@@ -82,7 +85,8 @@ export default function DictsPage() {
     const [draft, setDraft] = useState('');
     const [keyword, setKeyword] = useState('');
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(20);
+    const { tableProps, pageSize: defaultPageSize, pageSizeOpts } = useTableDefaults();
+    const [pageSize, setPageSize] = useState(defaultPageSize);
     const [selected, setSelected] = useState<DictView | null>(null);
     const [editing, setEditing] = useState<DictView | null | undefined>(undefined);
     const { data, isFetching } = useDictList({ page, pageSize, ...(keyword ? { keyword } : {}) });
@@ -109,13 +113,13 @@ export default function DictsPage() {
             ),
         },
         { title: '字典编码', dataIndex: 'code' },
-        { title: '状态', dataIndex: 'status', width: 80, render: (v: Status) => <StatusTag value={v} /> },
+        { title: '状态', dataIndex: 'status', width: 64, render: (v: Status) => <StatusTag value={v} /> },
     ];
     if (hasAnyPermission('system:dict:update', 'system:dict:delete')) {
         columns.push({
             title: '操作',
             dataIndex: 'actions',
-            width: 130,
+            width: 120,
             render: (_: unknown, record: DictView) => (
                 // 阻止冒泡：点操作按钮不要顺带选中该行
                 <span onClick={(e) => e.stopPropagation()}>
@@ -149,10 +153,13 @@ export default function DictsPage() {
         });
     }
 
+    const { columns: tableColumns, columnSettings } = useColumnSettings('system/dicts', columns);
+
     return (
         <div className="dicts-layout">
             <PageContainer title="字典">
                 <SearchToolbar
+                    tools={columnSettings}
                     onSearch={search}
                     actions={
                         <Permission code="system:dict:create">
@@ -165,8 +172,11 @@ export default function DictsPage() {
                     <Input placeholder="名称 / 编码" value={draft} onChange={setDraft} onEnterPress={search} showClear style={{ width: 160 }} />
                 </SearchToolbar>
                 <Table<DictView>
+                    {...tableProps}
                     rowKey="id"
-                    columns={columns}
+                    columns={tableColumns}
+                    // 左栏在 double 布局 1440 宽下只有约 430px：两列弹性列各按 110 计
+                    scroll={{ x: tableScrollX(tableColumns, 110) }}
                     dataSource={data?.list ?? []}
                     loading={isFetching}
                     onRow={(record) => ({
@@ -177,6 +187,7 @@ export default function DictsPage() {
                     pagination={{
                         currentPage: page,
                         pageSize,
+                        pageSizeOpts,
                         total: data?.total ?? 0,
                         onChange: (p, s) => {
                             setPage(p);

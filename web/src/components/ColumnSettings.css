@@ -1,0 +1,42 @@
+/* 列设置弹层（偏好 showTableColumnSettings） */
+.column-settings {
+    width: 240px;
+    padding: 4px 0;
+}
+
+.column-settings__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--semi-color-text-0);
+    border-bottom: 1px solid var(--semi-color-border);
+}
+
+.column-settings__list {
+    list-style: none;
+    margin: 0;
+    padding: 4px;
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.column-settings__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 2px 4px 2px 8px;
+    border-radius: 4px;
+}
+
+.column-settings__item:hover {
+    background: var(--semi-color-fill-0);
+}
+
+.column-settings__moves {
+    display: inline-flex;
+    flex-shrink: 0;
+}

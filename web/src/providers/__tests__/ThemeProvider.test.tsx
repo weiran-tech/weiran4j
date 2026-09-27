@@ -1,6 +1,9 @@
 import { act, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { THEME_STORAGE_KEY } from '@/lib/theme';
+import type { ReactNode } from 'react';
+import { PreferencesProvider } from '@/hooks/PreferencesProvider';
+import { defaultPreferences, type UserPreferences } from '@/hooks/usePreferences';
+import { PREFERENCES_STORAGE_KEY } from '@/lib/preferences-storage';
 import { ThemeProvider } from '../ThemeProvider';
 import { useThemeController } from '../theme-context';
 
@@ -40,6 +43,19 @@ function Probe() {
     );
 }
 
+/** 主题状态在偏好里，ThemeProvider 必须在 PreferencesProvider 内 */
+function Providers({ children }: { children: ReactNode }) {
+    return (
+        <PreferencesProvider>
+            <ThemeProvider>{children}</ThemeProvider>
+        </PreferencesProvider>
+    );
+}
+
+const storedPrefs = () => JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY) ?? 'null') as UserPreferences | null;
+const savePrefs = (patch: Partial<UserPreferences>) =>
+    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ ...defaultPreferences, ...patch }));
+
 const state = () => screen.getByTestId('state').textContent;
 const isBodyDark = () => document.body.getAttribute('theme-mode') === 'dark';
 
@@ -57,11 +73,11 @@ describe('ThemeProvider', () => {
     it('默认 light，应用 #0064FA', () => {
         mockSystemScheme(true);
         render(
-            <ThemeProvider>
+            <Providers>
                 <Probe />
-            </ThemeProvider>,
+            </Providers>,
         );
-        expect(state()).toBe('light|default|light');
+        expect(state()).toBe('light|#0064FA|light');
         expect(isBodyDark()).toBe(false);
         expect(document.body.style.getPropertyValue('--semi-color-primary')).toBe('#0064FA');
     });
@@ -69,37 +85,37 @@ describe('ThemeProvider', () => {
     it('light → dark → system 循环，并持久化', () => {
         const system = mockSystemScheme(false);
         render(
-            <ThemeProvider>
+            <Providers>
                 <Probe />
-            </ThemeProvider>,
+            </Providers>,
         );
         act(() => screen.getByText('cycle').click());
-        expect(state()).toBe('dark|default|dark');
+        expect(state()).toBe('dark|#0064FA|dark');
         expect(isBodyDark()).toBe(true);
 
         act(() => screen.getByText('cycle').click());
-        expect(state()).toBe('system|default|light');
+        expect(state()).toBe('system|#0064FA|light');
         expect(isBodyDark()).toBe(false);
-        expect(JSON.parse(localStorage.getItem(THEME_STORAGE_KEY) ?? '')).toEqual({ mode: 'system', color: 'default' });
+        expect(storedPrefs()).toMatchObject({ colorMode: 'system', themeColor: '#0064FA' });
 
         // system 模式跟随系统切换
         system.setDark(true);
-        expect(state()).toBe('system|default|dark');
+        expect(state()).toBe('system|#0064FA|dark');
         expect(isBodyDark()).toBe(true);
         system.setDark(false);
         expect(isBodyDark()).toBe(false);
 
         act(() => screen.getByText('cycle').click());
-        expect(state()).toBe('light|default|light');
+        expect(state()).toBe('light|#0064FA|light');
     });
 
     it('非 system 模式不受系统切换影响', () => {
         const system = mockSystemScheme(false);
-        localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify({ mode: 'light', color: 'default' }));
+        savePrefs({ colorMode: 'light' });
         render(
-            <ThemeProvider>
+            <Providers>
                 <Probe />
-            </ThemeProvider>,
+            </Providers>,
         );
         system.setDark(true);
         expect(isBodyDark()).toBe(false);
@@ -107,23 +123,24 @@ describe('ThemeProvider', () => {
 
     it('从存储恢复偏好；自定义主色写入 CSS 变量并持久化', () => {
         mockSystemScheme(false);
-        localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify({ mode: 'dark', color: 'green' }));
+        savePrefs({ colorMode: 'dark', themeColor: 'green' });
         render(
-            <ThemeProvider>
+            <Providers>
                 <Probe />
-            </ThemeProvider>,
+            </Providers>,
         );
         expect(state()).toBe('dark|green|dark');
         expect(document.body.style.getPropertyValue('--semi-color-primary')).toBe('#34d399');
 
         act(() => screen.getByText('custom').click());
         expect(state()).toBe('dark|#abcdef|dark');
-        expect(JSON.parse(localStorage.getItem(THEME_STORAGE_KEY) ?? '')).toEqual({ mode: 'dark', color: '#abcdef' });
+        expect(storedPrefs()).toMatchObject({ colorMode: 'dark', themeColor: '#abcdef' });
         expect(document.body.style.getPropertyValue('--semi-color-primary-active')).toBe('#abcdef');
     });
 
     it('在 Provider 外使用直接报错', () => {
         vi.spyOn(console, 'error').mockImplementation(() => {});
         expect(() => render(<Probe />)).toThrow(/ThemeProvider/);
+        expect(() => render(<ThemeProvider><Probe /></ThemeProvider>)).toThrow(/PreferencesProvider/);
     });
 });

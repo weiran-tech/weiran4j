@@ -1,10 +1,12 @@
 import { DatePicker, Input, Select, Table, Tag, Typography } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { useState } from 'react';
+import { useColumnSettings } from '@/components/ColumnSettings';
 import { PageContainer } from '@/components/PageContainer';
 import { SearchToolbar } from '@/components/SearchToolbar';
 import { StatusTag } from '@/components/StatusTag';
 import { useLoginLogs } from '@/hooks/queries/logs';
+import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
 import type { LoginLogQuery, LoginLogView } from '@/types/api';
 import { toTimeRange } from '@/utils/date';
 
@@ -21,7 +23,8 @@ export default function LoginLogsPage() {
     const [draft, setDraft] = useState<Filters>(EMPTY_FILTERS);
     const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(20);
+    const { tableProps, pageSize: defaultPageSize, pageSizeOpts } = useTableDefaults();
+    const [pageSize, setPageSize] = useState(defaultPageSize);
 
     const query: LoginLogQuery = {
         page,
@@ -66,9 +69,12 @@ export default function LoginLogsPage() {
         { title: '时间', dataIndex: 'createdAt', width: 164 },
     ];
 
+    const { columns: tableColumns, columnSettings } = useColumnSettings('logs/login', columns);
+
     return (
         <PageContainer>
             <SearchToolbar
+                tools={columnSettings}
                 onSearch={search}
                 onReset={() => {
                     setDraft(EMPTY_FILTERS);
@@ -114,14 +120,16 @@ export default function LoginLogsPage() {
                 />
             </SearchToolbar>
             <Table<LoginLogView>
+                {...tableProps}
                 rowKey="id"
-                columns={columns}
+                columns={tableColumns}
                 dataSource={data?.list ?? []}
                 loading={isFetching}
-                scroll={{ x: 1050 }}
+                scroll={{ x: tableScrollX(tableColumns) }}
                 pagination={{
                     currentPage: page,
                     pageSize,
+                    pageSizeOpts,
                     total: data?.total ?? 0,
                     showSizeChanger: true,
                     showTotal: true,

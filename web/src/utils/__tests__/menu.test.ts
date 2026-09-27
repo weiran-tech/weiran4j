@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { MenuNode } from '@/types/api';
-import { applyMenuCheck, collectSubtreeIds, findMenuTrail, menusToRoutes, normalizePath } from '../menu';
+import { applyMenuCheck, collectSubtreeIds, findMenuTrail, flattenMenuPages, menusToRoutes, normalizePath } from '../menu';
 
 function node(partial: Partial<MenuNode> & Pick<MenuNode, 'id' | 'title' | 'type'>): MenuNode {
     return {
@@ -92,5 +92,36 @@ describe('applyMenuCheck', () => {
     });
     it('取消菜单时连带取消其按钮，保留祖先', () => {
         expect(applyMenuCheck(tree, [2, 3, 100], [2, 100]).sort((a, b) => a - b)).toEqual([2]);
+    });
+});
+
+describe('flattenMenuPages', () => {
+    const tree = [
+        node({ id: 1, title: '首页', type: 'menu', path: 'dashboard' }),
+        node({
+            id: 2,
+            title: '系统',
+            type: 'directory',
+            children: [
+                node({ id: 3, title: '用户', type: 'menu', path: '/system/users/', keepAlive: true, children: [node({ id: 30, title: '新增', type: 'button' })] }),
+                node({ id: 4, title: '隐藏页', type: 'menu', path: '/system/hidden', visible: false }),
+                node({ id: 5, title: '文档', type: 'menu', path: 'https://example.com', isExternal: true }),
+            ],
+        }),
+        node({ id: 6, title: '停用目录', type: 'directory', status: 'disabled', children: [node({ id: 7, title: '孤儿', type: 'menu', path: '/x' })] }),
+        node({ id: 8, title: '隐藏目录', type: 'directory', visible: false, children: [node({ id: 9, title: '藏着', type: 'menu', path: '/y' })] }),
+    ];
+
+    it('只取启用的菜单页：路径规范化、外链保留原址、记录祖先标题与 keepAlive；禁用目录整棵跳过', () => {
+        const pages = flattenMenuPages(tree);
+        expect(pages.map((p) => p.id)).toEqual([1, 3, 4, 5, 9]);
+        expect(pages.find((p) => p.id === 3)).toMatchObject({ path: '/system/users', parents: ['系统'], keepAlive: true, visible: true });
+        expect(pages.find((p) => p.id === 5)).toMatchObject({ path: 'https://example.com', isExternal: true });
+    });
+
+    it('自身或祖先目录隐藏的页面记为不可见', () => {
+        const pages = flattenMenuPages(tree);
+        expect(pages.find((p) => p.id === 4)?.visible).toBe(false);
+        expect(pages.find((p) => p.id === 9)?.visible).toBe(false);
     });
 });

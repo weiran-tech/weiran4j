@@ -57,6 +57,19 @@ describe('UsersPage', () => {
         expect(listCall?.search).toBe('?page=1&pageSize=20');
     });
 
+    it('列设置（偏好默认开启）：隐藏「手机」列后表头不再有它，设置按页面存本机', async () => {
+        mockFetch(baseRoutes());
+        renderWithProviders(<UsersPage />);
+        await screen.findByText('alice');
+        expect(screen.getByRole('columnheader', { name: '手机' })).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: '列设置' }));
+        const panel = await screen.findByLabelText('列设置', { selector: '.column-settings' });
+        fireEvent.click(within(panel).getByRole('checkbox', { name: '手机' }));
+        await waitFor(() => expect(screen.queryByRole('columnheader', { name: '手机' })).toBeNull());
+        expect(localStorage.getItem('weiran_table_columns:system/users')).toContain('phone');
+    });
+
     it('关键字查询带上 keyword 并回到第 1 页', async () => {
         const { calls } = mockFetch(baseRoutes());
         renderWithProviders(<UsersPage />);

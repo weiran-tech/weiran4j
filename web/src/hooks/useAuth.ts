@@ -4,6 +4,7 @@ import { http } from '@/utils/request';
 import { clearToken, setToken, useToken } from '@/utils/token';
 import type { LoginRequest, LoginResult } from '@/types/api';
 import { useMe } from './queries/auth';
+import { unlockScreen } from './useLockScreen';
 
 /** 多页签持久化键；退出登录时一并清掉，避免下一个账号看到上一个人的页签 */
 export const TABS_STORAGE_KEY = 'weiran_tabs';
@@ -21,13 +22,16 @@ export function useAuth() {
         // 密码错误是 40101，不走会话失效分支；错误提示由登录页自己展示
         const res = await http.post<LoginResult>('/api/auth/login', body, { silent: true });
         qc.clear();
+        // 令牌过期被踢回登录页时锁屏标记还留着，重新登录后不应再锁
+        unlockScreen();
         setToken(res.accessToken);
         return res;
     }, [qc]);
 
-    /** 只清本地状态（改密成功、令牌失效后用） */
+    /** 只清本地状态（改密成功、令牌失效后用）；锁屏状态一并解除 */
     const clearSession = useCallback(() => {
         clearToken();
+        unlockScreen();
         try {
             sessionStorage.removeItem(TABS_STORAGE_KEY);
         } catch {

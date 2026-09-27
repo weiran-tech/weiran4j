@@ -151,17 +151,19 @@ export function renderIcon(name: string | null | undefined, size = 16) {
 }
 
 /**
- * 给 Semi `Nav` 用的菜单图标。
+ * 交给 Semi 组件图标属性的 lucide 图标（Nav 的 items、Breadcrumb.Item 的 icon 等）。
  *
- * Semi 的 SubNav（目录节点）会 `cloneElement(icon, { size: 'large' })` 覆盖图标尺寸——
- * 这对 Semi 自家图标是具名尺寸，但 lucide 会把它原样写成 `<svg width="large">`，
- * 非法宽度让 SVG 失去尺寸约束而撑满侧边栏。症状只出现在目录节点（普通菜单项不走 clone），
- * 单测也看不出来。这里用一个吞掉 `size` 的包装组件承接 Semi 注入的属性，尺寸由我们自己定。
+ * Semi 的 SubNav（目录节点）会 `cloneElement(icon, { size: 'large' })`，Breadcrumb.Item 会
+ * `cloneElement(icon, { size: 'default', className })` 覆盖图标尺寸——这对 Semi 自家图标是具名尺寸，
+ * 但 lucide 会把它原样写成 `<svg width="large">` / `width="default"`，非法宽度让 SVG 失去尺寸约束而撑满容器
+ * （侧边栏目录图标、顶栏面包屑都中过招，单测看不出来）。这里用一个吞掉 `size` 的包装组件承接 Semi 注入的属性，
+ * 尺寸由我们自己定；`className` 照传，保留 Semi 的间距样式。
  */
-function NavIcon({ name }: { name: string; size?: unknown }) {
-    return renderIcon(name);
+function SemiSafeIcon({ name, iconSize, className }: { name: string; iconSize: number; size?: unknown; className?: string }) {
+    const Icon = MENU_ICONS[name];
+    return Icon ? <Icon size={iconSize} strokeWidth={1.75} {...(className ? { className } : {})} /> : null;
 }
 
-export function renderNavIcon(name: string | null | undefined) {
-    return name && MENU_ICONS[name] ? <NavIcon name={name} /> : null;
+export function renderNavIcon(name: string | null | undefined, size = 16) {
+    return name && MENU_ICONS[name] ? <SemiSafeIcon name={name} iconSize={size} /> : null;
 }

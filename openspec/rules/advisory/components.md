@@ -14,8 +14,15 @@
 | 组件 | 位置 | 什么时候用 | 坑 |
 | --- | --- | --- | --- |
 | **PageContainer** | `components/PageContainer.tsx` | 每个管理页最外层:统一卡片、内边距与标题行(`title` / `extra`) | — |
-| **SearchToolbar** | `components/SearchToolbar.tsx` | 列表页顶部:左侧放筛选控件(`children`),自带「查询 / 重置」,右侧放新增等按钮(`actions`) | 筛选值由页面自己持有;`onReset` 要页面自己把筛选状态与分页一起清回初值 |
+| **SearchToolbar** | `components/SearchToolbar.tsx` | 列表页顶部:左侧放筛选控件(`children`),自带「查询 / 重置」,右侧放新增等按钮(`actions`),最右放工具按钮(`tools`,如列设置) | 筛选值由页面自己持有;`onReset` 要页面自己把筛选状态与分页一起清回初值 |
+| **ColumnSettings** | `components/ColumnSettings.tsx` + `ColumnSettings.css` | 列表的列设置(偏好 `showTableColumnSettings`):**用同文件的 `useColumnSettings(tableKey, columns)`**,返回 `{ columns, columnSettings }`,前者交给 `<Table>`,后者放进 `SearchToolbar` 的 `tools`。弹层里勾选显隐、上移/下移排序、恢复默认,至少保留一列;按 `tableKey` 存 `localStorage['weiran_table_columns:<tableKey>']`。纯函数 `applyColumnState()` 可单测 | 列靠 `dataIndex`(其次 `key`)识别,**没有的列不参与**;固定列(`fixed`)与 `dataIndex: 'actions'` 的操作列不参与、保持原位。偏好关掉时列恢复代码默认,但保存的设置保留。8 个列表页已接入(用户/角色/菜单/部门/字典/配置/登录日志/操作日志),新列表页照做 |
 | **AppLogo** | `components/AppLogo.tsx` | 应用标志:取 `config.appTitle` 首字母的方块徽标,`size` 定尺寸;`variant="solid"`(主色渐变,默认)/ `"glass"`(放在主色底上的磨砂,登录页品牌栏用) | 颜色全部来自 `--semi-color-primary*`,随主题色变;仓库没有图片素材,需要换成真实 logo 时改这一个文件 |
+
+## 反馈与遮罩
+
+| 组件 | 位置 | 什么时候用 | 坑 |
+| --- | --- | --- | --- |
+| **LockScreen** | `components/LockScreen.tsx` + `LockScreen.css` | 全屏锁屏遮罩(偏好 `enableLockScreen`,由 AdminLayout 在锁定时渲染):时钟 + 头像 + 密码框,调 `POST /api/auth/verify-password` 解锁,「重新登录」退出。锁定状态在 `hooks/useLockScreen.ts`(`lockScreen()` / `unlockScreen()` / `useIsLocked()`,存 `sessionStorage.weiran_locked`,刷新后仍锁定;登录、`clearSession` 时自动解除) | 用**登录密码**解锁,不像 mono4ts 另设本地锁屏密码。错误码 40101 在遮罩内提示「密码错误」,**不会**清令牌——依赖 `utils/request.ts` 对 40101 不走会话失效分支,改那里要回来看这里。回车在 `keydown` 提交,**不用 Semi Input 的 `onEnterPress`**(它挂在已废弃的 `keypress` 上,CDP 注入按键时不一定派发)。遮罩经 portal 挂在 body 下自己的容器里,锁定期间把 **body 其它子节点全部设 `inert`**(布局 + Semi 挂到 body 上的 Modal/SideSheet/Popover 浮层),解锁恢复;遮罩内另有 Tab 焦点陷阱。锁定后才出现的 body 子节点(Toast)不会被 inert |
 
 ## 权限
 
@@ -42,17 +49,45 @@
 
 | 组件 | 位置 | 是什么 | 坑 |
 | --- | --- | --- | --- |
-| **AdminLayout** | `layouts/AdminLayout.tsx` + `AdminLayout.css` | 后台外壳(只有 vertical 布局,移植自 mono4ts 的「飞书风格」):侧边菜单(由 `/api/auth/menus` 的菜单树经 `toNavItems()` 生成,可折叠,折叠状态存 `localStorage.weiran_sider_collapsed`)、顶栏(面包屑 + 主题按钮 + 用户下拉)、多页签、内容区。**< md(768px)时不渲染侧边栏**,改为移动端顶栏的菜单按钮 + 左侧 `SideSheet` 抽屉导航 | **菜单图标必须用 `renderNavIcon()`,不能用 `renderIcon()`**:Semi 的 `SubNav` 会 `cloneElement(icon, { size: 'large' })`,lucide 会渲染成 `width="large"` 的无尺寸 SVG,目录图标撑满侧边栏(2026-09-26 实测,单测看不出来)。样式大量覆盖 Semi Nav 内部类名(`.semi-navigation-*`),升级 Semi 后要在真浏览器里看一眼侧边栏与折叠态 |
-| **TabsBar** | `layouts/TabsBar.tsx` | 多页签栏(下划线风格):点击切换、× 关闭、右键「关闭 / 关闭其它 / 关闭全部」,右侧下拉列出全部页签 | 纯展示组件,状态在 `useTabs`;不支持拖拽排序与卡片/胶囊风格(刻意没搬) |
-| **ThemeSwitcher** | `layouts/ThemeSwitcher.tsx` | 顶栏主题入口:`ThemeModeButton`(点击按 浅色 → 深色 → 跟随系统 循环,悬停出下拉)、`ThemeColorButton`(弹层色板:默认 `#0064FA` + 19 个预设 + 原生取色器自定义任意 hex);`ThemeColorPanel` 是弹层内容本身 | 必须在 `ThemeProvider` 内(`useThemeController` 在外面直接抛错);测试用 `renderWithProviders` 已自带 |
-| **useTabs** | `layouts/useTabs.ts` | 页签状态:按访问顺序累积,刷新后从 `sessionStorage` 恢复 | 菜单的 `keepAlive` 字段**尚未接入**:切换页签时页面会重新挂载(见 `state/bizs/sys_menu.md`) |
+| **AdminLayout** | `layouts/AdminLayout.tsx` + `AdminLayout.css` | 后台外壳(移植自 mono4ts 的「飞书风格」)。导航布局按偏好 `navLayout`:**vertical** 侧边菜单 + 顶栏面包屑;**horizontal** 顶部水平导航(`TopNav`),无侧边栏、无面包屑;**mixed** 顶部一级菜单 + 左侧当前一级下的子菜单(一级是页面时无侧边栏),无面包屑;**double** 左侧图标轨 + 子菜单栏 + 顶栏面包屑。菜单由 `/api/auth/menus` 的菜单树经 `toNavItems()` 生成;折叠状态存 `localStorage.weiran_sider_collapsed`(vertical / mixed);展开项受控,手风琴逻辑在同文件导出的 `nextOpenKeys()`。顶栏 / 顶部导航的操作区:收藏入口、锁屏、全屏、主题、偏好设置齿轮、用户下拉。内容区走 `KeepAliveOutlet`(页面缓存 + 路由动画)与回到顶部;锁定时渲染 `LockScreen`。外观与行为大多读偏好(见下「偏好」),偏好类样式挂在根节点的 `admin-layout--*` class(含 `admin-layout--nav-<布局>`)与行内 `--sidebar-width` / `--admin-section-dark-*` 变量上。**< md(768px)时任何布局都不渲染侧边栏 / 顶部导航**,改为移动端顶栏的菜单按钮 + 左侧 `SideSheet` 抽屉导航 | **任何交给 Semi 组件图标属性的 lucide 图标都必须用 `renderNavIcon(name, size?)`,不能用 `renderIcon()`**:Semi 的 `SubNav` 会 `cloneElement(icon, { size: 'large' })`、`Breadcrumb.Item` 会 `cloneElement(icon, { size: 'default' / 'small', className })`,lucide 会渲染成 `width="large"` 之类的无尺寸 SVG 撑满容器——侧边栏目录图标(2026-09-26)与顶栏面包屑图标(2026-09-27,默认配置就中招)都实测踩过。已查过:Button / Toast / Modal 只 clone Semi 自家图标,不受影响;放进自己的 `<span>` 里的图标(页签、收藏、搜索结果)也不受影响。四种布局(含 double 的图标轨、mixed 的顶部一级)都复用 `toNavItems()` 的图标。样式大量覆盖 Semi Nav 内部类名(`.semi-navigation-*`,含水平模式),升级 Semi 后要在真浏览器里把四种布局与折叠态都看一眼。mixed / double 点一级目录跳到它的**第一个内链页面**(`firstLeafKey()`),目录下全是外链时只切换不跳转 |
+| **TopNav** | `layouts/TopNav.tsx` | horizontal / mixed 布局的顶部水平导航(移植自 mono4ts `TopNavWithOverflow`):Semi `Nav mode="horizontal"`,放不下的项收进末尾「更多」下拉 | 宽度靠一个隐藏的探测 Nav 量(同 class,`aria-hidden` + `inert`,不进 Tab 顺序),所以 DOM 里每个菜单文字出现**两次**——测试用 `getByRole('menuitem')` 而不是 `getByText`。量不到宽度(jsdom)时全部显示 |
+| **MenuSearch** | `layouts/MenuSearch.tsx` | 菜单搜索框(偏好 `showMenuSearch`):按标题子串过滤可见菜单页(`filterMenus()`),↑↓ 选择、回车或点击跳转、Esc 清空。放在侧边栏顶部(`Nav.Header` 子节点)/ double 的子菜单栏 / horizontal 的顶栏 / 移动端抽屉 | 不支持拼音;侧边栏收起时不显示。数据来自 `utils/menu.ts` 的 `flattenMenuPages()` |
+| **FavoriteMenus** | `layouts/FavoriteMenus.tsx` | 收藏菜单(偏好 `showFavorites`):`useFavorites(pages, enabled)` + 面包屑旁的星标 `FavoriteToggle` + 顶栏「我的收藏」`FavoritesButton`(弹层列表,点击跳转、× 移除)。horizontal / mixed 没有面包屑,星标放进操作区 | 数据走 `hooks/queries/auth.ts` 的 `useFavoriteMenus` / `useSaveFavoriteMenus`:**乐观更新,失败回滚到修改前**并 Toast;同一 `scope` 串行发出(全量覆盖,乱序会让旧列表盖掉新列表),有后续保存排队时前一次失败不回滚、最后一次结束才重新拉取。**收藏列表加载成功前不显示星标与入口、toggle 直接跳过**——否则全量 PUT 会用单个 id 冲掉服务端已有收藏。上限 50(契约 §6.1),满了 Toast 拒绝而不是挤掉旧的 |
+| **BreadcrumbMenuPopover** | `layouts/BreadcrumbMenuPopover.tsx` | 面包屑目录节点悬停弹出子菜单(偏好 `breadcrumbSubMenu`,移植自 mono4ts),多级目录逐级向右展开,点叶子跳转并收起整棵弹层 | 包在 `Breadcrumb.Item` 的**子节点**里,不能包在 Item 外面(Semi Breadcrumb 会 cloneElement 直接子节点并警告非 Item)。子节点过滤用同文件的 `visibleMenuChildren()` |
+| **KeepAliveOutlet** | `layouts/KeepAliveOutlet.tsx` | 内容区的 `<Outlet>` 替身:页面缓存(偏好 `enablePageCache` 且启用多页签)+ 路由动画(偏好 `routeAnimation`)。菜单 `keepAlive=true` 的页面用 React 19 `<Activity>` 隐藏保活,关页签即释放,最多 10 个 LRU;页签「刷新」靠版本号重建;共享滚动容器 `.admin-content` 的滚动位置按页保存 / 恢复。纯函数 `nextCache()` 可单测 | 隐藏的缓存页 Effects 会被卸载(定时器、订阅暂停),**state 与 TanStack Query 缓存都还在**。缓存页不播路由动画(否则 remount 丢缓存)。每个页面外包一层 `div.admin-page`(缓存页再加 `--cached`),`contentWidth=fixed` 的 1400px 限宽作用在这层。滚动位置在 `scroll` 事件里按页记录、`useLayoutEffect` 里恢复(离开后再读会读到被钳成 0 的值)。**隐藏的缓存页在路由变化时仍会重渲染,其中 `useLocation` / `useSearchParams` 拿到的是当前可见页的 URL**:Effects 已暂停所以不会写回,但渲染期直接读 search params 的逻辑会算出错值——缓存页的筛选条件放在组件 state 里,别在渲染期依赖 URL |
+| **TabsBar** | `layouts/TabsBar.tsx` | 多页签栏:点击切换、双击按偏好刷新/关闭、× 关闭、右键「刷新 / 关闭 / 关闭其它 / 关闭全部」,右侧下拉(偏好 `showTabSwitcher`)列出全部页签;页签图标由偏好 `showTabIcon` 控制。风格(偏好 `tabStyle`:line / pill / card)与动画(偏好 `tabAnimation`)挂在根节点 `data-tab-style` / `data-tab-animation` 上 | 纯展示组件,状态在 `useTabs`;「刷新」由 AdminLayout 给该路径的页面换版本号让它**重新挂载**(不主动失效 Query 缓存,30s 内的数据不会重拉)。`tabAnimation` 是**页签本身**的进出场(同 mono4ts),不是内容区过渡(那是 `routeAnimation`):进场是纯 CSS(节点插入即播),关闭单个页签先挂 `--exiting` 等 250ms 再真正关闭——测试断言关闭结果要 `waitFor`;到点时经 ref 调用**最新**的 `onClose`(期间页签与当前页可能已变),页签栏卸载时丢弃未执行的关闭。「关闭其它 / 全部」不播退场。不支持拖拽排序 |
+| **ThemeSwitcher** | `layouts/ThemeSwitcher.tsx` | 顶栏主题快捷入口:`ThemeModeButton`(点击按 浅色 → 深色 → 跟随系统 循环,悬停出下拉)、`ThemeColorButton`(弹层色板:默认 `#0064FA` + 19 个预设 + 原生取色器自定义任意 hex);`ThemeColorPanel` 是色板本身(`embedded` 时去掉标题,偏好抽屉里用) | 必须在 `PreferencesProvider` + `ThemeProvider` 内(`useThemeController` 在外面直接抛错);测试用 `renderWithProviders` 已自带。默认蓝在偏好里存 `#0064FA` 而不是预设 key `default` |
+| **useTabs** | `layouts/useTabs.ts` | 页签状态:按偏好 `openTabBehavior` 追加或插在当前页之后;超过 `tabsMaxCount` 按 `tabEvictPolicy`(fifo 最早打开 / lru 最久没激活)自动关闭并 Toast 提示;`keepTabs` 时存 `sessionStorage.weiran_tabs` 刷新后恢复。纯函数 `visitTab()` / `trimTabs()` 可单测 | 渲染期同步当前页,关闭当前页后靠 `closing` 挡住「navigate 还没生效就被加回来」(React Router 的 navigate 走 transition)。打开的页签集合同时是 `KeepAliveOutlet` 的缓存生命周期:页签被关掉(含超限淘汰)对应的缓存页随即释放 |
+| **PreferencesDrawer** | `layouts/PreferencesDrawer.tsx` | 偏好设置抽屉(顶栏齿轮按钮打开,`SideSheet`):外观 / 布局与导航 / 页签 / 面包屑 / 表格 / 其它 六组,底部「恢复默认」二次确认。43 个字段里 42 个在这里(`filesViewMode` 没有消费方,不放) | **只放已经接通行为的字段**;新字段实现前不要放进来(不生效的开关)。开关行用 `aria-label` = 文案,测试按 `getByRole('switch', { name })` 找;下拉行(`SelectRow`)Semi Select 会**覆盖 `aria-label`**,改用 `aria-labelledby` 指向行文案,测试按 `getByRole('combobox', { name })` 找 |
 
 ## 不在本清单、但同样该先查的
 
-- `providers/ThemeProvider.tsx` + `providers/theme-context.ts`(`useThemeController()`):主题状态源,明暗模式 `light / dark / system` + 主色;偏好存 `localStorage.weiran_theme`(`{mode, color}`,读写都容错,非法字段逐项回落默认 `light` + `default`)。暗色走 Semi 官方入口 `body[theme-mode='dark']`,不要另起一套 class。首屏由 `main.tsx` 在挂载前调 `lib/theme.ts` 的 `bootstrapTheme()` 同步应用。
+- `providers/ThemeProvider.tsx` + `providers/theme-context.ts`(`useThemeController()`):主题控制器,明暗模式 `light / dark / system` + 主色。**状态存在偏好的 `colorMode` / `themeColor` 里**,必须在 `PreferencesProvider` 内。暗色走 Semi 官方入口 `body[theme-mode='dark']`,不要另起一套 class。首屏由 `main.tsx` 在挂载前调 `lib/preferences-storage.ts` 的 `bootstrapTheme()` 同步应用;旧版 `localStorage.weiran_theme` 在首次读取时迁进偏好并删除。
 - `lib/theme-color.ts`:`applyThemeColor()` 把 `--semi-color-primary*` 与 `--color-primary` / `--color-sidebar-*` **同时写到 html 和 body 的内联样式**——只写 html 会被 Semi 挂在 body 上的默认值盖住。**页面里要用主色就用 `var(--semi-color-primary)`,不要写死 `#0064FA`**,否则切主题色时不跟随。
 - `styles/global.css` 的设计变量(`--color-bg` / `--color-surface` / `--color-border` / `--color-text*` / `--header-height` 等)在 `body[theme-mode='dark']` 下有深色值;新样式优先用它们或 Semi 变量,别写死颜色。
+- `hooks/useTableDefaults.ts` 的 `tableScrollX(columns, flexMin = 120)`:表格 `scroll.x` **用它算,不要手写估值**——数字 width 列按 width、弹性列按 `flexMin` 求和。Semi 在内容区更宽时把表格拉满(多出的宽度主要给弹性列),更窄才横向滚动。手写值写小了弹性列被挤到几十像素(用户页「角色」标签溢出到「手机」列),写大了 double 布局下无谓滚动、固定操作列压住内容(2026-09-27 实测)。传列设置之后的列。8 个列表页的列宽已按「1440 宽下四种导航布局都不滚动」收紧,改列宽后在 double 布局下看一眼。
+- `hooks/useTableDefaults.ts`:`useTableDefaults()` 返回 `tableProps`(展开到 Semi `<Table>`:尺寸、边框、斑马纹 class)、`pageSize`(分页表格 `useState` 的**初值**)、`pageSizeOpts`。**新列表页的 `<Table>` 都要 `{...tableProps}`**,否则偏好里的表格设置对它不生效。
 - `hooks/useMediaQuery.ts`:`useMediaQuery(query)` / `useIsMobile()`(< 768px)/ `usePrefersDark()`。断点常量在 `lib/breakpoints.ts`,CSS 侧写 `@media (--md-down)`(`styles/breakpoints.css` 经 postcss-custom-media 注入所有 CSS,**不要硬编码 px 断点**,两边改一处必须同步另一处)。jsdom 的 `matchMedia` 恒为 false,测试里默认是桌面布局;测窄屏用 `vi.stubGlobal('matchMedia', …)`。
 - `utils/request.ts`:请求封装。**`code === 0`(数字)才算成功**;`40100` 清令牌跳登录,`40101` 不清。不要在页面里再写 `fetch`。
 - `utils/page-registry.ts`:菜单 `component` 字符串 → 页面懒加载。**路由不在 `App.tsx` 里登记**。
-- `hooks/queries/*`:每个资源一份 TanStack Query hooks,新接口先在这里加,再在页面里用。
+- `hooks/queries/*`:每个资源一份 TanStack Query hooks,新接口先在这里加,再在页面里用。收藏菜单与锁屏校验在 `hooks/queries/auth.ts`(`useFavoriteMenus` / `useSaveFavoriteMenus` / `useVerifyPassword`)。
+- `utils/menu.ts` 的 `flattenMenuPages()`:菜单树 → 可跳转的菜单页平铺列表(带祖先标题、可见性、keepAlive),菜单搜索、收藏、页面缓存白名单共用。
+
+## 偏好(`hooks/usePreferences.tsx` + `hooks/PreferencesProvider.tsx`)
+
+- **字段定义与默认值的唯一事实源**是 `hooks/usePreferences.tsx`(43 个,来自 mono4ts;后端 `/api/auth/preferences` 只存不校验)。读用 `usePreferences().preferences`,写用 `setPreferences(partial)`;Provider 外调用直接抛错。
+- `PreferencesProvider`:本地缓存 `localStorage.weiran_preferences`(读写容错,非法字段逐项回落默认),归属用户记在 `weiran_preferences_owner`(用户 id,取自 JWT 的 `sub`,`utils/token.ts` 的 `tokenUserId()` 只解码不验签);登录后 GET 服务端偏好合并覆盖本地,服务端为 `null` 时**只有本地缓存归属 = 当前用户才迁上去**;修改 500ms 防抖 PUT;「恢复默认」清本地并立即 PUT;**未登录(登录页)只写本地、不发请求**。
+- 除 `filesViewMode` 外 42 个字段都已接通行为并在抽屉里(2026-09-27 第二阶段补齐 C 组:导航布局、页签风格 / 动画、路由动画、页面缓存、菜单搜索、收藏、锁屏、列设置、面包屑子菜单、分组标题吸顶)。各字段的消费处见上面布局表与 `ColumnSettings` / `LockScreen` 条目。
+- 坑:**`filesViewMode` 预留给文件模块,当前无消费方**——本项目没有文件模块,它只有类型与默认值,不在抽屉里。将来加文件模块时再接通并放进抽屉。
+- 坑:`tabAnimation` 与 `routeAnimation` 是两件事(同 mono4ts):前者是页签条目的进出场,后者是内容区进场;开启页面缓存的页面不播路由动画。
+- **换账号不继承**(2026-09-27 用户决定,**与 mono4ts 不同**):退出登录——主动退出、`clearSession`、401 清令牌、其它标签页退出,统一按「令牌从有到无」判断——时清掉本地偏好缓存与归属并回到默认值;新账号服务端为 `null` 时从默认值开始、**不 PUT**,绝不把上一个账号的偏好写进去。没有归属的缓存(旧版格式、登录页上改的、旧版 `weiran_theme` 迁入的)视为归属未知,不迁给任何账号。
+- 坑:因此**退出后登录页回到默认浅色主题**(用户已知情的取舍);旧版 `weiran_theme` 只保证登录前首屏不闪,不会随登录带上服务端。
+- 坑:测试里的令牌要用 `test/helpers` 的 `fakeJwt(userId)`,并用 `savePreferences(prefs, userId)` 预置本地偏好——用 `'t'` 这种非 JWT 令牌时拿不到用户 id,服务端返回 `null` 就会回落默认值。
+
+### 新增偏好字段的步骤
+
+1. `hooks/usePreferences.tsx`:`UserPreferences` 加字段(带中文注释)、`defaultPreferences` 给默认值;枚举型加进 `ENUM_OPTIONS`,数值型加进 `NUMBER_RANGES`——否则服务端 / 本地缓存里的脏值不会被拦下。字段数断言在 `hooks/__tests__/usePreferences.test.ts`,要同步改。
+2. 在消费处读 `usePreferences().preferences.<field>` 接通行为(布局类放 `AdminLayout`,表格类放 `useTableDefaults`)。
+3. **行为接通后**才在 `layouts/PreferencesDrawer.tsx` 对应分组加控件(布尔用 `<SwitchRow field=… />`)。
+4. 至少一条测试证明它真的生效(布局类见 `layouts/__tests__/AdminLayout.test.tsx` 的 `renderAuthed(route, prefs)`)。
+5. 契约 `weiran4j/docs/01-架构与接口契约.md` §6.1 的字段数若有写死,一并改。后端不需要改。

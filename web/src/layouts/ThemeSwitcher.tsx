@@ -2,7 +2,7 @@ import { Dropdown, Popover } from '@douyinfe/semi-ui';
 import { Check, Monitor, Moon, Palette, Pipette, Sun } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { ThemeMode } from '@/lib/theme';
-import { THEME_COLOR_PRESETS } from '@/lib/theme-color';
+import { DEFAULT_PRIMARY, DEFAULT_THEME_COLOR, THEME_COLOR_PRESETS } from '@/lib/theme-color';
 import { useThemeController } from '@/providers/theme-context';
 
 const MODE_META: Record<ThemeMode, { label: string; icon: ReactNode }> = {
@@ -35,17 +35,29 @@ export function ThemeModeButton() {
     );
 }
 
-/** 主题色面板：预设色板 + 自定义取色（任意 hex，经 deriveColorVars 推导整组变量） */
-export function ThemeColorPanel() {
+/** 默认蓝在偏好里存 hex（#0064FA），其余预设存 key */
+function presetValue(key: string): string {
+    return key === DEFAULT_THEME_COLOR ? DEFAULT_PRIMARY : key;
+}
+
+function isSameColor(a: string, b: string): boolean {
+    return a.toLowerCase() === b.toLowerCase();
+}
+
+/**
+ * 主题色面板：预设色板 + 自定义取色（任意 hex，经 deriveColorVars 推导整组变量）。
+ * `embedded` 用于偏好设置抽屉：不带标题与弹层内边距。
+ */
+export function ThemeColorPanel({ embedded = false }: { embedded?: boolean }) {
     const { color, isDark, setColor } = useThemeController();
-    const isCustom = color.startsWith('#');
+    const isCustom = color.startsWith('#') && !isSameColor(color, DEFAULT_PRIMARY);
     return (
-        <div className="theme-color-panel">
-            <div className="theme-color-panel__title">主题色</div>
+        <div className={embedded ? undefined : 'theme-color-panel'}>
+            {!embedded && <div className="theme-color-panel__title">主题色</div>}
             <div className="theme-color-picker">
                 {THEME_COLOR_PRESETS.map((preset) => {
                     const swatch = (isDark ? preset.dark : preset.light).primary;
-                    const active = color === preset.key;
+                    const active = isSameColor(color, presetValue(preset.key));
                     return (
                         <button
                             key={preset.key}
@@ -55,7 +67,7 @@ export function ThemeColorPanel() {
                             title={preset.name}
                             aria-label={preset.name}
                             aria-pressed={active}
-                            onClick={() => setColor(preset.key)}
+                            onClick={() => setColor(presetValue(preset.key))}
                         >
                             {active && (
                                 <span className="theme-color-swatch__check">

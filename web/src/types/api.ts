@@ -65,6 +65,16 @@ export interface PasswordChangeRequest {
     newPassword: string;
 }
 
+/** PUT /api/auth/favorite-menus：全量覆盖；重复 id 静默去重保序，去重后 ≤ 50 */
+export interface FavoriteMenusSaveRequest {
+    menuIds: number[];
+}
+
+/** POST /api/auth/verify-password：锁屏解锁；错误返回 40101，不影响令牌 */
+export interface VerifyPasswordRequest {
+    password: string;
+}
+
 /* ---------- 菜单 ---------- */
 
 export type MenuType = 'directory' | 'menu' | 'button';

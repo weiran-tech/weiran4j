@@ -52,3 +52,20 @@ function subscribe(cb: () => void) {
 export function useToken(): string | null {
     return useSyncExternalStore(subscribe, safeGet, () => null);
 }
+
+/**
+ * 从 JWT 载荷读当前用户 id（契约：claims `sub` = userId）。只解码不验签——仅用于本地缓存归属判断，
+ * 不做任何鉴权。令牌不是 JWT 或 sub 不是正整数时返回 null。
+ */
+export function tokenUserId(token: string | null): number | null {
+    const payload = token?.split('.')[1];
+    if (!payload) return null;
+    try {
+        const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(payload.length / 4) * 4, '='));
+        const sub: unknown = (JSON.parse(json) as { sub?: unknown }).sub;
+        const id = typeof sub === 'number' ? sub : typeof sub === 'string' ? Number(sub) : NaN;
+        return Number.isInteger(id) && id > 0 ? id : null;
+    } catch {
+        return null;
+    }
+}

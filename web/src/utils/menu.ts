@@ -66,6 +66,51 @@ export function findMenuTrail(menus: readonly MenuNode[], path: string): MenuNod
     return [];
 }
 
+/** 可跳转的菜单页（菜单搜索、收藏、页面缓存白名单用） */
+export interface FlatMenu {
+    id: number;
+    title: string;
+    icon: string | null;
+    /** 已规范化的路由路径；外链为原始地址 */
+    path: string;
+    isExternal: boolean;
+    /** 侧边栏是否显示（visible=false 的页面能收藏、不参与搜索） */
+    visible: boolean;
+    /** 菜单「缓存」开关（偏好 enablePageCache 开启时切换页签保留页面状态） */
+    keepAlive: boolean;
+    /** 祖先目录标题（由根到父） */
+    parents: string[];
+}
+
+/**
+ * 菜单树 → 可跳转的菜单页平铺列表：只取启用的 type=menu 且有 path 的节点；
+ * 禁用目录下的整棵子树跳过（与侧边栏一致），隐藏目录下的页面记为不可见。
+ */
+export function flattenMenuPages(menus: readonly MenuNode[]): FlatMenu[] {
+    const out: FlatMenu[] = [];
+    const walk = (nodes: readonly MenuNode[], parents: string[], visible: boolean) => {
+        for (const m of nodes) {
+            if (m.status !== 'enabled' || m.type === 'button') continue;
+            if (m.type === 'directory') {
+                walk(m.children ?? [], [...parents, m.title], visible && m.visible);
+            } else if (m.path) {
+                out.push({
+                    id: m.id,
+                    title: m.title,
+                    icon: m.icon,
+                    path: m.isExternal ? m.path : normalizePath(m.path),
+                    isExternal: m.isExternal,
+                    visible: visible && m.visible,
+                    keepAlive: m.keepAlive,
+                    parents,
+                });
+            }
+        }
+    };
+    walk(menus, [], true);
+    return out;
+}
+
 /** 通用树遍历：返回扁平列表 */
 export function flattenTree<T extends { children?: T[] | null }>(nodes: readonly T[]): T[] {
     const out: T[] = [];
