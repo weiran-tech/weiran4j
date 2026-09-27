@@ -5,12 +5,12 @@ import { App } from '@/App';
 import { LOCK_STORAGE_KEY } from '@/hooks/useLockScreen';
 import { defaultPreferences, type UserPreferences } from '@/hooks/usePreferences';
 import { savePreferences } from '@/lib/preferences-storage';
-import { fakeJwt, mockFetch, page, renderWithProviders, type MockHandler } from '@/test/helpers';
+import { fakeJwt, mockFetch, openPreferences, page, renderWithProviders, type MockHandler } from '@/test/helpers';
 import type { CurrentUserView, MenuNode } from '@/types/api';
 import { getToken, setToken } from '@/utils/token';
 
 /**
- * 偏好 C 组（导航布局、页签风格与动画、路由动画、页面缓存、菜单搜索、收藏、锁屏、面包屑子菜单、吸顶）
+ * 偏好 C 组（导航布局、页签风格与动画、路由动画、页面缓存、全局搜索、收藏、锁屏、面包屑子菜单、吸顶）
  * 在真实 AdminLayout 里生效。列设置见 components/__tests__/ColumnSettings.test.tsx。
  */
 
@@ -123,7 +123,7 @@ describe('navLayout', () => {
         fireEvent.click(within(topnav).getByRole('menuitem', { name: /首页/ }));
         await titleIs('首页');
         // 顶栏承接操作区
-        expect(within(document.querySelector('.admin-topbar') as HTMLElement).getByRole('button', { name: '偏好设置' })).toBeInTheDocument();
+        expect(within(document.querySelector('.admin-topbar') as HTMLElement).getByRole('button', { name: '全局搜索' })).toBeInTheDocument();
     });
 
     it('mixed：顶部只有一级菜单，侧边栏只显示当前一级下的子菜单；点另一个一级跳到它的第一个页面', async () => {
@@ -158,6 +158,17 @@ describe('navLayout', () => {
         fireEvent.click(within(rail).getByRole('button', { name: /日志管理/ }));
         await titleIs('登录日志');
         expect(document.querySelector('.double-sidebar__sub-title')?.textContent).toBe('日志管理');
+        // 默认首列仅图标：名称只在 aria-label / Tooltip 里
+        expect(document.querySelector('.admin-sidebar--double-icon')).not.toBeNull();
+        expect(rail.querySelector('.double-sidebar__rail-label')).toBeNull();
+    });
+
+    it('double + doubleRailStyle=icon-text：首列显示图标 + 文字', async () => {
+        renderAuthed('/system/a', { navLayout: 'double', doubleRailStyle: 'icon-text' });
+        await titleIs('用户管理');
+        expect(document.querySelector('.admin-sidebar--double-icon-text')).not.toBeNull();
+        const rail = screen.getByRole('navigation', { name: '分组导航' });
+        expect(within(rail).getByRole('button', { name: '系统管理' }).querySelector('.double-sidebar__rail-label')?.textContent).toBe('系统管理');
     });
 
     it('窄屏：任何布局都回落到移动端抽屉导航', async () => {
@@ -299,35 +310,76 @@ describe('enablePageCache', () => {
     });
 });
 
-describe('showMenuSearch', () => {
-    it('按标题过滤，回车跳转到当前高亮项并清空', async () => {
+describe('showMenuSearch（全局搜索）', () => {
+    const openSearch = async () => {
+        fireEvent.click(await screen.findByRole('button', { name: '全局搜索' }));
+        return screen.findByRole('combobox', { name: '全局搜索' });
+    };
+
+    it('顶栏按钮打开命令面板：按标题过滤，↑↓ 选择，回车跳转并关闭', async () => {
         renderAuthed('/dashboard');
-        const input = await screen.findByRole('combobox', { name: '搜索菜单' });
+        const input = await openSearch();
         fireEvent.change(input, { target: { value: '管理' } });
-        const list = screen.getByRole('listbox', { name: '菜单搜索结果' });
-        expect(within(list).getAllByRole('option').map((o) => o.textContent)).toEqual(['用户管理系统管理', '角色管理系统管理']);
+        const list = screen.getByRole('listbox', { name: '搜索结果' });
+        // 标题命中在前，只命中目录（系统管理）的排在后面
+        expect(within(list).getAllByRole('option').map((o) => o.querySelector('.global-search__item-title')?.textContent)).toEqual([
+            '用户管理',
+            '角色管理',
+            '参数配置',
+            '登录日志',
+        ]);
 
         fireEvent.keyDown(input, { key: 'ArrowDown' });
         expect(within(list).getAllByRole('option')[1]).toHaveAttribute('aria-selected', 'true');
         fireEvent.keyDown(input, { key: 'Enter' });
         await titleIs('角色管理');
-        expect(screen.queryByRole('listbox', { name: '菜单搜索结果' })).toBeNull();
+        await waitFor(() => expect(screen.queryByRole('combobox', { name: '全局搜索' })).toBeNull());
     });
 
-    it('点击结果跳转；无匹配时提示', async () => {
+    it('Ctrl+K / ⌘+K 打开与关闭；无匹配时提示；点击结果跳转', async () => {
         renderAuthed('/dashboard');
-        const input = await screen.findByRole('combobox', { name: '搜索菜单' });
+        await titleIs('首页');
+        fireEvent.keyDown(document.body, { key: 'k', ctrlKey: true });
+        const input = await screen.findByRole('combobox', { name: '全局搜索' });
+        // Semi Modal 打开后会抢焦点，输入框要在它之后拿回焦点
+        await waitFor(() => expect(input).toHaveFocus());
         fireEvent.change(input, { target: { value: '不存在' } });
         expect(screen.getByText('没有匹配的菜单')).toBeInTheDocument();
-        fireEvent.change(input, { target: { value: '登录' } });
+        fireEvent.keyDown(document.body, { key: 'k', metaKey: true });
+        await waitFor(() => expect(screen.getByRole('button', { name: '全局搜索' })).toHaveAttribute('aria-expanded', 'false'));
+        await waitFor(() => expect(screen.queryByRole('combobox', { name: '全局搜索' })).toBeNull());
+
+        fireEvent.keyDown(document.body, { key: 'K', metaKey: true });
+        fireEvent.change(await screen.findByRole('combobox', { name: '全局搜索' }), { target: { value: '登录' } });
         fireEvent.mouseDown(screen.getByRole('option', { name: /登录日志/ }));
         await titleIs('登录日志');
     });
 
-    it('showMenuSearch=false 时没有搜索框', async () => {
+    it('空关键字列出最近访问，可移除单条与清除', async () => {
+        renderAuthed('/system/a');
+        await titleIs('用户管理');
+        fireEvent.click(within(document.querySelector('.admin-sidebar') as HTMLElement).getByText('角色管理'));
+        await titleIs('角色管理');
+        await openSearch();
+        const list = screen.getByRole('listbox', { name: '搜索结果' });
+        expect(within(list).getAllByRole('option').map((o) => o.querySelector('.global-search__item-title')?.textContent)).toEqual([
+            '角色管理',
+            '用户管理',
+        ]);
+        fireEvent.click(within(list).getByRole('button', { name: '移除用户管理' }));
+        expect(within(list).getAllByRole('option')).toHaveLength(1);
+        fireEvent.click(within(list).getByRole('button', { name: '清除' }));
+        expect(screen.getByText('输入关键词搜索菜单')).toBeInTheDocument();
+        expect(JSON.parse(localStorage.getItem('weiran_recent_menus') ?? 'null')).toEqual([]);
+    });
+
+    it('侧边栏不再有菜单搜索框；showMenuSearch=false 时没有入口，Ctrl+K 也不生效', async () => {
         renderAuthed('/dashboard', { showMenuSearch: false });
         await titleIs('首页');
-        expect(screen.queryByRole('combobox', { name: '搜索菜单' })).toBeNull();
+        expect(screen.queryByRole('button', { name: '全局搜索' })).toBeNull();
+        fireEvent.keyDown(document.body, { key: 'k', ctrlKey: true });
+        await new Promise((r) => setTimeout(r, 50));
+        expect(screen.queryByRole('combobox', { name: '全局搜索' })).toBeNull();
     });
 });
 
@@ -475,7 +527,7 @@ describe('enableLockScreen', () => {
 
     it('锁定时已打开的浮层（portal 到 body）也被 inert；解锁后恢复', async () => {
         renderAuthed('/dashboard', { enableLockScreen: true }, verifyRoute(true));
-        fireEvent.click(await screen.findByRole('button', { name: '偏好设置' }));
+        await openPreferences();
         const drawer = await waitFor(() => {
             const el = document.querySelector('.prefs-drawer');
             if (!el) throw new Error('偏好抽屉未打开');

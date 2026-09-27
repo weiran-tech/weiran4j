@@ -10,6 +10,7 @@ import { THEME_MODES, type ThemeMode } from '@/lib/theme';
  */
 
 export type NavLayout = 'vertical' | 'horizontal' | 'mixed' | 'double';
+export type DoubleRailStyle = 'icon' | 'icon-text';
 export type TabAnimation = 'none' | 'fade' | 'slide' | 'scale';
 export type TabStyle = 'line' | 'pill' | 'card';
 export type TableSizePreference = 'small' | 'default' | 'middle';
@@ -30,6 +31,8 @@ export interface UserPreferences {
     tabStyle: TabStyle;
     /** 导航布局：vertical 侧边 / horizontal 顶部 / mixed 顶部一级 + 侧边子级 / double 图标轨 + 子菜单栏；窄屏一律抽屉 */
     navLayout: NavLayout;
+    /** 双列菜单首列形式（仅 double 布局）：icon 仅图标，与侧边栏收起同宽，名称走悬浮提示 / icon-text 图标 + 文字 */
+    doubleRailStyle: DoubleRailStyle;
     /** 显示面包屑 */
     showBreadcrumb: boolean;
     /** 面包屑是否显示图标 */
@@ -46,7 +49,7 @@ export interface UserPreferences {
     sidebarDarkMode: boolean;
     /** 顶栏深色（仅浅色主题下生效） */
     headerDarkMode: boolean;
-    /** 菜单搜索框（侧边栏顶部；horizontal 布局在顶栏） */
+    /** 全局搜索：顶栏搜索入口 + Ctrl/⌘+K 命令面板（layouts/GlobalSearch，同 zenith-admin）；关闭后快捷键也不生效 */
     showMenuSearch: boolean;
     /** 顶栏全屏按钮 */
     showFullscreen: boolean;
@@ -113,6 +116,7 @@ export const defaultPreferences: UserPreferences = {
     showTabIcon: true,
     tabStyle: 'line',
     navLayout: 'vertical',
+    doubleRailStyle: 'icon',
     showBreadcrumb: true,
     breadcrumbIcon: true,
     breadcrumbShowHome: true,
@@ -155,6 +159,7 @@ export const defaultPreferences: UserPreferences = {
 const ENUM_OPTIONS: { [K in keyof UserPreferences]?: readonly UserPreferences[K][] } = {
     tabStyle: ['line', 'pill', 'card'],
     navLayout: ['vertical', 'horizontal', 'mixed', 'double'],
+    doubleRailStyle: ['icon', 'icon-text'],
     tabAnimation: ['none', 'fade', 'slide', 'scale'],
     colorMode: THEME_MODES,
     filesViewMode: ['list', 'grid'],

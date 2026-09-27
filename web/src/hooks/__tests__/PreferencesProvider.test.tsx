@@ -172,7 +172,7 @@ describe('PreferencesProvider', () => {
         const puts = calls.filter((c) => c.method === 'PUT');
         expect(puts).toHaveLength(1);
         expect(puts[0]?.body).toMatchObject({ tablePageSize: 100, showLogo: false });
-        expect(Object.keys(puts[0]?.body as object)).toHaveLength(43);
+        expect(Object.keys(puts[0]?.body as object)).toHaveLength(44);
     });
 
     it('恢复默认：清本地缓存、取消待发的写入、立即 PUT 默认值', async () => {

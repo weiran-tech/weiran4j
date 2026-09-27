@@ -1,5 +1,5 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { render } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
@@ -73,4 +73,15 @@ export function page<T>(list: T[], total = list.length) {
 export function fakeJwt(userId: number): string {
     const b64 = (o: object) => btoa(JSON.stringify(o)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
     return `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: String(userId), username: `u${userId}`, ver: 0 })}.sig`;
+}
+
+/** 打开偏好设置抽屉：悬停顶栏用户名弹出下拉菜单，点「偏好设置」 */
+export async function openPreferences() {
+    const trigger = await waitFor(() => {
+        const el = document.querySelector('.admin-header__user');
+        if (!el) throw new Error('用户下拉菜单未渲染');
+        return el;
+    });
+    fireEvent.mouseEnter(trigger);
+    fireEvent.click(await screen.findByRole('menuitem', { name: /偏好设置/ }));
 }

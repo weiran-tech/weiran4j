@@ -66,7 +66,7 @@ export function findMenuTrail(menus: readonly MenuNode[], path: string): MenuNod
     return [];
 }
 
-/** 可跳转的菜单页（菜单搜索、收藏、页面缓存白名单用） */
+/** 可跳转的菜单页（全局搜索、收藏、页面缓存白名单用） */
 export interface FlatMenu {
     id: number;
     title: string;

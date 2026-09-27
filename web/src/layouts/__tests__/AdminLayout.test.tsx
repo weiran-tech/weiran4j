@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '@/App';
 import { defaultPreferences, type UserPreferences } from '@/hooks/usePreferences';
 import { PREFERENCES_STORAGE_KEY, savePreferences } from '@/lib/preferences-storage';
-import { fakeJwt, mockFetch, renderWithProviders } from '@/test/helpers';
+import { fakeJwt, mockFetch, openPreferences, renderWithProviders } from '@/test/helpers';
 import type { CurrentUserView, MenuNode } from '@/types/api';
 import { setToken } from '@/utils/token';
 import { collectDirAncestors, nextOpenKeys } from '../AdminLayout';
@@ -175,7 +175,7 @@ describe('AdminLayout', () => {
 
     it('外观类偏好落到布局根节点：灰色、固定宽度、局部深色、侧边栏宽度', async () => {
         renderAuthed('/dashboard', { grayscale: true, contentWidth: 'fixed', sidebarDarkMode: true, headerDarkMode: true, sidebarWidth: 280 });
-        await screen.findByRole('button', { name: '偏好设置' });
+        await screen.findByRole('button', { name: '全局搜索' });
         const root = layout();
         expect(root).toHaveClass('admin-layout--grayscale', 'admin-layout--content-fixed', 'admin-layout--sidebar-dark', 'admin-layout--header-dark');
         expect(root?.style.getPropertyValue('--sidebar-width')).toBe('280px');
@@ -186,7 +186,7 @@ describe('AdminLayout', () => {
 
     it('局部深色只在浅色主题下生效；色弱模式', async () => {
         renderAuthed('/dashboard', { colorMode: 'dark', sidebarDarkMode: true, headerDarkMode: true, colorBlind: true });
-        await screen.findByRole('button', { name: '偏好设置' });
+        await screen.findByRole('button', { name: '全局搜索' });
         expect(layout()).not.toHaveClass('admin-layout--sidebar-dark');
         expect(layout()).not.toHaveClass('admin-layout--header-dark');
         expect(layout()).toHaveClass('admin-layout--color-blind');
@@ -229,7 +229,7 @@ describe('AdminLayout', () => {
     it('悬停展开：侧边栏收起时移入临时展开，移出收回；未开启时不展开', async () => {
         localStorage.setItem('weiran_sider_collapsed', '1');
         renderAuthed('/dashboard', { sidebarHoverTrigger: true });
-        await screen.findByRole('button', { name: '偏好设置' });
+        await screen.findByRole('button', { name: '全局搜索' });
         const aside = document.querySelector('.admin-sidebar') as HTMLElement;
         expect(aside).toHaveClass('admin-sidebar--collapsed');
         fireEvent.mouseEnter(aside);
@@ -241,7 +241,7 @@ describe('AdminLayout', () => {
     it('悬停展开关闭时移入不展开', async () => {
         localStorage.setItem('weiran_sider_collapsed', '1');
         renderAuthed('/dashboard');
-        await screen.findByRole('button', { name: '偏好设置' });
+        await screen.findByRole('button', { name: '全局搜索' });
         const aside = document.querySelector('.admin-sidebar') as HTMLElement;
         fireEvent.mouseEnter(aside);
         expect(aside).toHaveClass('admin-sidebar--collapsed');
@@ -249,7 +249,7 @@ describe('AdminLayout', () => {
 
     it('回到顶部：内容区滚动超过 400px 后出现（可关）', async () => {
         renderAuthed('/dashboard');
-        await screen.findByRole('button', { name: '偏好设置' });
+        await screen.findByRole('button', { name: '全局搜索' });
         const content = document.querySelector('.admin-content') as HTMLElement;
         content.scrollTop = 600;
         fireEvent.scroll(content);
@@ -258,7 +258,7 @@ describe('AdminLayout', () => {
 
     it('showBackTop=false 时滚动也不出现', async () => {
         renderAuthed('/dashboard', { showBackTop: false });
-        await screen.findByRole('button', { name: '偏好设置' });
+        await screen.findByRole('button', { name: '全局搜索' });
         const content = document.querySelector('.admin-content') as HTMLElement;
         content.scrollTop = 600;
         fireEvent.scroll(content);
@@ -268,13 +268,25 @@ describe('AdminLayout', () => {
 
     it('偏好设置抽屉：改开关即时生效并写入偏好；恢复默认', async () => {
         renderAuthed('/system/a');
-        fireEvent.click(await screen.findByRole('button', { name: '偏好设置' }));
+        await openPreferences();
         const drawer = await screen.findByRole('dialog');
         for (const title of ['外观', '布局与导航', '页签', '面包屑', '表格', '其它']) {
             expect(within(drawer).getByLabelText(title)).toBeInTheDocument();
         }
         // C 组字段已接通行为，出现在对应分组；filesViewMode 没有消费方，不出现
-        expect(within(within(drawer).getByLabelText('布局与导航')).getByRole('combobox', { name: '导航布局' })).toBeInTheDocument();
+        const layoutPicker = within(within(drawer).getByLabelText('布局与导航')).getByRole('radiogroup', { name: /导航布局/ });
+        expect(within(layoutPicker).getAllByRole('radio').map((r) => r.textContent)).toEqual(['左侧菜单', '顶部菜单', '混合菜单', '双列菜单']);
+        expect(within(layoutPicker).getByRole('radio', { name: '左侧菜单' })).toHaveAttribute('aria-checked', 'true');
+        // 双列首列形式只在双列布局下出现
+        expect(within(drawer).queryByText('双列首列形式')).toBeNull();
+        fireEvent.click(within(layoutPicker).getByRole('radio', { name: '双列菜单' }));
+        await waitFor(() => expect(document.querySelector('.admin-sidebar--double-icon')).not.toBeNull());
+        expect(storedPrefs()?.navLayout).toBe('double');
+        fireEvent.click(within(drawer).getByText('图标 + 文字'));
+        await waitFor(() => expect(document.querySelector('.admin-sidebar--double-icon-text')).not.toBeNull());
+        expect(storedPrefs()?.doubleRailStyle).toBe('icon-text');
+        fireEvent.click(within(layoutPicker).getByRole('radio', { name: '左侧菜单' }));
+        await waitFor(() => expect(document.querySelector('.admin-sidebar--double')).toBeNull());
         expect(within(drawer).getByRole('switch', { name: '锁屏' })).toBeInTheDocument();
         expect(within(drawer).getByRole('switch', { name: '收藏菜单' })).toBeInTheDocument();
         expect(within(drawer).queryByText(/文件/)).toBeNull();

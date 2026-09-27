@@ -1,7 +1,7 @@
 import { Button, InputNumber, Modal, Radio, RadioGroup, Select, SideSheet, Switch, Tooltip } from '@douyinfe/semi-ui';
 import { Info, RotateCcw } from 'lucide-react';
 import { useId, type ReactNode } from 'react';
-import { NUMBER_RANGES, usePreferences, type TableSizePreference, type UserPreferences } from '@/hooks/usePreferences';
+import { NUMBER_RANGES, usePreferences, type NavLayout, type TableSizePreference, type UserPreferences } from '@/hooks/usePreferences';
 import { PAGE_SIZE_OPTIONS } from '@/hooks/useTableDefaults';
 import type { ThemeMode } from '@/lib/theme';
 import { useThemeController } from '@/providers/theme-context';
@@ -32,7 +32,7 @@ function Row({ label, hint, labelId, children }: { label: string; hint?: string;
     );
 }
 
-type EnumField = 'navLayout' | 'tabAnimation' | 'routeAnimation';
+type EnumField = 'tabAnimation' | 'routeAnimation';
 
 /** 下拉行：Semi Select 会覆盖 aria-label，改用 aria-labelledby 指向行文案 */
 function SelectRow<K extends EnumField>({ label, hint, field, options }: { label: string; hint?: string; field: K; options: [UserPreferences[K], string][] }) {
@@ -59,6 +59,47 @@ function SwitchRow({ label, hint, field }: { label: string; hint?: string; field
         <Row label={label} {...(hint ? { hint } : {})}>
             <Switch aria-label={label} checked={preferences[field]} onChange={(v) => setPreferences({ [field]: v })} />
         </Row>
+    );
+}
+
+const NAV_LAYOUT_OPTIONS: [NavLayout, string][] = [
+    ['vertical', '左侧菜单'],
+    ['horizontal', '顶部菜单'],
+    ['mixed', '混合菜单'],
+    ['double', '双列菜单'],
+];
+
+/** 导航布局缩略图选择器（同 zenith-admin 的 layout-picker）；语义上是一组单选 */
+function NavLayoutPicker() {
+    const { preferences, setPreferences } = usePreferences();
+    const labelId = useId();
+    return (
+        <div className="prefs-row prefs-row--stack">
+            <span className="prefs-row__label" id={labelId}>
+                导航布局
+                <Tooltip content="窄屏（< 768px）一律使用抽屉导航" position="right">
+                    <Info size={13} className="prefs-row__hint" />
+                </Tooltip>
+            </span>
+            <div className="layout-picker" role="radiogroup" aria-labelledby={labelId}>
+                {NAV_LAYOUT_OPTIONS.map(([value, label]) => {
+                    const active = preferences.navLayout === value;
+                    return (
+                        <button
+                            key={value}
+                            type="button"
+                            role="radio"
+                            aria-checked={active}
+                            className={`layout-picker__option${active ? ' layout-picker__option--active' : ''}`}
+                            onClick={() => setPreferences({ navLayout: value })}
+                        >
+                            <span className={`layout-picker__preview layout-picker__preview--${value}`} aria-hidden />
+                            <span className="layout-picker__label">{label}</span>
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
     );
 }
 
@@ -116,17 +157,23 @@ export function PreferencesDrawer({ visible, onClose }: PreferencesDrawerProps) 
             </Section>
 
             <Section title="布局与导航">
-                <SelectRow
-                    label="导航布局"
-                    hint="窄屏（< 768px）一律使用抽屉导航"
-                    field="navLayout"
-                    options={[
-                        ['vertical', '侧边菜单'],
-                        ['horizontal', '顶部菜单'],
-                        ['mixed', '顶部 + 侧边'],
-                        ['double', '双栏菜单'],
-                    ]}
-                />
+                <NavLayoutPicker />
+                {preferences.navLayout === 'double' && (
+                    <Row
+                        label="双列首列形式"
+                        hint="仅图标：与左侧菜单收起时同宽，名称靠悬浮提示，可容纳更多一级模块；图标 + 文字：名称直接可读，但条目更高"
+                    >
+                        <RadioGroup
+                            type="button"
+                            aria-label="双列首列形式"
+                            value={preferences.doubleRailStyle}
+                            onChange={(e) => setPreferences({ doubleRailStyle: e.target.value as UserPreferences['doubleRailStyle'] })}
+                        >
+                            <Radio value="icon">仅图标</Radio>
+                            <Radio value="icon-text">图标 + 文字</Radio>
+                        </RadioGroup>
+                    </Row>
+                )}
                 <SwitchRow label="显示 Logo" field="showLogo" />
                 {preferences.navLayout !== 'horizontal' && (
                     <Row label="侧边栏宽度">
@@ -149,7 +196,7 @@ export function PreferencesDrawer({ visible, onClose }: PreferencesDrawerProps) 
                 <SwitchRow label="菜单手风琴" hint="同级只展开一个子菜单" field="sidebarAccordion" />
                 <SwitchRow label="悬停展开侧边栏" hint="侧边栏收起时，鼠标移入临时展开，移开自动收起" field="sidebarHoverTrigger" />
                 <SwitchRow label="菜单自动滚动到可视区" field="scrollMenuIntoView" />
-                <SwitchRow label="菜单搜索" hint="侧边栏顶部按名称搜索菜单，回车跳转" field="showMenuSearch" />
+                <SwitchRow label="全局搜索" hint="顶栏搜索入口与 Ctrl/⌘+K 快捷键，按名称或目录搜索菜单" field="showMenuSearch" />
                 <SwitchRow label="分组标题吸顶" hint="侧边栏滚动时一级目录标题固定在顶部" field="sidebarStickyScroll" />
                 <SelectRow
                     label="页面切换动画"

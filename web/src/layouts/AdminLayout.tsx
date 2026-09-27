@@ -1,4 +1,4 @@
-import { Avatar, BackTop, Breadcrumb, Button, Dropdown, Nav, SideSheet, Spin } from '@douyinfe/semi-ui';
+import { Avatar, BackTop, Breadcrumb, Button, Dropdown, Nav, SideSheet, Spin, Tooltip } from '@douyinfe/semi-ui';
 import type { NavItemPropsWithItems, OnSelectedData, SubNavProps } from '@douyinfe/semi-ui/lib/es/navigation';
 import { ChevronDown, Expand, Lock, LogOut, Menu as MenuIcon, PanelLeftClose, PanelLeftOpen, Settings, Shrink, UserRound } from 'lucide-react';
 import { Suspense, useCallback, useEffect, useMemo, useState, useSyncExternalStore, type CSSProperties } from 'react';
@@ -17,8 +17,8 @@ import { renderNavIcon } from '@/utils/icons';
 import { findMenuTrail, flattenMenuPages, normalizePath, type FlatMenu, type MenuRoute } from '@/utils/menu';
 import { BreadcrumbMenuPopover, visibleMenuChildren } from './BreadcrumbMenuPopover';
 import { FavoritesButton, FavoriteToggle, useFavorites } from './FavoriteMenus';
+import { GlobalSearch } from './GlobalSearch';
 import { KeepAliveOutlet } from './KeepAliveOutlet';
-import { MenuSearch } from './MenuSearch';
 import { PreferencesDrawer } from './PreferencesDrawer';
 import { TabsBar } from './TabsBar';
 import { ThemeColorButton, ThemeModeButton } from './ThemeSwitcher';
@@ -148,14 +148,15 @@ function isLockShortcut(e: KeyboardEvent) {
 }
 
 /**
- * 后台外壳：侧边菜单 / 顶部导航 + 顶栏（面包屑、主题、偏好设置、用户）+ 多页签 + 内容区。
+ * 后台外壳：侧边菜单 / 顶部导航 + 顶栏（面包屑、全局搜索、主题、用户）+ 多页签 + 内容区。
  * 导航布局按偏好 navLayout（移植自 mono4ts）：
  * - vertical：左侧菜单（可折叠）+ 顶栏面包屑；
  * - horizontal：顶部水平导航（放不下的收进「更多」），无侧边栏、无面包屑；
  * - mixed：顶部一级菜单 + 左侧当前一级下的子菜单（一级是页面时不显示侧边栏），无面包屑；
- * - double：左侧图标轨（一级菜单）+ 子菜单栏 + 顶栏面包屑。
+ * - double：左侧首列（一级菜单，仅图标 / 图标 + 文字见偏好 doubleRailStyle，同 zenith-admin）+ 子菜单栏 + 顶栏面包屑。
  * 小于 md（768px）时一律回落到移动端顶栏 + 左侧抽屉导航。
- * 外观与行为大多由偏好（hooks/usePreferences）控制，顶栏齿轮按钮打开偏好设置抽屉。
+ * 外观与行为大多由偏好（hooks/usePreferences）控制，用户下拉菜单里的「偏好设置」打开偏好设置抽屉；
+ * 顶栏「全局搜索」（Ctrl/⌘+K）搜索菜单（同 zenith-admin）。
  */
 export function AdminLayout({ menus, routes }: AdminLayoutProps) {
     const location = useLocation();
@@ -386,6 +387,7 @@ export function AdminLayout({ menus, routes }: AdminLayoutProps) {
         <div className="admin-header__actions">
             {/* 没有面包屑的布局（horizontal / mixed）把收藏星标放到操作区 */}
             {(navLayout === 'horizontal' || navLayout === 'mixed') && favoriteToggle}
+            {prefs.showMenuSearch && <GlobalSearch pages={pages} pathname={pathname} onSelect={openPage} />}
             {showFavorites && <FavoritesButton favorites={favorites} onOpen={openPage} onRemove={toggleFavorite} />}
             {prefs.enableLockScreen && (
                 <button type="button" className="admin-theme-btn" aria-label="锁屏" title="锁屏（Alt+L）" onClick={lockScreen}>
@@ -399,15 +401,15 @@ export function AdminLayout({ menus, routes }: AdminLayoutProps) {
             )}
             <ThemeColorButton />
             <ThemeModeButton />
-            <button type="button" className="admin-theme-btn" aria-label="偏好设置" onClick={() => setPrefsVisible(true)}>
-                <Settings size={16} strokeWidth={1.8} />
-            </button>
             <Dropdown
                 position="bottomRight"
                 render={
                     <Dropdown.Menu>
                         <Dropdown.Item icon={<UserRound size={14} />} onClick={() => void navigate('/profile')}>
                             个人中心
+                        </Dropdown.Item>
+                        <Dropdown.Item icon={<Settings size={14} />} onClick={() => setPrefsVisible(true)}>
+                            偏好设置
                         </Dropdown.Item>
                         <Dropdown.Divider />
                         <Dropdown.Item icon={<LogOut size={14} />} onClick={() => void logout()}>
@@ -434,7 +436,6 @@ export function AdminLayout({ menus, routes }: AdminLayoutProps) {
         </button>
     );
 
-    const menuSearch = prefs.showMenuSearch ? <MenuSearch pages={pages} onSelect={openPage} /> : null;
     const stickyClass = prefs.sidebarStickyScroll ? ' admin-sidebar--sticky-nav' : '';
     const selectedKeys = [pathname];
 
@@ -456,7 +457,9 @@ export function AdminLayout({ menus, routes }: AdminLayoutProps) {
     const sidebarItems = navLayout === 'mixed' ? subItems : navItems;
     const sidebar =
         navLayout === 'double' ? (
-            <aside className={`admin-sidebar admin-sidebar--double${subItems.length ? '' : ' admin-sidebar--double-no-sub'}${stickyClass}`}>
+            <aside
+                className={`admin-sidebar admin-sidebar--double admin-sidebar--double-${prefs.doubleRailStyle}${subItems.length ? '' : ' admin-sidebar--double-no-sub'}${stickyClass}`}
+            >
                 <div className="double-sidebar__rail">
                     {prefs.showLogo && (
                         <button type="button" className="double-sidebar__logo" aria-label="回到首页" onClick={goHome}>
@@ -467,17 +470,20 @@ export function AdminLayout({ menus, routes }: AdminLayoutProps) {
                         {navItems.map((item) => {
                             const key = String(item.itemKey);
                             const active = key === topKey;
+                            // 仅图标时名称只走 Tooltip / aria-label
                             return (
-                                <button
-                                    key={key}
-                                    type="button"
-                                    className={`double-sidebar__rail-item${active ? ' double-sidebar__rail-item--active' : ''}`}
-                                    aria-current={active ? 'true' : undefined}
-                                    onClick={() => handleTopSelect(key)}
-                                >
-                                    <span className="double-sidebar__rail-icon">{item.icon}</span>
-                                    <span className="double-sidebar__rail-label">{item.text}</span>
-                                </button>
+                                <Tooltip key={key} content={item.text} position="right">
+                                    <button
+                                        type="button"
+                                        className={`double-sidebar__rail-item${active ? ' double-sidebar__rail-item--active' : ''}`}
+                                        aria-current={active ? 'true' : undefined}
+                                        aria-label={typeof item.text === 'string' ? item.text : undefined}
+                                        onClick={() => handleTopSelect(key)}
+                                    >
+                                        <span className="double-sidebar__rail-icon">{item.icon}</span>
+                                        {prefs.doubleRailStyle === 'icon-text' && <span className="double-sidebar__rail-label">{item.text}</span>}
+                                    </button>
+                                </Tooltip>
                             );
                         })}
                     </nav>
@@ -485,7 +491,6 @@ export function AdminLayout({ menus, routes }: AdminLayoutProps) {
                 {subItems.length > 0 && (
                     <div className="double-sidebar__sub">
                         <div className="double-sidebar__sub-title">{topItem?.text}</div>
-                        {menuSearch}
                         <Nav
                             className="admin-sidebar__nav double-sidebar__sub-nav"
                             mode="vertical"
@@ -519,9 +524,7 @@ export function AdminLayout({ menus, routes }: AdminLayoutProps) {
                     onSelect={handleNavSelect}
                     {...(prefs.showLogo && navLayout === 'vertical' ? { header: { logo: brand } } : {})}
                     footer={collapseFooter}
-                >
-                    {menuSearch && !effectiveCollapsed && <Nav.Header className="admin-sidebar__search">{menuSearch}</Nav.Header>}
-                </Nav>
+                />
             </aside>
         ) : null;
 
@@ -587,7 +590,6 @@ export function AdminLayout({ menus, routes }: AdminLayoutProps) {
                             width="min(86vw, 320px)"
                             bodyStyle={{ padding: 0 }}
                         >
-                            {menuSearch}
                             <Nav
                                 className="admin-mobile-nav"
                                 mode="vertical"
@@ -616,7 +618,6 @@ export function AdminLayout({ menus, routes }: AdminLayoutProps) {
                                 onSelect={({ itemKey }) => (navLayout === 'mixed' ? handleTopSelect(String(itemKey)) : handleNavSelect({ itemKey }))}
                             />
                         </div>
-                        {navLayout === 'horizontal' && menuSearch && <div className="admin-topbar__search">{menuSearch}</div>}
                         {headerActions}
                     </header>
                 )}
