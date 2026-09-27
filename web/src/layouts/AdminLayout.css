@@ -176,8 +176,41 @@
     background: var(--color-sidebar-active) !important;
 }
 
-.admin-sidebar__nav .semi-navigation-item-selected,
-.admin-sidebar__nav .semi-navigation-item-selected .semi-navigation-item-icon {
+/* 图标与文字同色：Semi 给一级目录标题定了 text-0（近黑）、给含当前页的目录图标定了主题色，而叶子项文字是 --color-sidebar-text，
+   结果同一级的「首页」与「系统管理」一灰一黑、目录图标蓝文字黑。统一为：
+   默认侧边栏文字色 → 悬停与「含当前页的目录」加深为 --color-sidebar-title → 选中页主题色；图标与文字一律同色（inherit）。
+   Semi 的对应规则是 `.semi-navigation-vertical .semi-navigation-list > .semi-navigation-sub-wrap > .semi-navigation-sub-title…`
+   与 `.semi-navigation-sub .semi-navigation-item-selected .semi-navigation-item-icon:first-child`（选中图标固定主题色，
+   深色主题下选中文字是白色就对不上），这里用同样的结构 + 外层类名压过它们（深色侧边栏另有 !important 规则，不受影响）。 */
+:is(.admin-sidebar__nav, .admin-mobile-nav) .semi-navigation-item-icon,
+:is(.admin-sidebar__nav, .admin-mobile-nav) .semi-navigation-item-text,
+:is(.admin-sidebar__nav, .admin-mobile-nav) .semi-navigation-sub-title-text,
+:is(.admin-sidebar__nav, .admin-mobile-nav) .semi-navigation-item-selected .semi-navigation-item-icon:first-child,
+:is(.admin-sidebar__nav, .admin-mobile-nav) .semi-navigation-sub .semi-navigation-item-selected .semi-navigation-item-icon:first-child,
+:is(.admin-sidebar__nav, .admin-mobile-nav).semi-navigation-vertical
+    .semi-navigation-list
+    > .semi-navigation-sub-wrap
+    > .semi-navigation-sub-title-selected
+    .semi-navigation-item-icon:first-child {
+    color: inherit;
+}
+
+:is(.admin-sidebar__nav, .admin-mobile-nav) .semi-navigation-item,
+:is(.admin-sidebar__nav, .admin-mobile-nav) .semi-navigation-sub-wrap .semi-navigation-sub-title,
+:is(.admin-sidebar__nav, .admin-mobile-nav).semi-navigation-vertical .semi-navigation-list > .semi-navigation-sub-wrap > .semi-navigation-sub-title {
+    color: var(--color-sidebar-text);
+}
+
+:is(.admin-sidebar__nav, .admin-mobile-nav) .semi-navigation-item-normal:hover,
+:is(.admin-sidebar__nav, .admin-mobile-nav) .semi-navigation-sub-wrap .semi-navigation-sub-title:hover,
+:is(.admin-sidebar__nav, .admin-mobile-nav) .semi-navigation-sub-wrap .semi-navigation-sub-title-selected,
+:is(.admin-sidebar__nav, .admin-mobile-nav).semi-navigation-vertical .semi-navigation-list > .semi-navigation-sub-wrap > .semi-navigation-sub-title:hover,
+:is(.admin-sidebar__nav, .admin-mobile-nav).semi-navigation-vertical .semi-navigation-list > .semi-navigation-sub-wrap > .semi-navigation-sub-title-selected {
+    color: var(--color-sidebar-title);
+}
+
+:is(.admin-sidebar__nav, .admin-mobile-nav) .semi-navigation-item-selected,
+:is(.admin-sidebar__nav, .admin-mobile-nav) .semi-navigation-item-selected:hover {
     color: var(--color-sidebar-text-active);
 }
 
@@ -248,6 +281,14 @@
 /* 防止 Semi 的 transition: all 让图标位移速度不一 */
 .admin-sidebar__nav .semi-navigation-item-icon {
     transition: none !important;
+}
+
+/* 叶子菜单项的行是 flex 但没设 align-items（默认 stretch）：图标容器与文字 span 都被拉到整行内容高（26px），
+   16px 的图标、20px 行高的文字都贴在顶部，比行中心高 3～5px；目录标题行的内层本身居中所以没事。
+   让叶子行居中对齐即可（移动端抽屉导航同一套 Nav） */
+.admin-sidebar__nav .semi-navigation-item,
+.admin-mobile-nav .semi-navigation-item {
+    align-items: center;
 }
 
 .admin-sidebar__nav.semi-navigation-collapsed .semi-navigation-item-icon {

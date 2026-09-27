@@ -1,16 +1,14 @@
-import { Button, Empty, Input, Popconfirm, Space, Table, Tag, Toast } from '@douyinfe/semi-ui';
+import { Button, Dropdown, Empty, Modal, Pagination, Popconfirm, Space, Table, Tag, Toast } from '@douyinfe/semi-ui';
 import type { TagProps } from '@douyinfe/semi-ui/lib/es/tag';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
-import { Plus } from 'lucide-react';
+import { MoreHorizontal, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { useColumnSettings } from '@/components/ColumnSettings';
+import { NavListItem, NavListPanel } from '@/components/NavListPanel';
 import { PageContainer } from '@/components/PageContainer';
-import { Permission } from '@/components/Permission';
-import { SearchToolbar } from '@/components/SearchToolbar';
 import { StatusTag } from '@/components/StatusTag';
 import { useDeleteDict, useDeleteDictItem, useDictItems, useDictList } from '@/hooks/queries/dicts';
 import { usePermission } from '@/hooks/usePermission';
-import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
+import { useTableDefaults } from '@/hooks/useTableDefaults';
 import type { DictItemView, DictView, Status } from '@/types/api';
 import { DictFormModal, DictItemFormModal } from './DictFormModals';
 
@@ -81,121 +79,148 @@ function DictItemsPanel({ dict }: { dict: DictView }) {
 }
 
 export default function DictsPage() {
-    const { hasAnyPermission } = usePermission();
+    const { hasPermission } = usePermission();
     const [draft, setDraft] = useState('');
     const [keyword, setKeyword] = useState('');
     const [page, setPage] = useState(1);
-    const { tableProps, pageSize: defaultPageSize, pageSizeOpts } = useTableDefaults();
+    const { pageSize: defaultPageSize, pageSizeOpts } = useTableDefaults();
     const [pageSize, setPageSize] = useState(defaultPageSize);
-    const [selected, setSelected] = useState<DictView | null>(null);
+    const [selectedId, setSelectedId] = useState<number | null>(null);
     const [editing, setEditing] = useState<DictView | null | undefined>(undefined);
-    const { data, isFetching } = useDictList({ page, pageSize, ...(keyword ? { keyword } : {}) });
+    const { data, isFetching, refetch } = useDictList({ page, pageSize, ...(keyword ? { keyword } : {}) });
     const deleteDict = useDeleteDict();
+    const canUpdate = hasPermission('system:dict:update');
+    const canDelete = hasPermission('system:dict:delete');
+
+    const dicts = data?.list ?? [];
+    // 选中项跟随列表：删掉 / 翻页 / 搜索后原选中不在当前页时回落到第一项（同 mono4ts，渲染期推导，不另存副本）
+    const selected = dicts.find((d) => d.id === selectedId) ?? dicts[0] ?? null;
 
     const search = () => {
         setKeyword(draft.trim());
         setPage(1);
     };
 
-    const columns: ColumnProps<DictView>[] = [
-        {
-            title: '字典名称',
-            dataIndex: 'name',
-            render: (v: string, r: DictView) => (
-                <Space spacing={4}>
-                    {v}
-                    {r.isBuiltin && (
+    const confirmDelete = (dict: DictView) => {
+        Modal.confirm({
+            title: `确定删除字典「${dict.name}」？`,
+            content: '字典项会一并删除',
+            okText: '删除',
+            cancelText: '取消',
+            okButtonProps: { type: 'danger', theme: 'solid' },
+            onOk: () => deleteDict.mutateAsync(dict.id).then(() => Toast.success('已删除')),
+        });
+    };
+
+    const renderDict = (dict: DictView) => (
+        <NavListItem
+            key={dict.id}
+            active={selected?.id === dict.id}
+            onClick={() => setSelectedId(dict.id)}
+            primary={dict.name}
+            secondary={dict.code}
+            meta={
+                <>
+                    <span>{dict.createdAt}</span>
+                    {dict.isBuiltin && (
                         <Tag size="small" color="blue">
                             内置
                         </Tag>
                     )}
-                </Space>
-            ),
-        },
-        { title: '字典编码', dataIndex: 'code' },
-        { title: '状态', dataIndex: 'status', width: 64, render: (v: Status) => <StatusTag value={v} /> },
-    ];
-    if (hasAnyPermission('system:dict:update', 'system:dict:delete')) {
-        columns.push({
-            title: '操作',
-            dataIndex: 'actions',
-            width: 120,
-            render: (_: unknown, record: DictView) => (
-                // 阻止冒泡：点操作按钮不要顺带选中该行
-                <span onClick={(e) => e.stopPropagation()}>
-                <Space spacing={4}>
-                    <Permission code="system:dict:update">
-                        <Button theme="borderless" size="small" onClick={() => setEditing(record)}>
-                            编辑
-                        </Button>
-                    </Permission>
-                    <Permission code="system:dict:delete">
-                        <Popconfirm
-                            title="确定删除该字典？"
-                            content="字典项会一并删除"
-                            onConfirm={() =>
-                                deleteDict.mutate(record.id, {
-                                    onSuccess: () => {
-                                        Toast.success('已删除');
-                                        if (selected?.id === record.id) setSelected(null);
-                                    },
-                                })
-                            }
-                        >
-                            <Button theme="borderless" type="danger" size="small" disabled={record.isBuiltin}>
-                                删除
-                            </Button>
-                        </Popconfirm>
-                    </Permission>
-                </Space>
-                </span>
-            ),
-        });
-    }
-
-    const { columns: tableColumns, columnSettings } = useColumnSettings('system/dicts', columns);
+                    {dict.status === 'disabled' && (
+                        <Tag size="small" color="grey">
+                            停用
+                        </Tag>
+                    )}
+                </>
+            }
+            {...(dict.status === 'disabled' ? { className: 'nav-list-item--disabled' } : {})}
+            {...((canUpdate || canDelete) && {
+                extra: (
+                    <Dropdown
+                        trigger="click"
+                        position="bottomRight"
+                        clickToHide
+                        render={
+                            <Dropdown.Menu>
+                                {canUpdate && (
+                                    <Dropdown.Item icon={<Pencil size={14} />} onClick={() => setEditing(dict)}>
+                                        编辑
+                                    </Dropdown.Item>
+                                )}
+                                {canDelete && (
+                                    <Dropdown.Item
+                                        type="danger"
+                                        icon={<Trash2 size={14} />}
+                                        disabled={dict.isBuiltin}
+                                        onClick={() => confirmDelete(dict)}
+                                    >
+                                        {dict.isBuiltin ? '内置字典不可删除' : '删除'}
+                                    </Dropdown.Item>
+                                )}
+                            </Dropdown.Menu>
+                        }
+                    >
+                        <Button
+                            theme="borderless"
+                            size="small"
+                            aria-label={`${dict.name}的操作`}
+                            icon={<MoreHorizontal size={14} />}
+                        />
+                    </Dropdown>
+                ),
+            })}
+        />
+    );
 
     return (
         <div className="dicts-layout">
-            <PageContainer title="字典">
-                <SearchToolbar
-                    tools={columnSettings}
-                    onSearch={search}
-                    actions={
-                        <Permission code="system:dict:create">
-                            <Button type="primary" theme="solid" icon={<Plus size={14} />} onClick={() => setEditing(null)}>
-                                新增
-                            </Button>
-                        </Permission>
+            <div className="dicts-layout__master">
+                <NavListPanel
+                    title="字典列表"
+                    headerExtra={
+                        <Dropdown
+                            trigger="click"
+                            position="bottomRight"
+                            clickToHide
+                            render={
+                                <Dropdown.Menu>
+                                    <Dropdown.Item icon={<RefreshCw size={14} />} onClick={() => void refetch()}>
+                                        刷新
+                                    </Dropdown.Item>
+                                    {hasPermission('system:dict:create') && (
+                                        <Dropdown.Item icon={<Plus size={14} />} onClick={() => setEditing(null)}>
+                                            新增字典
+                                        </Dropdown.Item>
+                                    )}
+                                </Dropdown.Menu>
+                            }
+                        >
+                            <Button theme="borderless" size="small" aria-label="字典列表操作" icon={<MoreHorizontal size={14} />} />
+                        </Dropdown>
                     }
-                >
-                    <Input placeholder="名称 / 编码" value={draft} onChange={setDraft} onEnterPress={search} showClear style={{ width: 160 }} />
-                </SearchToolbar>
-                <Table<DictView>
-                    {...tableProps}
-                    rowKey="id"
-                    columns={tableColumns}
-                    // 左栏在 double 布局 1440 宽下只有约 430px：两列弹性列各按 110 计
-                    scroll={{ x: tableScrollX(tableColumns, 110) }}
-                    dataSource={data?.list ?? []}
+                    search={{ value: draft, onChange: setDraft, placeholder: '名称 / 编码', onEnterPress: search }}
                     loading={isFetching}
-                    onRow={(record) => ({
-                        onClick: () => record && setSelected(record),
-                        style: { cursor: 'pointer' },
-                        className: record && selected?.id === record.id ? 'row-selected' : '',
-                    })}
-                    pagination={{
-                        currentPage: page,
-                        pageSize,
-                        pageSizeOpts,
-                        total: data?.total ?? 0,
-                        onChange: (p, s) => {
-                            setPage(p);
-                            setPageSize(s);
-                        },
-                    }}
+                    emptyText={keyword ? '没有匹配的字典' : '暂无字典'}
+                    footer={
+                        <Pagination
+                            size="small"
+                            total={data?.total ?? 0}
+                            currentPage={page}
+                            pageSize={pageSize}
+                            pageSizeOpts={pageSizeOpts}
+                            showSizeChanger
+                            onPageChange={setPage}
+                            onPageSizeChange={(s) => {
+                                setPage(1);
+                                setPageSize(s);
+                            }}
+                        />
+                    }
+                    dataSource={dicts}
+                    renderItem={renderDict}
                 />
-            </PageContainer>
+            </div>
             {selected ? (
                 <DictItemsPanel key={selected.id} dict={selected} />
             ) : (

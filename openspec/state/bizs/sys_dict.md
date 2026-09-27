@@ -28,7 +28,7 @@
 | 表 | `sys_dict`（字典）+ `sys_dict_item`（字典项，`dict_id` 关联；唯一键 `(dict_id, value)`） |
 | 菜单 | 系统管理 › 字典管理（`sys_menu.id = 7`） |
 | 路由 | `/system/dicts` |
-| 页面组件 | `system/dicts/DictsPage`（左：字典列表；右：`DictItemsPanel` 字典项；弹窗 `DictFormModal`、`DictItemFormModal`） |
+| 页面组件 | `system/dicts/DictsPage`（左：`NavListPanel` 字典列表，同 mono4ts；右：`DictItemsPanel` 字典项；弹窗 `DictFormModal`、`DictItemFormModal`） |
 | 后端模块 | `weiran-platform`（DDD 五层）；`DictController` → `DictApplicationService` → `MybatisDictRepository` |
 | 接口前缀 | `/api/dicts` |
 | 权限码 | `system:dict:list` · `system:dict:create` · `system:dict:update`（**字典项的增删改也用它**）· `system:dict:delete`；`GET /code/{code}/items` 仅需登录 |
@@ -38,18 +38,19 @@
 
 ### 1.1 字典列表（左栏）
 
-接口 `GET /api/dicts`，按 `id` 升序。
+接口 `GET /api/dicts`，按 `id` 升序。左栏是 `NavListPanel`（固定宽 300px，贴住内容区顶部，超出在栏内滚动；< lg 时堆叠在上方，最高 420px），
+不是表格，因此没有列设置。
 
-| # | 列表列 | 来源 | 渲染 |
+| # | 条目内容 | 来源 | 渲染 |
 | --- | --- | --- | --- |
-| 1 | 字典名称 | `name` | 内置字典追加蓝色「内置」`Tag` |
-| 2 | 字典编码 | `code` | 原值 |
-| 3 | 状态 | `status` | `StatusTag` |
-| 4 | 操作 | — | 有 `update` / `delete` 任一权限才出现；点击按钮不触发选中该行 |
+| 1 | 第一行 | `name` · `code` | 名称加粗，编码灰色，超长省略 |
+| 2 | 第二行 | `createdAt` | 原值（契约格式 `YYYY-MM-DD HH:mm:ss`）；内置字典追加蓝色「内置」、停用字典追加灰色「停用」小标签，停用条目整体半透明 |
+| 3 | 「…」操作菜单 | — | 有 `update` / `delete` 任一权限才出现，悬停或选中时显示：编辑、删除（内置字典显示为禁用的「内置字典不可删除」）；点击菜单不会选中该条目 |
 
-`description`、`createdAt`、`updatedAt` 接口返回但未展示。点击行选中字典，右栏加载其字典项。
+标题栏「字典列表」右侧「…」菜单：刷新、新增字典（需 `create`）。底部为小号分页。`description`、`updatedAt` 接口返回但未展示。
+**默认选中当前页第一项**；点击条目切换选中，右栏加载其字典项；选中项按 id 从最新列表推导，被删除 / 翻页 / 搜索后不在当前页时回落到第一项。
 
-**筛选项**：只有输入框「名称 / 编码」→ `keyword`（`name`、`code` 两列 `LIKE`），点「查询」或回车生效；无「重置」按钮。
+**筛选项**：只有搜索框「名称 / 编码」→ `keyword`（`name`、`code` 两列 `LIKE`），回车生效并回到第一页；无「重置」按钮（清空后回车即恢复）。
 后端还支持 `status` 过滤，前端未提供。
 
 **分页**：`page` 默认 1、`pageSize` 默认 20（上限 200）；前端有翻页，未开启条数切换与总数显示。
@@ -95,9 +96,9 @@
 
 | 按钮 | 接口 | 权限码 | `@OperationLog` | 业务规则 / 错误码 |
 | --- | --- | --- | --- | --- |
-| 新增（左栏工具栏） | `POST /api/dicts` → `{id}` | `system:dict:create` | ✅ 字典管理 / 新增字典 | 见 §2.1 |
-| 编辑（字典行） | `PUT /api/dicts/{id}` | `system:dict:update` | ✅ 修改字典 | 404 字典不存在；内置字典改编码 / 禁用 40901 |
-| 删除（字典行，`Popconfirm`） | `DELETE /api/dicts/{id}` | `system:dict:delete` | ✅ 删除字典 | 内置 40901「内置字典不可删除」（前端按钮 disabled）；**级联删除全部字典项**；删的是当前选中字典时右栏清空 |
+| 新增（左栏标题栏「…」→ 新增字典） | `POST /api/dicts` → `{id}` | `system:dict:create` | ✅ 字典管理 / 新增字典 | 见 §2.1 |
+| 编辑（字典条目「…」） | `PUT /api/dicts/{id}` | `system:dict:update` | ✅ 修改字典 | 404 字典不存在；内置字典改编码 / 禁用 40901 |
+| 删除（字典条目「…」，`Modal.confirm`） | `DELETE /api/dicts/{id}` | `system:dict:delete` | ✅ 删除字典 | 内置 40901「内置字典不可删除」（前端菜单项 disabled）；**级联删除全部字典项**；删的是当前选中字典时改选当前页第一项 |
 | 新增字典项（右栏） | `POST /api/dicts/{id}/items` → `{id}` | `system:dict:update` | ✅ 新增字典项 | 字典不存在 404；值重复 40900 |
 | 编辑（字典项行） | `PUT /api/dicts/{id}/items/{itemId}` | `system:dict:update` | ✅ 修改字典项 | 字典项不存在或不属于该字典 404 |
 | 删除（字典项行，`Popconfirm`） | `DELETE /api/dicts/{id}/items/{itemId}` | `system:dict:update` | ✅ 删除字典项 | 同上 404；无内置保护 |
@@ -108,7 +109,7 @@
 
 ## 4. 用到的公共组件
 
-- 本页：`PageContainer`、`SearchToolbar`、`Permission`、`StatusTag` 与 `STATUS_OPTIONS`
+- 本页：`NavListPanel` / `NavListItem`（左栏）、`PageContainer`（右栏）、`StatusTag`
 - 消费本模块数据的组件：`DictTag`（按字典项渲染带色标签，找不到项时显示原值）、`DictSelect`（筛选栏下拉）；
   二者都走 `GET /api/dicts/code/{code}/items`，请求失败静默退化
 
@@ -117,13 +118,10 @@
 - **内置字典被前端硬编码引用**：`sys_common_status` 用于用户 / 角色 / 部门的状态筛选（`DictSelect`），`sys_user_gender`
   用于用户表单性别下拉与列表性别列（`DictTag`）。后端对内置字典本身禁止改编码、禁用、删除，但对其字典项没有保护（#03）。
 - 字典项删除是物理删除，业务数据里已存的值不会随之变化；`DictTag` 找不到对应项时退化为显示原值。
-- 建议：内置字典的状态单选在前端直接禁用（#02）；左栏补上已有后端支持的状态筛选与「重置」。
+- 建议：内置字典的状态单选在前端直接禁用（#02）；左栏可补上已有后端支持的状态筛选。
 
 ## 6. 已知问题汇总
 
-- **#01 🔴 P3 编辑当前选中的字典后，右栏字典项面板标题不更新**
-  `DictsPage` 的 `selected` 状态只在点击行时 `setSelected(record)`；保存字典后列表重新拉取，但 `selected` 仍是旧对象，
-  `DictItemsPanel` 标题 `字典项：<名称>（<编码>）` 继续显示旧名称 / 旧编码，直到重新点击该行。
 - **#02 🔴 P3 内置字典编辑弹窗仍可选「禁用」，提交后才被拒**
   `DictFormModal` 只对内置字典禁用了「字典编码」，状态单选可改；后端 `Dict.withDetails` 返回 40901「内置字典不可禁用」。
 - **#03 ❓ P3 内置字典的字典项可被任意修改或删除**
@@ -137,6 +135,14 @@
 ## 7. changelog
 
 新条目插在本节最上方（按日期倒序，新在上）。
+
+**2026-09-27**
+- **#06 ✅ P3 字典左栏改为 mono4ts 的导航列表**
+  左栏由表格改为公共组件 `NavListPanel`：「名称 · 编码」+ 创建时间、停用 / 内置小标签、条目「…」菜单（编辑 / 删除）、
+  标题栏「…」菜单（刷新 / 新增字典）、默认选中第一项。未走 openspec change（纯前端展示改版）。
+- **#01 ✅ P3 编辑当前选中的字典后，右栏字典项面板标题不更新**
+  原因：`selected` 存的是点击时的对象副本。随 #06 改为按 id 从最新列表推导选中项，保存后列表重新拉取、标题随之更新；
+  `DictsPage.test.tsx` 有回归用例。
 
 **2026-09-26**
 - **#05 ✅ P? D-008 框架重写时建立本文件**
