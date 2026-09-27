@@ -35,7 +35,7 @@
 **模块说明**:发现内容与代码不符,**以代码为准**,并回来改对应的 `bizs/<table>.md`。
 
 机械兜底只有一条:`openspec/guards/state-waitlist.mjs` 校验编号(文件内重号、悬空引用、已废止的全局编号)。
-其余全靠 `CLAUDE.md`「`state/` 的读写时机」一节唤起。
+其余全靠 `AGENTS.md`「`state/` 的读写时机」一节唤起。
 
 ---
 

@@ -46,7 +46,7 @@ cd .. && pnpm install && pnpm dev      # 后端 bootRun(3300) + 前端 vite(5373
 
 | 文档 | 内容 |
 | --- | --- |
-| [`CLAUDE.md`](../CLAUDE.md)(仓库根) | 开发约定、分层规矩、门禁硬约束（AI 与人都读这份） |
+| [`AGENTS.md`](../AGENTS.md)(仓库根) | 开发约定、分层规矩、门禁硬约束（AI 与人都读这份） |
 | [`docs/01-架构与接口契约.md`](docs/01-架构与接口契约.md) | **前后端唯一契约**：模块、表结构、种子数据、全部接口与错误码 |
 | [`docs/00-决策记录.md`](docs/00-决策记录.md) | 关键决策与理由，只增不改（重写见 D-008） |
 | [`openspec/rules/enforced/constitution.md`](../openspec/rules/enforced/constitution.md) | 跨 change 的工程不变量 CP-1…CP-11 |

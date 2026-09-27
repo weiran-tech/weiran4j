@@ -14,7 +14,7 @@
     "weiran4j/weiran-app",
     "web/src"
   ],
-  "checks-note": "项目级检查插件。rules-index.mjs 守 CLAUDE.md 的规则索引表（`openspec/rules/` 不会被自动注入提示词，那张表是它唯一的唤起途径）；components-registry.mjs 守 `rules/advisory/components.md` 的组件登记完整性（新增未登记即报错）；state-waitlist.mjs 守 `state/bizs/*.md` 的文件内 `#NN` 编号（重号、悬空引用、已废止的 T-NN/B-NN）；spec-xref / worktree-orphan / ratchet 与技术栈无关。mono4ts 的 drizzle-journal.mjs 不适用（本仓用 Flyway），Flyway 版本号的唯一性目前由 Flyway 自身在启动时校验。",
+  "checks-note": "项目级检查插件。rules-index.mjs 守 AGENTS.md 的规则索引表（`openspec/rules/` 不会被自动注入提示词，那张表是它唯一的唤起途径）；components-registry.mjs 守 `rules/advisory/components.md` 的组件登记完整性（新增未登记即报错）；state-waitlist.mjs 守 `state/bizs/*.md` 的文件内 `#NN` 编号（重号、悬空引用、已废止的 T-NN/B-NN）；spec-xref / worktree-orphan / ratchet 与技术栈无关。mono4ts 的 drizzle-journal.mjs 不适用（本仓用 Flyway），Flyway 版本号的唯一性目前由 Flyway 自身在启动时校验。",
   "checks": [
     "./guards/rules-index.mjs",
     "./guards/components-registry.mjs",

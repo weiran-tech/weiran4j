@@ -1,8 +1,16 @@
-.DS_Store
+# AI
+.claude/skills/devops-openspec-workflow
 .omc/
+
+# System
+.DS_Store
+
+# Project
 node_modules/
 dist/
 coverage/
 *.tsbuildinfo
-*.local
 .turbo/
+
+# Env
+*.local

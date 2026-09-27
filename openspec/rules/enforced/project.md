@@ -102,7 +102,7 @@ domain 的 `error` 包里。前端 `web/src/utils/request.ts` 依赖 `40100`（�
 
 ## 二、并行判据（决定能不能与他人同时推进）
 
-> **本仓库没有 worktree 工具**（`.claude/skills/devops-ff-workflow/SKILL.md` Phase 0 已明确：
+> **本仓库没有 worktree 工具**（本节即事实源；`devops-openspec-workflow` 的 Phase 0 会先读本节：
 > 不要发明、也不要照抄上游 mono4ts 的 `scripts/wt.mjs` 流程）。所有 change 都在同一个工作区
 > 主检出（main checkout）里推进。**这意味着 WT-0 的三条后果完全没有"开 worktree 就能绕开"
 > 这条退路**——工作区从头到尾只有一个，隔离只能靠人的判断纪律。
@@ -121,7 +121,7 @@ domain 的 `error` 包里。前端 `web/src/utils/request.ts` 依赖 `40100`（�
 3. 近期 `git log` 出现**非本 change 的提交**（说明有别的 session 正在同一仓库推进）。
 
 **本判据不覆盖「远端」**：上面三条**全是本地信号**。它回答的是「现在这个工作区里有没有别人」，
-**不回答**「主分支是不是最新的」——防线在 `devops-ff-workflow` skill 里：Phase 0 要求开工前
+**不回答**「主分支是不是最新的」——防线在 `devops-openspec-workflow` skill 里：Phase 0 要求开工前
 `git fetch` 并确认未落后，Phase 8 要求合并前 rebase 到最新 `origin/main` 并重跑 L7 三闸门。
 
 **为什么**：WT-1~WT-3 回答的都是「这一个 change 内部能不能拆开并行」，没有一条覆盖

@@ -22,7 +22,7 @@ export interface ThemeColorPreset {
     dark: ColorVars;
 }
 
-/** 本项目默认主色（见 CLAUDE.md「设计」） */
+/** 本项目默认主色（见 AGENTS.md「设计」） */
 export const DEFAULT_PRIMARY = '#0064FA';
 export const DEFAULT_THEME_COLOR = 'default';
 

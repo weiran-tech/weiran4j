@@ -121,7 +121,7 @@ flowchart TD
   为什么问:没有隔离时,「能不能并行」就不再是"要不要多花一次环境搭建成本"的问题,
            而是"两个人同时改同一个共享的工作区状态,谁的证据会被谁污染"的问题。
   答案要求:一张场景 → 能否并行 → 原因的表。本项目**没有** worktree 工具
-           (`.claude/skills/devops-ff-workflow/SKILL.md` Phase 0 已明确不发明、不照抄上游的
+           (`openspec/rules/enforced/project.md` §二 已明确不发明、不照抄上游的
            `scripts/wt.mjs` 流程),所以下表回答的始终是"能不能与他人在同一工作区交替/同时推进",
            不存在"开不开 worktree"这个维度。
   其他技术栈的成本项举例(仅供换栈参考,本项目不适用):

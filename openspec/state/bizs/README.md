@@ -54,7 +54,7 @@
 - **引用写法**:同文件内写 `#NN`;跨文件写 `<文件名>.md#NN`(如 `artifact.md#05`)。
 - **认领**:动手处理某条前,在条目末尾追加 `→ <change 名>`。
 - **机械校验**:`openspec/guards/state-waitlist.mjs`(`REPO/state-id-*`)检查文件内重号、
-  `CLAUDE.md`/`openspec/{rules,design,state}` 里 `<bizs 下文件名>.md#NN` 引用是否指向存在的条目,
+  `AGENTS.md`/`openspec/{rules,design,state}` 里 `<bizs 下文件名>.md#NN` 引用是否指向存在的条目,
   以及是否又出现已废止的 `T-NN`/`B-NN`。裸 `#NN` 不校验。
 
 ## 3. 文件索引

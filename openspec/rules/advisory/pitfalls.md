@@ -1,6 +1,6 @@
 # pitfalls.md —— 流水线各层踩过的坑
 
-> **本文件没有任何机械守卫。** 唯一的唤起途径是 `CLAUDE.md` 的规则索引表。
+> **本文件没有任何机械守卫。** 唯一的唤起途径是 `AGENTS.md` 的规则索引表。
 >
 > **准入门槛两条,缺一不写**:
 >
@@ -95,7 +95,7 @@ _(暂无)_
 或者 `verify.md` 产出成一份 `check.mjs` 的 `L8/verdict-line` 认不出格式的报告。
 
 `.claude/skills/` 下的 `openspec-*` 是 CLI 生成的通用件,不读本仓库的
-`openspec/rules/` 与 `CLAUDE.md`,也不知道本仓库闸门的额外要求。
+`openspec/rules/` 与 `AGENTS.md`,也不知道本仓库闸门的额外要求。
 
-**怎么避开**:开 / 推进 / 归档 change 一律用 `devops-ff-workflow`。
-完整对照见 `CLAUDE.md` 的「用哪个 skill」表。
+**怎么避开**:开 / 推进 / 归档 change 一律用 `devops-openspec-workflow`。
+完整对照见 `AGENTS.md` 的「用哪个 skill」表。

@@ -442,18 +442,18 @@ CI 里两步都跑。注意包名:npm 上的 `openspec` 是无关的 0.0.0 占�
 | 查看某个 change 的进度 | `openspec status --change <id>` | 不换 —— 继续用 CLI,它是只读自检命令,各 skill 内部也会自己调它 | 不属于"驱动"类命令,不需要包一层 skill |
 | 推进一步(单个 artifact) | 手动跑 `openspec instructions <artifact> --change <id>` 再照着写文件 | `/openspec-continue-change` | 一次只生成 1 个 artifact 就停,适合想每一步都亲自看一眼的场合 |
 | 批量生成到能开始实现(L0→L2,到 `tasks`/`exec-plan` 为止) | 无(得手动循环 `instructions` + 写文件) | `/openspec-ff-change` | ⚠️ **不认 L3 闸门**——已实测:`design.md` 没有 `approved_by` 也会被判 `done`,它会直接冲到 `tasks`。只在你确定不需要中途审阅时用 |
-| 全流程(L0 interview → L10 archive),只在真正的人工闸门停 | 无 | **`/devops-ff-workflow`** | 本仓库自建的编排 skill,唯一同时覆盖全部 10 层且守住 L0/L3/L9 三个真实闸门的入口 —— **默认应该用这个**,而不是逐层手动调 CLI 或逐个调子 skill |
-| 实现任务(L5) | 手动读 `tasks.md` 逐条改代码、逐条勾 checkbox | `/openspec-apply-change` | 循环到完成或卡住为止,不会每个 task 都停下来问;`devops-ff-workflow` 的 L5 阶段内部也是调它 |
-| 生成集成记录 + 校验结论(L6+L8) | 手动照 `openspec instructions verify` 的模板写 | 不用现成 skill —— `/devops-ff-workflow` 内部按模板自己生成 | ⚠️ **不要用 `/openspec-verify-change` 顶替 L8**:它产出的是 Completeness/Correctness/Coherence 报告,不是本 schema 要求的 `exec/verify.md`(通过/打回实现/打回设计结论行),`check.mjs` 的 `L8/verdict-line` 认不出它的格式 |
-| 跑 build/test/lint 产出 L7 证据 | 手动跑 `pnpm build/test/lint` 并存日志 | 无 skill 替代(`openspec-verify-change` 根本不跑这三个命令,已实测)——`devops-ff-workflow` 的 L5 阶段直接跑 | 这是机器闸门,不需要包成 skill,但也不能指望现成 skill 帮你跑 |
-| 合并 delta spec 到主 spec | 手动改 `openspec/specs/**/*.md` | `/openspec-sync-specs` | 可以独立调用,`devops-ff-workflow` 的 L10 阶段也会在有 delta spec 时自动调它 |
-| 归档 | `openspec archive <id>` 或手动 `mv` 到 `archive/` | `/openspec-archive-change` | ⚠️ **它不会替你做 L9 签字**——只警告"还有 artifact/task 没完成",不会问"最终 diff 你看过了吗"。必须先由人(或 `devops-ff-workflow` 的 L9 阶段)明确签字,再调它 |
+| 全流程(L0 interview → L10 archive),只在真正的人工闸门停 | 无 | **`/devops-openspec-workflow`** | 本仓库自建的编排 skill,唯一同时覆盖全部 10 层且守住 L0/L3/L9 三个真实闸门的入口 —— **默认应该用这个**,而不是逐层手动调 CLI 或逐个调子 skill |
+| 实现任务(L5) | 手动读 `tasks.md` 逐条改代码、逐条勾 checkbox | `/openspec-apply-change` | 循环到完成或卡住为止,不会每个 task 都停下来问;`devops-openspec-workflow` 的 L5 阶段内部也是调它 |
+| 生成集成记录 + 校验结论(L6+L8) | 手动照 `openspec instructions verify` 的模板写 | 不用现成 skill —— `/devops-openspec-workflow` 内部按模板自己生成 | ⚠️ **不要用 `/openspec-verify-change` 顶替 L8**:它产出的是 Completeness/Correctness/Coherence 报告,不是本 schema 要求的 `exec/verify.md`(通过/打回实现/打回设计结论行),`check.mjs` 的 `L8/verdict-line` 认不出它的格式 |
+| 跑 build/test/lint 产出 L7 证据 | 手动跑 `pnpm build/test/lint` 并存日志 | 无 skill 替代(`openspec-verify-change` 根本不跑这三个命令,已实测)——`devops-openspec-workflow` 的 L5 阶段直接跑 | 这是机器闸门,不需要包成 skill,但也不能指望现成 skill 帮你跑 |
+| 合并 delta spec 到主 spec | 手动改 `openspec/specs/**/*.md` | `/openspec-sync-specs` | 可以独立调用,`devops-openspec-workflow` 的 L10 阶段也会在有 delta spec 时自动调它 |
+| 归档 | `openspec archive <id>` 或手动 `mv` 到 `archive/` | `/openspec-archive-change` | ⚠️ **它不会替你做 L9 签字**——只警告"还有 artifact/task 没完成",不会问"最终 diff 你看过了吗"。必须先由人(或 `devops-openspec-workflow` 的 L9 阶段)明确签字,再调它 |
 | 调试:看某一层完整提示词 | `openspec instructions <artifact> --change <id>` | 无 skill 替代,继续用 CLI | 唯一保留纯 CLI 用法的场景 —— 这是查看/调试,不是驱动流程 |
 | 校验产出物格式 | `pnpm openspec:check`、`pnpm openspec:validate` | 无 skill 替代,继续用 CLI/pnpm 脚本 | 校验类命令本身就不是"驱动步骤",不在替换范围内 |
 
 **该用哪个入口,一句话版:**
 
-- 想从一句话需求跑到归档,中途只在真正该停的地方停 → `/devops-ff-workflow`
+- 想从一句话需求跑到归档,中途只在真正该停的地方停 → `/devops-openspec-workflow`
 - 想每一步自己确认一遍再继续 → `/openspec-continue-change`
 - 只是想先把 L0-L2 的文档快速写完,还不着急实现,且知道要自己补 L3 审阅 → `/openspec-ff-change`
 - 调试、看依赖图、看某层完整提示词 → 直接用 `openspec` CLI
@@ -480,13 +480,6 @@ CI 里两步都跑。注意包名:npm 上的 `openspec` 是无关的 0.0.0 占�
   读的人会以为那是本仓库发生过的事。这些是说明性文档,流水线不依赖它们,过期不会变红 ——
   但 `design/check.md` 例外,它被 `META/check-doc-stale` 机械看守,必须与 `check.mjs` 同步。
   关闭条件:逐份复核,把描述 mono4ts 的部分改写成本仓库事实,或明确标注「上游来源,本仓库未发生」。
-
-- [ ] **编排 skill 仍叫 `devops-ff-workflow`,且是入库副本。**
-  上游 mono4ts 已改用 `devops-openspec-workflow`(指向外部 skills 仓库的软链接、gitignore,schema 无关,
-  靠读 `openspec/rules/` 取项目事实)。本仓库的 `.claude/skills/devops-ff-workflow/SKILL.md` 是早先的入库副本,
-  上游修的问题不会自动同步过来。症状:两边流水线行为逐渐漂移,上游修过的坑本仓库还会再踩一次。
-  关闭条件:决定改用软链接的 `devops-openspec-workflow`(同步改 `CLAUDE.md` 的 skill 表与 `rules/README.md`),
-  或明确保留入库副本并记录理由。
 
 - [ ] **门禁 ③(CI)缺失。** 见 [`state/bizs/artifact.md#05`](../state/bizs/artifact.md)。
   流水线侧的影响:`openspec check` 只有 hook(不阻断)与 pre-commit(可 `--no-verify` 绕过)两道,

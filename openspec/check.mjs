@@ -167,15 +167,18 @@ const CHECK_DOC = {
   'REPO/journal-sql-exists': 'journal 记了但 SQL 文件不在',
   'REPO/worktree-orphan': 'change 已归档而 worktree 还在,或目录还在而注册项没了 —— 泄漏不报错、不变红,只是磁盘上多一份 11 万文件的副本,而存放目录被忽略,没人会替你清',
   'REPO/rules-index-dangling':
-    'CLAUDE.md 的规则索引表指向 openspec/rules/ 下不存在的文件 —— agent 会 Read 到空结果,'
+    'AGENTS.md 的规则索引表指向 openspec/rules/ 下不存在的文件 —— agent 会 Read 到空结果,'
     + '然后当作「这份规则没有内容」继续干活,不会停下来问',
   'REPO/rules-index-missing':
-    'openspec/rules/ 下新增的规则文件没登记进 CLAUDE.md 的索引表 —— rules/ 不会被自动加载,'
+    'openspec/rules/ 下新增的规则文件没登记进 AGENTS.md 的索引表 —— rules/ 不会被自动加载,'
     + '漏登记后它永远不会被读到,而这个失效完全静默:文件在仓库里、grep 得到,只是没人会想起读它',
   'REPO/state-id-dangling': '别处以「文件名.md#NN」引用了 openspec/state/bizs/ 下某文件里不存在的条目编号 —— 条目被删或编号写错后,引用它的那句话静默悬空,读的人翻不到,与 spec-xref-dangling 是同一种失效模式',
   'REPO/state-id-dup': 'openspec/state/bizs/*.md 同一文件内两个条目用了同一个 #NN —— 跨文件引用「文件名.md#NN」从此指向两处,读的人拿到哪条全凭运气',
   'REPO/state-id-legacy': 'openspec/state/bizs/**/*.md 里又出现已废止的全局 T-NN/B-NN —— 旧编号不再对应任何条目,写下它等于写了一个永远翻不到的引用',
   'REPO/components-unregistered': '新增公共组件没登记进 rules/advisory/components.md —— 那份清单是「先查再造」的唯一依据,漏登记等于下一个人会把它重造一遍;清单自述的失效方向只有「删除/改协议」,少了「新增未登记」这一种',
+  'REPO/rules-index-absent':
+    '规则索引文件(AGENTS.md)不存在 —— rules/ 失去唯一的唤起途径,rules-index 检查也随之失效;'
+    + '此前缺文件时是静默跳过,等于守卫消失却全绿',
   'REPO/ratchet-baseline': '棘轮基线未播种,或存量降了但基线没跟着降 —— 基线停在最高水位等于给「以后再加回来」留额度',
   'REPO/ratchet-increased': '存量比基线涨了 —— 让宪法「MUST NOT 新增」真正生效的唯一机制',
 }

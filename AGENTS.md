@@ -55,7 +55,7 @@ pnpm hooks:install                # 新 clone 后跑一次，启用 .githooks/pr
 
 ```
 duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 根
-├── CLAUDE.md / AGENTS.md        # 本文件（两份内容一致，AGENTS.md 给其它 agent 工具读）
+├── AGENTS.md                    # 本文件：仓库级 AI 协作规范（2026-09-27 起唯一一份，CLAUDE.md 已删除，见 D-010）
 ├── .claude/                     # Claude Code 配置与 skill（见下「AI 工作流文件放在哪」）
 ├── .githooks/pre-commit         # 提交前跑 openspec check
 ├── turbo.json                   # turbo 任务编排（pnpm dev 同时起前后端）
@@ -109,19 +109,22 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 
 ### 用哪个 skill 开 / 推进 / 归档 change
 
-`.claude/skills/` 下 13 个 openspec 相关 skill，**只有 `devops-ff-workflow` 认识本仓库的 schema**
-（`config.yaml`/`schemas/`/`guards/`，并读 `openspec/rules/`），其余 12 个（`openspec-*`）是 `openspec` CLI
-生成的通用件，不读本文件与 `rules/`。用错的后果是**静默的**：不报错，只是绕过闸门把流程走完。
+`.claude/skills/` 下 13 个 openspec 相关 skill，**只有 `devops-openspec-workflow` 认识本仓库的 `devops-workflow` schema**。
+它是 schema 无关的通用编排件：项目特定事实（L7 命令、worktree 判据、rule-ID 含义、历史事故）一律从本仓库
+`openspec/rules/` 读取（Phase 0 先读 `rules/enforced/project.md` §二 与 `rules/advisory/pitfalls.md`）。
+它是**指向外部 skills 仓库的软链接**（`~/Projects/duoli-weiran/skills/skills/devops-openspec-workflow`），已被 `.gitignore` 忽略
+—— **clone 下来看不到它，需要另行装到本机**。其余 12 个（`openspec-*`）是 `openspec` CLI 生成的通用件（入库），
+不读本文件与 `rules/`。用错的后果是**静默的**：不报错，只是绕过闸门把流程走完。
 
 | 想做什么 | 用 | **不要**用，以及为什么 |
 | --- | --- | --- |
-| 开新 change / 推进（支持 resume）/ 走完 L0–L10 | `devops-ff-workflow` | `openspec-continue-change` —— 不知道 L3 的 `approved_by`，design 一 done 就直接生成 tasks，**静默绕过人闸** |
-| 归档 | `devops-ff-workflow`，或直接 `openspec archive "<name>"` | `openspec-archive-change` / `-bulk-archive-change` / `-sync-specs` —— 用 `mv` + 手工合并代替 CLI 归档，上游实测丢过整条需求 |
-| 验收 | `devops-ff-workflow` 的 L8 | `openspec-verify-change` —— 报告没有 `通过/打回` 结论行，`L8/verdict-line` 会拦 |
+| 开新 change / 推进（支持 resume）/ 走完 L0–L10 | `devops-openspec-workflow` | `openspec-continue-change` —— 不知道 L3 的 `approved_by`，design 一 done 就直接生成 tasks，**静默绕过人闸** |
+| 归档 | `devops-openspec-workflow`，或直接 `openspec archive "<name>"` | `openspec-archive-change` / `-bulk-archive-change` / `-sync-specs` —— 用 `mv` + 手工合并代替 CLI 归档，上游实测丢过整条需求 |
+| 验收 | `devops-openspec-workflow` 的 L8 | `openspec-verify-change` —— 报告没有 `通过/打回` 结论行，`L8/verdict-line` 会拦 |
 | 只想跑一次机械校验 | `pnpm openspec:check` | — |
 
 > **不要直接改那 12 个通用 skill 来加警告** —— `openspec update` 会整体覆盖它们。
-> 本仓库的定制只能放在 `devops-ff-workflow` 与本文件里。
+> 本仓库的定制只能放在本文件与 `openspec/rules/` 里（`devops-openspec-workflow` 是外部共享件，项目事实不写进它）。
 
 ## 规则索引（`openspec/rules/`，总览见 [rules/README.md](openspec/rules/README.md)）
 

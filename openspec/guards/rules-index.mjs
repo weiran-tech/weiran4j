@@ -1,9 +1,9 @@
 /**
- * 项目级检查 · CLAUDE.md 规则索引表的完整性
+ * 项目级检查 · AGENTS.md 规则索引表的完整性(2026-09-27 前是 CLAUDE.md,该文件已删除,只保留 AGENTS.md)
  *
  * 为什么需要它:`openspec/rules/` 下的规则**不会被自动加载** ——
  * OpenSpec 只把 `config.yaml` / `schema.yaml` 的 instruction / `templates/` 三处拼进提示词,
- * 其余任何文档都不会进。所以 `rules/` 唯一的唤起途径就是 `CLAUDE.md` 顶部那张「规则索引」表。
+ * 其余任何文档都不会进。所以 `rules/` 唯一的唤起途径就是 `AGENTS.md` 顶部那张「规则索引」表。
  * 那张表是这些规则的**单点** —— 它漏一行,对应文件就等于不存在;它指错文件,
  * 读的人就会去翻一个没有那节内容的文档,然后以为「这里没规则」。
  *
@@ -38,7 +38,7 @@
  */
 import { readdirSync } from 'node:fs'
 
-const CLAUDE_MD = 'CLAUDE.md'
+const INDEX_FILE = 'AGENTS.md'
 const RULES_DIR = 'openspec/rules'
 
 /** 索引表行里的 `rules/<名>.md` 链接。表格行以 `| [` 开头 */
@@ -56,18 +56,29 @@ export default {
   /**
    * 两边都要 watch。
    *
-   * 这里原先只写了 `CLAUDE_MD`,注释称「rules/ 下增删文件由 `openspec/` 前缀的通用规则捞到」
+   * 这里原先只写了 `CLAUDE_MD`(现为 `INDEX_FILE`),注释称「rules/ 下增删文件由 `openspec/` 前缀的通用规则捞到」
    * —— **那个假设是错的**:hook 的通用正则是 `^openspec/(changes|specs)/`,
    * 并不覆盖 `openspec/rules/`。于是新建/改名/删除一份 rules 文件时,本检查的两条
    * 在 hook 里**当场不响**,要等到 `git commit` 才被 pre-commit 拦。
    * 守卫本身是对的,错在没想清楚它该在哪一刻响。
    */
-  watches: [CLAUDE_MD, RULES_DIR],
+  watches: [INDEX_FILE, RULES_DIR],
 
   run({ ROOT, join, existsSync, read, rel, err }) {
-    const claude = join(ROOT, CLAUDE_MD)
+    const claude = join(ROOT, INDEX_FILE)
     const rulesDir = join(ROOT, RULES_DIR)
-    if (!existsSync(claude) || !existsSync(rulesDir)) return
+    if (!existsSync(rulesDir)) return
+    // 索引文件缺失必须报错,不能静默跳过:2026-09-27 CLAUDE.md 被删除时,本检查原先的
+    // `if (!existsSync(...)) return` 让它**全绿地失效**了 —— 守卫消失却没有任何信号。
+    if (!existsSync(claude)) {
+      err(
+        'REPO/rules-index-absent',
+        INDEX_FILE,
+        `${INDEX_FILE} 不存在 —— openspec/rules/ 的唯一唤起途径(规则索引表)随之消失,`
+          + '本检查也无从校验。若索引表迁到了别的文件,同步修改 guards/rules-index.mjs 的 INDEX_FILE',
+      )
+      return
+    }
 
     const text = read(claude)
     const lines = text.split('\n')
@@ -122,7 +133,7 @@ export default {
       err(
         'REPO/rules-index-missing',
         rel(join(rulesDir, relName)),
-        `openspec/rules/${relName} 没有登记进 CLAUDE.md 的规则索引表 —— `
+        `openspec/rules/${relName} 没有登记进 AGENTS.md 的规则索引表 —— `
           + 'rules/ 下的文件不会被自动加载,唯一的唤起途径就是那张表。'
           + '漏登记的后果完全静默:文件在仓库里、grep 得到,但没有任何时刻会让人想起读它。'
           + '往表里加一行「什么时候必须读」,或确认它不该是一条规则',

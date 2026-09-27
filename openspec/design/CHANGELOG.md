@@ -10,6 +10,25 @@
 
 ---
 
+## 2026-09-27(日) · 编排 skill 换成 devops-openspec-workflow;删除 CLAUDE.md,规则索引迁到 AGENTS.md
+
+### 改了什么
+
+| 旧 | 新 | 说明 |
+|---|---|---|
+| `.claude/skills/devops-ff-workflow/`(入库副本) | `.claude/skills/devops-openspec-workflow`(软链接 → 外部 skills 仓库,gitignore) | 关闭 `design/README.md` 待办池「编排 skill 改名」一条。新 skill schema 无关,项目事实从 `rules/` 读;clone 后需另行安装 |
+| 仓库根 `CLAUDE.md` + `AGENTS.md`(内容一致) | 只保留 `AGENTS.md` | 用户决定(D-010) |
+| `guards/rules-index.mjs` 读 `CLAUDE.md`,文件缺失时 `return` | 读 `AGENTS.md`,缺失时报 `REPO/rules-index-absent` | 删除 `CLAUDE.md` 时原守卫**静默全绿地失效**;已做注入验证(移走 AGENTS.md → 转红 → 恢复) |
+| `guards/state-waitlist.mjs` 的引用源 `CLAUDE.md` | `AGENTS.md` | |
+| `rules/`、`state/`、`design/`、模板里的 `devops-ff-workflow` / `CLAUDE.md` | `devops-openspec-workflow` / `AGENTS.md` | `project.md` 与 `exec-plan.md` 的 worktree 说明改为「`project.md` §二 是事实源,skill 的 Phase 0 读它」 |
+
+### 需要知道的
+
+`rules/README.md` 的通道 A(「每次会话无条件注入」)现在成立的**前提**是所用 agent 工具会自动加载 `AGENTS.md`。
+若某个工具只认 `CLAUDE.md`,规则索引就不会被自动注入 —— 这种失效是静默的。
+
+---
+
 ## 2026-09-26(六) · openspec 移到仓库根,`state/` 改为 `bizs/` 逐表结构(对齐 mono4ts 现状地图)
 
 ### 起因

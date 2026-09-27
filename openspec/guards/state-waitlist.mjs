@@ -2,7 +2,7 @@
  * 项目级检查 · state/bizs 条目编号(`#NN`)完整性
  *
  * 为什么需要它:`openspec/check.mjs` 主体全文搜 `state` **命中 0 次** —— 流水线完全不
- * 认识这个目录。`CLAUDE.md` 把 `state/` 的全部维护托付给「五个时机」那一节的祈使句;
+ * 认识这个目录。`AGENTS.md` 把 `state/` 的全部维护托付给「五个时机」那一节的祈使句;
  * 这条检查把其中**可机械判定的那部分**变成依赖。
  *
  * ─── 沿革 ───────────────────────────────────────────────────────────────────
@@ -18,7 +18,7 @@
  *
  * 三条检查:
  *   - `REPO/state-id-dup`      同一文件内同一 `#NN` 被两个条目使用
- *   - `REPO/state-id-dangling` `CLAUDE.md`/`openspec/{rules,design,state}` 里 `<bizs 下文件名>.md#NN`
+ *   - `REPO/state-id-dangling` `AGENTS.md`/`openspec/{rules,design,state}` 里 `<bizs 下文件名>.md#NN`
  *                              形式的引用,指向的文件里没有这个编号的条目
  *   - `REPO/state-id-legacy`   `bizs/**` 里又出现了已废止的 `T-NN`/`B-NN` 字面量
  *
@@ -42,7 +42,7 @@ const LEGACY_ID = /\b([TB]-\d{2,})\b/g
 
 /** 会去引用条目编号的文件(含 bizs/ 自身:跨文件引用最多就发生在这里) */
 const REF_SOURCES = [
-  'CLAUDE.md',
+  'AGENTS.md',
   'openspec/rules',
   'openspec/design',
   'openspec/state',
