@@ -67,7 +67,7 @@
 
 **前端路由由后端 `sys_menu` 驱动**（`/api/auth/menus`），`web/src/App.tsx` 不再逐页登记 `<Route>`。
 新增页面必须**追加一个 Flyway 迁移**往 `sys_menu` 插入菜单行（`component` = 相对 `web/src/pages` 的路径，无 `.tsx`），
-并按需插入按钮权限行与 `sys_role_menu` 绑定。菜单 id 是全局序号：并行的两个 change 各插一个 id，会撞主键。
+并按需插入按钮权限行与 `sys_role_menu` 绑定。菜单 id 是全局序号：并行的两个 change 各插一个 id，会撞主键。基座占 `1`–`999`，业务模块从 `1000` 起按契约 §2.1 登记的段取（宪法 CP-15）。
 
 ### SL-5 · `web/src/pages/**` 与 `web/src/utils/page-registry.ts`
 

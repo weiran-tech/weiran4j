@@ -15,6 +15,7 @@
 - `openspec/project.json` 的 `sourcePaths`、`rules/enforced/project.md` 的 PK-2 / DS-5 / 操作日志一句改指 `weiran-base`（PK-2 编号不变）。
 - `schemas/devops-workflow/templates/` 里的示例路径 `weiran-system-*` 改为 `weiran-base-*`。
 - `state/bizs/` 各文件的源码链接与「后端模块」行改指 `weiran-base`；Java 包名与 Flyway 目录未变，所以文中包路径不动。
+- 宪法新增「三层结构」CP-12 … CP-15（依赖方向、业务只依赖 `weiran-base-api`、错误码号段、权限码 / 菜单 id / Flyway 命名空间）；design 模板的宪法对照表同步补 4 行，并顺带修正早已漂移的 CP-7 / CP-8 标题（还停留在 PHP 迁移期的旧文案）。
 - 已归档 change（`changes/archive/`）保持原样，里面仍是合并前的模块名。
 
 

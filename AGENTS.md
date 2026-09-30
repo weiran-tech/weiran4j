@@ -134,7 +134,7 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 
 | 文件 | 什么时候**必须**读 | 有无机械校验 |
 | --- | --- | --- |
-| [`rules/enforced/constitution.md`](openspec/rules/enforced/constitution.md) | 写 `design.md` 的「宪法对照」表时；**改表结构或种子数据前（CP-7：只能追加 Flyway 脚本，已合入的永不修改）**；碰密码/令牌路径时（CP-8：只用 BCrypt，吊销只走 `token_version`）；给模块加依赖或版本号时（CP-4）；要放宽任何质量规则时（CP-5/CP-6） | ✅ `L2c/constitution-check` + `TEMPLATE/constitution-rows` |
+| [`rules/enforced/constitution.md`](openspec/rules/enforced/constitution.md) | 写 `design.md` 的「宪法对照」表时；**改表结构或种子数据前（CP-7：只能追加 Flyway 脚本，已合入的永不修改）**；碰密码/令牌路径时（CP-8：只用 BCrypt，吊销只走 `token_version`）；给模块加依赖或版本号时（CP-4）；**新增业务模块、让业务依赖基座、新增错误码 / 权限码 / 菜单 id 时（CP-12 … CP-15：依赖只能业务 → 基座 → 框架，业务只依赖 `weiran-base-api`，号段先在契约 §2.1 登记）**；要放宽任何质量规则时（CP-5/CP-6） | ✅ `L2c/constitution-check` + `TEMPLATE/constitution-rows` |
 | [`rules/enforced/project.md`](openspec/rules/enforced/project.md) | 新增 Gradle 模块前、**新增页面/菜单前（§一 SL-4/SL-5：菜单行与页面文件配对）**、取 Flyway 版本号或菜单 id 前（序号型资源）；判断能不能与他人同时推进时（§二 WT-N，本仓库没有 worktree）；写 `proposal.md`/`tasks.md`/`design.md` 前（§三～六 CC/PK/TG/DS-N） | ✅ `TEMPLATE/profile-rows` |
 | [`rules/advisory/components.md`](openspec/rules/advisory/components.md) | **写 `web/` 的页面或组件前 —— 先查再造**；**给侧边菜单加图标时**（目录节点必须用 `renderNavIcon()`）；删除组件或改其对外协议后回来改这里 | 🟡 只查「新增未登记」（`REPO/components-unregistered`），不查描述对不对 |
 | [`rules/advisory/list-view.md`](openspec/rules/advisory/list-view.md) | **写或改 `web/` 的列表页（搜索栏 + 表格）前**；**加列 / 改列宽前**（1440 宽双列布局表格只有 1115px，手机号、时间按最坏数据算宽，否则只有部分行折行）；**往高级筛选面板加字段前**（后端不认的参数被静默忽略，筛了等于没筛） | ❌ 无 —— 全靠这张表唤起 |
@@ -207,7 +207,7 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
   应用侧不写 `@ComponentScan` / `@MapperScan`。新增模块时 `weiran-app` 只加一行依赖。
 - **`weiran-framework` 是外层**：`*-domain` 与 `*-api` 只能依赖 `weiran-common`。
 
-完整不变量见 [`openspec/rules/enforced/constitution.md`](openspec/rules/enforced/constitution.md)（CP-1 … CP-11），
+完整不变量见 [`openspec/rules/enforced/constitution.md`](openspec/rules/enforced/constitution.md)（CP-1 … CP-15），
 每个 change 的 design 都要逐条对照。
 
 ## 写 Java 代码时
