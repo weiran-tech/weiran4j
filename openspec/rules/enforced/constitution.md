@@ -118,9 +118,14 @@ Controller 不得手写状态码，也不得捕获业务异常自行转换。
 
 ### CP-12 · 依赖只能业务 → 基座 → 框架，反向与同层横向禁止
 
+完整的依赖链是 `weiran-app → 业务 → weiran-base → weiran-framework → weiran-common`，箭头方向就是「依赖谁」。
+`weiran-dependencies`（BOM）不在这条链上，所有模块都向它取版本号。
+
 - `weiran-common` / `weiran-framework` 不得依赖 `weiran-base` 或任何业务模块。框架需要基座的能力时，
   由框架定义 SPI、基座实现（现有的 `TokenAuthenticator`、`OperationLogRecorder` 就是这个模式）。
 - `weiran-base` 不得依赖任何业务模块。
+- `weiran-app` 是装配层，在链的最上端：可依赖基座与所有业务模块的 `adapter` / `infrastructure`（用于自动配置装配），
+  但不得写业务代码，也不得被任何模块依赖。
 - 业务模块之间不得互相依赖（Gradle 项目依赖与 Java 包引用都不行）；共用的东西上移到基座或框架，
   或经业务模块自己发布的 `*-api` 由调用方显式依赖，且不得成环。
 
@@ -134,6 +139,7 @@ Controller 不得手写状态码，也不得捕获业务异常自行转换。
 不得依赖 `weiran-base-domain` / `-application` / `-infrastructure` / `-adapter`，
 不得直接读写基座的表（`sys_*`）、不得引用基座的 `*DO` 与 Mapper。
 业务需要基座里还没有的能力时，先在 `weiran-base-api` 增加接口，再由基座实现。
+例外：`weiran-app`（见 CP-12）为了装配，允许依赖基座的 `adapter` / `infrastructure`，因为它不写业务代码。
 
 **为什么**：基座的表结构是它的内部实现。业务一旦直接 join `sys_user`，基座此后每一次改表都要先找全所有业务里的 SQL，
 而这些 SQL 不在基座的测试范围内，坏了只会在业务的生产环境里发现。
