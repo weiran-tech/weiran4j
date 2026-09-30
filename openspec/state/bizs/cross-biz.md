@@ -7,17 +7,17 @@
 
 | 业务名称 | 表 | 模块 | 菜单路由 | 页面组件 | 现状文档 |
 | --- | --- | --- | --- | --- | --- |
-| 用户 | `sys_user` | weiran-system | `/system/users` | `system/users/UsersPage` | [`sys_user.md`](sys_user.md) |
-| 角色 | `sys_role` | weiran-system | `/system/roles` | `system/roles/RolesPage` | [`sys_role.md`](sys_role.md) |
-| 菜单 / 权限点 | `sys_menu` | weiran-system | `/system/menus` | `system/menus/MenusPage` | [`sys_menu.md`](sys_menu.md) |
-| 部门 | `sys_department` | weiran-system | `/system/departments` | `system/departments/DepartmentsPage` | [`sys_department.md`](sys_department.md) |
-| 登录日志 | `sys_login_log` | weiran-system | `/logs/login` | `logs/LoginLogsPage` | [`sys_login_log.md`](sys_login_log.md) |
-| 字典 / 字典项 | `sys_dict` / `sys_dict_item` | weiran-platform | `/system/dicts` | `system/dicts/DictsPage` | [`sys_dict.md`](sys_dict.md) |
-| 系统配置 | `sys_config` | weiran-platform | `/system/configs` | `system/configs/ConfigsPage` | [`sys_config.md`](sys_config.md) |
-| 操作日志 | `sys_operation_log` | weiran-platform | `/logs/operation` | `logs/OperationLogsPage` | [`sys_operation_log.md`](sys_operation_log.md) |
+| 用户 | `sys_user` | weiran-base | `/system/users` | `system/users/UsersPage` | [`sys_user.md`](sys_user.md) |
+| 角色 | `sys_role` | weiran-base | `/system/roles` | `system/roles/RolesPage` | [`sys_role.md`](sys_role.md) |
+| 菜单 / 权限点 | `sys_menu` | weiran-base | `/system/menus` | `system/menus/MenusPage` | [`sys_menu.md`](sys_menu.md) |
+| 部门 | `sys_department` | weiran-base | `/system/departments` | `system/departments/DepartmentsPage` | [`sys_department.md`](sys_department.md) |
+| 登录日志 | `sys_login_log` | weiran-base | `/logs/login` | `logs/LoginLogsPage` | [`sys_login_log.md`](sys_login_log.md) |
+| 字典 / 字典项 | `sys_dict` / `sys_dict_item` | weiran-base | `/system/dicts` | `system/dicts/DictsPage` | [`sys_dict.md`](sys_dict.md) |
+| 系统配置 | `sys_config` | weiran-base | `/system/configs` | `system/configs/ConfigsPage` | [`sys_config.md`](sys_config.md) |
+| 操作日志 | `sys_operation_log` | weiran-base | `/logs/operation` | `logs/OperationLogsPage` | [`sys_operation_log.md`](sys_operation_log.md) |
 
 > **路由不在前端代码里。** 菜单(含 `path` 与 `component`)存在 `sys_menu`,种子在
-> `weiran4j/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/`;
+> `weiran4j/weiran-base/weiran-base-infrastructure/src/main/resources/db/migration/system/`;
 > 前端拿到 `/api/auth/menus` 后用 `web/src/utils/page-registry.ts` 的 `import.meta.glob` 把 `component` 解析成懒加载页面。
 > **在 `App.tsx` 里 grep 页面名是搜不到路由的。**
 

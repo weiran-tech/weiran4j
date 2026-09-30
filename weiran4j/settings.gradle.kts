@@ -25,10 +25,10 @@ include(
     "weiran-app",
 )
 
-// 业务模块的五层按目录聚在 weiran-<模块>/ 下，但项目路径保持扁平（:weiran-system-api）：
-// 嵌套 include 会产生 :weiran-system:weiran-system-api 这种冗长路径，并凭空多出一个
+// 业务模块的五层按目录聚在 weiran-<模块>/ 下，但项目路径保持扁平（:weiran-base-api）：
+// 嵌套 include 会产生 :weiran-base:weiran-base-api 这种冗长路径，并凭空多出一个
 // 没有构建脚本的中间项目。新增业务模块时在 businessModules 里追加模块名即可。
-val businessModules = listOf("weiran-system", "weiran-platform")
+val businessModules = listOf("weiran-base")
 val layers = listOf("api", "domain", "application", "infrastructure", "adapter")
 
 businessModules.forEach { module ->

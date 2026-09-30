@@ -92,7 +92,7 @@ flowchart LR
 
 | 路由 | 方法 | 所属模块 | 请求关键字段 | 返回关键字段 | 权限点 |
 |---|---|---|---|---|---|
-|  | GET/POST | `weiran-system-adapter/.../web/` |  |  |  |
+|  | GET/POST | `weiran-base-adapter/.../web/` |  |  |  |
 
 - 统一响应包络由 wuli3 底座的 `ApiResponseBodyAdvice` 产生,**不在本仓库自行定义**——
   design 里只需声明业务字段,不需要重新设计包络本身(`{code, message, timestamp, requestId, data}`,
@@ -128,7 +128,7 @@ flowchart LR
 | 项 | 设计 |
 |---|---|
 | 依赖方向 | `adapter → application → domain`,`infrastructure → domain` |
-| 新模块的 `@AutoConfiguration` | 参照 `weiran-system-adapter`/`weiran-system-infrastructure` 已有的 `.imports` 登记方式 |
+| 新模块的 `@AutoConfiguration` | 参照 `weiran-base-adapter`/`weiran-base-infrastructure` 已有的 `.imports` 登记方式 |
 | `weiran-app` 依赖聚合 | 新增模块时追加对其 adapter/infrastructure 层的依赖 |
 
 ## 前端设计(DS-6)

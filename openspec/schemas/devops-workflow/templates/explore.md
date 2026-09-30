@@ -15,7 +15,7 @@ updated_at: ""
 | 模块 | 目录/文件 | 为什么看它 |
 |---|---|---|
 | `weiran-common` |  |  |
-| `weiran-system-*`（或本次涉及的业务模块） |  |  |
+| `weiran-base-*`（或本次涉及的业务模块） |  |  |
 | `web` |  |  |
 
 ## 现有实现
@@ -24,7 +24,7 @@ updated_at: ""
 
 | 能力 | 位置 | 现状 |
 |---|---|---|
-|  | `weiran-system-application/.../XxxService.java:12` |  |
+|  | `weiran-base-application/.../XxxService.java:12` |  |
 
 ## 可复用点
 

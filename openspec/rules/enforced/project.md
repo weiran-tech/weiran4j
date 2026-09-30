@@ -184,7 +184,7 @@ domain 的 `error` 包里。前端 `web/src/utils/request.ts` 依赖 `40100`（�
 ### CC-5 · 审计日志（`audit-context`）
 
 已实现两类：登录日志（`sys_login_log`，登录/登出成功与失败都记）与操作日志（写接口标 `@OperationLog`，
-由 `weiran-platform` 异步落库 `sys_operation_log`，请求体按字段名脱敏）。新增写接口**必须**标 `@OperationLog`。
+由 `weiran-base`（包 `com.weiran.platform`）异步落库 `sys_operation_log`，请求体按字段名脱敏）。新增写接口**必须**标 `@OperationLog`。
 尚无「变更前后数据 diff」。
 
 ### CC-6 · 字段脱敏（`masking`）
@@ -245,9 +245,9 @@ domain 的 `error` 包里。前端 `web/src/utils/request.ts` 依赖 `40100`（�
 跨模块通用：错误码、分页与响应契约（common）；统一响应、全局异常、认证拦截、权限注解、操作日志切面、
 MyBatis-Plus 配置（framework）。改动影响面最广（见 §一 SL-6/SL-7）。
 
-### PK-2 · `weiran-system-*` / `weiran-platform-*`（api/domain/application/infrastructure/adapter）
+### PK-2 · `weiran-base-*`（api/domain/application/infrastructure/adapter）
 
-`weiran-system`：认证 / 用户 / 角色 / 菜单 / 部门 / 登录日志。`weiran-platform`：字典 / 系统配置 / 操作日志。均为 DDD 五层。
+`weiran-base` 是后台基座，DDD 五层：包 `com.weiran.system` 管认证 / 用户 / 角色 / 菜单 / 部门 / 登录日志，包 `com.weiran.platform` 管字典 / 系统配置 / 操作日志（D-011 由两个模块合并而来）。
 
 ### PK-3 · `weiran-app`
 
@@ -287,8 +287,8 @@ design 里只声明业务字段；新接口同步写进 `docs/01-架构与接口
 ### DS-5 · 分层与装配
 
 依赖方向是否符合 `adapter → application → domain`、`infrastructure → domain`；
-新模块的 `@AutoConfiguration` 与 `.imports` 登记方式（参照 `weiran-system-adapter`/
-`weiran-system-infrastructure`），Mapper 的 `@MapperScan` 写在本模块 infrastructure 的自动配置里。
+新模块的 `@AutoConfiguration` 与 `.imports` 登记方式（参照 `weiran-base-adapter`/
+`weiran-base-infrastructure`），Mapper 的 `@MapperScan` 写在本模块 infrastructure 的自动配置里。
 
 ### DS-6 · 前端设计
 

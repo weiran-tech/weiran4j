@@ -1,0 +1,2 @@
+com.weiran.system.adapter.autoconfigure.SystemAdapterAutoConfiguration
+com.weiran.platform.adapter.autoconfigure.PlatformAdapterAutoConfiguration

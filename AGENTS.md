@@ -35,7 +35,7 @@ cd weiran4j && export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 ./gradlew spotlessApply           # 格式化（改完代码先跑这个）
 ./gradlew check --no-daemon       # 全量门禁：编译 + 测试 + Checkstyle + SpotBugs + Forbidden APIs
                                   #   + Error Prone/NullAway + 覆盖率；集成测试用 Testcontainers，需要 Docker
-./gradlew :weiran-system-domain:check   # 只验一个模块，迭代时用
+./gradlew :weiran-base-domain:check   # 只验一个模块，迭代时用
 ./gradlew :weiran-app:bootRun     # 起服务（需要 MySQL 与 weiran4j/config/application-local.yml）
 
 # ── 前端与 openspec（在仓库根）──
@@ -67,14 +67,14 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
     ├── weiran-common/           # 纯 Java：错误码、分页、响应包络、树工具
     ├── weiran-framework/        # Spring 基础设施：统一响应、全局异常、认证拦截、@RequiresPermission、
     │                            #   @OperationLog、MyBatis-Plus 配置与审计字段填充
-    ├── weiran-system/           # 身份与权限（DDD 五层）：认证 / 用户 / 角色 / 菜单 / 部门 / 登录日志
-    ├── weiran-platform/         # 平台能力（DDD 五层）：字典 / 系统配置 / 操作日志
+    ├── weiran-base/             # 后台基座（DDD 五层）：身份与权限（认证 / 用户 / 角色 / 菜单 / 部门 / 登录日志，
+    │                            #   Java 包 com.weiran.system）+ 平台能力（字典 / 系统配置 / 操作日志，包 com.weiran.platform）
     ├── weiran-app/              # 可执行应用：依赖聚合 + application.yml + 集成测试
     └── docs/                    # 决策记录、架构与接口契约
 ```
 
 业务模块的五层：`weiran-<mod>-{api,domain,application,infrastructure,adapter}`。模块路径是**扁平**的
-（`:weiran-system-api`），目录是**嵌套**的（`weiran-system/weiran-system-api`）——新增业务模块只需在
+（`:weiran-base-api`），目录是**嵌套**的（`weiran-base/weiran-base-api`）——新增业务模块只需在
 `weiran4j/settings.gradle.kts` 的 `businessModules` 列表里追加模块名。
 
 ### 新增一个页面 / 功能的完整路径

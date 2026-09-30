@@ -1,0 +1,2 @@
+com.weiran.system.application.autoconfigure.SystemApplicationAutoConfiguration
+com.weiran.platform.application.autoconfigure.PlatformApplicationAutoConfiguration

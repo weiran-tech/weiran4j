@@ -4,14 +4,14 @@
 > 契约文档 `weiran4j/docs/01-架构与接口契约.md` 只作索引；它与代码不一致的地方以代码为准写在下文，并在 §6 登记。
 >
 > 事实源：
-> [`RoleController.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/system/adapter/web/RoleController.java)、
-> [`SaveRoleRequest.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/system/adapter/web/request/SaveRoleRequest.java) /
-> [`AssignMenusRequest.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/system/adapter/web/request/AssignMenusRequest.java)、
-> [`RoleApplicationService.java`](../../../weiran4j/weiran-system/weiran-system-application/src/main/java/com/weiran/system/application/role/RoleApplicationService.java)、
-> [`Role.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/role/Role.java)、
-> [`Authorization.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/auth/Authorization.java)、
-> [`MybatisRoleRepository.java`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/java/com/weiran/system/infrastructure/persistence/MybatisRoleRepository.java)、
-> [`V202609260001__system_init_schema.sql`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/V202609260001__system_init_schema.sql)、
+> [`RoleController.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/system/adapter/web/RoleController.java)、
+> [`SaveRoleRequest.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/system/adapter/web/request/SaveRoleRequest.java) /
+> [`AssignMenusRequest.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/system/adapter/web/request/AssignMenusRequest.java)、
+> [`RoleApplicationService.java`](../../../weiran4j/weiran-base/weiran-base-application/src/main/java/com/weiran/system/application/role/RoleApplicationService.java)、
+> [`Role.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/system/domain/role/Role.java)、
+> [`Authorization.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/system/domain/auth/Authorization.java)、
+> [`MybatisRoleRepository.java`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/java/com/weiran/system/infrastructure/persistence/MybatisRoleRepository.java)、
+> [`V202609260001__system_init_schema.sql`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/resources/db/migration/system/V202609260001__system_init_schema.sql)、
 > [`RolesPage.tsx`](../../../web/src/pages/system/roles/RolesPage.tsx) /
 > [`RoleFormModal.tsx`](../../../web/src/pages/system/roles/RoleFormModal.tsx) /
 > [`RoleMenuSheet.tsx`](../../../web/src/pages/system/roles/RoleMenuSheet.tsx)、
@@ -27,7 +27,7 @@
 | 菜单 | 系统管理 › 角色管理（`sys_menu.id = 4`） |
 | 路由 | `/system/roles` |
 | 页面组件 | `system/roles/RolesPage`（弹窗 `RoleFormModal`、侧滑 `RoleMenuSheet`） |
-| 后端模块 | `weiran-system`；`RoleController` → `RoleApplicationService` → `MybatisRoleRepository` |
+| 后端模块 | `weiran-base`；`RoleController` → `RoleApplicationService` → `MybatisRoleRepository` |
 | 接口前缀 | `/api/roles` |
 | 权限码 | `system:role:list` · `system:role:create` · `system:role:update` · `system:role:delete` · `system:role:assign-menu`；`GET /options` 仅需登录 |
 | 种子 | `super_admin`「超级管理员」（id=1，内置），绑定全部菜单 |

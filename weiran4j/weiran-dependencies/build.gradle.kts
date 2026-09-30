@@ -24,7 +24,7 @@ dependencies {
         // 本仓模块，供未来外部消费方无版本引入。
         api("com.weiran:weiran-common:${project.version}")
         api("com.weiran:weiran-framework:${project.version}")
-        listOf("weiran-system", "weiran-platform").forEach { module ->
+        listOf("weiran-base").forEach { module ->
             listOf("api", "domain", "application", "infrastructure", "adapter").forEach { layer ->
                 api("com.weiran:$module-$layer:${project.version}")
             }

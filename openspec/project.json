@@ -9,8 +9,7 @@
   "sourcePaths": [
     "weiran4j/weiran-common",
     "weiran4j/weiran-framework",
-    "weiran4j/weiran-system",
-    "weiran4j/weiran-platform",
+    "weiran4j/weiran-base",
     "weiran4j/weiran-app",
     "web/src"
   ],

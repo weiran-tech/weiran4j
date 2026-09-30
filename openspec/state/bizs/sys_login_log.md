@@ -4,15 +4,15 @@
 > 契约文档 `weiran4j/docs/01-架构与接口契约.md` 只作索引；它与代码不一致的地方以代码为准写在下文，并在 §6 登记。
 >
 > 事实源：
-> [`LoginLogController.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/system/adapter/web/LoginLogController.java)、
-> [`AuthController.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/system/adapter/web/AuthController.java)（写入入口）、
-> [`AuthApplicationService.java`](../../../weiran4j/weiran-system/weiran-system-application/src/main/java/com/weiran/system/application/auth/AuthApplicationService.java)（`login` / `logout` / `appendLog`）、
-> [`LoginLogApplicationService.java`](../../../weiran4j/weiran-system/weiran-system-application/src/main/java/com/weiran/system/application/loginlog/LoginLogApplicationService.java)、
-> [`LoginLog.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/loginlog/LoginLog.java)、
-> [`MybatisLoginLogRepository.java`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/java/com/weiran/system/infrastructure/persistence/MybatisLoginLogRepository.java)、
+> [`LoginLogController.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/system/adapter/web/LoginLogController.java)、
+> [`AuthController.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/system/adapter/web/AuthController.java)（写入入口）、
+> [`AuthApplicationService.java`](../../../weiran4j/weiran-base/weiran-base-application/src/main/java/com/weiran/system/application/auth/AuthApplicationService.java)（`login` / `logout` / `appendLog`）、
+> [`LoginLogApplicationService.java`](../../../weiran4j/weiran-base/weiran-base-application/src/main/java/com/weiran/system/application/loginlog/LoginLogApplicationService.java)、
+> [`LoginLog.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/system/domain/loginlog/LoginLog.java)、
+> [`MybatisLoginLogRepository.java`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/java/com/weiran/system/infrastructure/persistence/MybatisLoginLogRepository.java)、
 > [`ClientIpResolver.java`](../../../weiran4j/weiran-framework/src/main/java/com/weiran/framework/web/ClientIpResolver.java) /
 > [`UserAgentParser.java`](../../../weiran4j/weiran-framework/src/main/java/com/weiran/framework/web/UserAgentParser.java)、
-> [`V202609260001__system_init_schema.sql`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/V202609260001__system_init_schema.sql)、
+> [`V202609260001__system_init_schema.sql`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/resources/db/migration/system/V202609260001__system_init_schema.sql)、
 > [`LoginLogsPage.tsx`](../../../web/src/pages/logs/LoginLogsPage.tsx)、[`hooks/queries/logs.ts`](../../../web/src/hooks/queries/logs.ts)、
 > [`utils/date.ts`](../../../web/src/utils/date.ts)。
 >
@@ -26,7 +26,7 @@
 | 菜单 | 日志审计 › 登录日志（`sys_menu.id = 10`） |
 | 路由 | `/logs/login` |
 | 页面组件 | `logs/LoginLogsPage` |
-| 后端模块 | `weiran-system`；查询 `LoginLogController` → `LoginLogApplicationService`；写入在 `AuthApplicationService` |
+| 后端模块 | `weiran-base`；查询 `LoginLogController` → `LoginLogApplicationService`；写入在 `AuthApplicationService` |
 | 接口 | `GET /api/login-logs`（只读） |
 | 权限码 | `system:login-log:list`（种子里没有对应的按钮节点，本页只读） |
 

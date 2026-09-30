@@ -14,12 +14,9 @@ description = "weiran4j 可执行应用：聚合各业务模块的适配层与�
  */
 val aggregatedCoverageProjects = listOf(
     ":weiran-framework",
-    ":weiran-system-application",
-    ":weiran-system-infrastructure",
-    ":weiran-system-adapter",
-    ":weiran-platform-application",
-    ":weiran-platform-infrastructure",
-    ":weiran-platform-adapter",
+    ":weiran-base-application",
+    ":weiran-base-infrastructure",
+    ":weiran-base-adapter",
 )
 
 weiranConventions {
@@ -28,10 +25,8 @@ weiranConventions {
 }
 
 dependencies {
-    implementation(project(":weiran-system-adapter"))
-    implementation(project(":weiran-system-infrastructure"))
-    implementation(project(":weiran-platform-adapter"))
-    implementation(project(":weiran-platform-infrastructure"))
+    implementation(project(":weiran-base-adapter"))
+    implementation(project(":weiran-base-infrastructure"))
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-mysql")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui")
