@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8" />
+		<script>
+			window.process = {
+				env: {
+					NODE_ENV: 'production' // 或者其他你需要的环境变量
+				}
+			};
+			var _hmt = _hmt || [];
+			(function() {
+				if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return;
+				var hm = document.createElement("script");
+				hm.src = "https://hm.baidu.com/hm.js?5d209783974b0321aaab885d97ba44c9";
+				var s = document.getElementsByTagName("script")[0];
+				s.parentNode.insertBefore(hm, s);
+			})();
+		</script>
+		<!-- <script charset="UTF-8" id="LA_COLLECT" src="//sdk.51.la/js-sdk-pro.min.js"></script>
+		<script>
+			LA.init({
+				id: "L21OjjloiHEp3JO4",
+				ck: "L21OjjloiHEp3JO4"
+			})
+		</script> -->
+		<script>
+			(function() {
+				if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+					return;
+				}
+		
+				var laScript = document.createElement('script');
+				laScript.charset = 'UTF-8';
+				laScript.id = 'LA_COLLECT';
+				laScript.src = 'https://sdk.51.la/js-sdk-pro.min.js';
+				laScript.onload = function() {
+					if (window.LA && typeof window.LA.init === 'function') {
+						window.LA.init({
+							id: 'LAZcQDEOy1k3lGKN',
+							ck: 'LAZcQDEOy1k3lGKN'
+						});
+					}
+				};
+				laScript.onerror = function() {
+					console.warn('51.LA统计脚本加载失败，已跳过，不影响页面运行');
+				};
+				document.head.appendChild(laScript);
+			})();
+		</script>
+		<script>
+			var coverSupport = 'CSS' in window && typeof CSS.supports === 'function' && (CSS.supports('top: env(a)') ||
+				CSS.supports('top: constant(a)'))
+			document.write(
+				'<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0' +
+				(coverSupport ? ', viewport-fit=cover' : '') + '" />')
+		</script>
+		<title></title>
+		<!--preload-links-->
+		<!--app-context-->
+	</head>
+	<body>
+		<div id="app"><!--app-html--></div>
+		<script type="module" src="/main.js"></script>
+	</body>
+</html>

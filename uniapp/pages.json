@@ -1,0 +1,173 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleView": false
+				}
+			}
+		},
+		{
+			"path": "pages/index/about",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleView": false
+				}
+			}
+		},
+		{
+			"path": "pages/index/dynamic",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleView": false
+				}
+			}
+		},
+		{
+			"path": "pages/index/grade",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleView": false
+				}
+			}
+		},
+		{
+			"path": "pages/index/guidance",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleView": false
+				}
+			}
+		},
+		{
+			"path": "pages/index/appreciate",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleView": false
+				}
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleView": false
+				}
+			}
+		},
+		{
+			"path": "pages/login/register",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleView": false
+				}
+			}
+		},
+		{
+			"path": "pages/login/certification",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleView": false
+				}
+			}
+		},
+		{
+			"path": "pages/my/my",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleView": false
+				}
+			}
+		},
+		{
+			"path": "pages/login/text",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleView": false
+				}
+			}
+		},
+		{
+			"path": "pages/index/renDetails",
+			"style": {
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom",
+				"app-plus": {
+					"titleView": false
+				}
+			}
+		},
+		{
+			"path": "pages/index/zhuanchang",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		}
+	],
+	"tabBar": {
+		"color": "#666",
+		"selectedColor": "#E62402",
+		"borderStyle": "black",
+		"list": [{
+				"pagePath": "pages/index/index",
+				"iconPath": "/static/local_assets/f2307541aa2ebec0460b4ab0.png",
+				"selectedIconPath": "/static/local_assets/b3313853e4faa58c39a8e79e.png",
+				"text": "首页"
+			},
+			{
+				"pagePath": "pages/index/about",
+				"iconPath": "/static/local_assets/484594ac197d5ae97a489aa9.png",
+				"selectedIconPath": "/static/local_assets/17248b05dc8feb3a9102d371.png",
+				"text": "大赛"
+			},
+			{
+				"pagePath": "pages/index/dynamic",
+				"iconPath": "/static/local_assets/490eb1afa47e90e26c5bd680.png",
+				"selectedIconPath": "/static/local_assets/25b4f9fbdccbfb2a12126263.png",
+				"text": "动态"
+			},
+			{
+				"pagePath": "pages/index/grade",
+				"iconPath": "/static/local_assets/3ae261911942bc8b0259d87a.png",
+				"selectedIconPath": "/static/local_assets/66a85e1bceb195784770bea9.png",
+				"text": "成绩"
+			},
+			{
+				"pagePath": "pages/my/my",
+				"iconPath": "/static/local_assets/3cbc26b9fd60cee07f6fd013.png",
+				"selectedIconPath": "/static/local_assets/1cbd6e1d7d7e120853cc5fd1.png",
+				"text": "我的"
+			}
+		]
+	},
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "常青藤大赛",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"uniIdRouter": {}
+}

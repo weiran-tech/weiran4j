@@ -8,3 +8,4 @@
 | 模块 | 错误码序号段（CP-14） | 菜单 id 段（CP-15） | 权限码前缀 | Flyway 目录 / 表前缀 |
 | --- | --- | --- | --- | --- |
 | 框架 + 基座 | `00`–`19` | `1`–`999` | `system:` | `db/migration/system/`、`db/migration/platform/` · `sys_` |
+| 常青藤赛事 `weiran-cqt` | `20`–`39` | `1000`–`1999` | `cqt:` | `db/migration/cqt/` · `cqt_` |

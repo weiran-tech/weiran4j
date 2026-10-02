@@ -1,0 +1,240 @@
+/* 全局字体设置 - 思源黑体 */
+body, page {
+  font-family: 'Noto Sans SC', 'Source Han Sans SC', '思源黑体', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+}
+
+@for $i from 0 through 750 {
+  .mt#{$i} {
+    margin-top: #{$i}rpx !important;
+  }
+  .mr#{$i} {
+    margin-right: #{$i}rpx !important;
+  }
+  .mb#{$i} {
+    margin-bottom: #{$i}rpx !important;
+  }
+  .ml#{$i} {
+    margin-left: #{$i}rpx !important;
+  }
+  .m#{$i} {
+    margin: #{$i}rpx !important;
+  }
+  .pt#{$i} {
+    padding-top: #{$i}rpx !important;
+	box-sizing: border-box;
+  }
+  .pr#{$i} {
+    padding-right: #{$i}rpx !important;
+	box-sizing: border-box;
+  }
+  .pb#{$i} {
+    padding-bottom: #{$i}rpx !important;
+	box-sizing: border-box;
+  }
+  .pl#{$i} {
+    padding-left: #{$i}rpx !important;
+	box-sizing: border-box;
+  }
+  .p#{$i} {
+    padding: #{$i}rpx !important;
+	box-sizing: border-box;
+  }
+  .fs#{$i} {
+    font-size: #{$i}rpx !important;
+  }
+  .w#{$i} {
+	  width: #{$i}rpx !important;
+  }
+  .h#{$i} {
+  	  height: #{$i}rpx !important;
+  }
+  .wh#{$i} {
+	  width: #{$i}rpx !important;
+  	  height: #{$i}rpx !important;
+  }
+  .bdr#{$i} {
+  	  border-radius: #{$i}rpx !important;
+  }
+  .lh#{$i} {
+  	  line-height: #{$i}rpx !important;
+  }
+  .top#{$i} {
+  	  top: #{$i}rpx !important;
+  }
+  .left#{$i} {
+  	  left: #{$i}rpx !important;
+  }
+  .right#{$i} {
+  	  right: #{$i}rpx !important;
+  }
+  .bottom#{$i} {
+  	  bottom: #{$i}rpx !important;
+  }
+  .zyjj#{$i} {
+	  gap: #{$i}rpx !important;
+  }
+  .sxjj#{$i} {
+  	  display: flex;
+  	  flex-direction: column;
+  	  gap: #{$i}rpx !important;
+  }
+  .textsl#{$i} {
+  	display: -webkit-box;
+  	-webkit-box-orient: vertical;
+  	-webkit-line-clamp: #{$i};
+  	overflow: hidden;
+  	text-overflow: ellipsis;
+  }
+}
+
+.pointer{
+    cursor: pointer;
+}
+
+.t-left{
+	text-align: left;
+}
+.t-center{
+	text-align: center;
+}
+.t-right{
+	text-align: right;
+}
+
+.yuan{
+	border-radius: 50%;
+}
+
+.huan{
+	overflow-wrap: break-word;
+	word-break: break-word;
+	white-space: normal;
+	word-spacing: normal;
+}
+
+.w100b{
+	width: 100%;
+}
+
+.w50b{
+	width: 50%;
+}
+
+.topbottom{
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bold{
+	font-weight: 900;
+}
+
+.po-a{
+	position: absolute;
+}
+.po-r{
+	position: relative;
+}
+.po-f{
+	position: fixed;
+}
+
+//字体超过1行省略
+	.textsl1 {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 1;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	//字体超过2行省略
+	.textsl2 {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	//字体超过3行省略
+	.textsl3 {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 3;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	//字体超过4行省略
+	.textsl4 {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 4;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+/* 横向排列（挤） */
+	.e1 {
+		display: flex;
+		align-items: center;
+	}
+
+	.e11 {
+		display: flex;
+	}
+
+	/* 横向排列（松） */
+	.e2 {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	/* 横向排列（松） */
+	.e22 {
+		display: flex;
+		justify-content: space-between;
+	}
+
+	/* 横向排列+换行 */
+	.e3 {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+	}
+
+	/* 竖向排列（松） */
+	.e4 {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	
+	.e5{
+		display: flex;
+		justify-content: flex-end;
+	}
+
+	.zzz1 {
+		display: flex;
+		display: -webkit-flex;
+		-webkit-justify-content: center;
+		justify-content: center;
+	}
+
+	.zzz2 {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		justify-content: center;
+	}
+
+	.zzz3 {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}

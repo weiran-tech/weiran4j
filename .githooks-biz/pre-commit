@@ -1,0 +1,6 @@
+#!/bin/sh
+# 下游提交钩子：先跑上游门禁 ②，再查上游文件边界。启用：git config core.hooksPath .githooks-biz
+set -e
+root=$(git rev-parse --show-toplevel)
+sh "$root/.githooks/pre-commit"
+sh "$root/scripts/biz/upstream-boundary.sh"
