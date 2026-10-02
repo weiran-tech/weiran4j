@@ -33,16 +33,24 @@
  * 按条数或字符串比对必然大量误报,而误报会让人把整条检查连同真问题一起关掉。
  * 措辞准确性只能靠 review,这里只守「文件在不在、有没有登记」这两件可判定的事。
  *
+ * ─── 下游的第二张索引表(D-012)────────────────────────────────────────────
+ *
+ * fork 跟随本仓的下游不改 `AGENTS.md`,而是在仓库根的 `AGENTS.biz.md`(上游永不创建)里写自己的规范,
+ * 它放进 `rules/` 的文件(如 `advisory/components.biz.md`)就登记在那里的索引表。
+ * 所以两份文件都算索引来源;`AGENTS.biz.md` 不存在时行为与从前完全相同。
+ *
  * 契约:default export `{ id, run(ctx) }`,可选 `watches: []`;
  * ctx 见 openspec/check.mjs 的 pluginContext()。
  */
 import { readdirSync } from 'node:fs'
 
 const INDEX_FILE = 'AGENTS.md'
+/** 下游独占的第二张索引表,可选 */
+const BIZ_INDEX_FILE = 'AGENTS.biz.md'
 const RULES_DIR = 'openspec/rules'
 
 /** 索引表行里的 `rules/<名>.md` 链接。表格行以 `| [` 开头 */
-const INDEX_LINK = /rules\/((?:enforced\/|advisory\/)?[a-z0-9-]+\.md)/gi
+const INDEX_LINK = /rules\/((?:enforced\/|advisory\/)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.md)/gi
 
 /**
  * 不需要出现在索引表里的文件。`README.md` 是目录总览(表头那句
@@ -62,7 +70,7 @@ export default {
    * 在 hook 里**当场不响**,要等到 `git commit` 才被 pre-commit 拦。
    * 守卫本身是对的,错在没想清楚它该在哪一刻响。
    */
-  watches: [INDEX_FILE, RULES_DIR],
+  watches: [INDEX_FILE, BIZ_INDEX_FILE, RULES_DIR],
 
   run({ ROOT, join, existsSync, read, rel, err }) {
     const claude = join(ROOT, INDEX_FILE)
@@ -80,26 +88,27 @@ export default {
       return
     }
 
-    const text = read(claude)
-    const lines = text.split('\n')
-
     // ── 索引表登记了哪些文件 ──
-    const listed = new Map() // 文件名 -> 行号
-    for (let i = 0; i < lines.length; i++) {
-      INDEX_LINK.lastIndex = 0
-      let m
-      while ((m = INDEX_LINK.exec(lines[i])) !== null) {
-        if (!listed.has(m[1])) listed.set(m[1], i + 1)
+    const listed = new Map() // 文件名 -> { file, line }
+    const bizIndex = join(ROOT, BIZ_INDEX_FILE)
+    for (const indexFile of existsSync(bizIndex) ? [claude, bizIndex] : [claude]) {
+      const lines = read(indexFile).split('\n')
+      for (let i = 0; i < lines.length; i++) {
+        INDEX_LINK.lastIndex = 0
+        let m
+        while ((m = INDEX_LINK.exec(lines[i])) !== null) {
+          if (!listed.has(m[1])) listed.set(m[1], { file: indexFile, line: i + 1 })
+        }
       }
     }
     if (listed.size === 0) return // 表被整体改写成别的形态,不猜
 
     // ① 登记了但文件不在
-    for (const [name, line] of listed) {
+    for (const [name, { file, line }] of listed) {
       if (existsSync(join(rulesDir, name))) continue
       err(
         'REPO/rules-index-dangling',
-        rel(claude),
+        rel(file),
         `规则索引表指向 openspec/rules/${name},但该文件不存在 —— `
           + 'agent 会按表去 Read 一个空路径,拿到空结果后当作「这份规则没有内容」继续干活,'
           + '不会停下来问。移动或改名 rules/ 下的文件必须同步改这张表',
@@ -133,7 +142,7 @@ export default {
       err(
         'REPO/rules-index-missing',
         rel(join(rulesDir, relName)),
-        `openspec/rules/${relName} 没有登记进 AGENTS.md 的规则索引表 —— `
+        `openspec/rules/${relName} 没有登记进 AGENTS.md(fork 下游写 AGENTS.biz.md)的规则索引表 —— `
           + 'rules/ 下的文件不会被自动加载,唯一的唤起途径就是那张表。'
           + '漏登记的后果完全静默:文件在仓库里、grep 得到,但没有任何时刻会让人想起读它。'
           + '往表里加一行「什么时候必须读」,或确认它不该是一条规则',

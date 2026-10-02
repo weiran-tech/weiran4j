@@ -7,17 +7,19 @@ plugins {
 
 description = "weiran4j 可执行应用：聚合各业务模块的适配层与基础设施层，承载跨模块集成测试。"
 
+// 业务模块清单由 settings.gradle.kts 按目录发现（D-012）：新增模块不改本文件。
+@Suppress("UNCHECKED_CAST") // settings 写入的就是 List<String>；gradle.extra 只能按 Any? 取出。
+val businessModules = gradle.extra["weiran.businessModules"] as List<String>
+
 /**
  * 只能靠集成测试验证的层（application / infrastructure / adapter）以及 framework 的装配部分，
  * 覆盖率在这里跨模块聚合考核：各模块自己的 jacoco 门禁对这些层关闭（见各模块 build 脚本），
  * 由本模块的 Testcontainers 集成测试产生的执行数据统一度量。
  */
-val aggregatedCoverageProjects = listOf(
-    ":weiran-framework",
-    ":weiran-base-application",
-    ":weiran-base-infrastructure",
-    ":weiran-base-adapter",
-)
+val aggregatedCoverageProjects = listOf(":weiran-framework") +
+    businessModules.flatMap { module ->
+        listOf("application", "infrastructure", "adapter").map { layer -> ":$module-$layer" }
+    }
 
 weiranConventions {
     // 聚合口径：本模块自身只有启动类，数字几乎全部来自上面列出的模块。
@@ -25,8 +27,11 @@ weiranConventions {
 }
 
 dependencies {
-    implementation(project(":weiran-base-adapter"))
-    implementation(project(":weiran-base-infrastructure"))
+    // 装配各业务模块（CP-12 允许 weiran-app 依赖 adapter / infrastructure）。
+    businessModules.forEach { module ->
+        implementation(project(":$module-adapter"))
+        implementation(project(":$module-infrastructure"))
+    }
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-mysql")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui")

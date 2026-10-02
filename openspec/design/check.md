@@ -256,8 +256,8 @@ ROOT project join existsSync statSync read rel err warn git lastCommitTs dirtyFi
 | 插件 | 管什么 | 为什么是项目级 |
 |---|---|---|
 | _(数据库迁移台账)_ | weiran4j 尚未选定迁移方案（Flyway / Liquibase），因此暂无对应插件。选定后需要新写一个：迁移脚本是「序号型共享资源」，序号不递增会让迁移被静默跳过，这类失效不会报错，只会表现为线上 schema 漂移 | 判定**方法**属于流程，判定**代码**属于项目 |
-| `rules-index.mjs` | `AGENTS.md` 的规则索引表双向完整性:①表里登记的 `openspec/rules/` 文件必须存在(`REPO/rules-index-dangling`) ②`rules/` 下的每份 `.md` 必须被登记(`REPO/rules-index-missing`,`README.md` 豁免) | `rules/` **不会被自动注入提示词**,那张表是它唯一的唤起途径 —— 表漏一行,对应规则就等于不存在 |
-| `components-registry.mjs` | `web/src/components/` 与 `web/src/layouts/` 下每个组件文件名都必须在 `rules/advisory/components.md` 正文里出现(`REPO/components-unregistered`);测试、`index`/`types`/`constants` 与 `componentsRegistry.exempt` 豁免 | 扫哪几个目录、清单在哪是本仓库约定 |
+| `rules-index.mjs` | `AGENTS.md`(及可选的、下游独占的 `AGENTS.biz.md`)的规则索引表双向完整性:①表里登记的 `openspec/rules/` 文件必须存在(`REPO/rules-index-dangling`) ②`rules/` 下的每份 `.md` 必须被登记(`REPO/rules-index-missing`,`README.md` 豁免) | `rules/` **不会被自动注入提示词**,那张表是它唯一的唤起途径 —— 表漏一行,对应规则就等于不存在 |
+| `components-registry.mjs` | `web/src/components/` 与 `web/src/layouts/` 下每个组件文件名都必须在 `rules/advisory/components.md` 或(可选的、下游独占的)`components.biz.md` 正文里出现(`REPO/components-unregistered`);测试、`index`/`types`/`constants` 与 `componentsRegistry.exempt` 豁免 | 扫哪几个目录、清单在哪是本仓库约定 |
 | `state-waitlist.mjs` | `state/bizs/*.md` 条目编号:①文件内重号(`REPO/state-id-dup`) ②`<文件名>.md#NN` 引用指向不存在的条目(`REPO/state-id-dangling`) ③又出现已废止的 `T-NN`/`B-NN`(`REPO/state-id-legacy`) | `#NN` 编号格式与 `bizs/` 目录是本仓库 `state/` 的约定 |
 | `ratchet.mjs` | 存量只降不升(见 §7) | 规则内容是项目事实,住在 `project.json` |
 | `spec-xref.mjs` | 主 spec 正文里 `[FR-NNN]` 引用的目标必须存在 | 需求 ID 格式是本仓库约定 |

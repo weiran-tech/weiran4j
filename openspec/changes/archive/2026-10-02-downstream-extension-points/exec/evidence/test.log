@@ -1,0 +1,96 @@
+$ (cd weiran4j && JAVA_HOME=${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)} ./gradlew test --no-daemon) && pnpm --filter @weiran/web test
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+> Task :weiran-base-domain:processResources NO-SOURCE
+> Task :weiran-base-api:processResources NO-SOURCE
+> Task :weiran-base-domain:processTestResources NO-SOURCE
+> Task :weiran-framework:processResources UP-TO-DATE
+> Task :weiran-base-api:processTestResources NO-SOURCE
+> Task :weiran-app:processResources UP-TO-DATE
+> Task :weiran-base-adapter:processResources UP-TO-DATE
+> Task :weiran-base-application:processResources UP-TO-DATE
+> Task :weiran-base-infrastructure:processResources UP-TO-DATE
+> Task :weiran-framework:processTestResources NO-SOURCE
+> Task :weiran-base-adapter:processTestResources NO-SOURCE
+> Task :weiran-base-application:processTestResources NO-SOURCE
+> Task :weiran-base-infrastructure:processTestResources NO-SOURCE
+> Task :weiran-app:processTestResources UP-TO-DATE
+> Task :weiran-common:compileJava UP-TO-DATE
+> Task :weiran-common:processResources NO-SOURCE
+> Task :weiran-common:classes UP-TO-DATE
+> Task :weiran-common:jar UP-TO-DATE
+> Task :weiran-base-api:compileJava UP-TO-DATE
+> Task :weiran-base-domain:compileJava UP-TO-DATE
+> Task :weiran-base-api:classes UP-TO-DATE
+> Task :weiran-base-domain:classes UP-TO-DATE
+> Task :weiran-base-domain:jar UP-TO-DATE
+> Task :weiran-base-api:jar UP-TO-DATE
+> Task :weiran-base-api:compileTestJava NO-SOURCE
+> Task :weiran-base-api:testClasses UP-TO-DATE
+> Task :weiran-base-api:test NO-SOURCE
+> Task :weiran-common:compileTestJava UP-TO-DATE
+> Task :weiran-common:processTestResources NO-SOURCE
+> Task :weiran-common:testClasses UP-TO-DATE
+> Task :weiran-base-domain:compileTestJava UP-TO-DATE
+> Task :weiran-base-domain:testClasses UP-TO-DATE
+> Task :weiran-common:test UP-TO-DATE
+> Task :weiran-base-domain:test UP-TO-DATE
+> Task :weiran-framework:compileJava UP-TO-DATE
+> Task :weiran-framework:classes UP-TO-DATE
+> Task :weiran-framework:jar UP-TO-DATE
+> Task :weiran-base-application:compileJava UP-TO-DATE
+> Task :weiran-base-application:classes UP-TO-DATE
+> Task :weiran-base-infrastructure:compileJava UP-TO-DATE
+> Task :weiran-base-infrastructure:classes UP-TO-DATE
+> Task :weiran-base-application:jar UP-TO-DATE
+> Task :weiran-base-infrastructure:jar UP-TO-DATE
+> Task :weiran-base-application:compileTestJava NO-SOURCE
+> Task :weiran-base-application:testClasses UP-TO-DATE
+> Task :weiran-base-application:test NO-SOURCE
+> Task :weiran-framework:compileTestJava UP-TO-DATE
+> Task :weiran-framework:testClasses UP-TO-DATE
+> Task :weiran-base-adapter:compileJava UP-TO-DATE
+> Task :weiran-base-adapter:classes UP-TO-DATE
+> Task :weiran-base-adapter:jar UP-TO-DATE
+> Task :weiran-base-adapter:compileTestJava NO-SOURCE
+> Task :weiran-base-adapter:testClasses UP-TO-DATE
+> Task :weiran-framework:test UP-TO-DATE
+> Task :weiran-base-adapter:test NO-SOURCE
+> Task :weiran-app:compileJava UP-TO-DATE
+> Task :weiran-app:classes UP-TO-DATE
+> Task :weiran-base-infrastructure:compileTestJava UP-TO-DATE
+> Task :weiran-base-infrastructure:testClasses UP-TO-DATE
+> Task :weiran-app:compileTestJava UP-TO-DATE
+> Task :weiran-app:testClasses UP-TO-DATE
+> Task :weiran-base-infrastructure:test
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+2026-10-02T20:48:25.672+08:00  INFO 9447 --- [weiran4j] [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-10-02T20:48:25.684+08:00  INFO 9447 --- [weiran4j] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-10-02T20:48:25.952+08:00  INFO 9447 --- [weiran4j] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-10-02T20:48:25.955+08:00  INFO 9447 --- [weiran4j] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+> Task :weiran-app:test
+
+BUILD SUCCESSFUL in 30s
+35 actionable tasks: 2 executed, 33 up-to-date
+$ vitest run
+
+ RUN  v5.0.2 /Users/duoli/Projects/duoli-weiran4j/web
+
+
+ Test Files  27 passed (27)
+      Tests  225 passed (225)
+   Start at  20:48:29
+   Duration  13.82s (transform 32%, import 27%, tests 22%, environment 16%, setup 4%)
+
+     Import  923 modules were evaluated 13574 times · 29.75s total, 27% of tracked time
+             ~1.41s faster with isolate: false — shared modules are evaluated once per worker instead of once per file
+             learn more: https://vitest.dev/guide/improving-performance#test-isolation
+
+exit=0

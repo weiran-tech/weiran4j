@@ -1,6 +1,10 @@
 spring:
   application:
     name: weiran4j
+  config:
+    # 业务模块的默认配置（D-012，契约 §2.2）：放在某个业务模块的 classpath 根，全应用只能有一份。
+    # 它覆盖本文件的同名键，但低于 profile 文件与环境变量；不存在时忽略。密钥不放那里（CP-9）。
+    import: optional:classpath:application-biz.yml
   datasource:
     url: ${WEIRAN_DB_URL:jdbc:mysql://127.0.0.1:3306/weiran4j?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}
     username: ${WEIRAN_DB_USERNAME:root}
@@ -10,6 +14,9 @@ spring:
     enabled: true
     # 递归扫描：各模块 infrastructure 把脚本放在 db/migration/<module>/ 下。
     locations: classpath:db/migration
+    # 上下游（fork）的脚本时间戳必然交错：后合入的低版本脚本要补执行，而不是让启动失败（D-012）。
+    # 代价是执行顺序不再严格等于版本号顺序——脚本之间不得依赖版本号之外的隐含次序。
+    out-of-order: true
   web:
     # 校验提示语（如「不能为空」）按固定中文输出，不随客户端 Accept-Language 漂移。
     locale: zh_CN

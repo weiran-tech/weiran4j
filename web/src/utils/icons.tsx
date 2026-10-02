@@ -2,7 +2,10 @@
  * 菜单 icon 字段（lucide 图标名）→ 组件。
  *
  * mono4ts 懒加载全量 lucide 表（~600KB）；这里只收一份常用白名单，
- * 静态导入可被摇树，IconPicker 也从这份清单里挑。需要新图标时往下面追加即可。
+ * 静态导入可被摇树，IconPicker 也从这份清单里挑。基座需要新图标时往下面追加即可。
+ *
+ * fork 跟随本仓的下游不改本文件（D-012，契约 §2.2）：在 `src/biz/icons*.ts` 里
+ * `export const icons = { Rocket }`，构建时由 `import.meta.glob` 合并进来，与基座同名的以基座为准。
  */
 import {
     Activity,
@@ -73,7 +76,7 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 
-export const MENU_ICONS: Readonly<Record<string, LucideIcon>> = {
+const BASE_ICONS: Readonly<Record<string, LucideIcon>> = {
     Activity,
     AppWindow,
     Archive,
@@ -140,6 +143,38 @@ export const MENU_ICONS: Readonly<Record<string, LucideIcon>> = {
     Workflow,
     Wrench,
 };
+
+/** 下游图标文件的导出形状：`export const icons: Record<string, LucideIcon>` */
+export type BizIconModule = { icons?: Readonly<Record<string, LucideIcon>> };
+
+/**
+ * 把下游图标并入基座白名单。基座已有的名字不覆盖（下游不应悄悄改掉基座菜单的图标），交给 `onDuplicate` 报告。
+ * 多个下游文件按文件路径排序后依次合并，结果与 glob 的返回顺序无关。
+ */
+export function mergeIcons(
+    base: Readonly<Record<string, LucideIcon>>,
+    modules: Readonly<Record<string, BizIconModule>>,
+    onDuplicate: (name: string, file: string) => void = () => {},
+): Readonly<Record<string, LucideIcon>> {
+    const merged: Record<string, LucideIcon> = { ...base };
+    for (const [file, mod] of Object.entries(modules).sort(([a], [b]) => a.localeCompare(b))) {
+        for (const [name, icon] of Object.entries(mod.icons ?? {})) {
+            if (Object.hasOwn(base, name)) {
+                onDuplicate(name, file);
+                continue;
+            }
+            merged[name] = icon;
+        }
+    }
+    return merged;
+}
+
+// 下游独占目录，上游永不创建；没有匹配文件时 glob 返回空对象。
+const bizIconModules = import.meta.glob<BizIconModule>('../biz/icons*.ts', { eager: true });
+
+export const MENU_ICONS: Readonly<Record<string, LucideIcon>> = mergeIcons(BASE_ICONS, bizIconModules, (name, file) => {
+    if (import.meta.env.DEV) console.warn(`[icons] ${file} 的图标 ${name} 与基座重名，已忽略（以基座为准）`);
+});
 
 export const MENU_ICON_NAMES: readonly string[] = Object.keys(MENU_ICONS).sort((a, b) => a.localeCompare(b));
 

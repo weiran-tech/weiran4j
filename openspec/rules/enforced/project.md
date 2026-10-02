@@ -50,24 +50,26 @@
 
 ### SL-1 · `settings.gradle.kts`
 
-新增业务模块只需在 `businessModules` 列表里追加模块名（五层 include 与目录映射由循环生成）；
-新增非业务模块（如 `weiran-xxx-starter`）在 `include(...)` 块里追加。**全仓单点**，并行追加极易冲突。
+业务模块靠目录自动发现（D-012）：`weiran-<mod>/` 下五层子目录齐全即被 include，**新增业务模块不改本文件**；
+发现结果写入 `gradle.extra["weiran.businessModules"]`，供 SL-2、SL-3 读取。五层不齐时构建失败。
+新增**非业务**模块（如 `weiran-xxx-starter`）仍在 `include(...)` 块里追加——这部分仍是**全仓单点**，并行追加极易冲突；
+改发现逻辑本身同理。
 
 ### SL-2 · `weiran-dependencies/build.gradle.kts`
 
 `constraints { ... }` 块钉住 Spring Boot / MyBatis-Plus BOM 之外的第三方版本，并列出仓内模块坐标。
-新增模块或新依赖需追加行。全仓单点，多人同时追加会冲突。
+业务模块的五层坐标按 SL-1 的发现清单生成，新增业务模块不改本文件；新增第三方依赖或非业务模块仍需追加行。全仓单点，多人同时追加会冲突。
 
 ### SL-3 · `weiran-app/build.gradle.kts`
 
-新增模块需在 `dependencies {}` 追加对其 `adapter` 与 `infrastructure` 两层的
-`implementation(project(":..."))`。这是应用侧唯一需要感知新模块存在的地方。
+对各业务模块 `adapter` / `infrastructure` 的依赖与三层覆盖率聚合按 SL-1 的发现清单生成，新增业务模块不改本文件；
+改应用级依赖、聚合口径或 `bootRun` 配置时才会碰它。
 
 ### SL-4 · Flyway 种子菜单（`weiran-*-infrastructure/.../db/migration/**`）
 
 **前端路由由后端 `sys_menu` 驱动**（`/api/auth/menus`），`web/src/App.tsx` 不再逐页登记 `<Route>`。
 新增页面必须**追加一个 Flyway 迁移**往 `sys_menu` 插入菜单行（`component` = 相对 `web/src/pages` 的路径，无 `.tsx`），
-并按需插入按钮权限行与 `sys_role_menu` 绑定。菜单 id 是全局序号：并行的两个 change 各插一个 id，会撞主键。基座占 `1`–`999`，业务模块从 `1000` 起按契约 §2.1 登记的段取（宪法 CP-15）。
+并按需插入按钮权限行与 `sys_role_menu` 绑定。菜单 id 是全局序号：并行的两个 change 各插一个 id，会撞主键。基座占 `1`–`999`，业务模块从 `1000` 起按 `weiran4j/docs/business-modules.md` 登记的段取（宪法 CP-15）。
 
 ### SL-5 · `web/src/pages/**` 与 `web/src/utils/page-registry.ts`
 
@@ -97,6 +99,8 @@ domain 的 `error` 包里。前端 `web/src/utils/request.ts` 依赖 `40100`（�
 **Flyway 迁移版本号**（`V<yyyyMMddHHmm>__<module>_<desc>.sql`，全仓全局唯一）与 **`sys_menu` 的 id** 是本仓库的序号型资源。
 两个 change 取到同一版本号或同一菜单 id 时，合并后 Flyway 启动失败或主键冲突。
 已合入的迁移不可修改（宪法 CP-7）。
+Flyway 以 `out-of-order: true` 运行（D-012）：版本号早于已执行最大版本的新脚本会被补执行而不是让启动失败，
+所以撞号仍会失败，但「取了一个偏旧的时间戳」不再失败——脚本之间不得依赖版本号之外的隐含次序。
 
 ---
 

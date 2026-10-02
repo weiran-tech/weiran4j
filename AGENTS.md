@@ -21,6 +21,9 @@
 4. **统一响应的 `code` 是数字 `0`**（`{code, message, data}`，失败为五位错误码，前三位即 HTTP 状态）。
    旧版 weiran4j 是字符串 `"0"`，从旧代码或别处搬前端代码时判断会静默出错。
 
+> **仓库根存在 `AGENTS.biz.md` 时必读。** 以 git fork 跟随本仓的下游项目把自己的业务规范写在那里，
+> 不改本文件（上游永不创建 `AGENTS.biz.md`，见 D-012 与契约 §2.2「下游扩展入口」）。两者冲突时以本文件的硬约束为准。
+
 ## 常用命令
 
 ```bash
@@ -74,8 +77,9 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 ```
 
 业务模块的五层：`weiran-<mod>-{api,domain,application,infrastructure,adapter}`。模块路径是**扁平**的
-（`:weiran-base-api`），目录是**嵌套**的（`weiran-base/weiran-base-api`）——新增业务模块只需在
-`weiran4j/settings.gradle.kts` 的 `businessModules` 列表里追加模块名。
+（`:weiran-base-api`），目录是**嵌套**的（`weiran-base/weiran-base-api`）——新增业务模块只需建好
+`weiran4j/weiran-<mod>/weiran-<mod>-{五层}/` 目录，`settings.gradle.kts` 会自动发现，BOM 与 `weiran-app` 的依赖随之生成，
+不改任何构建脚本（D-012）。**建了其中几层却不齐时构建直接失败**，报错里列出缺的层。
 
 ### 新增一个页面 / 功能的完整路径
 
@@ -134,7 +138,7 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 
 | 文件 | 什么时候**必须**读 | 有无机械校验 |
 | --- | --- | --- |
-| [`rules/enforced/constitution.md`](openspec/rules/enforced/constitution.md) | 写 `design.md` 的「宪法对照」表时；**改表结构或种子数据前（CP-7：只能追加 Flyway 脚本，已合入的永不修改）**；碰密码/令牌路径时（CP-8：只用 BCrypt，吊销只走 `token_version`）；给模块加依赖或版本号时（CP-4）；**新增业务模块、让业务依赖基座、新增错误码 / 权限码 / 菜单 id 时（CP-12 … CP-15：依赖只能业务 → 基座 → 框架，业务只依赖 `weiran-base-api`，号段先在契约 §2.1 登记）**；要放宽任何质量规则时（CP-5/CP-6） | ✅ `L2c/constitution-check` + `TEMPLATE/constitution-rows` |
+| [`rules/enforced/constitution.md`](openspec/rules/enforced/constitution.md) | 写 `design.md` 的「宪法对照」表时；**改表结构或种子数据前（CP-7：只能追加 Flyway 脚本，已合入的永不修改）**；碰密码/令牌路径时（CP-8：只用 BCrypt，吊销只走 `token_version`）；给模块加依赖或版本号时（CP-4）；**新增业务模块、让业务依赖基座、新增错误码 / 权限码 / 菜单 id 时（CP-12 … CP-15：依赖只能业务 → 基座 → 框架，业务只依赖 `weiran-base-api`，号段先在 [`weiran4j/docs/business-modules.md`](weiran4j/docs/business-modules.md) 登记）**；要放宽任何质量规则时（CP-5/CP-6） | ✅ `L2c/constitution-check` + `TEMPLATE/constitution-rows` |
 | [`rules/enforced/project.md`](openspec/rules/enforced/project.md) | 新增 Gradle 模块前、**新增页面/菜单前（§一 SL-4/SL-5：菜单行与页面文件配对）**、取 Flyway 版本号或菜单 id 前（序号型资源）；判断能不能与他人同时推进时（§二 WT-N，本仓库没有 worktree）；写 `proposal.md`/`tasks.md`/`design.md` 前（§三～六 CC/PK/TG/DS-N） | ✅ `TEMPLATE/profile-rows` |
 | [`rules/advisory/components.md`](openspec/rules/advisory/components.md) | **写 `web/` 的页面或组件前 —— 先查再造**；**给侧边菜单加图标时**（目录节点必须用 `renderNavIcon()`）；删除组件或改其对外协议后回来改这里 | 🟡 只查「新增未登记」（`REPO/components-unregistered`），不查描述对不对 |
 | [`rules/advisory/list-view.md`](openspec/rules/advisory/list-view.md) | **写或改 `web/` 的列表页（搜索栏 + 表格）前**；**加列 / 改列宽前**（1440 宽双列布局表格只有 1115px，手机号、时间按最坏数据算宽，否则只有部分行折行）；**往高级筛选面板加字段前**（后端不认的参数被静默忽略，筛了等于没筛） | ❌ 无 —— 全靠这张表唤起 |

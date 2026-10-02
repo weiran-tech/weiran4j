@@ -1,0 +1,205 @@
+$ (cd weiran4j && JAVA_HOME=${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)} ./gradlew assemble --no-daemon) && pnpm --filter @weiran/web build
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+> Task :weiran-dependencies:assemble UP-TO-DATE
+> Task :assemble UP-TO-DATE
+> Task :weiran-base-domain:processResources NO-SOURCE
+> Task :weiran-base-api:processResources NO-SOURCE
+> Task :weiran-base-application:processResources UP-TO-DATE
+> Task :weiran-base-adapter:processResources UP-TO-DATE
+> Task :weiran-framework:processResources UP-TO-DATE
+> Task :weiran-app:processResources
+> Task :weiran-base-infrastructure:processResources
+> Task :weiran-common:compileJava UP-TO-DATE
+> Task :weiran-app:sourcesJar
+> Task :weiran-common:processResources NO-SOURCE
+> Task :weiran-common:classes UP-TO-DATE
+> Task :weiran-common:jar UP-TO-DATE
+> Task :weiran-base-application:sourcesJar
+> Task :weiran-base-adapter:sourcesJar
+> Task :weiran-base-domain:sourcesJar
+> Task :weiran-framework:sourcesJar
+> Task :weiran-base-api:sourcesJar
+> Task :weiran-base-infrastructure:sourcesJar
+> Task :weiran-common:sourcesJar
+> Task :weiran-common:assemble
+> Task :weiran-base-domain:compileJava UP-TO-DATE
+> Task :weiran-base-api:compileJava UP-TO-DATE
+> Task :weiran-base-api:classes UP-TO-DATE
+> Task :weiran-base-domain:classes UP-TO-DATE
+> Task :weiran-base-api:jar UP-TO-DATE
+> Task :weiran-base-domain:jar UP-TO-DATE
+> Task :weiran-base-api:assemble
+> Task :weiran-base-domain:assemble
+> Task :weiran-framework:compileJava UP-TO-DATE
+> Task :weiran-framework:classes UP-TO-DATE
+> Task :weiran-framework:jar
+> Task :weiran-framework:assemble
+> Task :weiran-base-application:compileJava UP-TO-DATE
+> Task :weiran-base-application:classes UP-TO-DATE
+> Task :weiran-base-application:jar UP-TO-DATE
+> Task :weiran-base-application:assemble
+> Task :weiran-base-infrastructure:compileJava UP-TO-DATE
+> Task :weiran-base-infrastructure:classes
+> Task :weiran-base-infrastructure:jar
+> Task :weiran-base-infrastructure:assemble
+> Task :weiran-base-adapter:compileJava UP-TO-DATE
+> Task :weiran-base-adapter:classes UP-TO-DATE
+> Task :weiran-base-adapter:jar UP-TO-DATE
+> Task :weiran-base-adapter:assemble
+> Task :weiran-app:compileJava UP-TO-DATE
+> Task :weiran-app:classes
+> Task :weiran-app:resolveMainClassName
+> Task :weiran-app:bootJar
+> Task :weiran-app:jar SKIPPED
+> Task :weiran-app:assemble
+
+BUILD SUCCESSFUL in 5s
+34 actionable tasks: 14 executed, 20 up-to-date
+$ tsc -b && vite build
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 4888 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                 1.73 kB │ gzip:   0.53 kB
+dist/assets/button-DpApW4vm.css                 0.14 kB │ gzip:   0.12 kB
+dist/assets/DashboardPage-CTIIasra.css          0.99 kB │ gzip:   0.51 kB
+dist/assets/SearchToolbar-BK040tsn.css          1.03 kB │ gzip:   0.42 kB
+dist/assets/TableActions-Ft_MemP2.css           1.77 kB │ gzip:   0.59 kB
+dist/assets/DictsPage-DgEojB04.css              5.35 kB │ gzip:   1.25 kB
+dist/assets/descriptions-l4Z79VgA.css           5.86 kB │ gzip:   0.85 kB
+dist/assets/LoginPage-BTNP1tmq.css              7.07 kB │ gzip:   1.72 kB
+dist/assets/checkboxGroup-01exSO2B.css          9.16 kB │ gzip:   1.37 kB
+dist/assets/tree-B77vUM2I.css                  18.15 kB │ gzip:   2.12 kB
+dist/assets/typography-BENI6cwP.css            19.45 kB │ gzip:   2.51 kB
+dist/assets/refresh-cw-blwFrBnL.css            24.29 kB │ gzip:   3.24 kB
+dist/assets/radio-Dl9vDiB8.css                 26.95 kB │ gzip:   3.47 kB
+dist/assets/request-DhGVpB6r.css               30.87 kB │ gzip:   4.14 kB
+dist/assets/index-Cr0aruxL.css                 33.33 kB │ gzip:   3.42 kB
+dist/assets/config-BxgYS7vK.css                49.83 kB │ gzip:   7.84 kB
+dist/assets/split-B0WZD-wM.css                 55.16 kB │ gzip:   5.60 kB
+dist/assets/index-KrTgIpeG.css                107.11 kB │ gzip:  13.96 kB
+dist/assets/baseForm-CAwGlcsZ.css             134.01 kB │ gzip:  16.63 kB
+dist/assets/password-WTnANTp3.js                0.11 kB │ gzip:   0.12 kB
+dist/assets/Permission-s3X1mJ52.js              0.31 kB │ gzip:   0.24 kB
+dist/assets/PageContainer-DZWMTtZZ.js           0.40 kB │ gzip:   0.23 kB
+dist/assets/DictTag-Cr26_-oo.js                 0.42 kB │ gzip:   0.30 kB
+dist/assets/DictSelect-CmVKVVPu.js              0.44 kB │ gzip:   0.31 kB
+dist/assets/date-BmWTkVlc.js                    0.57 kB │ gzip:   0.32 kB
+dist/assets/StatusTag-CG7fZK_B.js               0.58 kB │ gzip:   0.38 kB
+dist/assets/logs-DckM-QOK.js                    0.59 kB │ gzip:   0.29 kB
+dist/assets/rolldown-runtime-hePW80VL.js        0.71 kB │ gzip:   0.42 kB
+dist/assets/menus-D6FcEAcn.js                   0.72 kB │ gzip:   0.35 kB
+dist/assets/users-D2h7vshT.js                   0.88 kB │ gzip:   0.43 kB
+dist/assets/NotFoundPage-VU8rfkDe.js            0.95 kB │ gzip:   0.65 kB
+dist/assets/ForbiddenPage-AaHWb57N.js           0.99 kB │ gzip:   0.69 kB
+dist/assets/ResetPasswordModal-DyyohSTC.js      1.00 kB │ gzip:   0.66 kB
+dist/assets/roles-BpktmrJa.js                   1.10 kB │ gzip:   0.48 kB
+dist/assets/preload-helper-BZ1Pz5am.js          1.21 kB │ gzip:   0.69 kB
+dist/assets/DepartmentTreeSelect-D8YYs1lt.js    1.38 kB │ gzip:   0.77 kB
+dist/assets/dicts-CAfN-u4_.js                   1.43 kB │ gzip:   0.57 kB
+dist/assets/auth-BwlNvG69.js                    1.44 kB │ gzip:   0.59 kB
+dist/assets/RoleFormModal-C6J325P0.js           1.70 kB │ gzip:   1.02 kB
+dist/assets/DashboardPage-lZxMdeVa.js           1.99 kB │ gzip:   0.97 kB
+dist/assets/useMutation-DMPNULGl.js             2.38 kB │ gzip:   0.99 kB
+dist/assets/UserFormModal-CYJ5ycr4.js           2.79 kB │ gzip:   1.41 kB
+dist/assets/ProfilePage-BMImIt9h.js             2.84 kB │ gzip:   1.30 kB
+dist/assets/DictFormModals-CJhk3ukw.js          3.01 kB │ gzip:   1.34 kB
+dist/assets/createLucideIcon-CGhWHAfG.js        3.14 kB │ gzip:   1.51 kB
+dist/assets/MenusPage-O3Dy_ZZP.js               3.27 kB │ gzip:   1.70 kB
+dist/assets/LoginLogsPage-uoeMAhTB.js           3.41 kB │ gzip:   1.53 kB
+dist/assets/RolesPage-DK8gjZ1-.js               3.72 kB │ gzip:   1.85 kB
+dist/assets/descriptions-B22pNMUc.js            4.54 kB │ gzip:   1.65 kB
+dist/assets/OperationLogsPage-DXbRNZOB.js       4.58 kB │ gzip:   2.02 kB
+dist/assets/DepartmentsPage-C_HTnqAA.js         5.01 kB │ gzip:   2.33 kB
+dist/assets/ConfigsPage-C0tS5F63.js             5.15 kB │ gzip:   2.51 kB
+dist/assets/MenuFormModal-qHNdzNJ9.js           5.22 kB │ gzip:   2.35 kB
+dist/assets/LoginPage-D978QWm_.js               5.96 kB │ gzip:   2.46 kB
+dist/assets/SearchToolbar-CFmHgMJK.js           8.08 kB │ gzip:   3.03 kB
+dist/assets/UsersPage--_fweyQM.js               8.24 kB │ gzip:   3.10 kB
+dist/assets/TableActions-DTnhdj6W.js            8.53 kB │ gzip:   2.98 kB
+dist/assets/DictsPage-B5a44ote.js              11.68 kB │ gzip:   4.47 kB
+dist/assets/tree-nyUQp_jY.js                   13.33 kB │ gzip:   4.54 kB
+dist/assets/checkboxGroup-Dmb_EcPn.js          21.34 kB │ gzip:   6.98 kB
+dist/assets/button-BsP_DZ5u.js                 22.42 kB │ gzip:   9.26 kB
+dist/assets/RoleMenuSheet-CzLLp79u.js          26.19 kB │ gzip:   8.03 kB
+dist/assets/index.esm-ebwsmkos.js              36.78 kB │ gzip:  11.48 kB
+dist/assets/request-QKyCHhuB.js                56.69 kB │ gzip:  17.41 kB
+dist/assets/config-66mubSef.js                 62.23 kB │ gzip:  20.09 kB
+dist/assets/typography-C8LaCNP3.js             65.70 kB │ gzip:  18.62 kB
+dist/assets/radio-DSEEdHPq.js                 106.20 kB │ gzip:  29.51 kB
+dist/assets/refresh-cw-DRUwZGvR.js            157.99 kB │ gzip:  42.11 kB
+dist/assets/split-DfYyG0ff.js                 220.30 kB │ gzip:  53.75 kB
+dist/assets/baseForm-C-zZajVU.js              370.52 kB │ gzip: 102.48 kB
+dist/assets/index-C-JcY6yB.js                 451.39 kB │ gzip: 139.57 kB
+
+[33m[EVAL] [0mUse of direct `eval` function is strongly discouraged as it poses security risks and may cause issues with minification.
+       [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m ../node_modules/.pnpm/lottie-web@5.13.0/node_modules/lottie-web/build/player/lottie.js:14422:33 [38;5;246m][0m
+       [38;5;246m│[0m
+ [38;5;246m14422 │[0m [38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249mv[0m[38;5;249ma[0m[38;5;249mr[0m[38;5;249m [0m[38;5;249me[0m[38;5;249mx[0m[38;5;249mp[0m[38;5;249mr[0m[38;5;249me[0m[38;5;249ms[0m[38;5;249ms[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249m_[0m[38;5;249mf[0m[38;5;249mu[0m[38;5;249mn[0m[38;5;249mc[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249m [0m[38;5;249m=[0m[38;5;249m [0meval[38;5;249m([0m[38;5;249m'[0m[38;5;249m[[0m[38;5;249mf[0m[38;5;249mu[0m[38;5;249mn[0m[38;5;249mc[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249m [0m[38;5;249m_[0m[38;5;249me[0m[38;5;249mx[0m[38;5;249mp[0m[38;5;249mr[0m[38;5;249me[0m[38;5;249ms[0m[38;5;249ms[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249m_[0m[38;5;249mf[0m[38;5;249mu[0m[38;5;249mn[0m[38;5;249mc[0m[38;5;249mt[0m[38;5;249mi[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249m([0m[38;5;249m)[0m[38;5;249m{[0m[38;5;249m'[0m[38;5;249m [0m[38;5;249m+[0m[38;5;249m [0m[38;5;249mv[0m[38;5;249ma[0m[38;5;249ml[0m[38;5;249m [0m[38;5;249m+[0m[38;5;249m [0m[38;5;249m'[0m[38;5;249m;[0m[38;5;249ms[0m[38;5;249mc[0m[38;5;249mo[0m[38;5;249mp[0m[38;5;249me[0m[38;5;249md[0m[38;5;249m_[0m[38;5;249mb[0m[38;5;249mm[0m[38;5;249m_[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m=[0m[38;5;249m$[0m[38;5;249mb[0m[38;5;249mm[0m[38;5;249m_[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m}[0m[38;5;249m][0m[38;5;249m'[0m[38;5;249m)[0m[38;5;249m[[0m[38;5;249m0[0m[38;5;249m][0m[38;5;249m;[0m[38;5;249m [0m[38;5;249m/[0m[38;5;249m/[0m[38;5;249m [0m[38;5;249me[0m[38;5;249ms[0m[38;5;249ml[0m[38;5;249mi[0m[38;5;249mn[0m[38;5;249mt[0m[38;5;249m-[0m[38;5;249md[0m[38;5;249mi[0m[38;5;249ms[0m[38;5;249ma[0m[38;5;249mb[0m[38;5;249ml[0m[38;5;249me[0m[38;5;249m-[0m[38;5;249ml[0m[38;5;249mi[0m[38;5;249mn[0m[38;5;249me[0m[38;5;249m [0m[38;5;249mn[0m[38;5;249mo[0m[38;5;249m-[0m[38;5;249me[0m[38;5;249mv[0m[38;5;249ma[0m[38;5;249ml[0m
+ [38;5;240m      │[0m                                 ──┬─  
+ [38;5;240m      │[0m                                   ╰─── Use of direct `eval` here.
+ [38;5;240m      │[0m 
+ [38;5;240m      │[0m [38;5;115mHelp[0m: Consider using indirect eval. For more information, check the documentation: https://rolldown.rs/guide/troubleshooting#avoiding-direct-eval
+[38;5;246m───────╯[0m
+
+[33m[MODULE_LEVEL_DIRECTIVE] [0mThe semantics of the module level directive "" in "../node_modules/.pnpm/@mdx-js+mdx@3.1.1/node_modules/@mdx-js/mdx/lib/util/resolve-evaluate-options.js" may not be preserved when bundling.
+    [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m ../node_modules/.pnpm/@mdx-js+mdx@3.1.1/node_modules/@mdx-js/mdx/lib/util/resolve-evaluate-options.js:48:1 [38;5;246m][0m
+    [38;5;246m│[0m
+ [38;5;246m48 │[0m ''
+ [38;5;240m   │[0m ─┬  
+ [38;5;240m   │[0m  ╰── module level directive may not be preserved
+ [38;5;240m   │[0m 
+ [38;5;240m   │[0m [38;5;115mHelp[0m: For more information, see https://rolldown.rs/in-depth/directives#other-directives
+[38;5;246m────╯[0m
+
+[33m[MODULE_LEVEL_DIRECTIVE] [0mThe semantics of the module level directive "" in "../node_modules/.pnpm/@mdx-js+mdx@3.1.1/node_modules/@mdx-js/mdx/lib/util/estree-util-create.js" may not be preserved when bundling.
+   [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m ../node_modules/.pnpm/@mdx-js+mdx@3.1.1/node_modules/@mdx-js/mdx/lib/util/estree-util-create.js:6:1 [38;5;246m][0m
+   [38;5;246m│[0m
+ [38;5;246m6 │[0m ''
+ [38;5;240m  │[0m ─┬  
+ [38;5;240m  │[0m  ╰── module level directive may not be preserved
+ [38;5;240m  │[0m 
+ [38;5;240m  │[0m [38;5;115mHelp[0m: For more information, see https://rolldown.rs/in-depth/directives#other-directives
+[38;5;246m───╯[0m
+
+[33m[MODULE_LEVEL_DIRECTIVE] [0mThe semantics of the module level directive "" in "../node_modules/.pnpm/@mdx-js+mdx@3.1.1/node_modules/@mdx-js/mdx/lib/util/estree-util-is-declaration.js" may not be preserved when bundling.
+    [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m ../node_modules/.pnpm/@mdx-js+mdx@3.1.1/node_modules/@mdx-js/mdx/lib/util/estree-util-is-declaration.js:11:1 [38;5;246m][0m
+    [38;5;246m│[0m
+ [38;5;246m11 │[0m ''
+ [38;5;240m   │[0m ─┬  
+ [38;5;240m   │[0m  ╰── module level directive may not be preserved
+ [38;5;240m   │[0m 
+ [38;5;240m   │[0m [38;5;115mHelp[0m: For more information, see https://rolldown.rs/in-depth/directives#other-directives
+[38;5;246m────╯[0m
+
+[33m[MODULE_LEVEL_DIRECTIVE] [0mThe semantics of the module level directive "" in "../node_modules/.pnpm/hast-util-to-estree@3.1.3/node_modules/hast-util-to-estree/lib/handlers/text.js" may not be preserved when bundling.
+   [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m ../node_modules/.pnpm/hast-util-to-estree@3.1.3/node_modules/hast-util-to-estree/lib/handlers/text.js:9:1 [38;5;246m][0m
+   [38;5;246m│[0m
+ [38;5;246m9 │[0m ''
+ [38;5;240m  │[0m ─┬  
+ [38;5;240m  │[0m  ╰── module level directive may not be preserved
+ [38;5;240m  │[0m 
+ [38;5;240m  │[0m [38;5;115mHelp[0m: For more information, see https://rolldown.rs/in-depth/directives#other-directives
+[38;5;246m───╯[0m
+
+[33m[MODULE_LEVEL_DIRECTIVE] [0mThe semantics of the module level directive "" in "../node_modules/.pnpm/hast-util-to-estree@3.1.3/node_modules/hast-util-to-estree/lib/handlers/comment.js" may not be preserved when bundling.
+    [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m ../node_modules/.pnpm/hast-util-to-estree@3.1.3/node_modules/hast-util-to-estree/lib/handlers/comment.js:12:1 [38;5;246m][0m
+    [38;5;246m│[0m
+ [38;5;246m12 │[0m ''
+ [38;5;240m   │[0m ─┬  
+ [38;5;240m   │[0m  ╰── module level directive may not be preserved
+ [38;5;240m   │[0m 
+ [38;5;240m   │[0m [38;5;115mHelp[0m: For more information, see https://rolldown.rs/in-depth/directives#other-directives
+[38;5;246m────╯[0m
+
+✓ built in 573ms
+exit=0

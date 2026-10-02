@@ -31,12 +31,20 @@
  * ② `index` / `types` / `constants` —— 桶文件与类型声明,没有「复用」语义;
  * ③ `registry.exempt` 里显式列出的 —— 给「确实不该进清单」的留出口。
  *
+ * ─── 下游旁路清单(D-012)───────────────────────────────────────────────
+ *
+ * fork 跟随本仓的下游不改 `components.md`(改了每次同步上游都可能冲突),而是把自己的组件写进
+ * `components.biz.md`(上游永不创建)。两份清单拼起来按同一口径判定;旁路文件不存在时行为与从前完全相同。
+ *
  * 契约:default export `{ id, run(ctx) }`,可选 `watches: []`;
  * ctx 见 openspec/check.mjs 的 pluginContext()。
  */
 import { readdirSync } from 'node:fs'
 
 const REGISTRY = 'openspec/rules/advisory/components.md'
+
+/** 下游独占的旁路清单,可选 */
+const BIZ_REGISTRY = 'openspec/rules/advisory/components.biz.md'
 
 /** components.md 自己声明的来源目录 */
 const ROOTS = [
@@ -78,13 +86,14 @@ export default {
    * 收窄了 watch,这里就会静默失去即时反馈。依赖另一个插件的配置是隐式耦合,
    * 显式写出来的成本只有一行。
    */
-  watches: [...ROOTS, REGISTRY],
+  watches: [...ROOTS, REGISTRY, BIZ_REGISTRY],
 
   run({ ROOT, join, existsSync, read, rel, err, project }) {
     const registry = join(ROOT, REGISTRY)
     if (!existsSync(registry)) return
 
-    const text = read(registry)
+    const bizRegistry = join(ROOT, BIZ_REGISTRY)
+    const text = read(registry) + (existsSync(bizRegistry) ? '\n' + read(bizRegistry) : '')
     const exempt = new Set(project?.componentsRegistry?.exempt ?? [])
 
     for (const root of ROOTS) {
@@ -102,7 +111,9 @@ export default {
           `没有登记进 ${REGISTRY} —— 这份清单是「先查再造」的唯一依据,`
             + '漏登记的直接后果是下一个人查不到它、把它重造一遍('
             + 'ProjectPickerModal 就差点被 ProjectSelect 的使用者重造)。'
-            + '往对应分节加一条(写清「是什么 / 什么时候用 / 有什么坑」),'
+            + '往对应分节加一条(写清「是什么 / 什么时候用 / 有什么坑」;fork 下游写进 '
+            + BIZ_REGISTRY
+            + '),'
             + '或把它加进 project.json 的 componentsRegistry.exempt 说明为什么不该进清单',
         )
       }

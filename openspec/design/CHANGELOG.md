@@ -10,6 +10,14 @@
 
 ---
 
+## 2026-10-02 · 为 fork 下游开扩展点（D-012，change `downstream-extension-points`）
+
+- `guards/components-registry.mjs` 增加可选的旁路清单 `rules/advisory/components.biz.md`（下游独占，上游永不创建）：与 `components.md` 拼接后按原口径判定，不存在时行为不变；`watches` 同步加上它。`design/check.md` 对应行同步。
+- `guards/rules-index.mjs` 把可选的 `AGENTS.biz.md` 也当作索引来源（下游放进 `rules/` 的 `*.biz.md` 登记在那里）；链接正则放宽到允许文件名中间带点（原正则 `[a-z0-9-]+\.md` 认不出 `components.biz.md`）。这一条是 L5 手工验证时发现的：只改 components 守卫的话，下游一建 `components.biz.md` 就会被 `REPO/rules-index-missing` 拦下，仍得改 `AGENTS.md`。
+- `project.json` 的 `sourcePaths` 把四个后端模块合成一条 `weiran4j/weiran-*`：`check.mjs` 把它原样交给 git pathspec，通配由 git 处理，`check.mjs` 本体未改；新业务模块（包括下游的）自动纳入 `L7/evidence-fresh` 的比对范围。
+- `state/bizs/README.md` 约定下游表文档的索引写在 `README.biz.md`；`state-waitlist` 守卫本来就扫整个目录，未改。
+- `rules/enforced/project.md` SL-1 … SL-4 与「序号型资源」、宪法 CP-14 / CP-15 的登记位置改指 `weiran4j/docs/business-modules.md`；`AGENTS.md` 声明仓库根 `AGENTS.biz.md` 存在即必读。
+
 ## 2026-09-30 · 模块合并 weiran-system + weiran-platform → weiran-base（D-011）
 
 - `openspec/project.json` 的 `sourcePaths`、`rules/enforced/project.md` 的 PK-2 / DS-5 / 操作日志一句改指 `weiran-base`（PK-2 编号不变）。

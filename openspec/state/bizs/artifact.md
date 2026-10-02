@@ -116,6 +116,17 @@
   症状:第一次部署的人只能从 `AGENTS.md` 与 `application.yml` 自行拼出步骤(JDK、库、环境变量、前端产物放哪),
   且 #09 的 `.env.example` 本身是错的。公司手册「项目标准」把服务部署步骤文档列为高优先级交付物。
 
+- **#19 🔴 P3 `@SkipApiResponse` 用在 `/api/**` 上没有机械拦截**
+  症状:有人在管理端 Controller 上标了 `@SkipApiResponse`(或其组合注解),该接口不再返回 `{code:0}`,
+  前端 `request.ts` 把成功响应当失败处理——编译、单测、`check` 全绿,只在点到那个页面时暴露。
+  目前只有 javadoc 与 `downstream-extension` FR-005 的规范约束(`downstream-extension-points` 判为本次不修:
+  `supports()` 拿不到请求路径)。可选做法:启动时扫描 `/api/**` 映射的处理方法并断言没有该注解。
+
+- **#20 🔴 P3 fork 下游往 `artifact.md` / `cross-biz.md` 登记问题仍要改上游文件**
+  症状:下游在本目录的这两份公共文件里追加 `#NN` 条目后,上游再改同一文件时 `git merge` 冲突,
+  且两边各自取「最大号 + 1」会撞号(`REPO/state-id-dup`)。`downstream-extension-points` 只给组件清单与 bizs 文件索引开了旁路文件,
+  这两份留作本次不决定(见该 change 的 interview)。可选做法:约定下游写 `artifact.biz.md` / `cross-biz.biz.md`。
+
 ## changelog
 
 **2026-09-26**(D-008 框架重写 + openspec 移到仓库根)

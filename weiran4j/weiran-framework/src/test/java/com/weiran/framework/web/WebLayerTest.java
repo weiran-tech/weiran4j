@@ -19,6 +19,9 @@ import com.weiran.framework.auth.RequiresPermission;
 import com.weiran.framework.auth.TokenAuthenticator;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,6 +90,50 @@ class WebLayerTest {
 
     record Payload(@NotBlank(message = "不能为空") String name) {}
 
+    /** 模拟下游给 uniapp 的接口：整个类自定包络。 */
+    @SkipApiResponse
+    @RestController
+    @RequestMapping("/api-web/skip")
+    static class SkippedController {
+
+        @GetMapping("/object")
+        Map<String, Object> object() {
+            return Map.of("code", 200, "msg", "ok");
+        }
+
+        @GetMapping("/text")
+        String text() {
+            return "pong";
+        }
+    }
+
+    /** 下游自己组合的注解，以 {@link SkipApiResponse} 为元注解。 */
+    @SkipApiResponse
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface WebApi {}
+
+    @RestController
+    @RequestMapping("/api-web/mixed")
+    static class MixedController {
+
+        @SkipApiResponse
+        @GetMapping("/skipped")
+        Map<String, Object> skipped() {
+            return Map.of("code", 200);
+        }
+
+        @WebApi
+        @GetMapping("/meta")
+        Map<String, Object> meta() {
+            return Map.of("code", 200);
+        }
+
+        @GetMapping("/wrapped")
+        Map<String, Object> wrapped() {
+            return Map.of("code", 200);
+        }
+    }
+
     @BeforeEach
     void setUp() {
         final ObjectMapper objectMapper = new ObjectMapper();
@@ -98,7 +145,8 @@ class WebLayerTest {
             default -> Optional.empty();
         };
         beanFactory.registerSingleton("authenticator", authenticator);
-        this.mockMvc = MockMvcBuilders.standaloneSetup(new TestController())
+        this.mockMvc = MockMvcBuilders.standaloneSetup(
+                        new TestController(), new SkippedController(), new MixedController())
                 .setControllerAdvice(new ApiResponseBodyAdvice(objectMapper), new GlobalExceptionHandler())
                 .addMappedInterceptors(
                         new String[] {"/api/**"},
@@ -204,5 +252,42 @@ class WebLayerTest {
                 .perform(post("/api/test/public"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("不支持的请求方法: POST"));
+    }
+
+    @Test
+    @DisplayName("类上标 @SkipApiResponse：对象原样输出，不包统一响应")
+    void skipsWrappingForAnnotatedClass() throws Exception {
+        this.mockMvc
+                .perform(get("/api-web/skip/object"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.msg").value("ok"))
+                .andExpect(jsonPath("$.data").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("@SkipApiResponse 下返回 String 原样输出，不被序列化成 JSON 字符串")
+    void skipsWrappingForStringReturnValue() throws Exception {
+        this.mockMvc
+                .perform(get("/api-web/skip/text"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("pong"));
+    }
+
+    @Test
+    @DisplayName("方法上标 @SkipApiResponse 或其组合注解只跳过该方法，同类其他方法照常包装")
+    void skipsWrappingOnlyForAnnotatedMethod() throws Exception {
+        this.mockMvc
+                .perform(get("/api-web/mixed/skipped"))
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").doesNotExist());
+        this.mockMvc
+                .perform(get("/api-web/mixed/meta"))
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").doesNotExist());
+        this.mockMvc
+                .perform(get("/api-web/mixed/wrapped"))
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.code").value(200));
     }
 }
