@@ -1,0 +1,7 @@
+# 下游（weiran-cqt）集成测试配置：作为 application-biz.yml 的 test profile 变体加载。
+# 固定的测试专用密钥，与上游 application-test.yml 的后台测试密钥不同（前后台令牌互斥的测试依赖这一点）。
+weiran:
+  cqt:
+    jwt:
+      secret: integration-test-portal-secret-at-least-32-bytes
+      ttl: 1h

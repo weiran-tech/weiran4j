@@ -1,0 +1,7 @@
+/**
+ * weiran-cqt 适配层自动配置。
+ */
+@NullMarked
+package com.weiran.cqt.adapter.autoconfigure;
+
+import org.jspecify.annotations.NullMarked;

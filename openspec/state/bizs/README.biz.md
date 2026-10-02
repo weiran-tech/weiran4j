@@ -9,4 +9,4 @@
 
 | 模块 | 表 | 文件 |
 | --- | --- | --- |
-| _（建表后追加）_ | | |
+| 前台站点配置 | `cqt_setting` | [`cqt_setting.md`](cqt_setting.md) |

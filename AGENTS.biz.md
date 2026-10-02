@@ -21,8 +21,15 @@
    | 前台 uniapp | `/api-web/**` | 业务自己的 C 端 JWT 拦截器（框架 `AuthInterceptor` 只拦 `/api/**`） | Controller 标 `@SkipApiResponse`，返回 `{code:200, message, data}` |
 
    uniapp 的两个硬约定：**HTTP 状态必须是 2xx**（非 2xx 一律弹窗报错），**未登录用 body `code:401`** 表示。
-   所以 `/api-web` 要有自己的 `@RestControllerAdvice`（只管 `/api-web` 的 Controller 包，优先级高于框架的
-   `GlobalExceptionHandler`），HTTP 恒回 200。
+   写前台接口的固定做法（`weiran-cqt-adapter` 的 `com.weiran.cqt.adapter.portal` 包，change `cqt-web-foundation`）：
+   - Controller 类标 **`@PortalController`**（= `@RestController` + `@SkipApiResponse`），路径放 `/api-web/...`，返回 `PortalResult.ok(data)`；
+   - 默认需要登录；免登录的方法或类标 **`@PortalPublic`**；当前账号用 `PortalAccount.current()`；
+   - 出错直接抛 `BizException`（复用 `CommonErrors`），由 `PortalExceptionAdvice` 统一输出：HTTP 恒 200，`code` = 五位错误码前三位。
+     这是对宪法 CP-11 的**有意偏离**，只限 `/api-web`；状态仍只由错误码决定，Controller 里不要手写 code、不要捕获转换；
+   - 前台令牌由 `PortalTokenCodec` 签发 / 解析（HS256，`typ=cqt-web`，与后台令牌互斥）；**还没有吊销机制**，
+     做账号登录时必须给 C 端账号加 `token_version` 并在载荷带 `ver`（宪法 CP-8，见 design 宪法对照）；
+   - 集成测试写在 `weiran-app/src/test/java/com/weiran/app/Cqt*IT.java`（继承包级私有的 `IntegrationTestSupport`），
+     测试专用 Controller 用测试类上的 `@Import` 注册；测试密钥在 `weiran-app/src/test/resources/application-biz-test.yml`。
 4. **号段与表前缀**（登记在 `weiran4j/docs/business-modules.md`）：错误码序号 `20`–`39`、菜单 id `1000`–`1999`、
    权限码前缀 `cqt:`、Flyway 目录 `db/migration/cqt/`、表前缀 `cqt_`。
    原统一库 `cqtxj2026` 的表迁入时一律加 `cqt_` 前缀（2026-10-02 决定）。
@@ -58,6 +65,13 @@ cd uniapp && pnpm install && pnpm dev:h5
 ```
 
 其余构建、检查命令与上游 `AGENTS.md` 相同（JDK 21、先 `spotlessApply` 再 `check`）。
+
+## 部署与数据迁移
+
+- 环境变量：`WEIRAN_CQT_JWT_SECRET`（前台令牌密钥，≥ 32 字节，**必填**，缺失启动失败）、`WEIRAN_CQT_JWT_TTL`（可选，默认 `7d`）。
+  本地开发写进 gitignore 掉的 `weiran4j/config/application-local.yml`（`weiran.cqt.jwt.secret`）。
+- 数据：Flyway 只建表；原统一库 `cqtxj2026` 的数据用 `scripts/biz/import/<表>.sql` 在切换时导入（源库与目标库同实例，可重复执行）。
+  导入前先看 `openspec/state/bizs/cqt_setting.md#01`：`cqtxj2026.sql` 导出文件的中文是双重编码乱码，生产库是否同样乱码未确认。
 
 ## 规则索引（下游）
 

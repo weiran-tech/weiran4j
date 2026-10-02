@@ -4,12 +4,14 @@
 #
 # 放行：
 #   - 合并上游时（存在 MERGE_HEAD）不查——那正是同步上游的提交；
-#   - 下面 ALLOWED 列出的上游文件（契约 §2.2 规定下游追加行的登记表与已知缺口 artifact.md#20）；
+#   - 下面 ALLOWED 列出的上游文件（契约 §2.2 规定下游追加行的登记表、已知缺口 artifact.md#20，
+#     以及归档后由 `node openspec/check.mjs --write-index` 重新生成的能力索引——生成物，同步冲突时重新生成，不手工合并）；
 #   - 应急：ALLOW_UPSTREAM_EDIT=1 git commit ...（事后要回 weiran4j 修，再 merge 回来）。
 
 ALLOWED='weiran4j/docs/business-modules.md
 openspec/state/bizs/artifact.md
-openspec/state/bizs/cross-biz.md'
+openspec/state/bizs/cross-biz.md
+openspec/specs/README.md'
 
 git_dir=$(git rev-parse --git-dir)
 [ -f "$git_dir/MERGE_HEAD" ] && exit 0
