@@ -59,6 +59,8 @@
 
 `constraints { ... }` 块钉住 Spring Boot / MyBatis-Plus BOM 之外的第三方版本，并列出仓内模块坐标。
 业务模块的五层坐标按 SL-1 的发现清单生成，新增业务模块不改本文件；新增第三方依赖或非业务模块仍需追加行。全仓单点，多人同时追加会冲突。
+框架层快照、上游漂移白名单与「存在才 apply 下游清单」也在这里，改动它们会影响 `verifyFrameworkVersions`（D-013）。
+下游的业务依赖版本写在同目录下游独占的 `biz-dependencies.gradle.kts`，不改本文件。
 
 ### SL-3 · `weiran-app/build.gradle.kts`
 

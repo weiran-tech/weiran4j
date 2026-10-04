@@ -12,6 +12,8 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
  * Spring Boot 插件只应用在这一类模块上：应用到库模块会让 `jar` 产出被 `bootJar` 顶替，
  * 其他模块以 project 依赖引它时拿到的是不可用的 fat jar。
  * 同时关掉库形态的 sourcesJar 之外的发布语义——应用是部署产物，不是被依赖的组件。
+ *
+ * 运行时类路径只在应用模块上是完整的，所以框架依赖版本防护（[FrameworkVersionsCheck]）挂在这里。
  */
 class BootAppConventionsPlugin : Plugin<Project> {
     override fun apply(project: Project) {
@@ -28,6 +30,8 @@ class BootAppConventionsPlugin : Plugin<Project> {
             tasks.named<Jar>("jar") {
                 enabled = false
             }
+
+            FrameworkVersionsCheck.register(this)
         }
     }
 }
