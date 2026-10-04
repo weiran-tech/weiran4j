@@ -1,5 +1,6 @@
 package com.weiran.cqt.infrastructure.security;
 
+import com.weiran.cqt.domain.portal.PortalTokenClaims;
 import com.weiran.cqt.domain.portal.PortalTokenCodec;
 import de.thetaphi.forbiddenapis.SuppressForbidden;
 import io.jsonwebtoken.Claims;
@@ -18,10 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 前台账号令牌（JWT，HS256）。
  *
- * <p>载荷只有 {@code sub}（账号 ID）与 {@code typ}（固定 {@value #TOKEN_TYPE}）。{@code typ} 让前台令牌与后台令牌互斥：
- * 后台令牌没有这个声明，即使两边误配了同一把密钥也不会串用。
- *
- * <p>尚无吊销机制（载荷不带 {@code ver}）：前台账号迁入后由账号 change 补上，见 design 宪法对照 CP-8。
+ * <p>载荷只有 {@code sub}（账号 ID）、{@code typ}（固定 {@value #TOKEN_TYPE}）与 {@code ver}（签发时账号的令牌版本）。
+ * {@code typ} 让前台令牌与后台令牌互斥：后台令牌没有这个声明，即使两边误配了同一把密钥也不会串用。
+ * {@code ver} 由认证服务与库中 {@code token_version} 比对，重置密码后旧令牌立即失效（宪法 CP-8）。
  */
 @Slf4j
 public final class JjwtPortalTokenCodec implements PortalTokenCodec {
@@ -33,6 +33,8 @@ public final class JjwtPortalTokenCodec implements PortalTokenCodec {
     public static final String TOKEN_TYPE = "cqt-web";
 
     private static final String CLAIM_TYPE = "typ";
+
+    private static final String CLAIM_VERSION = "ver";
 
     private final SecretKey signingKey;
 
@@ -61,11 +63,12 @@ public final class JjwtPortalTokenCodec implements PortalTokenCodec {
     // JJWT 0.13 的 issuedAt / expiration 只有 java.util.Date 重载；这里是唯一的转换边界，就地豁免。
     @Override
     @SuppressForbidden
-    public String issue(final long accountId) {
+    public String issue(final long accountId, final int version) {
         final Instant issuedAt = this.clock.instant();
         return Jwts.builder()
                 .subject(String.valueOf(accountId))
                 .claim(JjwtPortalTokenCodec.CLAIM_TYPE, JjwtPortalTokenCodec.TOKEN_TYPE)
+                .claim(JjwtPortalTokenCodec.CLAIM_VERSION, version)
                 .issuedAt(Date.from(issuedAt))
                 .expiration(Date.from(issuedAt.plus(this.ttl)))
                 .signWith(this.signingKey)
@@ -75,7 +78,7 @@ public final class JjwtPortalTokenCodec implements PortalTokenCodec {
     // 过期判断走注入的 Clock（JJWT 的 Clock 只返回 java.util.Date），理由同 issue。
     @Override
     @SuppressForbidden
-    public Optional<Long> parse(final String token) {
+    public Optional<PortalTokenClaims> parse(final String token) {
         try {
             final Claims claims = Jwts.parser()
                     .verifyWith(this.signingKey)
@@ -85,14 +88,20 @@ public final class JjwtPortalTokenCodec implements PortalTokenCodec {
                     .getPayload();
             final String subject = claims.getSubject();
             final String type = claims.get(JjwtPortalTokenCodec.CLAIM_TYPE, String.class);
-            if (subject == null || !JjwtPortalTokenCodec.TOKEN_TYPE.equals(type)) {
+            final Integer version = claims.get(JjwtPortalTokenCodec.CLAIM_VERSION, Integer.class);
+            if (subject == null || version == null || !JjwtPortalTokenCodec.TOKEN_TYPE.equals(type)) {
                 return Optional.empty();
             }
-            return Optional.of(Long.parseLong(subject));
+            return Optional.of(new PortalTokenClaims(Long.parseLong(subject), version));
         } catch (final JwtException | IllegalArgumentException ex) {
             // 只记 debug 且不带令牌原文：过期令牌是常态，日志里出现可用令牌等于把凭据写进日志系统。
             JjwtPortalTokenCodec.log.debug("前台令牌校验失败: {}", ex.getClass().getSimpleName());
             return Optional.empty();
         }
+    }
+
+    @Override
+    public Duration ttl() {
+        return this.ttl;
     }
 }

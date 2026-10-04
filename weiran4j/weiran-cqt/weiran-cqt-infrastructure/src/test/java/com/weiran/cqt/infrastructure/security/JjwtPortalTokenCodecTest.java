@@ -3,6 +3,7 @@ package com.weiran.cqt.infrastructure.security;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.weiran.cqt.domain.portal.PortalTokenClaims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
@@ -25,18 +26,19 @@ class JjwtPortalTokenCodecTest {
     }
 
     @Test
-    @DisplayName("签发后可解析回账号 ID")
+    @DisplayName("签发后可解析回账号 ID 与令牌版本")
     void roundTrip() {
         final JjwtPortalTokenCodec codec = JjwtPortalTokenCodecTest.codecAt(JjwtPortalTokenCodecTest.NOW);
 
-        assertThat(codec.parse(codec.issue(42L))).contains(42L);
+        assertThat(codec.parse(codec.issue(42L, 3))).contains(new PortalTokenClaims(42L, 3));
+        assertThat(codec.ttl()).isEqualTo(Duration.ofHours(1));
     }
 
     @Test
     @DisplayName("过期令牌无效")
     void rejectsExpired() {
         final String token =
-                JjwtPortalTokenCodecTest.codecAt(JjwtPortalTokenCodecTest.NOW).issue(42L);
+                JjwtPortalTokenCodecTest.codecAt(JjwtPortalTokenCodecTest.NOW).issue(42L, 0);
 
         assertThat(JjwtPortalTokenCodecTest.codecAt(JjwtPortalTokenCodecTest.NOW.plus(Duration.ofHours(2)))
                         .parse(token))
@@ -44,16 +46,27 @@ class JjwtPortalTokenCodecTest {
     }
 
     @Test
-    @DisplayName("签名正确但 typ 不是 cqt-web 的令牌无效；缺 typ 的同样无效")
-    void rejectsWrongType() {
+    @DisplayName("签名正确但 typ 不是 cqt-web、缺 typ 或缺 ver 的令牌无效")
+    void rejectsWrongTypeOrMissingVersion() {
         final var key = Keys.hmacShaKeyFor(JjwtPortalTokenCodecTest.SECRET.getBytes(StandardCharsets.UTF_8));
-        final String otherType =
-                Jwts.builder().subject("42").claim("typ", "admin").signWith(key).compact();
-        final String noType = Jwts.builder().subject("42").signWith(key).compact();
+        final String otherType = Jwts.builder()
+                .subject("42")
+                .claim("typ", "admin")
+                .claim("ver", 0)
+                .signWith(key)
+                .compact();
+        final String noType =
+                Jwts.builder().subject("42").claim("ver", 0).signWith(key).compact();
+        final String noVersion = Jwts.builder()
+                .subject("42")
+                .claim("typ", "cqt-web")
+                .signWith(key)
+                .compact();
         final JjwtPortalTokenCodec codec = JjwtPortalTokenCodecTest.codecAt(Instant.now());
 
         assertThat(codec.parse(otherType)).isEmpty();
         assertThat(codec.parse(noType)).isEmpty();
+        assertThat(codec.parse(noVersion)).isEmpty();
     }
 
     @Test
@@ -63,7 +76,7 @@ class JjwtPortalTokenCodecTest {
                 "another-portal-secret-at-least-32-bytes!!", Duration.ofHours(1), Clock.systemUTC());
         final JjwtPortalTokenCodec codec = JjwtPortalTokenCodecTest.codecAt(Instant.now());
 
-        assertThat(codec.parse(other.issue(42L))).isEmpty();
+        assertThat(codec.parse(other.issue(42L, 0))).isEmpty();
         assertThat(codec.parse("not-a-jwt")).isEmpty();
     }
 

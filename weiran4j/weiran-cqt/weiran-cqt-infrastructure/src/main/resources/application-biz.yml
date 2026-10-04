@@ -6,3 +6,11 @@ weiran:
       # 前台（uniapp）账号令牌密钥，至少 32 字节；缺失或过短时应用启动失败。
       secret: ${WEIRAN_CQT_JWT_SECRET:}
       ttl: ${WEIRAN_CQT_JWT_TTL:7d}
+    sms:
+      # disabled：发送接口返回「短信服务未配置」；dev：验证码只写 warn 日志（生产禁止）。真实服务商另行接入。
+      mode: ${WEIRAN_CQT_SMS_MODE:disabled}
+      # 仅开发模式：把验证码回显在 sendSms 的响应里。
+      expose-code: ${WEIRAN_CQT_SMS_EXPOSE_CODE:false}
+    # 学校注册的承诺书模板下载链接（getlinkinfo）。
+    commitment-template-url: ${WEIRAN_CQT_COMMITMENT_TEMPLATE_URL:}
+    bcrypt-strength: 10

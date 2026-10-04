@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * {@code @TestConfiguration} 不会被发现。
  */
 @Import(CqtWebIT.TestPortalController.class)
-class CqtWebIT extends IntegrationTestSupport {
+class CqtWebIT extends CqtIntegrationTestSupport {
 
     private static final List<String> CONFIG_KEYS = List.of(
             "guanyuwomen",
@@ -108,14 +108,22 @@ class CqtWebIT extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("需登录接口：无令牌 / 无效令牌 → HTTP 200 + code 401 与对应提示语；有效令牌 → 取得账号 ID")
+    @DisplayName("需登录接口：无令牌 / 无效令牌 / 账号不存在 / 版本过时 → code 401；有效令牌 → 取得账号 ID")
     void requiresPortalToken() {
         CqtWebIT.assertPortalError(this.get("/api-web/__test/me", null), 401, "请求参数缺token");
         CqtWebIT.assertPortalError(this.get("/api-web/__test/me", "not-a-jwt"), 401, "登录失效,请重新登录");
+        CqtWebIT.assertPortalError(
+                this.get("/api-web/__test/me", this.portalTokenCodec.issue(Long.MAX_VALUE, 0)), 401, "登录失效,请重新登录");
 
-        final ResponseEntity<JsonNode> response = this.get("/api-web/__test/me", this.portalTokenCodec.issue(42L));
+        final String phone = this.registerPersonal();
+        final long accountId = this.accountId(phone);
+        CqtWebIT.assertPortalError(
+                this.get("/api-web/__test/me", this.portalTokenCodec.issue(accountId, 1)), 401, "登录失效,请重新登录");
+
+        final ResponseEntity<JsonNode> response =
+                this.get("/api-web/__test/me", this.portalToken(phone, CqtIntegrationTestSupport.PASSWORD));
         CqtWebIT.assertPortalOk(response);
-        assertThat(IntegrationTestSupport.data(response).asLong()).isEqualTo(42L);
+        assertThat(IntegrationTestSupport.data(response).asLong()).isEqualTo(accountId);
     }
 
     @Test
@@ -125,16 +133,17 @@ class CqtWebIT extends IntegrationTestSupport {
         CqtWebIT.assertPortalOk(anonymous);
         assertThat(IntegrationTestSupport.data(anonymous).asLong()).isEqualTo(-1L);
 
+        final String phone = this.registerPersonal();
         final ResponseEntity<JsonNode> signedIn =
-                this.get("/api-web/__test/public-me", this.portalTokenCodec.issue(7L));
-        assertThat(IntegrationTestSupport.data(signedIn).asLong()).isEqualTo(7L);
+                this.get("/api-web/__test/public-me", this.portalToken(phone, CqtIntegrationTestSupport.PASSWORD));
+        assertThat(IntegrationTestSupport.data(signedIn).asLong()).isEqualTo(this.accountId(phone));
     }
 
     @Test
     @DisplayName("前后台令牌互不通用")
     void portalAndAdminTokensAreSeparate() {
-        final ResponseEntity<JsonNode> portalOnAdmin = this.get("/api/auth/me", this.portalTokenCodec.issue(42L));
-        IntegrationTestSupport.assertError(portalOnAdmin, HttpStatus.UNAUTHORIZED, 40100);
+        final String portalToken = this.portalToken(this.registerPersonal(), CqtIntegrationTestSupport.PASSWORD);
+        IntegrationTestSupport.assertError(this.get("/api/auth/me", portalToken), HttpStatus.UNAUTHORIZED, 40100);
 
         CqtWebIT.assertPortalError(this.get("/api-web/__test/me", this.adminToken()), 401, "登录失效,请重新登录");
     }
@@ -158,26 +167,6 @@ class CqtWebIT extends IntegrationTestSupport {
         final ResponseEntity<JsonNode> boom = this.get("/api-web/__test/boom", null);
         CqtWebIT.assertPortalError(boom, 500, "服务器内部错误");
         assertThat(IntegrationTestSupport.body(boom).toString()).doesNotContain("internal-detail");
-    }
-
-    private static void assertPortalOk(final ResponseEntity<JsonNode> response) {
-        assertThat(response.getStatusCode())
-                .as(String.valueOf(response.getBody()))
-                .isEqualTo(HttpStatus.OK);
-        final JsonNode body = IntegrationTestSupport.body(response);
-        assertThat(body.path("code").asInt()).as(body.toString()).isEqualTo(200);
-        assertThat(body.path("message").asText()).isEqualTo("成功");
-    }
-
-    private static void assertPortalError(
-            final ResponseEntity<JsonNode> response, final int code, final String message) {
-        assertThat(response.getStatusCode())
-                .as(String.valueOf(response.getBody()))
-                .isEqualTo(HttpStatus.OK);
-        final JsonNode body = IntegrationTestSupport.body(response);
-        assertThat(body.path("code").asInt()).as(body.toString()).isEqualTo(code);
-        assertThat(body.path("message").asText()).isEqualTo(message);
-        assertThat(body.path("data").isNull()).isTrue();
     }
 
     /** 只存在于测试 classpath 的前台接口，用来覆盖无法用真实业务接口触发的分支。 */

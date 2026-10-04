@@ -10,3 +10,5 @@
 | 模块 | 表 | 文件 |
 | --- | --- | --- |
 | 前台站点配置 | `cqt_setting` | [`cqt_setting.md`](cqt_setting.md) |
+| 前台账号 | `cqt_portal_accounts` | [`cqt_portal_accounts.md`](cqt_portal_accounts.md) |
+| 基础数据 | `cqt_regions` 赛区 | [`cqt_regions.md`](cqt_regions.md) |
