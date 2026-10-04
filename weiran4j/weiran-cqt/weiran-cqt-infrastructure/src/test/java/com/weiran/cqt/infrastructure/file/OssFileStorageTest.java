@@ -102,4 +102,17 @@ class OssFileStorageTest {
         assertThat(storage).isNotNull();
         storage.destroy();
     }
+
+    @Test
+    @DisplayName("isStoredUrl：只认公网前缀 + / 开头的地址，不被相似域名骗过")
+    void recognizesOwnUrls() {
+        final OssFileStorage storage =
+                new OssFileStorage(OssFileStorageTest.config("cqt-bucket"), new FakeWriter(false));
+
+        assertThat(storage.isStoredUrl("https://cdn.example.com/cqt/user_files/1/202610/a.zip"))
+                .isTrue();
+        assertThat(storage.isStoredUrl("https://cdn.example.com.evil.com/a.zip"))
+                .isFalse();
+        assertThat(storage.isStoredUrl("https://other.com/a.zip")).isFalse();
+    }
 }

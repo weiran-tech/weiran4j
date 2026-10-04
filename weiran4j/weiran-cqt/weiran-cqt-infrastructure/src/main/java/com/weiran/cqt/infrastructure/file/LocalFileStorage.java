@@ -47,4 +47,9 @@ public final class LocalFileStorage implements FileStorage {
         }
         return this.urlPrefix + "/" + objectName;
     }
+
+    @Override
+    public boolean isStoredUrl(final String url) {
+        return url.startsWith(this.urlPrefix + "/");
+    }
 }

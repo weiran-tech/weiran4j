@@ -12,3 +12,5 @@
 | 前台站点配置 | `cqt_setting` | [`cqt_setting.md`](cqt_setting.md) |
 | 前台账号 | `cqt_portal_accounts` | [`cqt_portal_accounts.md`](cqt_portal_accounts.md) |
 | 基础数据 | `cqt_regions` 赛区 | [`cqt_regions.md`](cqt_regions.md) |
+| 赛事 | `cqt_competitions` / `cqt_competition_categories` / `cqt_competition_groups` | [`cqt_competitions.md`](cqt_competitions.md) |
+| 报名 | `cqt_entries` / `cqt_people` / `cqt_entry_participants` / `cqt_competition_participation_keys` / `cqt_evaluation_targets` | [`cqt_entries.md`](cqt_entries.md) |

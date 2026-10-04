@@ -1,6 +1,9 @@
 package com.weiran.cqt.application.autoconfigure;
 
 import com.weiran.cqt.application.account.AccountApplicationService;
+import com.weiran.cqt.application.competition.CompetitionQueryApplicationService;
+import com.weiran.cqt.application.entry.MyEntriesApplicationService;
+import com.weiran.cqt.application.entry.SignupApplicationService;
 import com.weiran.cqt.application.file.FileUploadApplicationService;
 import com.weiran.cqt.application.portal.PortalAuthApplicationService;
 import com.weiran.cqt.application.region.RegionApplicationService;
@@ -17,6 +20,9 @@ import org.springframework.context.annotation.Import;
     AccountApplicationService.class,
     PortalAuthApplicationService.class,
     RegionApplicationService.class,
-    FileUploadApplicationService.class
+    FileUploadApplicationService.class,
+    CompetitionQueryApplicationService.class,
+    SignupApplicationService.class,
+    MyEntriesApplicationService.class
 })
 public class CqtApplicationAutoConfiguration {}

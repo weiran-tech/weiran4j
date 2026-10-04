@@ -43,4 +43,15 @@ class LocalFileStorageTest {
         assertThatThrownBy(() -> storage.store("../evil.zip", new ByteArrayInputStream(new byte[1]), 1, null))
                 .isInstanceOf(FileStorageException.class);
     }
+
+    @Test
+    @DisplayName("isStoredUrl：只认访问前缀 + / 开头的地址")
+    void recognizesOwnUrls() {
+        final LocalFileStorage storage = new LocalFileStorage(this.root, "/uploads/");
+
+        assertThat(storage.isStoredUrl("/uploads/cqt/user_files/1/202610/a.zip"))
+                .isTrue();
+        assertThat(storage.isStoredUrl("/uploads-evil/a.zip")).isFalse();
+        assertThat(storage.isStoredUrl("https://other.com/uploads/a.zip")).isFalse();
+    }
 }

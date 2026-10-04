@@ -10,7 +10,10 @@ import com.weiran.cqt.domain.sms.SmsSender;
 import com.weiran.cqt.infrastructure.file.LocalFileStorage;
 import com.weiran.cqt.infrastructure.file.OssFileStorage;
 import com.weiran.cqt.infrastructure.persistence.MybatisAccountRepository;
+import com.weiran.cqt.infrastructure.persistence.MybatisCompetitionRepository;
+import com.weiran.cqt.infrastructure.persistence.MybatisEntryRepository;
 import com.weiran.cqt.infrastructure.persistence.MybatisRegionRepository;
+import com.weiran.cqt.infrastructure.persistence.MybatisSequenceGenerator;
 import com.weiran.cqt.infrastructure.persistence.MybatisSettingRepository;
 import com.weiran.cqt.infrastructure.security.BCryptPasswordHasher;
 import com.weiran.cqt.infrastructure.security.JjwtPortalTokenCodec;
@@ -36,7 +39,14 @@ import org.springframework.context.annotation.Import;
 @AutoConfiguration
 @MapperScan("com.weiran.cqt.infrastructure.persistence.mapper")
 @EnableConfigurationProperties(CqtProperties.class)
-@Import({MybatisSettingRepository.class, MybatisAccountRepository.class, MybatisRegionRepository.class})
+@Import({
+    MybatisSettingRepository.class,
+    MybatisAccountRepository.class,
+    MybatisRegionRepository.class,
+    MybatisCompetitionRepository.class,
+    MybatisEntryRepository.class,
+    MybatisSequenceGenerator.class
+})
 public class CqtInfrastructureAutoConfiguration {
 
     /** 前台令牌编解码；密钥不合法时启动失败。 */

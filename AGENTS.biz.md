@@ -88,7 +88,11 @@ cd uniapp && pnpm install && pnpm dev:h5
   本地开发写进 gitignore 掉的 `weiran4j/config/application-local.yml`（`weiran.cqt.jwt.secret`）。
 - 数据：Flyway 只建表；原统一库 `cqtxj2026` 的数据用 `scripts/biz/import/<表>.sql` 在切换时导入（源库与目标库同实例，可重复执行）。
   导入前先看 `openspec/state/bizs/cqt_setting.md#01`：`cqtxj2026.sql` 导出文件的中文是双重编码乱码，生产库是否同样乱码未确认。
-  导入顺序：`cqt_setting.sql`、`cqt_regions.sql`、`cqt_portal_accounts.sql`。
+  导入顺序：`cqt_setting.sql`、`cqt_regions.sql`、`cqt_portal_accounts.sql`、`cqt_competitions.sql`、`cqt_entries.sql`。
+  源库 `cqtxj2026` 须是执行过 FastAPI `migrations` 001–017 的最终形态（导入脚本按列名读取）。
+- 新一届赛事（change `cqt-signup`）：改 `scripts/biz/seed/competition_next.sql` 顶部变量（年份、届次、名称、报名时间、`national_entry_mode`）后执行；
+  新赛事默认停用，确认无误后 `UPDATE cqt_competitions SET status = 1 WHERE ...` 开放报名；止血时改回 0。
+  单库多届：服务端忽略 uniapp 的 `X-CQTXJ-Database` 请求头，2026 届数据因报名期已过自然只读。
 
 ## 规则索引（下游）
 

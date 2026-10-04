@@ -49,6 +49,7 @@ status: "active"
 `local` 时写入配置的本地目录并经 `/uploads/**` 提供访问（仅供开发与测试）。
 `oss` 模式缺少 AccessKey ID、AccessKey Secret、Bucket、Endpoint、公网访问前缀任一项时应用 **MUST** 启动失败，异常信息列出缺少的环境变量名，**MUST NOT** 含 Secret 的值。
 写入失败时 **MUST** 返回 `code` 503「文件上传失败，请稍后再试」，日志记对象名与异常类名，**MUST NOT** 记凭据。
+存储后端 **MUST** 能判定一个地址是否由本系统当前存储产生（`oss`：以公网访问前缀 + `/` 开头；`local`：以访问前缀 + `/` 开头），供报名等功能校验附件来源。
 
 #### Scenario: 存储未配置
 - **WHEN** `mode=disabled` 时上传
@@ -64,3 +65,8 @@ status: "active"
 - **WHEN** `mode=oss` 缺 Bucket；或 OSS 客户端写入时抛出异常
 - **THEN** 前者构造时抛异常且信息含 `WEIRAN_CQT_OSS_BUCKET`、不含 Secret；后者上传以错误码 `50323`（前台 503「文件上传失败，请稍后再试」）结束
 - **判据**:基础设施单测断言配置异常与存储失败异常；应用服务单测断言存储失败映射为 `50323`
+
+#### Scenario: 判定地址是否由本系统存储产生
+- **WHEN** 公网前缀为 `https://cdn.example.com`，分别判定 `https://cdn.example.com/cqt/user_files/1/202610/a.zip`、`https://cdn.example.com.evil.com/a.zip`、`https://other.com/a.zip`
+- **THEN** 依次为是、否、否
+- **判据**:基础设施单测（OSS 与本地两种实现各断言）

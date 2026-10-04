@@ -57,6 +57,11 @@ class FileUploadApplicationServiceTest {
             }
             return "https://cdn.example.com/" + objectName;
         }
+
+        @Override
+        public boolean isStoredUrl(final String url) {
+            return url.startsWith("https://cdn.example.com/");
+        }
     }
 
     private static FileUploadApplicationService service(final FileStorage... storages) {

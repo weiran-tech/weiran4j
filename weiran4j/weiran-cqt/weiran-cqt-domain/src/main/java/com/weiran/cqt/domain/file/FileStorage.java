@@ -17,4 +17,11 @@ public interface FileStorage {
      * @throws FileStorageException 写入失败
      */
     String store(String objectName, InputStream content, long size, @Nullable String contentType);
+
+    /**
+     * 判定地址是否由本存储产生（以公网 / 访问前缀加 {@code /} 开头），供报名等校验附件来源。
+     *
+     * @param url 地址
+     */
+    boolean isStoredUrl(String url);
 }

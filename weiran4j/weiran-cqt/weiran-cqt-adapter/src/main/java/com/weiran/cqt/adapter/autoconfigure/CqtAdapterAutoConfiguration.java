@@ -2,6 +2,7 @@ package com.weiran.cqt.adapter.autoconfigure;
 
 import com.weiran.cqt.adapter.portal.AuthController;
 import com.weiran.cqt.adapter.portal.CompetCategoryController;
+import com.weiran.cqt.adapter.portal.CompetitionController;
 import com.weiran.cqt.adapter.portal.LocalFilesController;
 import com.weiran.cqt.adapter.portal.PortalAuthInterceptor;
 import com.weiran.cqt.adapter.portal.PortalExceptionAdvice;
@@ -26,7 +27,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
     ProductController.class,
     AuthController.class,
     CompetCategoryController.class,
-    LocalFilesController.class
+    LocalFilesController.class,
+    CompetitionController.class
 })
 public class CqtAdapterAutoConfiguration {
 

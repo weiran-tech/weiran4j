@@ -70,6 +70,11 @@ public final class OssFileStorage implements FileStorage, DisposableBean {
     }
 
     @Override
+    public boolean isStoredUrl(final String url) {
+        return url.startsWith(this.baseUrl + "/");
+    }
+
+    @Override
     public void destroy() {
         this.writer.close();
     }

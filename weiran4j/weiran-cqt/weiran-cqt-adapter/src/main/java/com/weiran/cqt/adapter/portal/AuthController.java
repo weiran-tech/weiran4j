@@ -10,10 +10,13 @@ import com.weiran.cqt.api.account.LoginResult;
 import com.weiran.cqt.api.account.RegisterCommand;
 import com.weiran.cqt.api.account.ResetPasswordCommand;
 import com.weiran.cqt.api.account.UpdateProfileCommand;
+import com.weiran.cqt.api.competition.CategoryView;
+import com.weiran.cqt.api.competition.CompetitionQueryService;
 import com.weiran.cqt.api.sms.SmsSendResult;
 import com.weiran.cqt.api.sms.SmsService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.jspecify.annotations.Nullable;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,10 +35,25 @@ public class AuthController {
 
     private final SmsService smsService;
 
+    private final CompetitionQueryService competitionQueryService;
+
     /** 构造 Controller。 */
-    public AuthController(final AccountService accountService, final SmsService smsService) {
+    public AuthController(
+            final AccountService accountService,
+            final SmsService smsService,
+            final CompetitionQueryService competitionQueryService) {
         this.accountService = accountService;
         this.smsService = smsService;
+        this.competitionQueryService = competitionQueryService;
+    }
+
+    /** 某赛事可报的一级赛项（公开；赛事不存在或未启用为空）。 */
+    @PortalPublic
+    @GetMapping("/getsecondcat")
+    public PortalResult<List<CategoryView>> getSecondCat(
+            @RequestParam(value = "id", required = false) final @Nullable String competitionId) {
+        final Long id = PortalParams.longOrNull(competitionId);
+        return PortalResult.ok(id == null ? List.of() : this.competitionQueryService.firstCategories(id));
     }
 
     /**
