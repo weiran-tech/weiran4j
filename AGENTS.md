@@ -66,7 +66,7 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 ├── web/                         # 前端：Vite + React 19 + Semi UI + TanStack Query，路由由菜单驱动
 └── weiran4j/                    # 后端：Gradle 多模块（package.json 只为接入 turbo，名 @weiran/server）
     ├── build-logic/             # 约定插件。质量规则的唯一来源，不要在模块里重复配置
-    ├── weiran-dependencies/     # BOM（import Spring Boot + MyBatis-Plus BOM）。所有版本号只在这里出现
+    ├── weiran-dependencies/     # BOM（import Spring Boot + MyBatis-Plus BOM）。框架版本只在这里；下游业务版本在其 biz-dependencies.gradle.kts（D-013）
     ├── weiran-common/           # 纯 Java：错误码、分页、响应包络、树工具
     ├── weiran-framework/        # Spring 基础设施：统一响应、全局异常、认证拦截、@RequiresPermission、
     │                            #   @OperationLog、MyBatis-Plus 配置与审计字段填充

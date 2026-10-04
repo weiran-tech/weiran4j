@@ -39,11 +39,19 @@
 
 ### CP-4 · 版本号只有一个来源
 
-所有第三方依赖版本由 `weiran-dependencies` BOM 决定；模块的 `build.gradle.kts` 里
-**不允许出现版本号**。Spring Boot BOM 与 MyBatis-Plus BOM 已经管住的依赖，
-不在 `weiran-dependencies` 里复述。
+第三方依赖版本分两类，**各自只有一处**（D-013）：
+
+- **框架版本**只在 `weiran-dependencies/build.gradle.kts`（import 的 Spring Boot / MyBatis-Plus BOM 与上游 constraints）。
+  这两个 BOM 已经管住的依赖，不在 `weiran-dependencies` 里复述。
+- **业务版本**（fork 下游自己引的第三方库与第三方 BOM）只在下游独占的 `weiran-dependencies/biz-dependencies.gradle.kts`。
+  下游清单**不得**约束框架已管理的依赖，不论往高还是往低。
+
+模块的 `build.gradle.kts` 里**不允许出现版本号**。框架依赖在运行时类路径里偏离框架版本（下游钉版本或传递依赖拉高）时，
+`weiran-app` 的 `verifyFrameworkVersions` 失败；确认可接受的偏离逐条写进白名单并写理由（CP-6）。
 
 **为什么**：复述一次就多一处会过期的事实，而过期的那处不会报错，只会在某次升级后行为分叉。
+两类版本分开放，是为了下游不改上游文件；但 Gradle 对 `platform` 的冲突取高，下游一钉框架依赖就等于悄悄升级框架——
+所以两处的边界必须由构建检查守住，而不是靠自觉。
 
 ### CP-5 · 质量规则只在 build-logic 里配置
 
