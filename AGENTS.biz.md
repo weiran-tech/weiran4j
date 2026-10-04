@@ -75,6 +75,11 @@ cd uniapp && pnpm install && pnpm dev:h5
 - 阿里云短信（`WEIRAN_CQT_SMS_MODE=aliyun`，change `cqt-sms-aliyun`）：必填 `WEIRAN_CQT_SMS_ALIYUN_ACCESS_KEY_ID`、`WEIRAN_CQT_SMS_ALIYUN_ACCESS_KEY_SECRET`、
   `WEIRAN_CQT_SMS_ALIYUN_SIGN_NAME`、`WEIRAN_CQT_SMS_ALIYUN_TEMPLATE_CODE`，缺一项启动失败。控制台准备：签名与验证码模板审核通过（变量 `${code}`、正文写 10 分钟有效）、
   只授短信发送权限的 RAM 子账号 AccessKey、余额告警。紧急止血：`WEIRAN_CQT_SMS_MODE=disabled` 重启。
+- 文件存储（change `cqt-file-upload`）：`WEIRAN_CQT_STORAGE_MODE`（默认 `disabled`，上传返回 503；`oss` 阿里云 OSS；`local` 本地目录，**仅开发 / 测试**，
+  经 `/uploads/**` 提供）。`oss` 必填 `WEIRAN_CQT_OSS_ACCESS_KEY_ID`、`WEIRAN_CQT_OSS_ACCESS_KEY_SECRET`、`WEIRAN_CQT_OSS_BUCKET`、
+  `WEIRAN_CQT_OSS_ENDPOINT`（如 `oss-cn-beijing.aliyuncs.com`）、`WEIRAN_CQT_OSS_PUBLIC_BASE_URL`（Bucket 公网地址或自定义域名），缺一项启动失败。
+  Bucket 须为**公共读**（对象名含随机 UUID）；RAM 子账号只授该 Bucket 的写权限。上传单文件上限 1GB：**反向代理请求体上限 ≥ 1GB、读超时放宽**，
+  服务器临时目录放在大盘（超过阈值的上传内容先落临时文件）。上传需前台登录：学校注册不再上传材料，注册后到「我的 → 学校认证」补交。
 - 短信 IP 限流依赖 `server.forward-headers-strategy: native`（`application-biz.yml`）：Tomcat 只采信内网 / 本机代理转发的 `X-Forwarded-For`。
   **反向代理必须在内网并设置 `X-Forwarded-For`**，否则所有请求共用代理 IP 的额度（可配 `server.tomcat.remoteip.internal-proxies`）。
 - 第三方依赖版本登记在 `weiran4j/weiran-dependencies/biz-dependencies.gradle.kts`（D-013，下游独占）；业务模块引用时不写版本；

@@ -2,7 +2,7 @@
 
 # 能力索引
 
-12 个能力 / 63 条需求 —— active 8 · partial 0 · superseded 4。
+13 个能力 / 66 条需求 —— active 9 · partial 0 · superseded 4。
 
 状态口径见 `openspec/config.yaml` 的 `rules.specs`:
 `active` 现行有效 · `partial` 主体有效但有已知缺口(缺口写在 Purpose 里) · `superseded` 已被取代,内容仅供追溯、**不再具有约束力**。
@@ -11,6 +11,7 @@
 |---|---:|---|---|
 | [admin-foundation](admin-foundation/spec.md) | 8 | active | 本能力长期承担后台管理框架的底座职责：JWT 登录与令牌吊销、基于角色-菜单的权限模型（菜单驱动前端动态路由与按钮权… |
 | [cqt-account](cqt-account/spec.md) | 7 | active | 本能力长期负责常青藤前台账号（个人参赛者与学校 / 机构）：账号在 `cqt_portal_accounts` 中的… |
+| [cqt-file-storage](cqt-file-storage/spec.md) | 3 | active | 本能力长期负责常青藤前台的文件上传与存储：谁可以上传、允许的文件类型与大小、文件在存储中的命名与归属、存储后端（阿里… |
 | [cqt-portal-api](cqt-portal-api/spec.md) | 4 | active | 本能力长期负责常青藤前台（uniapp）接口 `/api-web/**` 的公共约定：统一响应包络、错误语义（HTT… |
 | [cqt-region](cqt-region/spec.md) | 2 | active | 本能力长期负责常青藤的赛区（地区）基础数据：`cqt_regions` 表的存储口径（沿用旧系统编号 `legacy… |
 | [cqt-site-config](cqt-site-config/spec.md) | 3 | active | 本能力长期负责常青藤前台的站点配置：站点文案、联系方式、协议正文、证书可见性开关等配置项在 `cqt_setting… |

@@ -43,7 +43,7 @@
 | `cities` | `city_legacy_id` | 赛区编号（`cqt_regions.legacy_id`）；`userinfo.cityname` 由此解析 |
 | `status` | `audit_status` | 0 通过、1 审核中、2 驳回；个人注册即 0，学校注册为 1；驳回的学校改资料自动回 1；**本人不可改** |
 | `rejectreason` | `rejection_reason` | 本人不可改 |
-| `zhizhao` / `chengnuoshu` | `license_file` / `commitment_file` | 只存 URL 字符串（上传接口另开 change） |
+| `zhizhao` / `chengnuoshu` | `license_file` / `commitment_file` | 只存 URL 字符串；文件经 `POST /api-web/local-files/upload`（需登录，OSS 公共读）上传后由「学校认证」页通过 `updateuserinfo` 写入；学校注册时不再上传 |
 | — | `token_version` | 令牌版本；重置密码时 +1，旧令牌立即失效 |
 
 ## 3. 动作
@@ -84,6 +84,20 @@
   change `cqt-sms-aliyun` 的发送实现只经过假网关单测与开发模式集成测试，SDK 对真实阿里云的调用（鉴权、签名、模板）没有跑过（用户决定延后）。
   症状：若签名 / 模板未审核或 AccessKey 权限不对，上线后所有 `sendSms` 返回 503「短信发送失败」，注册与找回密码全部不可用。
   上线前按 `AGENTS.biz.md` 配好环境变量，用测试手机调一次 `GET /api-web/auth/sendSms`，看启动日志里的阿里云 `code=`。
+
+- **#08 ⚠️ P2 学校注册时不再上传认证材料，审核时可能缺材料**
+  change `cqt-file-upload` 起上传需登录，uniapp 注册页去掉了事业单位法人证书与承诺书上传，学校需在注册后到「我的 → 学校认证」补交。
+  症状：只注册不补材料的学校停在审核中（`audit_status=1`），`license_file` / `commitment_file` 为空；后台审核需识别并处理（「后台学校审核」change 决定规则）。
+- **#09 🚧 P2 旧系统上传的文件未迁移**
+  库里已有的 `license_file` / `commitment_file` 等可能是 `admin.cqtxj.org.cn/storage/...` 等旧地址，本系统不托管这些文件。
+  症状：旧服务器下线后这些地址失效，学校认证页与后台看不到旧材料。迁移另开 change。
+- **#10 ⚠️ P3 上传后未被引用的文件不会清理**
+  每次上传生成新的 OSS 对象，用户换文件或放弃提交后，旧对象留在 Bucket 里持续计费。
+
+- **#11 ❓ P0 阿里云 OSS 上传尚未用真实凭据验证过**
+  change `cqt-file-upload` 的 OSS 实现只经过假客户端单测与本地存储集成测试（用户决定延后）。
+  症状：Bucket、Endpoint、公网前缀或 RAM 权限有误时，上线后所有上传返回 503「文件上传失败」，或返回的地址打不开（Bucket 非公共读）。
+  上线前按 `AGENTS.biz.md` 配好环境变量，用测试账号上传一个文件并在浏览器打开返回的 `url`。
 
 ## 7. changelog
 

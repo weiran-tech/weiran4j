@@ -4,5 +4,7 @@ dependencies {
     constraints {
         // 阿里云短信官方 SDK（cqt-sms-aliyun）。传递依赖 tea / tea-openapi / tea-util 等随它解析。
         add("api", "com.aliyun:dysmsapi20170525:4.6.0")
+        // 阿里云 OSS 官方 SDK（cqt-file-upload）。
+        add("api", "com.aliyun.oss:aliyun-sdk-oss:3.18.5")
     }
 }

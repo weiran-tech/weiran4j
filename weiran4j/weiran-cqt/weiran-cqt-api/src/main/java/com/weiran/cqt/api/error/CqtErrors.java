@@ -28,7 +28,13 @@ public enum CqtErrors implements ErrorCode {
     SMS_NOT_CONFIGURED(50320, 503, "短信服务未配置"),
 
     /** 短信服务商返回失败、调用异常或超时。 */
-    SMS_SEND_FAILED(50321, 503, "短信发送失败，请稍后再试");
+    SMS_SEND_FAILED(50321, 503, "短信发送失败，请稍后再试"),
+
+    /** 未配置文件存储。 */
+    STORAGE_NOT_CONFIGURED(50322, 503, "文件存储未配置"),
+
+    /** 写入文件存储失败。 */
+    UPLOAD_FAILED(50323, 503, "文件上传失败，请稍后再试");
 
     private final int code;
 

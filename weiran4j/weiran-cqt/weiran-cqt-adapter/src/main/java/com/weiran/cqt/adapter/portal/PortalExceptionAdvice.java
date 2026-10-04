@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 /**
  * 前台接口的异常出口：HTTP 恒为 200，body {@code code} 取五位错误码的前三位（如 40100 → 401）。
@@ -29,6 +30,9 @@ import org.springframework.web.context.request.WebRequest;
 @SkipApiResponse
 public class PortalExceptionAdvice {
 
+    /** 上传超过 {@code spring.servlet.multipart.max-file-size}（1GB）时的提示。 */
+    static final String UPLOAD_TOO_LARGE = "文件大小不能超过 1GB";
+
     private final GlobalExceptionHandler frameworkHandler;
 
     /** 构造处理器；错误判定委托给框架的全局异常处理器。 */
@@ -39,6 +43,11 @@ public class PortalExceptionAdvice {
     /** 全部异常：先按框架口径翻译，再改写成前台格式。 */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<PortalResult<Void>> handle(final Exception ex, final WebRequest request) {
+        if (ex instanceof MaxUploadSizeExceededException) {
+            // 框架处理器会把它译成笼统的「参数校验失败」；上传上限是固定口径，直接给出明确提示。
+            return ResponseEntity.ok(
+                    PortalResult.fail(CommonErrors.BAD_REQUEST.httpStatus(), PortalExceptionAdvice.UPLOAD_TOO_LARGE));
+        }
         final ResponseEntity<?> translated = this.translate(ex, request);
         final PortalResult<Void> body = translated.getBody() instanceof final ApiResponse<?> response
                 ? PortalResult.fail(response.code() / 100, response.message())

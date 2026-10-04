@@ -4,6 +4,14 @@ server:
   # 客户端真实 IP：Tomcat RemoteIpValve 只采信来自内网 / 本机代理的 X-Forwarded-For（默认 internal-proxies），
   # 短信 IP 限流依赖它。反向代理不在内网时需配置 server.tomcat.remoteip.internal-proxies。
   forward-headers-strategy: native
+spring:
+  servlet:
+    multipart:
+      # 前台上传单个文件上限 1GB（cqt-file-upload）；超过阈值的内容落临时文件，不进内存。
+      max-file-size: 1GB
+      max-request-size: 1100MB
+      # 延迟解析：超限异常在参数解析时抛出，前台 advice 才能接到并返回「文件大小不能超过 1GB」。
+      resolve-lazily: true
 weiran:
   cqt:
     jwt:
@@ -27,3 +35,16 @@ weiran:
     # 学校注册的承诺书模板下载链接（getlinkinfo）。
     commitment-template-url: ${WEIRAN_CQT_COMMITMENT_TEMPLATE_URL:}
     bcrypt-strength: 10
+    storage:
+      # disabled：上传返回「文件存储未配置」；oss：阿里云 OSS（公共读 Bucket）；local：本地目录（仅开发 / 测试）。
+      mode: ${WEIRAN_CQT_STORAGE_MODE:disabled}
+      key-prefix: cqt/
+      oss:
+        access-key-id: ${WEIRAN_CQT_OSS_ACCESS_KEY_ID:}
+        access-key-secret: ${WEIRAN_CQT_OSS_ACCESS_KEY_SECRET:}
+        bucket: ${WEIRAN_CQT_OSS_BUCKET:}
+        endpoint: ${WEIRAN_CQT_OSS_ENDPOINT:}
+        public-base-url: ${WEIRAN_CQT_OSS_PUBLIC_BASE_URL:}
+      local:
+        root: ${WEIRAN_CQT_STORAGE_LOCAL_ROOT:${java.io.tmpdir}/cqt-uploads}
+        url-prefix: /uploads

@@ -185,69 +185,9 @@
 								placeholder-style='color:#999999' />
 						</view>
 					</view>
+					<!-- cqt-file-upload：上传需登录，学校注册时不再上传材料，注册后到「我的 → 学校认证」补交 -->
 					<view class='e1' v-if="is_school==1">
-						<view class='leftText'>*<span style="color: #1F1F1F">事业单位法人证书</span></view>
-						<view class='e1'>
-							<image class='shnagcImg pointer'
-								:src='businessLicenseUrl || "/static/local_assets/2f558ac9233fcc96d20c4d6e.png"'
-								@click="uploadBusinessLicense" />
-						</view>
-					</view>
-					<!-- 找到原 school 注册部分，替换此处代码 -->
-					<view class='e11' v-if="is_school==1">
-						<view class='leftText'>*<span style="color: #1F1F1F">参赛知情承诺书</span></view>
-
-						<!-- 选项卡：图片 vs PDF -->
-						<view class=''>
-							<view class='e1'>
-								<view class="tab-box e1">
-									<view class="tab-item pointer" :class="{ 'tab-active': tupiantype === 0 }"
-										@click="tupiantype = 0">
-										图片上传
-									</view>
-									<view class="tab-item pointer" :class="{ 'tab-active': tupiantype === 1 }"
-										@click="tupiantype = 1">
-										PDF上传
-									</view>
-								</view>
-							</view>
-
-							<!-- 内容区域：根据选项卡显示不同内容 -->
-							<view class='e1 mt30'>
-								<!-- 图片上传区域 -->
-								<view v-if="tupiantype === 0">
-									<image class='shnagcImg pointer'
-										:src='commitmentLetterUrl || "/static/local_assets/2f558ac9233fcc96d20c4d6e.png"'
-										@click="uploadCommitmentImage" />
-								</view>
-
-								<!-- PDF上传区域 -->
-								<view v-if="tupiantype === 1"
-									:class="$isPC ? 'pdf-upload-box e1 pointer' : 'pdf-upload-box pointer'"
-									@click="uploadCommitmentPdf">
-									<view v-if="!commitmentLetterUrl" class="pdf-placeholder">
-										<view>点击上传PDF文件</view>
-									</view>
-									<view v-else class="pdf-file-item e1">
-										<view class='pointer leftText2' style="text-decoration: underline;"
-											@click.stop="viewFile(commitmentLetterUrl)">
-											{{commitmentLetterName}}
-										</view>
-										<view class='pointer leftText2'
-											style="margin-left: 10rpx; text-decoration: underline; color: #ff0000;"
-											@click.stop='uploadCommitmentPdf'>
-											更换
-										</view>
-									</view>
-								</view>
-							</view>
-							<view class='Xiaotitle pointer ml20'
-								style="text-decoration: underline;color: #999;margin-top: 20rpx;"
-								@click="downloadTemplate">
-								下载承诺书模板
-							</view>
-						</view>
-
+						<view class='leftText2' style="color: #999;">注册后请到「我的 → 学校认证」上传事业单位法人证书与参赛知情承诺书</view>
 					</view>
 				</view>
 				<view class='titles e1 w100b'>

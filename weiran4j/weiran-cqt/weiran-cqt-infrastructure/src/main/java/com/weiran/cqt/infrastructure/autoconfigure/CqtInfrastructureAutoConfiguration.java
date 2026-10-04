@@ -2,10 +2,13 @@ package com.weiran.cqt.infrastructure.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.weiran.cqt.domain.account.PasswordHasher;
+import com.weiran.cqt.domain.file.FileStorage;
 import com.weiran.cqt.domain.portal.PortalTokenCodec;
 import com.weiran.cqt.domain.sms.SmsCodeStore;
 import com.weiran.cqt.domain.sms.SmsIpCounter;
 import com.weiran.cqt.domain.sms.SmsSender;
+import com.weiran.cqt.infrastructure.file.LocalFileStorage;
+import com.weiran.cqt.infrastructure.file.OssFileStorage;
 import com.weiran.cqt.infrastructure.persistence.MybatisAccountRepository;
 import com.weiran.cqt.infrastructure.persistence.MybatisRegionRepository;
 import com.weiran.cqt.infrastructure.persistence.MybatisSettingRepository;
@@ -15,6 +18,7 @@ import com.weiran.cqt.infrastructure.sms.AliyunSmsSender;
 import com.weiran.cqt.infrastructure.sms.CaffeineSmsCodeStore;
 import com.weiran.cqt.infrastructure.sms.CaffeineSmsIpCounter;
 import com.weiran.cqt.infrastructure.sms.DevSmsSender;
+import java.nio.file.Path;
 import java.time.Clock;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -78,5 +82,25 @@ public class CqtInfrastructureAutoConfiguration {
     @ConditionalOnProperty(prefix = "weiran.cqt.sms", name = "mode", havingValue = "aliyun")
     public SmsSender aliyunSmsSender(final CqtProperties properties, final ObjectMapper objectMapper) {
         return AliyunSmsSender.create(properties.sms().aliyun(), objectMapper);
+    }
+
+    /** 阿里云 OSS 文件存储，只在 {@code weiran.cqt.storage.mode=oss} 时注册；配置不全时启动失败，关闭时释放客户端。 */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "weiran.cqt.storage", name = "mode", havingValue = "oss")
+    public FileStorage ossFileStorage(final CqtProperties properties) {
+        return OssFileStorage.create(properties.storage().oss());
+    }
+
+    /** 本地目录文件存储（仅开发 / 测试），只在 {@code weiran.cqt.storage.mode=local} 时注册。 */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "weiran.cqt.storage", name = "mode", havingValue = "local")
+    public FileStorage localFileStorage(final CqtProperties properties) {
+        final CqtProperties.Local local = properties.storage().local();
+        if (local.root().isBlank()) {
+            throw new IllegalStateException("weiran.cqt.storage.mode=local 但未配置 weiran.cqt.storage.local.root");
+        }
+        return new LocalFileStorage(Path.of(local.root()), local.urlPrefix());
     }
 }

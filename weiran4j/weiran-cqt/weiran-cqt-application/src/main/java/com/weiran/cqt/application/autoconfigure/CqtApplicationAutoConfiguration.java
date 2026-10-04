@@ -1,6 +1,7 @@
 package com.weiran.cqt.application.autoconfigure;
 
 import com.weiran.cqt.application.account.AccountApplicationService;
+import com.weiran.cqt.application.file.FileUploadApplicationService;
 import com.weiran.cqt.application.portal.PortalAuthApplicationService;
 import com.weiran.cqt.application.region.RegionApplicationService;
 import com.weiran.cqt.application.setting.SiteConfigApplicationService;
@@ -15,6 +16,7 @@ import org.springframework.context.annotation.Import;
     SmsApplicationService.class,
     AccountApplicationService.class,
     PortalAuthApplicationService.class,
-    RegionApplicationService.class
+    RegionApplicationService.class,
+    FileUploadApplicationService.class
 })
 public class CqtApplicationAutoConfiguration {}
