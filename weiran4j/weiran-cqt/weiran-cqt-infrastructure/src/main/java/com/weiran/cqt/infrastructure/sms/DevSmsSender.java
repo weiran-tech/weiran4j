@@ -1,6 +1,7 @@
 package com.weiran.cqt.infrastructure.sms;
 
 import com.weiran.cqt.domain.account.Phones;
+import com.weiran.cqt.domain.sms.SmsSendOutcome;
 import com.weiran.cqt.domain.sms.SmsSender;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,8 +25,9 @@ public final class DevSmsSender implements SmsSender {
     }
 
     @Override
-    public void send(final String phone, final String code) {
+    public SmsSendOutcome send(final String phone, final String code) {
         DevSmsSender.log.warn("开发模式短信 phone={} code={}", Phones.mask(phone), code);
+        return SmsSendOutcome.SENT;
     }
 
     @Override

@@ -2,7 +2,7 @@
 
 # 能力索引
 
-12 个能力 / 61 条需求 —— active 8 · partial 0 · superseded 4。
+12 个能力 / 63 条需求 —— active 8 · partial 0 · superseded 4。
 
 状态口径见 `openspec/config.yaml` 的 `rules.specs`:
 `active` 现行有效 · `partial` 主体有效但有已知缺口(缺口写在 Purpose 里) · `superseded` 已被取代,内容仅供追溯、**不再具有约束力**。
@@ -14,7 +14,7 @@
 | [cqt-portal-api](cqt-portal-api/spec.md) | 4 | active | 本能力长期负责常青藤前台（uniapp）接口 `/api-web/**` 的公共约定：统一响应包络、错误语义（HTT… |
 | [cqt-region](cqt-region/spec.md) | 2 | active | 本能力长期负责常青藤的赛区（地区）基础数据：`cqt_regions` 表的存储口径（沿用旧系统编号 `legacy… |
 | [cqt-site-config](cqt-site-config/spec.md) | 3 | active | 本能力长期负责常青藤前台的站点配置：站点文案、联系方式、协议正文、证书可见性开关等配置项在 `cqt_setting… |
-| [cqt-sms-verification](cqt-sms-verification/spec.md) | 3 | active | 本能力长期负责常青藤前台的短信验证码：给手机号发送验证码的频率与格式限制、验证码的有效期与一次性校验，以及短信服务未… |
+| [cqt-sms-verification](cqt-sms-verification/spec.md) | 5 | active | 本能力长期负责常青藤前台的短信验证码：给手机号发送验证码的频率与格式限制、验证码的有效期与一次性校验，以及短信服务未… |
 | [downstream-extension](downstream-extension/spec.md) | 10 | active | 本能力长期负责「以 git fork 跟随 weiran4j 的下游项目,不修改任何上游文件即可扩展」的约定:业务模… |
 | [user-list-search](user-list-search/spec.md) | 7 | active | 本能力长期负责后台用户列表的检索口径:`GET /api/users` 接受哪些查询条件、每个条件如何匹配、多个条件… |
 | [admin-console-shell](admin-console-shell/spec.md) | 4 | superseded → `admin-foundation` | 本能力长期承担后台管理前端的整体外壳职责：统一的侧边菜单、顶部栏、嵌套布局路由，以及基于当前登录账号权限的菜单显隐控制 |

@@ -70,10 +70,16 @@ cd uniapp && pnpm install && pnpm dev:h5
 ## 部署与数据迁移
 
 - 环境变量：`WEIRAN_CQT_JWT_SECRET`（前台令牌密钥，≥ 32 字节，**必填**，缺失启动失败）、`WEIRAN_CQT_JWT_TTL`（可选，默认 `7d`）、
-  `WEIRAN_CQT_SMS_MODE`（默认 `disabled`；`dev` 只把验证码写进 warn 日志，**生产禁止**）、`WEIRAN_CQT_SMS_EXPOSE_CODE`（仅开发，回显验证码）、
-  `WEIRAN_CQT_COMMITMENT_TEMPLATE_URL`（学校承诺书模板链接）。
-- **短信服务商接入之前，前台注册、验证码登录、重置密码都不可用（发送接口恒 503），前台账号功能不能上线**（`cqt_portal_accounts.md#05`）。
-- 验证码存在进程内，只支持单实例部署；多实例前要把 `SmsCodeStore` 换成共享存储。
+  `WEIRAN_CQT_SMS_MODE`（默认 `disabled`；`dev` 只把验证码写进 warn 日志，**生产禁止**；`aliyun` 阿里云短信）、`WEIRAN_CQT_SMS_EXPOSE_CODE`（仅开发，回显验证码）、
+  `WEIRAN_CQT_SMS_IP_HOURLY_LIMIT`（同一客户端 IP 每小时最多成功发送条数，默认 10，0 不限）、`WEIRAN_CQT_COMMITMENT_TEMPLATE_URL`（学校承诺书模板链接）。
+- 阿里云短信（`WEIRAN_CQT_SMS_MODE=aliyun`，change `cqt-sms-aliyun`）：必填 `WEIRAN_CQT_SMS_ALIYUN_ACCESS_KEY_ID`、`WEIRAN_CQT_SMS_ALIYUN_ACCESS_KEY_SECRET`、
+  `WEIRAN_CQT_SMS_ALIYUN_SIGN_NAME`、`WEIRAN_CQT_SMS_ALIYUN_TEMPLATE_CODE`，缺一项启动失败。控制台准备：签名与验证码模板审核通过（变量 `${code}`、正文写 10 分钟有效）、
+  只授短信发送权限的 RAM 子账号 AccessKey、余额告警。紧急止血：`WEIRAN_CQT_SMS_MODE=disabled` 重启。
+- 短信 IP 限流依赖 `server.forward-headers-strategy: native`（`application-biz.yml`）：Tomcat 只采信内网 / 本机代理转发的 `X-Forwarded-For`。
+  **反向代理必须在内网并设置 `X-Forwarded-For`**，否则所有请求共用代理 IP 的额度（可配 `server.tomcat.remoteip.internal-proxies`）。
+- 第三方依赖版本登记在 `weiran4j/weiran-dependencies/biz-dependencies.gradle.kts`（D-013，下游独占）；业务模块引用时不写版本；
+  不得约束框架已管理的依赖，传递依赖拉偏框架版本时 `:weiran-app:verifyFrameworkVersions` 会失败。
+- 验证码与短信 IP 计数都存在进程内，只支持单实例部署；多实例前要把 `SmsCodeStore`、`SmsIpCounter` 换成共享存储。
   本地开发写进 gitignore 掉的 `weiran4j/config/application-local.yml`（`weiran.cqt.jwt.secret`）。
 - 数据：Flyway 只建表；原统一库 `cqtxj2026` 的数据用 `scripts/biz/import/<表>.sql` 在切换时导入（源库与目标库同实例，可重复执行）。
   导入前先看 `openspec/state/bizs/cqt_setting.md#01`：`cqtxj2026.sql` 导出文件的中文是双重编码乱码，生产库是否同样乱码未确认。

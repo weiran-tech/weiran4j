@@ -9,6 +9,8 @@ weiran:
       # 开发模式 + 回显：测试从 sendSms 的响应里拿验证码。
       mode: dev
       expose-code: true
+      # 所有 IT 都从回环地址发送，放大上限避免互相影响；上限用例在 CqtSmsLimitIT 里单独覆盖为 2。
+      ip-hourly-limit: 1000
     commitment-template-url: https://example.com/commitment-template.docx
     # 测试用低强度，只为加速；旧库 $2y$10$ 哈希照样能校验。
     bcrypt-strength: 4

@@ -18,6 +18,19 @@ public final class SmsCodePolicy {
 
     private SmsCodePolicy() {}
 
+    /** IP 发送上限的统计窗口。 */
+    public static final Duration IP_WINDOW = Duration.ofHours(1);
+
+    /**
+     * 该 IP 是否已达到每小时发送上限。
+     *
+     * @param sentWithinHour 最近一小时已成功发送的条数
+     * @param hourlyLimit 上限；0 或负数表示不限
+     */
+    public static boolean ipLimitReached(final int sentWithinHour, final int hourlyLimit) {
+        return hourlyLimit > 0 && sentWithinHour >= hourlyLimit;
+    }
+
     /** 生成一条新记录（覆盖旧码，旧码随之失效）。 */
     public static SmsCode issue(final String code, final Instant now) {
         return new SmsCode(code, now, now.plus(SmsCodePolicy.CODE_TTL), 0);

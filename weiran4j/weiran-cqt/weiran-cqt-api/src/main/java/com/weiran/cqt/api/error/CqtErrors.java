@@ -25,7 +25,10 @@ public enum CqtErrors implements ErrorCode {
     SMS_TOO_FREQUENT(42920, 429, "发送过于频繁，请稍后再试"),
 
     /** 未配置短信发送实现。 */
-    SMS_NOT_CONFIGURED(50320, 503, "短信服务未配置");
+    SMS_NOT_CONFIGURED(50320, 503, "短信服务未配置"),
+
+    /** 短信服务商返回失败、调用异常或超时。 */
+    SMS_SEND_FAILED(50321, 503, "短信发送失败，请稍后再试");
 
     private final int code;
 

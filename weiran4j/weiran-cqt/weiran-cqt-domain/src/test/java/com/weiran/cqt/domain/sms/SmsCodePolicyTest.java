@@ -62,4 +62,12 @@ class SmsCodePolicyTest {
                 .isFalse();
         assertThat(SmsCodePolicy.inCooldown(null, SmsCodePolicyTest.NOW)).isFalse();
     }
+
+    @Test
+    @DisplayName("IP 每小时上限：达到上限即拒绝，0 表示不限")
+    void ipLimit() {
+        assertThat(SmsCodePolicy.ipLimitReached(9, 10)).isFalse();
+        assertThat(SmsCodePolicy.ipLimitReached(10, 10)).isTrue();
+        assertThat(SmsCodePolicy.ipLimitReached(1000, 0)).isFalse();
+    }
 }
