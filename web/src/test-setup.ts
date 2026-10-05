@@ -2,9 +2,12 @@ import '@douyinfe/semi-ui/react19-adapter';
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
+import { signOut } from '@/test/session';
 
 afterEach(() => {
     cleanup();
+    // jsdom 的 document.cookie 在同一个测试文件内跨用例保留，不清会让会话串到下一个用例
+    signOut();
     localStorage.clear();
     sessionStorage.clear();
 });

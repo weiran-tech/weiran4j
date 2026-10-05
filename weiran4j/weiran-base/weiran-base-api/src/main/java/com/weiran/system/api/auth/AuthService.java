@@ -14,7 +14,15 @@ public interface AuthService {
      */
     LoginResult login(LoginCommand command, ClientContext client);
 
-    /** 登出：只写登出日志（JWT 无状态，前端丢弃令牌即可）。 */
+    /**
+     * 只校验用户名密码，不签发令牌、不写成功日志；失败照样写登录日志。登录接口复用它，
+     * 将来的外部身份登录在本地兜底时也走这里。
+     *
+     * @throws com.weiran.common.error.BizException 用户名或密码错误（40101，不区分用户名是否存在）、账号已禁用（40301）
+     */
+    AuthenticatedUser authenticate(String username, String password, ClientContext client);
+
+    /** 登出：只写登出日志（JWT 无状态；浏览器的 Cookie 由接口层清除）。 */
     void logout(long userId, ClientContext client);
 
     /** 当前用户信息。 */

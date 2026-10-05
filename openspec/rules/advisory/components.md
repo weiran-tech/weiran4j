@@ -81,7 +81,7 @@
 ## 偏好(`hooks/usePreferences.tsx` + `hooks/PreferencesProvider.tsx`)
 
 - **字段定义与默认值的唯一事实源**是 `hooks/usePreferences.tsx`(44 个,43 个来自 mono4ts、`doubleRailStyle` 来自 zenith-admin;后端 `/api/auth/preferences` 只存不校验)。读用 `usePreferences().preferences`,写用 `setPreferences(partial)`;Provider 外调用直接抛错。
-- `PreferencesProvider`:本地缓存 `localStorage.weiran_preferences`(读写容错,非法字段逐项回落默认),归属用户记在 `weiran_preferences_owner`(用户 id,取自 JWT 的 `sub`,`utils/token.ts` 的 `tokenUserId()` 只解码不验签);登录后 GET 服务端偏好合并覆盖本地,服务端为 `null` 时**只有本地缓存归属 = 当前用户才迁上去**;修改 500ms 防抖 PUT;「恢复默认」清本地并立即 PUT;**未登录(登录页)只写本地、不发请求**。
+- `PreferencesProvider`:本地缓存 `localStorage.weiran_preferences`(读写容错,非法字段逐项回落默认),归属用户记在 `weiran_preferences_owner`(用户 id,取自 `weiran_csrf` Cookie 的前缀,`utils/session.ts` 的 `sessionUserId()`;该 Cookie 不是凭据,令牌本身在 HttpOnly Cookie 里,页面读不到);登录后 GET 服务端偏好合并覆盖本地,服务端为 `null` 时**只有本地缓存归属 = 当前用户才迁上去**;修改 500ms 防抖 PUT;「恢复默认」清本地并立即 PUT;**未登录(登录页)只写本地、不发请求**。
 - 除 `filesViewMode` 外 42 个字段都已接通行为并在抽屉里(2026-09-27 第二阶段补齐 C 组:导航布局、页签风格 / 动画、路由动画、页面缓存、菜单搜索(现为全局搜索)、收藏、锁屏、列设置、面包屑子菜单、分组标题吸顶)。各字段的消费处见上面布局表与 `ColumnSettings` / `LockScreen` 条目。
 - 坑:**`filesViewMode` 预留给文件模块,当前无消费方**——本项目没有文件模块,它只有类型与默认值,不在抽屉里。将来加文件模块时再接通并放进抽屉。
 - 坑:`tabAnimation` 与 `routeAnimation` 是两件事(同 mono4ts):前者是页签条目的进出场,后者是内容区进场;开启页面缓存的页面不播路由动画。

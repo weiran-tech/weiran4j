@@ -3,6 +3,7 @@ package com.weiran.app;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.weiran.framework.auth.AuthCookies;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
@@ -65,9 +66,24 @@ abstract class IntegrationTestSupport {
         return prefix + "_" + IntegrationTestSupport.SEQUENCE.incrementAndGet();
     }
 
-    /** 登录并返回原始响应。 */
+    /**
+     * 以令牌模式（{@code X-Auth-Mode: token}）登录并返回原始响应：令牌在响应体里，后续用 Bearer 头调用。
+     * 浏览器的 Cookie 模式见 {@link #loginWithCookies}。
+     */
     ResponseEntity<JsonNode> login(final String username, final String password) {
-        return this.call(HttpMethod.POST, "/api/auth/login", null, Map.of("username", username, "password", password));
+        final HttpHeaders headers = new HttpHeaders();
+        headers.set(AuthCookies.AUTH_MODE_HEADER, AuthCookies.AUTH_MODE_TOKEN);
+        return this.exchange(
+                HttpMethod.POST, "/api/auth/login", headers, Map.of("username", username, "password", password));
+    }
+
+    /** 以浏览器默认的 Cookie 模式登录并返回原始响应（不带 {@code X-Auth-Mode}）。 */
+    ResponseEntity<JsonNode> loginWithCookies(final String username, final String password) {
+        return this.exchange(
+                HttpMethod.POST,
+                "/api/auth/login",
+                new HttpHeaders(),
+                Map.of("username", username, "password", password));
     }
 
     /** 登录并返回令牌，登录失败直接让测试失败。 */
@@ -101,13 +117,21 @@ abstract class IntegrationTestSupport {
     ResponseEntity<JsonNode> call(
             final HttpMethod method, final String path, final @Nullable String token, final @Nullable Object body) {
         final HttpHeaders headers = new HttpHeaders();
+        if (token != null) {
+            headers.setBearerAuth(token);
+        }
+        return this.exchange(method, path, headers, body);
+    }
+
+    /** 带自定义请求头调用（Cookie、CSRF 头等）；统一补上 JSON 与浏览器 UA。 */
+    ResponseEntity<JsonNode> exchange(
+            final HttpMethod method, final String path, final HttpHeaders extra, final @Nullable Object body) {
+        final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set(
                 HttpHeaders.USER_AGENT,
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/126.0.0.0 Safari/537.36");
-        if (token != null) {
-            headers.setBearerAuth(token);
-        }
+        headers.addAll(extra);
         return this.rest.exchange(path, method, new HttpEntity<>(body, headers), JsonNode.class);
     }
 

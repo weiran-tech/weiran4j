@@ -69,12 +69,6 @@ export function page<T>(list: T[], total = list.length) {
     return { list, total, page: 1, pageSize: 20 };
 }
 
-/** 测试用 JWT：只有载荷有意义（`sub` = 用户 id），签名是假的；前端只解码不验签 */
-export function fakeJwt(userId: number): string {
-    const b64 = (o: object) => btoa(JSON.stringify(o)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
-    return `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: String(userId), username: `u${userId}`, ver: 0 })}.sig`;
-}
-
 /** 打开偏好设置抽屉：悬停顶栏用户名弹出下拉菜单，点「偏好设置」 */
 export async function openPreferences() {
     const trigger = await waitFor(() => {

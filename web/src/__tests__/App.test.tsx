@@ -3,7 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '@/App';
 import { mockFetch, renderWithProviders } from '@/test/helpers';
 import type { CurrentUserView, MenuNode } from '@/types/api';
-import { getToken, setToken } from '@/utils/token';
+import { signIn } from '@/test/session';
+import { getSession } from '@/utils/session';
 
 const me: CurrentUserView = {
     id: 1,
@@ -58,7 +59,7 @@ describe('App 路由', () => {
     });
 
     it('已登录：按菜单渲染侧边栏与首页', async () => {
-        setToken('t');
+        signIn();
         mockFetch({ 'GET /api/auth/me': me, 'GET /api/auth/menus': menus, 'GET /api/dicts/code/sys_user_gender/items': [] });
         renderWithProviders(<App />, { route: '/' });
         expect(await screen.findByText(/欢迎使用/)).toBeInTheDocument();
@@ -66,7 +67,7 @@ describe('App 路由', () => {
     });
 
     it('菜单组件在前端不存在时渲染占位而不崩溃', async () => {
-        setToken('t');
+        signIn();
         mockFetch({ 'GET /api/auth/me': me, 'GET /api/auth/menus': menus });
         renderWithProviders(<App />, { route: '/system/todo' });
         expect(await screen.findByText('页面不存在')).toBeInTheDocument();
@@ -74,20 +75,20 @@ describe('App 路由', () => {
     });
 
     it('未知路径渲染 404', async () => {
-        setToken('t');
+        signIn();
         mockFetch({ 'GET /api/auth/me': me, 'GET /api/auth/menus': menus });
         renderWithProviders(<App />, { route: '/no/such/page' });
         expect(await screen.findByText('404 页面不存在')).toBeInTheDocument();
     });
 
-    it('/api/auth/me 返回 40100 时清令牌回登录页', async () => {
-        setToken('expired');
+    it('/api/auth/me 返回 40100 时清会话回登录页', async () => {
+        signIn();
         mockFetch({
             'GET /api/auth/me': () => Response.json({ code: 40100, message: '登录已失效', data: null }, { status: 401 }),
             'GET /api/auth/menus': menus,
         });
         renderWithProviders(<App />, { route: '/dashboard' });
         expect(await screen.findByRole('button', { name: '登录' })).toBeInTheDocument();
-        expect(getToken()).toBeNull();
+        expect(getSession()).toBeNull();
     });
 });

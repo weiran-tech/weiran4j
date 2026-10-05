@@ -13,8 +13,8 @@ public interface TokenAuthenticator {
     /**
      * 校验令牌并返回对应的登录用户。
      *
-     * @param bearerToken {@code Authorization: Bearer} 之后的令牌原文
+     * @param token 令牌原文：{@code Authorization: Bearer} 之后的部分，或 {@value AuthCookies#TOKEN_COOKIE} Cookie 的值
      * @return 令牌有效时返回用户快照，否则为空
      */
-    Optional<LoginUser> authenticate(String bearerToken);
+    Optional<LoginUser> authenticate(String token);
 }

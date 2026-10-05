@@ -23,6 +23,9 @@ public enum CommonErrors implements ErrorCode {
     /** 账号已禁用。 */
     ACCOUNT_DISABLED(40301, 403, "账号已禁用"),
 
+    /** CSRF 校验失败：以 Cookie 认证的写请求缺少或带错了 {@code X-CSRF-Token}。 */
+    CSRF_REJECTED(40302, 403, "请求校验失败，请刷新页面后重试"),
+
     /** 资源不存在。 */
     NOT_FOUND(40400, 404, "资源不存在"),
 

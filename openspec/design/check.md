@@ -201,6 +201,19 @@ L7 硬闸门的命令清单,**唯一事实源,增删命令只改这里**:
 **加条目前先查归档路径**:多数情况下有新条目意味着归档绕开了 `openspec archive`,
 **那是要修的 bug,不是要豁免的历史。**
 
+### `capabilities.archiveBaseline`
+
+`L10/archive-fidelity` 重放 delta 的**起始基线**:`{ "<能力>": { since, why, requirements: [需求名…] } }`。
+给「主 spec 先于任何 delta 直接手写落库」的能力用 —— 重放从 `requirements` 起算而不是从空集起算,
+否则第一个改它的 change 必然报两类错:MODIFIED 指向「从未声明过」的需求(`L10/delta-target-missing`),
+以及主 spec 有「没人声明过」的需求(`L10/archive-fidelity`)。错误信息里的「经手」链会以 `(基线)` 开头。
+
+与 `knownArchiveDrift` 的区别:**登记基线后该能力仍受完整的保真检查**(之后任何一次归档丢了或改写了需求照样报错);
+豁免则是整个能力不再检查。准入条件:`since` 必须是能 `git show` 出那份手写主 spec 的提交,`requirements` 逐字取自该提交的
+`### Requirement:` 标题(去掉 `[FR-NNN]` 前缀)。不得用它来掩盖归档漂移。
+
+现有条目:`admin-foundation`(`e23c511`,D-008 重写时手写,首个改它的 change 是 `auth-seams-cookie-ci`)。
+
 ### `componentsRegistry`
 
 `exempt`:不该进 `rules/advisory/components.md` 的组件文件(相对仓库根的路径)。只给「纯内部实现、没有复用语义」的文件用,每条都要能说出理由 —— 豁免清单本身也会过期。

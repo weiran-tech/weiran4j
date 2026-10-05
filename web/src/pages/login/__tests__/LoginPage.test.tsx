@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mockFetch, renderWithProviders } from '@/test/helpers';
-import { getToken } from '@/utils/token';
+import { getSession } from '@/utils/session';
 import LoginPage from '../LoginPage';
 
 function renderLogin(route = '/login') {
@@ -31,20 +31,24 @@ describe('LoginPage', () => {
         expect(screen.getByRole('button', { name: '登录' })).toBeInTheDocument();
     });
 
-    it('登录成功保存令牌并跳到 redirect', async () => {
+    it('登录成功建立会话并跳到 redirect', async () => {
         const { calls } = mockFetch({
-            'POST /api/auth/login': { accessToken: 'jwt-token', tokenType: 'Bearer', expiresIn: 43200 },
+            'POST /api/auth/login': () => {
+                // 模拟浏览器处理响应里的 Set-Cookie：令牌在 HttpOnly Cookie（JS 不可见），前端只看得到 weiran_csrf
+                document.cookie = 'weiran_csrf=1.x; path=/';
+                return Response.json({ code: 0, message: 'ok', data: { tokenType: 'Bearer', expiresIn: 43200, userId: 1 } });
+            },
         });
         renderLogin('/login?redirect=%2Fsystem%2Fusers');
         fill(' admin ', 'admin123');
         fireEvent.click(screen.getByRole('button', { name: '登录' }));
 
         await waitFor(() => expect(screen.getByText('已跳转')).toBeInTheDocument());
-        expect(getToken()).toBe('jwt-token');
+        expect(getSession()).toBe('1.x');
         expect(calls[0]).toMatchObject({ method: 'POST', path: '/api/auth/login', body: { username: 'admin', password: 'admin123' } });
     });
 
-    it('密码错误时展示后端 message，不保存令牌', async () => {
+    it('密码错误时展示后端 message，不建立会话', async () => {
         mockFetch({
             'POST /api/auth/login': () =>
                 Response.json({ code: 40101, message: '用户名或密码错误', data: null }, { status: 401 }),
@@ -54,7 +58,7 @@ describe('LoginPage', () => {
         fireEvent.click(screen.getByRole('button', { name: '登录' }));
 
         expect(await screen.findByText('用户名或密码错误')).toBeInTheDocument();
-        expect(getToken()).toBeNull();
+        expect(getSession()).toBeNull();
     });
 
     it('必填校验：未填写不发请求', async () => {

@@ -5,9 +5,10 @@ import { App } from '@/App';
 import { LOCK_STORAGE_KEY } from '@/hooks/useLockScreen';
 import { defaultPreferences, type UserPreferences } from '@/hooks/usePreferences';
 import { savePreferences } from '@/lib/preferences-storage';
-import { fakeJwt, mockFetch, openPreferences, page, renderWithProviders, type MockHandler } from '@/test/helpers';
+import { mockFetch, openPreferences, page, renderWithProviders, type MockHandler } from '@/test/helpers';
 import type { CurrentUserView, MenuNode } from '@/types/api';
-import { getToken, setToken } from '@/utils/token';
+import { signIn } from '@/test/session';
+import { getSession } from '@/utils/session';
 
 /**
  * 偏好 C 组（导航布局、页签风格与动画、路由动画、页面缓存、全局搜索、收藏、锁屏、面包屑子菜单、吸顶）
@@ -73,7 +74,7 @@ const menus: MenuNode[] = [
 
 function renderAuthed(route: string, prefs: Partial<UserPreferences> = {}, extra: Record<string, MockHandler> = {}) {
     // 本地偏好属于当前登录用户（id 1），服务端为 null 时按「自己的缓存」迁移而不是回落默认值
-    setToken(fakeJwt(1));
+    signIn(1);
     savePreferences({ ...defaultPreferences, ...prefs }, 1);
     const fetch = mockFetch({
         'GET /api/auth/me': me,
@@ -470,7 +471,7 @@ describe('enableLockScreen', () => {
         expect(screen.queryByRole('dialog', { name: '屏幕已锁定' })).toBeNull();
     });
 
-    it('顶栏按钮锁定；密码错误提示「密码错误」且不清令牌；正确密码解锁', async () => {
+    it('顶栏按钮锁定；密码错误提示「密码错误」且不清会话；正确密码解锁', async () => {
         let ok = false;
         const { fetch } = renderAuthed('/dashboard', { enableLockScreen: true }, {
             'POST /api/auth/verify-password': () => verifyRoute(ok)['POST /api/auth/verify-password'](),
@@ -484,7 +485,7 @@ describe('enableLockScreen', () => {
         fireEvent.change(input, { target: { value: 'wrong' } });
         fireEvent.click(within(lock).getByRole('button', { name: '解锁' }));
         expect(await within(lock).findByRole('alert')).toHaveTextContent('密码错误');
-        expect(getToken()).toBe(fakeJwt(1));
+        expect(getSession()).toBe('1.test');
         expect(screen.getByRole('dialog', { name: '屏幕已锁定' })).toBeInTheDocument();
         expect(fetch.calls.find((c) => c.path === '/api/auth/verify-password')?.body).toEqual({ password: 'wrong' });
 
@@ -493,7 +494,7 @@ describe('enableLockScreen', () => {
         fireEvent.click(within(lock).getByRole('button', { name: '解锁' }));
         await waitFor(() => expect(screen.queryByRole('dialog', { name: '屏幕已锁定' })).toBeNull());
         expect(sessionStorage.getItem(LOCK_STORAGE_KEY)).toBeNull();
-        expect(getToken()).toBe(fakeJwt(1));
+        expect(getSession()).toBe('1.test');
     });
 
     it('真实键盘序列：输错密码回车提示「密码错误」，清空后输对密码回车解锁', async () => {
@@ -564,7 +565,7 @@ describe('enableLockScreen', () => {
         renderAuthed('/dashboard', { enableLockScreen: true }, { 'POST /api/auth/logout': null });
         const lock = await screen.findByRole('dialog', { name: '屏幕已锁定' });
         fireEvent.click(within(lock).getByRole('button', { name: '重新登录' }));
-        await waitFor(() => expect(getToken()).toBeNull());
+        await waitFor(() => expect(getSession()).toBeNull());
         expect(sessionStorage.getItem(LOCK_STORAGE_KEY)).toBeNull();
     });
 });

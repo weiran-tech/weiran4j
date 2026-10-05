@@ -237,8 +237,11 @@ vitest + jsdom + @testing-library/react。**断言 Semi `Form.*` 受控控件时
 - 认证不用 Spring Security 过滤器链：`weiran-framework` 的 `AuthInterceptor` 拦 `/api/**`，
   `@PublicApi` 放行，`@RequiresPermission` 校验权限码，`CurrentUser` 取当前用户。
 - 权限码登记在 `sys_menu` 的 button 行（如 `system:user:create`）；角色 `super_admin` 放行一切，`/me` 返回 `["*"]`。
-- 令牌吊销只靠 `sys_user.token_version`（JWT 的 `ver` claim）：改密码 / 重置密码 / 禁用账号时递增（宪法 CP-8）。
-- 登录失败不区分「用户不存在」与「密码错误」，统一 `40101`（宪法 CP-10）。前端对 `40100` 清令牌跳登录，对 `40101` 不清。
+- 认证三段式（D-014）：按 JWT `iss` 选 `TokenVerifier` → `IdentityResolver` 认身份并判吊销 → `PermissionSource` 取权限。
+- 令牌吊销只靠 `sys_user.token_version`（JWT 的 `ver` claim）：改密码 / 重置密码 / 禁用账号时递增，且每次请求查库、不走缓存（宪法 CP-8）。
+- 浏览器令牌在 HttpOnly Cookie `weiran_token` 里，页面脚本读不到；前端靠非 HttpOnly 的 `weiran_csrf` 判断登录态，
+  写请求带 `X-CSRF-Token`（缺了 403 / `40302`）。脚本调用登录时带 `X-Auth-Mode: token` 拿令牌，再用 Bearer 头（契约 §4）。**前后端必须同源部署**。
+- 登录失败不区分「用户不存在」与「密码错误」，统一 `40101`（宪法 CP-10）。前端对 `40100` 清会话跳登录，对 `40101` 不清。
 - 种子账号 `admin` / `admin123`（Flyway 种子），**上线前必须改密**。
 
 ## 密钥与本地配置
