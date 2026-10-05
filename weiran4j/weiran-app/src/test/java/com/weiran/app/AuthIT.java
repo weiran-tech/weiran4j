@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -35,7 +36,12 @@ class AuthIT extends IntegrationTestSupport {
         final JsonNode loginData = IntegrationTestSupport.data(login);
         assertThat(loginData.path("tokenType").asText()).isEqualTo("Bearer");
         assertThat(loginData.path("expiresIn").asLong()).isEqualTo(3600L);
+        assertThat(loginData.path("userId").asLong()).isEqualTo(1L);
+        assertThat(login.getHeaders().get(HttpHeaders.SET_COOKIE))
+                .as("令牌模式不写 Cookie")
+                .isNull();
         final String token = loginData.path("accessToken").asText();
+        assertThat(token).isNotBlank();
 
         final ResponseEntity<JsonNode> me = this.get("/api/auth/me", token);
         IntegrationTestSupport.assertOk(me);

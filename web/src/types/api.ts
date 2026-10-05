@@ -32,10 +32,15 @@ export interface LoginRequest {
     password: string;
 }
 
+/**
+ * POST /api/auth/login 的响应（契约 §6.1）。默认模式下令牌只走 HttpOnly Cookie，
+ * `accessToken` 为 null 或缺省，前端两种都按「没有」处理、也不读它；`X-Auth-Mode: token` 时才有值（给非浏览器客户端）。
+ */
 export interface LoginResult {
-    accessToken: string;
-    tokenType: 'Bearer';
+    accessToken?: string | null;
+    tokenType: string;
     expiresIn: number;
+    userId: number;
 }
 
 export interface CurrentUserView {
@@ -70,7 +75,7 @@ export interface FavoriteMenusSaveRequest {
     menuIds: number[];
 }
 
-/** POST /api/auth/verify-password：锁屏解锁；错误返回 40101，不影响令牌 */
+/** POST /api/auth/verify-password：锁屏解锁；错误返回 40101，不影响会话 */
 export interface VerifyPasswordRequest {
     password: string;
 }

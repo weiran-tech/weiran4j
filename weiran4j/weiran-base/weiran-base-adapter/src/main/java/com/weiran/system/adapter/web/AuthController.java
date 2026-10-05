@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.weiran.common.error.BizException;
 import com.weiran.common.response.ApiResponse;
+import com.weiran.framework.auth.AuthCookies;
 import com.weiran.framework.auth.CurrentUser;
 import com.weiran.framework.auth.PublicApi;
 import com.weiran.framework.log.OperationLog;
@@ -14,6 +15,7 @@ import com.weiran.system.adapter.web.request.LoginRequest;
 import com.weiran.system.adapter.web.request.SaveFavoriteMenusRequest;
 import com.weiran.system.adapter.web.request.UpdateProfileRequest;
 import com.weiran.system.adapter.web.request.VerifyPasswordRequest;
+import com.weiran.system.adapter.web.response.LoginResponse;
 import com.weiran.system.api.auth.AuthService;
 import com.weiran.system.api.auth.ChangePasswordCommand;
 import com.weiran.system.api.auth.ClientContext;
@@ -23,9 +25,13 @@ import com.weiran.system.api.auth.LoginResult;
 import com.weiran.system.api.auth.UpdateProfileCommand;
 import com.weiran.system.api.menu.MenuNode;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.time.Duration;
 import java.util.List;
+import java.util.Locale;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -37,6 +43,9 @@ import org.springframework.web.bind.annotation.RestController;
  * 认证接口 {@code /api/auth}。
  *
  * <p>登录 / 登出写的是登录日志（sys_login_log），不再重复记操作日志。
+ *
+ * <p>令牌交付（契约 §4、§6.1）：浏览器默认走 HttpOnly Cookie，响应体不含令牌；
+ * 请求头 {@code X-Auth-Mode: token} 时改为响应体返回令牌、不写 Cookie，供脚本等非浏览器调用方用 Bearer 头。
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -46,24 +55,39 @@ public class AuthController {
 
     private final ObjectMapper objectMapper;
 
+    private final AuthCookies authCookies;
+
     /** 构造控制器。 */
-    public AuthController(final AuthService authService, final ObjectMapper objectMapper) {
+    public AuthController(
+            final AuthService authService, final ObjectMapper objectMapper, final AuthCookies authCookies) {
         this.authService = authService;
         this.objectMapper = objectMapper;
+        this.authCookies = authCookies;
     }
 
     /** 登录。 */
     @PublicApi
     @PostMapping("/login")
-    public LoginResult login(@Valid @RequestBody final LoginRequest request, final HttpServletRequest http) {
-        return this.authService.login(
+    public LoginResponse login(
+            @Valid @RequestBody final LoginRequest request,
+            final HttpServletRequest http,
+            final HttpServletResponse response) {
+        final LoginResult result = this.authService.login(
                 new LoginCommand(request.username(), request.password()), AuthController.clientOf(http));
+        if (AuthController.wantsToken(http)) {
+            return LoginResponse.withToken(result);
+        }
+        AuthController.addCookies(
+                response,
+                this.authCookies.issue(result.accessToken(), Duration.ofSeconds(result.expiresIn()), result.userId()));
+        return LoginResponse.withoutToken(result);
     }
 
     /** 登出。 */
     @PostMapping("/logout")
-    public ApiResponse<Void> logout(final HttpServletRequest http) {
+    public ApiResponse<Void> logout(final HttpServletRequest http, final HttpServletResponse response) {
         this.authService.logout(CurrentUser.require().id(), AuthController.clientOf(http));
+        AuthController.addCookies(response, this.authCookies.clear());
         return ApiResponse.ok();
     }
 
@@ -151,6 +175,17 @@ public class AuthController {
     public ApiResponse<Void> verifyPassword(@Valid @RequestBody final VerifyPasswordRequest request) {
         this.authService.verifyPassword(CurrentUser.require().id(), request.password());
         return ApiResponse.ok();
+    }
+
+    private static boolean wantsToken(final HttpServletRequest http) {
+        final String mode = http.getHeader(AuthCookies.AUTH_MODE_HEADER);
+        return mode != null && AuthCookies.AUTH_MODE_TOKEN.equals(mode.strip().toLowerCase(Locale.ROOT));
+    }
+
+    private static void addCookies(final HttpServletResponse response, final List<ResponseCookie> cookies) {
+        for (final ResponseCookie cookie : cookies) {
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        }
     }
 
     static ClientContext clientOf(final HttpServletRequest http) {

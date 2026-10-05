@@ -13,10 +13,12 @@
   (实测记录见 `weiran4j/gradle.properties`)。
   关闭条件:Spotless 修复配置缓存兼容性,或改用不依赖 javac 内部 API 的格式化器。(原全局编号待办的第 1 条,随全局编号废止改为本编号)
 
-- **#02 ⚠️ P2 权限缓存只在单节点内生效**
-  症状:多节点部署时,在 A 节点改了某用户的角色/菜单或吊销其令牌,B 节点在最长 30 秒内仍按旧权限放行。
-  `TokenAuthenticator` 的实现用进程内 Caffeine 缓存(30s),失效只作用于本进程。
-  单节点部署不受影响;上多节点前需要改成分布式失效(如 Redis 广播)或缩短 TTL。
+- **#02 🟡 P2 权限缓存只在单节点内生效**
+  症状:多节点部署时,在 A 节点改了某用户的角色/菜单,B 节点在最长 30 秒内仍按旧权限放行(该给的权限晚 30 秒才有、该收的权限晚 30 秒才收)。
+  `LocalRbacPermissionSource` 用进程内 Caffeine 快照缓存(`AuthSnapshotCache`,30s),失效只作用于本进程。
+  **吊销部分已由 `auth-seams-cookie-ci` 解决**:改密 / 重置 / 禁用后令牌立即失效在所有实例上成立
+  (`LocalIdentityResolver` 每次请求按主键查 `token_version` 与 `status`,不走缓存)。
+  剩余:角色 / 菜单授权变更的 30s 窗口。单节点部署不受影响;上多节点且不能接受 30s 延迟时,改成分布式失效(如 Redis 广播)。
 
 - **#03 ⚠️ P2 客户端 IP 直接信任 `X-Forwarded-For`**
   症状:登录日志与操作日志里的 IP 可被请求方任意伪造,安全回溯时拿到的是假地址。
@@ -26,12 +28,6 @@
 - **#04 ⚠️ P3 OpenAPI 文档不体现统一响应包络**
   症状:按 `/v3/api-docs` 生成客户端的人拿到的返回类型是裸业务对象,实际响应外面还有 `{code, message, data}`。
   包装发生在 `ApiResponseBodyAdvice`(运行期),springdoc 只看 Controller 的声明返回类型。
-
-- **#05 🔴 P1 没有 CI:门禁 ③ 不存在**
-  症状:后端 `./gradlew check`(含 Testcontainers 集成测试)与前端 `lint/test/build` 只在本地跑;
-  跳过 pre-commit(`--no-verify`)或没跑 `pnpm hooks:install` 的提交,没有任何一道关口会发现回归。
-  仓库没有 `.github/workflows/`。关闭条件:加一个在 PR 上跑后端 `check`、前端 `lint/test/build`
-  与 `node openspec/check.mjs` 的 workflow。
 
 - **#06 ⚠️ P3 前端产物未分包**
   症状:首屏需加载约 2.2 MB 静态资源(Semi UI 全量),弱网下登录页白屏时间长。
@@ -128,6 +124,17 @@
   这两份留作本次不决定(见该 change 的 interview)。可选做法:约定下游写 `artifact.biz.md` / `cross-biz.biz.md`。
 
 ## changelog
+
+**2026-10-05**(`auth-seams-cookie-ci`)
+
+- **#05 ✅ P1 没有 CI:门禁 ③ 不存在**
+  症状:后端 `./gradlew check`(含 Testcontainers 集成测试)与前端 `lint/test/build` 只在本地跑;
+  跳过 pre-commit(`--no-verify`)或没跑 `pnpm hooks:install` 的提交,没有任何一道关口会发现回归。
+  仓库没有 `.github/workflows/`。关闭条件:加一个在 PR 上跑后端 `check`、前端 `lint/test/build`
+  与 `node openspec/check.mjs` 的 workflow。
+  **由 `auth-seams-cookie-ci` 关闭**:新增 `.github/workflows/ci.yml`,PR 与推送 main 时并行跑 backend(JDK 21 `./gradlew check`)、
+  web(`pnpm lint/test/build`)、openspec(`node openspec/check.mjs`)三个 job。分支保护(要求 CI 通过才能合并)仍未配置,见 #12。
+- 同批:#02 改为 🟡 部分解决:吊销判定不再经过缓存,剩余角色 / 权限的 30s 窗口仍在「已知问题汇总」。
 
 **2026-09-26**(D-008 框架重写 + openspec 移到仓库根)
 

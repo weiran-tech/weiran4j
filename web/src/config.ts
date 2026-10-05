@@ -1,5 +1,9 @@
 export const config = {
-    /** 接口前缀；开发环境走 vite 代理，留空即可 */
+    /**
+     * 接口前缀；开发环境走 vite 代理，留空即可。
+     * 只能是路径前缀（如 `/admin-api`），不能是 `http(s)://` 绝对地址：前后端必须同源部署
+     * （认证 Cookie SameSite=Strict、后端无 CORS），`vite.config.ts` 遇到绝对地址会直接报错。
+     */
     apiBaseUrl: import.meta.env.VITE_API_BASE_URL || '',
     appTitle: import.meta.env.VITE_APP_TITLE || 'Weiran Admin',
 };

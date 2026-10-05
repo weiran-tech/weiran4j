@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createQueryClient } from '@/lib/query';
-import { setToken } from '@/utils/token';
+import { signIn } from '@/test/session';
 import { authKeys, useSaveFavoriteMenus } from '../auth';
 
 interface Pending {
@@ -33,11 +33,11 @@ describe('useSaveFavoriteMenus', () => {
     afterEach(() => vi.unstubAllGlobals());
 
     it('连续两次保存串行发出；第一次失败时不回滚掉还在排队的第二次', async () => {
-        setToken('t');
+        const session = signIn();
         const server = { saved: [] as number[] };
         const puts = stubFetch(server);
         const client = createQueryClient();
-        const key = [...authKeys.favoriteMenus, 't'];
+        const key = [...authKeys.favoriteMenus, session];
         client.setQueryData(key, []);
         const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
         const { result } = renderHook(() => useSaveFavoriteMenus(), { wrapper });
@@ -67,10 +67,10 @@ describe('useSaveFavoriteMenus', () => {
     });
 
     it('只有一次保存且失败：回滚到修改前', async () => {
-        setToken('t');
+        const session = signIn();
         const puts = stubFetch({ saved: [1] });
         const client = createQueryClient();
-        const key = [...authKeys.favoriteMenus, 't'];
+        const key = [...authKeys.favoriteMenus, session];
         client.setQueryData(key, [1]);
         const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
         const { result } = renderHook(() => useSaveFavoriteMenus(), { wrapper });

@@ -21,7 +21,24 @@
   ],
   "capabilities": {
     "legacyChangeNamed": [],
-    "knownArchiveDrift": []
+    "knownArchiveDrift": [],
+    "archiveBaseline-note": "L10/archive-fidelity 的起始基线：主 spec 在任何 delta 之前就已存在（直接手写落库）的能力，重放 delta 时从这里登记的需求名起算，而不是从空集起算。只登记『有 git 提交可查的手写起点』，不用来掩盖归档漂移（那是 knownArchiveDrift，且应修归档路径）。详见 design/check.md。",
+    "archiveBaseline": {
+      "admin-foundation": {
+        "since": "e23c511",
+        "why": "D-008 框架重写时直接手写进主 spec，没有经过任何 change 的 delta；首个改它的 change 是 auth-seams-cookie-ci（2026-10-06）",
+        "requirements": [
+          "统一响应包络",
+          "登录与账号枚举防护",
+          "令牌吊销",
+          "接口权限校验",
+          "菜单驱动路由",
+          "树结构防环",
+          "内置数据保护",
+          "操作审计"
+        ]
+      }
+    }
   },
   "ratchet": {
     "$note": "存量棘轮：把宪法里「MUST NOT 新增 X」这类条款变成可执行约束。baseline 是唯一事实源，rules/enforced/constitution.md 只引用它不复述数字。新仓暂无存量，规则为空——真正出现要冻住的存量时再加，不要为了让文件非空而编造规则。",

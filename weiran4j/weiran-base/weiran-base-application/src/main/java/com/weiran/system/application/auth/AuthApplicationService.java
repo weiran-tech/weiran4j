@@ -6,6 +6,7 @@ import com.weiran.common.text.Texts;
 import com.weiran.framework.web.UserAgentInfo;
 import com.weiran.framework.web.UserAgentParser;
 import com.weiran.system.api.auth.AuthService;
+import com.weiran.system.api.auth.AuthenticatedUser;
 import com.weiran.system.api.auth.ChangePasswordCommand;
 import com.weiran.system.api.auth.ClientContext;
 import com.weiran.system.api.auth.CurrentUserView;
@@ -42,7 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 认证用例。
  *
- * <p>{@link #login} 刻意不开事务：失败分支要先写登录日志再抛异常，放在事务里日志会随异常一起回滚。
+ * <p>{@link #login} 与 {@link #authenticate} 刻意不开事务：失败分支要先写登录日志再抛异常，放在事务里日志会随异常一起回滚。
  */
 @Slf4j
 public class AuthApplicationService implements AuthService {
@@ -105,21 +106,8 @@ public class AuthApplicationService implements AuthService {
 
     @Override
     public LoginResult login(final LoginCommand command, final ClientContext client) {
-        final String username = command.username().strip();
-        final Optional<User> found = this.userRepository.findByUsername(username);
-        // 用户不存在与密码错误共用 40101，且提示语一致，防止通过登录接口枚举用户名。
-        final String hash = found.map(User::getPasswordHash).orElse(AuthApplicationService.DUMMY_HASH);
-        final boolean passwordMatches = this.passwordHasher.matches(command.password(), hash);
-        if (found.isEmpty() || !passwordMatches) {
-            final Long userId = found.map(User::getId).orElse(null);
-            this.appendLog(userId, username, client, LoginLog.EVENT_LOGIN, LoginLog.STATUS_FAIL, "用户名或密码错误");
-            throw new BizException(CommonErrors.BAD_CREDENTIALS);
-        }
-        final User user = found.get();
-        if (!user.isEnabled()) {
-            this.appendLog(user.getId(), username, client, LoginLog.EVENT_LOGIN, LoginLog.STATUS_FAIL, "账号已禁用");
-            throw new BizException(CommonErrors.ACCOUNT_DISABLED);
-        }
+        final AuthenticatedUser authenticated = this.authenticate(command.username(), command.password(), client);
+        final User user = this.requireUser(authenticated.id());
         final LocalDateTime now = LocalDateTime.now(this.clock);
         // 定向更新登录信息：整行写回会覆盖并发发生的改密 / 禁用。
         this.userRepository.recordLogin(user.requireId(), client.ip(), now);
@@ -127,7 +115,27 @@ public class AuthApplicationService implements AuthService {
                 this.tokenCodec.issue(new TokenClaims(user.requireId(), user.getUsername(), user.getTokenVersion()));
         this.appendLog(user.getId(), user.getUsername(), client, LoginLog.EVENT_LOGIN, LoginLog.STATUS_SUCCESS, "登录成功");
         return new LoginResult(
-                token, AuthApplicationService.TOKEN_TYPE, this.tokenCodec.ttl().toSeconds());
+                token, AuthApplicationService.TOKEN_TYPE, this.tokenCodec.ttl().toSeconds(), user.requireId());
+    }
+
+    @Override
+    public AuthenticatedUser authenticate(final String username, final String password, final ClientContext client) {
+        final String name = username.strip();
+        final Optional<User> found = this.userRepository.findByUsername(name);
+        // 用户不存在与密码错误共用 40101，且提示语一致；不存在时也空跑一次 BCrypt，响应时间不泄露用户名是否存在。
+        final String hash = found.map(User::getPasswordHash).orElse(AuthApplicationService.DUMMY_HASH);
+        final boolean passwordMatches = this.passwordHasher.matches(password, hash);
+        if (found.isEmpty() || !passwordMatches) {
+            final Long userId = found.map(User::getId).orElse(null);
+            this.appendLog(userId, name, client, LoginLog.EVENT_LOGIN, LoginLog.STATUS_FAIL, "用户名或密码错误");
+            throw new BizException(CommonErrors.BAD_CREDENTIALS);
+        }
+        final User user = found.get();
+        if (!user.isEnabled()) {
+            this.appendLog(user.getId(), name, client, LoginLog.EVENT_LOGIN, LoginLog.STATUS_FAIL, "账号已禁用");
+            throw new BizException(CommonErrors.ACCOUNT_DISABLED);
+        }
+        return new AuthenticatedUser(user.requireId(), user.getUsername());
     }
 
     @Override

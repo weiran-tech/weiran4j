@@ -17,12 +17,15 @@ spring:
     password: ""
 
 weiran:
-  system:
+  auth:
     jwt:
       # 至少 32 字节，否则应用启动时直接失败。
       # 生成方式：openssl rand -base64 48
       secret: ""
       ttl: 12h
+    cookie:
+      # 本地是 http://localhost，Safari 不接受 http 下的 Secure Cookie。
+      secure: false
 
 server:
   port: 3300

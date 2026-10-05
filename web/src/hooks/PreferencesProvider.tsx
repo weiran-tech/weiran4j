@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { clearPreferences, loadPreferences, loadPreferencesOwner, savePreferences } from '@/lib/preferences-storage';
 import { http } from '@/utils/request';
-import { tokenUserId, useToken } from '@/utils/token';
+import { sessionUserId, useSession } from '@/utils/session';
 import { defaultPreferences, normalizePreferences, PreferencesContext, type UserPreferences } from './usePreferences';
 
 const PREFERENCES_API = '/api/auth/preferences';
@@ -10,20 +10,20 @@ export const PREFERENCES_SYNC_DELAY = 500;
 
 /**
  * 偏好状态源（移植自 mono4ts `PreferencesProvider`）：
- * - 本地缓存 `localStorage.weiran_preferences` 是首屏与未登录时的来源，`weiran_preferences_owner` 记它属于哪个用户（JWT 的 sub）；
+ * - 本地缓存 `localStorage.weiran_preferences` 是首屏与未登录时的来源，`weiran_preferences_owner` 记它属于哪个用户（会话 Cookie `weiran_csrf` 的 userId 前缀）；
  * - 登录后 GET 服务端偏好合并覆盖本地；服务端从未保存过（null）时，**只有本地缓存属于当前用户**才迁上去，
  *   否则（别的账号留下的、旧版无归属的、登录页上改的）当前用户从默认值开始，不 PUT——不把别人的偏好写进他的账号；
- * - 退出登录（主动退出、clearSession、401 清令牌、其它标签页退出）即令牌从有到无时，清本地缓存并回到默认值
+ * - 退出登录（主动退出、clearSession、401 清会话、其它标签页退出）即会话从有到无时，清本地缓存并回到默认值
  *   （登录页因此回到默认浅色主题，这是有意的取舍）；
  * - 修改 500ms 防抖 PUT；恢复默认立即 PUT；未登录（登录页）只写本地、不发请求。
  */
 export function PreferencesProvider({ children }: Readonly<{ children: ReactNode }>) {
-    const token = useToken();
+    const session = useSession();
     const [prefs, setPrefs] = useState<UserPreferences>(loadPreferences);
     const prefsRef = useRef(prefs);
-    const tokenRef = useRef(token);
-    /** 当前登录用户 id（来自令牌），本地缓存按它记归属；未登录为 null */
-    const userIdRef = useRef(tokenUserId(token));
+    const sessionRef = useRef(session);
+    /** 当前登录用户 id（来自会话），本地缓存按它记归属；未登录为 null */
+    const userIdRef = useRef(sessionUserId(session));
     const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const cancelSync = useCallback(() => {
@@ -40,7 +40,7 @@ export function PreferencesProvider({ children }: Readonly<{ children: ReactNode
     }, []);
 
     const putPreferences = useCallback((next: UserPreferences) => {
-        if (!tokenRef.current) return;
+        if (!sessionRef.current) return;
         http.put<null>(PREFERENCES_API, next, { silent: true }).catch(() => {
             // 同步失败不打扰用户：本地已生效，下次修改会再全量覆盖
         });
@@ -48,7 +48,7 @@ export function PreferencesProvider({ children }: Readonly<{ children: ReactNode
 
     const scheduleSync = useCallback(
         (next: UserPreferences) => {
-            if (!tokenRef.current) return;
+            if (!sessionRef.current) return;
             cancelSync();
             syncTimerRef.current = setTimeout(() => {
                 syncTimerRef.current = null;
@@ -60,11 +60,11 @@ export function PreferencesProvider({ children }: Readonly<{ children: ReactNode
 
     // 登录（或换账号）后从服务端拉取；登出时丢弃还没发出的写入并清掉本地缓存
     useEffect(() => {
-        const hadToken = tokenRef.current !== null;
-        tokenRef.current = token;
-        userIdRef.current = tokenUserId(token);
-        if (!token) {
-            if (hadToken) {
+        const hadSession = sessionRef.current !== null;
+        sessionRef.current = session;
+        userIdRef.current = sessionUserId(session);
+        if (!session) {
+            if (hadSession) {
                 clearPreferences();
                 applyLocal({ ...defaultPreferences }, false);
             }
@@ -93,7 +93,7 @@ export function PreferencesProvider({ children }: Readonly<{ children: ReactNode
             cancelled = true;
             cancelSync();
         };
-    }, [token, applyLocal, scheduleSync, cancelSync]);
+    }, [session, applyLocal, scheduleSync, cancelSync]);
 
     const setPreferences = useCallback(
         (partial: Partial<UserPreferences>) => {

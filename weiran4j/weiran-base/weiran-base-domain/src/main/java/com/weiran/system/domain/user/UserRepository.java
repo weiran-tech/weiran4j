@@ -2,6 +2,7 @@ package com.weiran.system.domain.user;
 
 import com.weiran.common.page.PageQuery;
 import com.weiran.common.page.PageResult;
+import com.weiran.system.domain.auth.AuthState;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -44,6 +45,9 @@ public interface UserRepository {
 
     /** 定向更新：令牌版本原子加一（禁用账号时吊销已签发令牌）。 */
     void revokeTokens(long id);
+
+    /** 只读令牌版本与账号状态：每个请求都会调用，实现必须只按主键查这两列。 */
+    Optional<AuthState> findAuthState(long id);
 
     /** 界面偏好的原始 JSON 对象文本；从未保存过（或用户不存在）时为空。 */
     Optional<String> findPreferences(long id);

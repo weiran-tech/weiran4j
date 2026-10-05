@@ -28,10 +28,17 @@ server:
 weiran:
   system:
     bcrypt-strength: 10
+  auth:
     jwt:
       # 生产环境必须由环境变量注入，至少 32 字节；缺失或过短时应用启动失败。仓库里不放真实密钥。
       secret: ${WEIRAN_JWT_SECRET:}
       ttl: ${WEIRAN_JWT_TTL:12h}
+      # 本地令牌的签发方与受众（JWT iss / aud），认证按 iss 选校验器（D-014）。
+      issuer: ${WEIRAN_JWT_ISSUER:weiran4j}
+      audience: ${WEIRAN_JWT_AUDIENCE:weiran4j}
+    cookie:
+      # 认证 Cookie 是否带 Secure。线上走 HTTPS 保持 true；本地 http://localhost 在 config/application-local.yml 设 false。
+      secure: ${WEIRAN_COOKIE_SECURE:true}
 
 mybatis-plus:
   configuration:

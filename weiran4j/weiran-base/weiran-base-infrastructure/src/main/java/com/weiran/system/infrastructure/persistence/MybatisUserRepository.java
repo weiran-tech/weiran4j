@@ -10,6 +10,7 @@ import com.weiran.common.page.PageResult;
 import com.weiran.common.status.EnableStatus;
 import com.weiran.framework.persistence.Likes;
 import com.weiran.framework.persistence.MybatisPages;
+import com.weiran.system.domain.auth.AuthState;
 import com.weiran.system.domain.user.Gender;
 import com.weiran.system.domain.user.User;
 import com.weiran.system.domain.user.UserCriteria;
@@ -134,6 +135,17 @@ public class MybatisUserRepository implements UserRepository {
         this.userMapper.update(Wrappers.lambdaUpdate(SysUserDO.class)
                 .setSql("token_version = token_version + 1")
                 .eq(SysUserDO::getId, id));
+    }
+
+    @Override
+    public Optional<AuthState> findAuthState(final long id) {
+        // 每个已认证请求都会走到这里：只按主键取两列，不加载整行。
+        return Optional.ofNullable(this.userMapper.selectOne(Wrappers.lambdaQuery(SysUserDO.class)
+                        .select(SysUserDO::getId, SysUserDO::getTokenVersion, SysUserDO::getStatus)
+                        .eq(SysUserDO::getId, id)))
+                .map(row -> new AuthState(
+                        row.getTokenVersion() == null ? 0 : row.getTokenVersion(),
+                        EnableStatus.of(row.getStatus()) == EnableStatus.ENABLED));
     }
 
     @Override
