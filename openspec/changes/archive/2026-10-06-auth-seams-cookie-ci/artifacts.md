@@ -23,7 +23,11 @@
   第 4、5 步用页面内的 fetch 钩子确认写请求带 `X-CSRF-Token`、不带 `Authorization`。验证中改过的昵称与锁屏偏好都已恢复,浏览器最后重新登录。
 - `curl` 加 cookie jar 经 vite 代理走了一遍接口。注意:本机 curl 默认会被系统 HTTP 代理接管(返回「Connection Closed」页),要加 `NO_PROXY='*'`。
 - `VITE_API_BASE_URL=https://example.com pnpm --filter @weiran/web build`:按预期失败。
-- 未做:CI 没有在 GitHub runner 上跑过(本机没有 actionlint,只做了 YAML 解析)。**合入后第一次 PR 的运行结果补记在这里**。
+- 首次 CI 运行(PR #1,2026-10-05,本 change 自己的 PR,[run 37339169844](https://github.com/weiran-tech/weiran4j/actions/runs/37339169844)):
+  - 三个 job 第一次运行就全部通过:后端 `./gradlew check`(JDK 21 + Testcontainers)4m21s,前端 lint / test / build 1m6s,openspec 检查 4s;
+  - 仓库默认开启的 CodeQL 两项分析(java-kotlin、javascript-typescript)也通过;
+  - 合并方式为 rebase,合并提交是 `6fdea69`。
+  - 本机没有 actionlint,合入前只做了 YAML 解析;以上运行说明工作流语法与 runner 环境(Docker、JDK 21、pnpm 版本)都没问题。
 
 **已知缺口**:
 - `artifact.md#02`(🟡 剩余角色 / 权限的 30s 多实例窗口);
