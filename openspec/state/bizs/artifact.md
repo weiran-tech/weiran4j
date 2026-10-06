@@ -42,28 +42,9 @@
   症状:`UserRoleIT.concurrentLoginsDoNotUndoPasswordResets` 是为「登录整行回写撤销改密」而写的竞态测试,
   但没有在旧实现上回跑过,不能证明它真能抓住这个回归(竞态本身是概率性的)。
 
-- **#09 🔴 P2 `weiran4j/.env.example` 仍是重写前的内容**
-  症状:按它配置部署环境的人会拿到旧库名与已不存在的 PHP / `pam_*` 说明,且缺 `WEIRAN_JWT_TTL`。
-  权限规则禁止 agent 读写 `.env*` 文件,需要人工更新。应列出:`WEIRAN_DB_URL`(库名 `weiran4j`)、
-  `WEIRAN_DB_USERNAME`、`WEIRAN_DB_PASSWORD`、`WEIRAN_JWT_SECRET`(至少 32 字节)、`WEIRAN_JWT_TTL=12h`、
-  `WEIRAN_PORT=3300`、`WEIRAN_LOG_LEVEL`。
-
 > #10~#18 来自 2026-09-27 对照公司《Java 项目开发流程手册 v1.8》及其子规范(日志、接口 v2.0、错误码、
 > 数据库 v1.2、Java 编码 v1.0、Git/CR v2.1、Auth 对接)的盘点。定位按独立底座(维持 D-008):
 > 通用工程规则的缺口记为待处理,技术栈与接口约定的差异记为有意偏离(#17)。
-
-- **#10 🔴 P1 日志体系缺失:无 requestId、无日志配置、关键节点不打日志**
-  症状:线上出问题时运维和开发拿不到现场——无法用一个 ID 串起一次请求的全部日志,
-  前端报错也给不出可检索的请求标识;异常只有响应里的错误码,服务端没有对应记录。
-  现状:主代码只有 8 条日志语句;没有 `logback-spring.xml`;没有 MDC / requestId(`ApiResponse` 里也没有该字段);
-  请求入口/出口、捕获异常处都不打日志;MyBatis 日志与业务日志未分离。
-  公司规范要求格式 `[%d] [%contextName] [%X{requestId}] [%thread] [%level] [%logger{50}] --> %msg%n`。
-  关闭条件:requestId 过滤器(写 MDC + 响应头 + 响应体字段,前端同步)、`logback-spring.xml`、
-  拦截器打入口/出口摘要(脱敏、截断)、全局异常处理补 ERROR 日志。
-
-- **#11 🔴 P2 未配置优雅停机**
-  症状:发版重启时正在处理的请求被直接掐断,调用方拿到连接重置;操作日志异步队列里未落库的记录可能丢失。
-  `application.yml` 没有 `server.shutdown=graceful` 与 `spring.lifecycle.timeout-per-shutdown-phase`。
 
 - **#12 🔴 P1 没有分支保护与 PR / CR 流程**
   症状:任何人都能直接推 `main`,代码不经评审就进入主干;与 #05(没有 CI)叠加后,
@@ -108,10 +89,6 @@
   - 权限码:`system:user:create`(公司为点分蛇形 `系统.模块.操作`,菜单节点需 `.page` / `.manage`)。
   - 类命名:`*Request` / `*View` / `*Command`(公司为 `*ReqDTO` / `*RespVO` / `*DomainService`);`DO` 含义见 #16。
 
-- **#18 🔴 P2 缺部署步骤文档**
-  症状:第一次部署的人只能从 `AGENTS.md` 与 `application.yml` 自行拼出步骤(JDK、库、环境变量、前端产物放哪),
-  且 #09 的 `.env.example` 本身是错的。公司手册「项目标准」把服务部署步骤文档列为高优先级交付物。
-
 - **#19 🔴 P3 `@SkipApiResponse` 用在 `/api/**` 上没有机械拦截**
   症状:有人在管理端 Controller 上标了 `@SkipApiResponse`(或其组合注解),该接口不再返回 `{code:0}`,
   前端 `request.ts` 把成功响应当失败处理——编译、单测、`check` 全绿,只在点到那个页面时暴露。
@@ -124,6 +101,40 @@
   这两份留作本次不决定(见该 change 的 interview)。可选做法:约定下游写 `artifact.biz.md` / `cross-biz.biz.md`。
 
 ## changelog
+
+**2026-10-06**(`deploy-observability`)
+
+- **#09 ✅ P2 `weiran4j/.env.example` 仍是重写前的内容**
+  症状:按它配置部署环境的人会拿到旧库名与已不存在的 PHP / `pam_*` 说明,且缺 `WEIRAN_JWT_TTL`。
+  权限规则禁止 agent 读写 `.env*` 文件,需要人工更新。应列出:`WEIRAN_DB_URL`(库名 `weiran4j`)、
+  `WEIRAN_DB_USERNAME`、`WEIRAN_DB_PASSWORD`、`WEIRAN_JWT_SECRET`(至少 32 字节)、`WEIRAN_JWT_TTL=12h`、
+  `WEIRAN_PORT=3300`、`WEIRAN_LOG_LEVEL`。
+  **由 `deploy-observability` 关闭**:整份重写,覆盖 `application.yml` 全部 `${WEIRAN_*}` 占位符(含 Cookie / 日志 / 停机)和 Compose 专用的 `WEIRAN_WEB_PORT`;`EnvExampleTest` 守住两边一致,漏改会让 `check` 失败。
+- **#10 ✅ P1 日志体系缺失:无 requestId、无日志配置、关键节点不打日志**
+  症状:线上出问题时运维和开发拿不到现场——无法用一个 ID 串起一次请求的全部日志,
+  前端报错也给不出可检索的请求标识;异常只有响应里的错误码,服务端没有对应记录。
+  现状:主代码只有 8 条日志语句;没有 `logback-spring.xml`;没有 MDC / requestId(`ApiResponse` 里也没有该字段);
+  请求入口/出口、捕获异常处都不打日志;MyBatis 日志与业务日志未分离。
+  公司规范要求格式 `[%d] [%contextName] [%X{requestId}] [%thread] [%level] [%logger{50}] --> %msg%n`。
+  关闭条件:requestId 过滤器(写 MDC + 响应头 + 响应体字段,前端同步)、`logback-spring.xml`、
+  拦截器打入口/出口摘要(脱敏、截断)、全局异常处理补 ERROR 日志。
+  **由 `deploy-observability` 关闭**:
+  - `RequestIdFilter` 负责请求号:写 MDC 和 `X-Request-Id` 响应头,合法的入站值沿用;
+  - 失败体带 `requestId`,前端 Toast 显示前 8 位;
+  - `logback-spring.xml` 按公司格式输出到控制台 + 按天滚动文件,SQL 单独一个文件;
+  - `com.weiran.access` 访问日志;
+  - 异常日志分级:4xx 业务异常记 WARN,5xx 记 ERROR 带堆栈;
+  - `MdcTaskDecorator` 让操作日志异步线程也带请求号。
+
+  入口 / 出口只记摘要,不记请求体(写接口另有操作日志)。
+- **#11 ✅ P2 未配置优雅停机**
+  症状:发版重启时正在处理的请求被直接掐断,调用方拿到连接重置;操作日志异步队列里未落库的记录可能丢失。
+  `application.yml` 没有 `server.shutdown=graceful` 与 `spring.lifecycle.timeout-per-shutdown-phase`。
+  **由 `deploy-observability` 关闭**:显式配置 `server.shutdown: graceful` 与 `timeout-per-shutdown-phase`(`WEIRAN_SHUTDOWN_TIMEOUT`,默认 30s),操作日志线程池等待 10s ≤ 30s,`ObservabilityIT` 锁定;Compose 的 `stop_grace_period` 为 40s。容器实测 SIGTERM 后出现 `Commencing graceful shutdown`。
+- **#18 ✅ P2 缺部署步骤文档**
+  症状:第一次部署的人只能从 `AGENTS.md` 与 `application.yml` 自行拼出步骤(JDK、库、环境变量、前端产物放哪),
+  且 #09 的 `.env.example` 本身是错的。公司手册「项目标准」把服务部署步骤文档列为高优先级交付物。
+  **由 `deploy-observability` 关闭**:新增 `weiran4j/docs/02-部署.md`,以及后端 / 前端 Dockerfile、`web/nginx.conf`(同源反代、透传头)、`docker-compose.yml`(含 MySQL 8)。已真实构建、启动,并经 Nginx 完成登录验证。
 
 **2026-10-05**(`auth-seams-cookie-ci`)
 

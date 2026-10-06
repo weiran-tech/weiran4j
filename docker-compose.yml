@@ -1,0 +1,60 @@
+# weiran4j 单机部署 / 预发参考（docs/02-部署.md）。
+#
+#   cp weiran4j/.env.example weiran4j/.env   # 填写 WEIRAN_DB_PASSWORD、WEIRAN_JWT_SECRET
+#   export COMPOSE_ENV_FILES=weiran4j/.env      # 或每条命令都带 --env-file weiran4j/.env
+#   docker compose up -d --build
+#
+# 密钥只来自 weiran4j/.env（已 gitignore），本文件不写任何真实值。
+# 生产环境的 HTTPS 由外层负载均衡 / 网关终止；只用 http 访问本 Compose 时需在 .env 设 WEIRAN_COOKIE_SECURE=false。
+name: weiran4j
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${WEIRAN_DB_PASSWORD:?在 weiran4j/.env 里设置 WEIRAN_DB_PASSWORD}
+      MYSQL_DATABASE: weiran4j
+      TZ: Asia/Shanghai
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci"]
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./weiran4j
+    image: weiran4j-backend:local
+    env_file: ./weiran4j/.env
+    environment:
+      # 容器内经服务名访问 MySQL；覆盖 .env 里给本机直连用的地址
+      WEIRAN_DB_URL: jdbc:mysql://mysql:3306/weiran4j?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+      WEIRAN_DB_USERNAME: root
+      WEIRAN_LOG_DIR: /app/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - backend-logs:/app/logs
+    # 比 WEIRAN_SHUTDOWN_TIMEOUT（30s）长，给优雅停机留足时间后再强杀
+    stop_grace_period: 40s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    image: weiran4j-web:local
+    ports:
+      - "${WEIRAN_WEB_PORT:-8080}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
+  backend-logs:

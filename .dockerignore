@@ -1,0 +1,13 @@
+# 前端镜像的构建上下文是仓库根；只需要 pnpm 工作区清单与 web/
+**/node_modules
+**/dist
+**/build
+**/.gradle
+.git
+.turbo
+.omc
+openspec
+weiran4j
+!weiran4j/package.json
+**/.env
+**/.env.*

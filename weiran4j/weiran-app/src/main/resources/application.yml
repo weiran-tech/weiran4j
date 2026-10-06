@@ -22,8 +22,14 @@ spring:
     locale: zh_CN
     locale-resolver: fixed
 
+  lifecycle:
+    # 每个停机阶段最多等多久（进行中的请求、操作日志线程池）；容器编排的强杀时限要比它长（见 docs/02-部署.md）。
+    timeout-per-shutdown-phase: ${WEIRAN_SHUTDOWN_TIMEOUT:30s}
+
 server:
   port: ${WEIRAN_PORT:3300}
+  # Spring Boot 3.4 起默认就是 graceful；显式写出，不随框架默认值漂移。
+  shutdown: graceful
 
 weiran:
   system:
@@ -56,3 +62,9 @@ springdoc:
 logging:
   level:
     com.weiran: ${WEIRAN_LOG_LEVEL:INFO}
+  # 日志文件目录与保留天数，logback-spring.xml 读取（local / test profile 只输出到控制台，不写文件）。
+  file:
+    path: ${WEIRAN_LOG_DIR:logs}
+  logback:
+    rollingpolicy:
+      max-history: ${WEIRAN_LOG_MAX_HISTORY:30}

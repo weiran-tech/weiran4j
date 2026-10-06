@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  日志输出（artifact.md#10，change deploy-observability）。
+  格式按公司日志规范：[%d] [%contextName] [%X{requestId}] [%thread] [%level] [%logger{50}] -> %msg%n，
+  requestId 由 weiran-framework 的 RequestIdFilter 写入 MDC。
+  - local / test profile：只输出到控制台（本机与集成测试不写文件）。
+  - 其它 profile（部署环境）：控制台 + ${logging.file.path}/weiran4j.log（按天 + 100MB 滚动），
+    MyBatis Mapper 的 SQL（WEIRAN_LOG_LEVEL=DEBUG 时才有）只写 weiran4j-sql.log，不进主日志。
+  级别仍由 application.yml 的 logging.level 控制；目录与保留天数分别是 WEIRAN_LOG_DIR / WEIRAN_LOG_MAX_HISTORY。
+-->
+<configuration>
+    <contextName>weiran4j</contextName>
+
+    <springProperty scope="context" name="LOG_DIR" source="logging.file.path" defaultValue="logs"/>
+    <springProperty scope="context" name="MAX_HISTORY" source="logging.logback.rollingpolicy.max-history" defaultValue="30"/>
+
+    <property name="PATTERN" value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%contextName] [%X{requestId}] [%thread] [%level] [%logger{50}] --> %msg%n"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <springProfile name="local | test">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="!(local | test)">
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_DIR}/weiran4j.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_DIR}/weiran4j.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxFileSize>100MB</maxFileSize>
+                <maxHistory>${MAX_HISTORY}</maxHistory>
+                <totalSizeCap>10GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder>
+                <pattern>${PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <appender name="SQL_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_DIR}/weiran4j-sql.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_DIR}/weiran4j-sql.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxFileSize>100MB</maxFileSize>
+                <maxHistory>${MAX_HISTORY}</maxHistory>
+                <totalSizeCap>5GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder>
+                <pattern>${PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <!-- MyBatis 以 Mapper 接口全名作 logger 打 SQL：只进 SQL 文件 -->
+        <logger name="com.weiran.system.infrastructure.persistence.mapper" additivity="false">
+            <appender-ref ref="SQL_FILE"/>
+        </logger>
+        <logger name="com.weiran.platform.infrastructure.persistence.mapper" additivity="false">
+            <appender-ref ref="SQL_FILE"/>
+        </logger>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+</configuration>
