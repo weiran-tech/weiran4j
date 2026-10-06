@@ -17,6 +17,7 @@ import org.jspecify.annotations.Nullable;
  * @param departmentName 部门名称
  * @param roles 生效的角色编码
  * @param permissions 权限码；超级管理员为 {@code ["*"]}
+ * @param hasPassword 是否有本地密码（外部身份自动开通的用户没有，D-015）
  */
 public record CurrentUserView(
         long id,
@@ -29,4 +30,5 @@ public record CurrentUserView(
         @Nullable Long departmentId,
         @Nullable String departmentName,
         List<String> roles,
-        List<String> permissions) {}
+        List<String> permissions,
+        boolean hasPassword) {}

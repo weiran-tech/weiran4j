@@ -19,6 +19,7 @@ import com.weiran.system.domain.auth.Authorization;
 import com.weiran.system.domain.department.Department;
 import com.weiran.system.domain.department.DepartmentRepository;
 import com.weiran.system.domain.hierarchy.Hierarchy;
+import com.weiran.system.domain.identity.UserIdentityRepository;
 import com.weiran.system.domain.role.Role;
 import com.weiran.system.domain.role.RoleRepository;
 import com.weiran.system.domain.user.Gender;
@@ -57,6 +58,8 @@ public class UserApplicationService implements UserService {
 
     private final Clock clock;
 
+    private final UserIdentityRepository identityRepository;
+
     /** 构造服务。 */
     public UserApplicationService(
             final UserRepository userRepository,
@@ -64,13 +67,15 @@ public class UserApplicationService implements UserService {
             final DepartmentRepository departmentRepository,
             final PasswordHasher passwordHasher,
             final AuthSnapshotCache cache,
-            final Clock clock) {
+            final Clock clock,
+            final UserIdentityRepository identityRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.departmentRepository = departmentRepository;
         this.passwordHasher = passwordHasher;
         this.cache = cache;
         this.clock = clock;
+        this.identityRepository = identityRepository;
     }
 
     @Override
@@ -163,6 +168,8 @@ public class UserApplicationService implements UserService {
     @Transactional
     public void delete(final long id, final long operatorId) {
         this.requireUser(id).ensureDeletableBy(operatorId);
+        // 没有外键：外部身份绑定要随用户一起删，否则同一外部身份再也绑不上别人（唯一键）。
+        this.identityRepository.deleteByUserId(id);
         this.userRepository.deleteById(id);
         this.cache.evict(id);
     }

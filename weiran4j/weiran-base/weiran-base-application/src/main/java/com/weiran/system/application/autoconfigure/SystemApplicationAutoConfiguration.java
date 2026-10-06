@@ -4,6 +4,8 @@ import com.weiran.system.application.auth.AuthApplicationService;
 import com.weiran.system.application.auth.AuthSnapshotCache;
 import com.weiran.system.application.auth.AuthorizationResolver;
 import com.weiran.system.application.auth.DispatchingTokenAuthenticator;
+import com.weiran.system.application.auth.ExternalLoginApplicationService;
+import com.weiran.system.application.auth.IdentityProvisioner;
 import com.weiran.system.application.auth.LocalIdentityResolver;
 import com.weiran.system.application.auth.LocalRbacPermissionSource;
 import com.weiran.system.application.department.DepartmentApplicationService;
@@ -28,6 +30,8 @@ import org.springframework.context.annotation.Import;
     LocalRbacPermissionSource.class,
     DispatchingTokenAuthenticator.class,
     AuthApplicationService.class,
+    IdentityProvisioner.class,
+    ExternalLoginApplicationService.class,
     UserApplicationService.class,
     RoleApplicationService.class,
     MenuApplicationService.class,

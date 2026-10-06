@@ -12,6 +12,7 @@ import com.weiran.system.api.auth.ClientContext;
 import com.weiran.system.api.auth.CurrentUserView;
 import com.weiran.system.api.auth.LoginCommand;
 import com.weiran.system.api.auth.LoginResult;
+import com.weiran.system.api.auth.LogoutResult;
 import com.weiran.system.api.auth.UpdateProfileCommand;
 import com.weiran.system.api.menu.MenuNode;
 import com.weiran.system.application.menu.MenuAssembler;
@@ -20,6 +21,7 @@ import com.weiran.system.domain.auth.TokenClaims;
 import com.weiran.system.domain.auth.TokenCodec;
 import com.weiran.system.domain.department.Department;
 import com.weiran.system.domain.department.DepartmentRepository;
+import com.weiran.system.domain.identity.ExternalIdentityProviders;
 import com.weiran.system.domain.loginlog.LoginLog;
 import com.weiran.system.domain.loginlog.LoginLogRepository;
 import com.weiran.system.domain.menu.Menu;
@@ -82,6 +84,8 @@ public class AuthApplicationService implements AuthService {
 
     private final Clock clock;
 
+    private final ExternalIdentityProviders providers;
+
     /** 构造服务。 */
     public AuthApplicationService(
             final UserRepository userRepository,
@@ -92,7 +96,8 @@ public class AuthApplicationService implements AuthService {
             final TokenCodec tokenCodec,
             final AuthorizationResolver authorizationResolver,
             final AuthSnapshotCache cache,
-            final Clock clock) {
+            final Clock clock,
+            final ExternalIdentityProviders providers) {
         this.userRepository = userRepository;
         this.menuRepository = menuRepository;
         this.departmentRepository = departmentRepository;
@@ -102,20 +107,64 @@ public class AuthApplicationService implements AuthService {
         this.authorizationResolver = authorizationResolver;
         this.cache = cache;
         this.clock = clock;
+        this.providers = providers;
     }
 
     @Override
     public LoginResult login(final LoginCommand command, final ClientContext client) {
+        if (!this.providers.passwordLoginEnabled()) {
+            this.ensurePasswordLoginAllowed(command.username().strip(), client);
+        }
         final AuthenticatedUser authenticated = this.authenticate(command.username(), command.password(), client);
-        final User user = this.requireUser(authenticated.id());
+        return this.completeLogin(this.requireUser(authenticated.id()), client, null, "登录成功");
+    }
+
+    /**
+     * 密码登录已关闭时，只有内置超管还能用密码登录（IdP 故障时的应急入口，D-015）。
+     * 在校验密码<b>之前</b>判定：其他人一律 40304，不给出「密码对不对」的信号。
+     */
+    private void ensurePasswordLoginAllowed(final String username, final ClientContext client) {
+        final Optional<User> found = this.userRepository.findByUsername(username);
+        final boolean emergencyAdmin = found.filter(User::isBuiltin)
+                .map(user -> this.authorizationResolver
+                        .resolve(user.requireId())
+                        .roleCodes()
+                        .contains(Authorization.SUPER_ADMIN_ROLE))
+                .orElse(false);
+        if (!emergencyAdmin) {
+            this.appendLog(
+                    found.map(User::getId).orElse(null),
+                    username,
+                    client,
+                    LoginLog.EVENT_LOGIN,
+                    LoginLog.STATUS_FAIL,
+                    "密码登录已关闭");
+            throw new BizException(CommonErrors.PASSWORD_LOGIN_DISABLED);
+        }
+    }
+
+    /**
+     * 登录收尾（密码登录与外部登录共用）：定向更新登录信息 → 签发令牌 → 写成功日志。
+     *
+     * @param idp 外部登录的提供方 id，写进令牌的 {@code idp} claim；密码登录为 {@code null}
+     */
+    LoginResult completeLogin(
+            final User user, final ClientContext client, final @Nullable String idp, final String message) {
         final LocalDateTime now = LocalDateTime.now(this.clock);
         // 定向更新登录信息：整行写回会覆盖并发发生的改密 / 禁用。
         this.userRepository.recordLogin(user.requireId(), client.ip(), now);
-        final String token =
-                this.tokenCodec.issue(new TokenClaims(user.requireId(), user.getUsername(), user.getTokenVersion()));
-        this.appendLog(user.getId(), user.getUsername(), client, LoginLog.EVENT_LOGIN, LoginLog.STATUS_SUCCESS, "登录成功");
+        final String token = this.tokenCodec.issue(
+                new TokenClaims(user.requireId(), user.getUsername(), user.getTokenVersion(), idp));
+        this.appendLog(
+                user.getId(), user.getUsername(), client, LoginLog.EVENT_LOGIN, LoginLog.STATUS_SUCCESS, message);
         return new LoginResult(
                 token, AuthApplicationService.TOKEN_TYPE, this.tokenCodec.ttl().toSeconds(), user.requireId());
+    }
+
+    /** 外部登录失败也留痕（不含票据、授权码等任何凭据）。 */
+    void recordExternalFailure(
+            final @Nullable Long userId, final String username, final ClientContext client, final String message) {
+        this.appendLog(userId, username, client, LoginLog.EVENT_LOGIN, LoginLog.STATUS_FAIL, message);
     }
 
     @Override
@@ -123,8 +172,11 @@ public class AuthApplicationService implements AuthService {
         final String name = username.strip();
         final Optional<User> found = this.userRepository.findByUsername(name);
         // 用户不存在与密码错误共用 40101，且提示语一致；不存在时也空跑一次 BCrypt，响应时间不泄露用户名是否存在。
-        final String hash = found.map(User::getPasswordHash).orElse(AuthApplicationService.DUMMY_HASH);
-        final boolean passwordMatches = this.passwordHasher.matches(password, hash);
+        // 没有本地密码的用户（外部身份自动开通）同样对 DUMMY_HASH 空跑一次，耗时与口径都与「密码错误」一致。
+        final String hash =
+                found.filter(User::hasPassword).map(User::getPasswordHash).orElse(AuthApplicationService.DUMMY_HASH);
+        final boolean passwordMatches = this.passwordHasher.matches(password, hash)
+                && found.map(User::hasPassword).orElse(false);
         if (found.isEmpty() || !passwordMatches) {
             final Long userId = found.map(User::getId).orElse(null);
             this.appendLog(userId, name, client, LoginLog.EVENT_LOGIN, LoginLog.STATUS_FAIL, "用户名或密码错误");
@@ -139,10 +191,18 @@ public class AuthApplicationService implements AuthService {
     }
 
     @Override
-    public void logout(final long userId, final ClientContext client) {
+    public LogoutResult logout(final long userId, final ClientContext client, final @Nullable String idp) {
         final String username =
                 this.userRepository.findById(userId).map(User::getUsername).orElse("");
         this.appendLog(userId, username, client, LoginLog.EVENT_LOGOUT, LoginLog.STATUS_SUCCESS, "登出成功");
+        if (idp == null) {
+            return new LogoutResult(null);
+        }
+        final String postLogout = this.providers.publicBaseUrl() + "/login";
+        return new LogoutResult(this.providers
+                .find(idp)
+                .flatMap(provider -> provider.logoutUrl(postLogout))
+                .orElse(null));
     }
 
     @Override
@@ -168,7 +228,8 @@ public class AuthApplicationService implements AuthService {
                 departmentId,
                 departmentName,
                 List.copyOf(authorization.roleCodes()),
-                List.copyOf(authorization.displayPermissions(this.menuRepository.findAll())));
+                List.copyOf(authorization.displayPermissions(this.menuRepository.findAll())),
+                user.hasPassword());
     }
 
     @Override
@@ -197,6 +258,9 @@ public class AuthApplicationService implements AuthService {
     @Transactional
     public void changePassword(final long userId, final ChangePasswordCommand command) {
         final User user = this.requireUser(userId);
+        if (!user.hasPassword()) {
+            throw BizException.badRequest("oldPassword: 未设置本地密码，请联系管理员重置");
+        }
         if (!this.passwordHasher.matches(command.oldPassword(), user.getPasswordHash())) {
             throw BizException.badRequest("oldPassword: 原密码不正确");
         }
@@ -237,7 +301,7 @@ public class AuthApplicationService implements AuthService {
     @Override
     public void verifyPassword(final long userId, final String password) {
         final User user = this.requireUser(userId);
-        if (!this.passwordHasher.matches(password, user.getPasswordHash())) {
+        if (!user.hasPassword() || !this.passwordHasher.matches(password, user.getPasswordHash())) {
             throw new BizException(CommonErrors.BAD_CREDENTIALS, "密码错误");
         }
     }

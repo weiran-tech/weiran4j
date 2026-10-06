@@ -107,13 +107,13 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 | `openspec/` | 本仓库的规格治理流水线：`rules/`（现在必须）· `design/`（过去为什么）· `state/`（现状 + 欠账）· `schemas/` · `specs/` · `changes/` · `guards/` · `check.mjs` · `config.yaml` · `project.json` |
 | `.githooks/` | 把流水线接到本地提交（门禁 ②）；`pnpm hooks:install` 启用 |
 
-### 门禁：设计上三道，现在只有两道
+### 门禁：三道
 
 | # | 门禁 | 强度 | 现状 |
 | --- | --- | --- | --- |
 | ① | Claude Code hook：写/改后跑 `check.mjs --hook`，只查改动涉及的插件，20s 超时 | 即时 · 不阻断 | ✅ 在跑 |
 | ② | `.githooks/pre-commit`：改动命中 `openspec/`、`weiran4j/`、`web/` 才跑全量 `check.mjs` | 阻断（`--no-verify` 可应急绕过） | ✅ 需先 `pnpm hooks:install` |
-| ③ | CI 全量 build / test / lint | 兜底 | ❌ **没有**：仓库没有 `.github/workflows/`，后端 `check` 与前端测试只在本地跑。见 [`artifact.md#05`](openspec/state/bizs/artifact.md) |
+| ③ | GitHub Actions [`ci.yml`](.github/workflows/ci.yml)：PR 与推送 main 时并行跑后端 `check`（JDK 21 + Testcontainers）、前端 `lint/test/build`、`openspec/check.mjs` | 兜底 | ✅ 在跑（`artifact.md#05` 已关）。⚠️ 还**没有分支保护**（[`artifact.md#12`](openspec/state/bizs/artifact.md)）：CI 红了照样能合并，需要仓库管理员在 GitHub → Settings → Branches 给 `main` 设置「合并前必须通过以上三个检查」 |
 
 ### 用哪个 skill 开 / 推进 / 归档 change
 
@@ -246,6 +246,9 @@ vitest + jsdom + @testing-library/react。**断言 Semi `Form.*` 受控控件时
 - 浏览器令牌在 HttpOnly Cookie `weiran_token` 里，页面脚本读不到；前端靠非 HttpOnly 的 `weiran_csrf` 判断登录态，
   写请求带 `X-CSRF-Token`（缺了 403 / `40302`）。脚本调用登录时带 `X-Auth-Mode: token` 拿令牌，再用 Bearer 头（契约 §4）。**前后端必须同源部署**。
 - 登录失败不区分「用户不存在」与「密码错误」，统一 `40101`（宪法 CP-10）。前端对 `40100` 清会话跳登录，对 `40101` 不清。
+- 外部身份登录（CAS / OIDC，D-015）：浏览器整页跳 `/api/auth/sso/{id}/authorize`，回调由后端换码或验票后下发同一套本地 Cookie。
+  外部身份只按 `sys_user_identity(provider, external_id)` 映射，**不按用户名关联**；自动开通的用户没有本地密码（`password` 为空串，`/me.hasPassword=false`）。
+  提供方用环境变量 `WEIRAN_AUTH_PROVIDERS_<ID>_*` 配置，见 `weiran4j/docs/02-部署.md` §5a。
 - 种子账号 `admin` / `admin123`（Flyway 种子），**上线前必须改密**。
 
 ## 密钥与本地配置

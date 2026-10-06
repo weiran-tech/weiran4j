@@ -20,6 +20,7 @@ const me: CurrentUserView = {
     departmentName: '总公司',
     roles: ['super_admin'],
     permissions: ['*'],
+    hasPassword: true,
 };
 
 const base = { permission: null, sort: 0, visible: true, keepAlive: false, isExternal: false, status: 'enabled' as const, children: [] };

@@ -10,6 +10,7 @@ import { PageContainer } from '@/components/PageContainer';
 import { Permission } from '@/components/Permission';
 import { SearchField, SearchToolbar, type SearchCondition } from '@/components/SearchToolbar';
 import { useActionsColumn, type TableAction } from '@/components/TableActions';
+import { useProviders } from '@/hooks/queries/identities';
 import { StatusTag } from '@/components/StatusTag';
 import { useDepartmentTree } from '@/hooks/queries/departments';
 import { useDictOptions } from '@/hooks/queries/dicts';
@@ -21,6 +22,7 @@ import type { DepartmentNode, Gender, Status, UserQuery, UserView } from '@/type
 import { toDayRange } from '@/utils/date';
 import { ResetPasswordModal } from './ResetPasswordModal';
 import { UserFormModal } from './UserFormModal';
+import { UserIdentitiesModal } from './UserIdentitiesModal';
 
 /** 工具栏快速搜索（keyword / status / departmentId）+ 高级筛选的单字段条件（契约 §6.2） */
 export interface Filters {
@@ -97,11 +99,19 @@ function findDepartmentName(nodes: readonly DepartmentNode[], id: number): strin
 
 /** 操作列平铺宽度：编辑 / 重置密码 / 删除 */
 const ACTIONS_WIDTH = 176;
+/**
+ * 配置了外部身份提供方时多一个「外部身份」（四字按钮约 68 + 间距 4）：248。
+ * 列宽合计从 1114 变成 1186，1440 宽下双列 / 侧边 / 混合布局会横向滚动（操作列固定在右侧）——只影响启用了 SSO 的部署，
+ * 登记在 state/bizs/sys_user.md §6
+ */
+const ACTIONS_WIDTH_WITH_IDENTITY = 248;
 /** 弹性列「角色」计算滚动宽度时的最小值：一个角色标签约 64，多个时换行 */
 const ROLE_MIN_WIDTH = 78;
 
 export default function UsersPage() {
     const { hasAnyPermission } = usePermission();
+    // 没配置外部身份提供方时不显示「外部身份」操作，操作列保持原宽度
+    const hasIdentityProviders = (useProviders().data?.providers.length ?? 0) > 0;
     const [draft, setDraft] = useState<Filters>(EMPTY_FILTERS);
     const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
     const [page, setPage] = useState(1);
@@ -110,6 +120,7 @@ export default function UsersPage() {
     /** undefined = 关闭；null = 新增；对象 = 编辑 */
     const [editing, setEditing] = useState<UserView | null | undefined>(undefined);
     const [resetting, setResetting] = useState<UserView | null>(null);
+    const [identityOf, setIdentityOf] = useState<UserView | null>(null);
 
     const { data, isFetching, refetch } = useUserList(toQuery(filters, page, pageSize));
     const deleteUser = useDeleteUser();
@@ -232,7 +243,8 @@ export default function UsersPage() {
         return list;
     })();
 
-    // 列宽合计（含弹性列「角色」按 ROLE_MIN_WIDTH 计）1114：1440 宽下最窄的是双列布局，表格可用 1115，四种导航布局都平铺操作列、不出横向滚动；
+    // 列宽合计（含弹性列「角色」按 ROLE_MIN_WIDTH 计）原为 1114：1440 宽下最窄的是双列布局，表格可用 1115，四种导航布局都平铺操作列、不出横向滚动；
+    // 配置了外部身份提供方时多一个「外部身份」操作，合计 1186（见 ACTIONS_WIDTH_WITH_IDENTITY）：双列（1115）与侧边 / 混合（1135）布局下会横向滚动，顶部菜单（1375）不受影响；
     // 视口 < 992（便捷搜索隐藏）时操作列收成「…」（useCompactActions）；其间放不下就横向滚动（操作列固定在右侧）。
     // 各固定列已压到「内容 + 24 内边距」：时间 158（156 时小数宽度会把时分秒挤到第二行）；手机 116（Inter 数字不等宽，最宽的 11 位约 91）；
     // 性别 52；5 位 ID 64；用户名 / 部门是普通文字，79 即可，超长时自然折行。加列前先实测再算，加列前先实测再算
@@ -304,6 +316,12 @@ export default function UsersPage() {
             onClick: () => setResetting(record),
         },
         {
+            key: 'identities',
+            label: '外部身份',
+            permission: 'system:user:identity',
+            onClick: () => setIdentityOf(record),
+        },
+        {
             key: 'delete',
             label: '删除',
             permission: 'system:user:delete',
@@ -318,14 +336,14 @@ export default function UsersPage() {
                     onSuccess: () => Toast.success('已删除'),
                 }),
         },
-    ];
-    if (hasAnyPermission('system:user:update', 'system:user:reset-password', 'system:user:delete')) {
+    ].filter((a) => a.key !== 'identities' || hasIdentityProviders);
+    if (hasAnyPermission('system:user:update', 'system:user:reset-password', 'system:user:identity', 'system:user:delete')) {
         // 宽度与渲染在下面按是否收起替换
         columns.push({
             title: '操作',
             dataIndex: 'actions',
             fixed: 'right',
-            width: ACTIONS_WIDTH,
+            width: hasIdentityProviders ? ACTIONS_WIDTH_WITH_IDENTITY : ACTIONS_WIDTH,
         });
     }
 
@@ -501,6 +519,7 @@ export default function UsersPage() {
             />
             {editing !== undefined && <UserFormModal record={editing} onClose={() => setEditing(undefined)} />}
             {resetting && <ResetPasswordModal user={resetting} onClose={() => setResetting(null)} />}
+            {identityOf && <UserIdentitiesModal user={identityOf} onClose={() => setIdentityOf(null)} />}
         </PageContainer>
     );
 }

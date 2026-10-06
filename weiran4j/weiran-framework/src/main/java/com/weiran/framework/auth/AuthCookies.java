@@ -31,6 +31,15 @@ public class AuthCookies {
     /** 携带 CSRF 值的请求头。 */
     public static final String CSRF_HEADER = "X-CSRF-Token";
 
+    /** 外部登录流程状态 Cookie（签名后的 state / nonce / PKCE verifier / redirect，D-015）。 */
+    public static final String SSO_COOKIE = "weiran_sso";
+
+    /** 流程 Cookie 只在 authorize 与 callback 之间用。 */
+    public static final String SSO_PATH = "/api/auth/sso";
+
+    /** 流程 Cookie 有效期：IdP 登录页上停留超过 10 分钟就重新发起。 */
+    public static final Duration SSO_TTL = Duration.ofMinutes(10);
+
     /** 登录时选择令牌交付方式的请求头。 */
     public static final String AUTH_MODE_HEADER = "X-Auth-Mode";
 
@@ -79,6 +88,33 @@ public class AuthCookies {
         return List.of(
                 this.cookie(AuthCookies.TOKEN_COOKIE, "", AuthCookies.TOKEN_PATH, true, Duration.ZERO),
                 this.cookie(AuthCookies.CSRF_COOKIE, "", AuthCookies.CSRF_PATH, false, Duration.ZERO));
+    }
+
+    /**
+     * 外部登录流程 Cookie：HttpOnly、{@code SameSite=Lax}、只发往 {@value #SSO_PATH}。
+     *
+     * <p>必须是 Lax：IdP 回调是跨站发起的顶级导航，Strict Cookie 不会被带上——认证 Cookie 在回调时同样带不上，
+     * 所以绑定模式的当前用户也存在这个（已签名的）值里。
+     */
+    public ResponseCookie ssoState(final String signedValue) {
+        return ResponseCookie.from(AuthCookies.SSO_COOKIE, signedValue)
+                .path(AuthCookies.SSO_PATH)
+                .httpOnly(true)
+                .secure(this.secure)
+                .sameSite("Lax")
+                .maxAge(AuthCookies.SSO_TTL)
+                .build();
+    }
+
+    /** 清除外部登录流程 Cookie（回调处理完，无论成败）。 */
+    public ResponseCookie clearSsoState() {
+        return ResponseCookie.from(AuthCookies.SSO_COOKIE, "")
+                .path(AuthCookies.SSO_PATH)
+                .httpOnly(true)
+                .secure(this.secure)
+                .sameSite("Lax")
+                .maxAge(Duration.ZERO)
+                .build();
     }
 
     /** 解析 CSRF 值里的用户 ID；格式不对返回空。 */

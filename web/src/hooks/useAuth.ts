@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { http } from '@/utils/request';
 import { clearSession as clearSessionCookie, refreshSession, useSession } from '@/utils/session';
-import type { LoginRequest, LoginResult } from '@/types/api';
+import type { LoginRequest, LoginResult, LogoutResult } from '@/types/api';
 import { useMe } from './queries/auth';
 import { unlockScreen } from './useLockScreen';
 
@@ -41,13 +41,20 @@ export function useAuth() {
         qc.clear();
     }, [qc]);
 
+    /**
+     * 退出：通知服务端（写登出日志、清 Cookie）后清本地会话；
+     * 会话来自配置了登出的外部身份提供方时，再整页跳到其登出地址（提供方登出后回跳 /login）。
+     */
     const logout = useCallback(async () => {
+        let ssoLogoutUrl: string | null = null;
         try {
-            await http.post<null>('/api/auth/logout', undefined, { silent: true });
+            const res = await http.post<LogoutResult | null>('/api/auth/logout', undefined, { silent: true });
+            ssoLogoutUrl = res?.ssoLogoutUrl ?? null;
         } catch {
             // 尽力通知服务端写登出日志；失败也照样清本地
         }
         clearSession();
+        if (ssoLogoutUrl) window.location.assign(ssoLogoutUrl);
     }, [clearSession]);
 
     return {

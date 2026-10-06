@@ -79,3 +79,14 @@ export async function openPreferences() {
     fireEvent.mouseEnter(trigger);
     fireEvent.click(await screen.findByRole('menuitem', { name: /偏好设置/ }));
 }
+
+/**
+ * 替换 `window.location.assign`（整页跳转，jsdom 未实现导航）并返回 mock。
+ * jsdom 的 location 属性不可重定义，`vi.spyOn(location, 'assign')` 会抛 `Cannot redefine property`，只能整体 stub；
+ * 用例结束要 `vi.unstubAllGlobals()`。
+ */
+export function stubLocationAssign() {
+    const assign = vi.fn();
+    vi.stubGlobal('location', { ...window.location, assign });
+    return assign;
+}

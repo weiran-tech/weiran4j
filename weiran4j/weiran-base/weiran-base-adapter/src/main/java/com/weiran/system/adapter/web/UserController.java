@@ -7,9 +7,13 @@ import com.weiran.common.response.IdResult;
 import com.weiran.framework.auth.CurrentUser;
 import com.weiran.framework.auth.RequiresPermission;
 import com.weiran.framework.log.OperationLog;
+import com.weiran.system.adapter.web.request.BindIdentityRequest;
 import com.weiran.system.adapter.web.request.CreateUserRequest;
 import com.weiran.system.adapter.web.request.ResetPasswordRequest;
 import com.weiran.system.adapter.web.request.UpdateUserRequest;
+import com.weiran.system.api.auth.BindIdentityCommand;
+import com.weiran.system.api.auth.ExternalLoginService;
+import com.weiran.system.api.auth.UserIdentityView;
 import com.weiran.system.api.user.CreateUserCommand;
 import com.weiran.system.api.user.UpdateUserCommand;
 import com.weiran.system.api.user.UserOption;
@@ -39,9 +43,12 @@ public class UserController {
 
     private final UserService userService;
 
+    private final ExternalLoginService externalLoginService;
+
     /** 构造控制器。 */
-    public UserController(final UserService userService) {
+    public UserController(final UserService userService, final ExternalLoginService externalLoginService) {
         this.userService = userService;
+        this.externalLoginService = externalLoginService;
     }
 
     /** 分页查询：{@code keyword} 为三列模糊的快速搜索，其余为高级筛选的单字段条件（契约 §6.2）。 */
@@ -144,6 +151,31 @@ public class UserController {
     public ApiResponse<Void> resetPassword(
             @PathVariable final long id, @Valid @RequestBody final ResetPasswordRequest request) {
         this.userService.resetPassword(id, request.password());
+        return ApiResponse.ok();
+    }
+
+    /** 用户的外部身份。 */
+    @RequiresPermission("system:user:identity")
+    @GetMapping("/{id}/identities")
+    public List<UserIdentityView> identities(@PathVariable final long id) {
+        return this.externalLoginService.identitiesOf(id);
+    }
+
+    /** 手工绑定外部身份。 */
+    @RequiresPermission("system:user:identity")
+    @OperationLog(module = UserController.MODULE, description = "绑定外部身份")
+    @PostMapping("/{id}/identities")
+    public IdResult bindIdentity(@PathVariable final long id, @Valid @RequestBody final BindIdentityRequest request) {
+        return new IdResult(this.externalLoginService.bind(
+                id, new BindIdentityCommand(request.provider(), request.externalId(), request.displayName())));
+    }
+
+    /** 解绑外部身份。 */
+    @RequiresPermission("system:user:identity")
+    @OperationLog(module = UserController.MODULE, description = "解绑外部身份")
+    @DeleteMapping("/{id}/identities/{identityId}")
+    public ApiResponse<Void> unbindIdentity(@PathVariable final long id, @PathVariable final long identityId) {
+        this.externalLoginService.unbind(id, identityId);
         return ApiResponse.ok();
     }
 }

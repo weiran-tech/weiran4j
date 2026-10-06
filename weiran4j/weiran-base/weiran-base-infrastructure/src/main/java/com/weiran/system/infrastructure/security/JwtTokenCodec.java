@@ -36,6 +36,8 @@ public final class JwtTokenCodec implements TokenCodec, TokenVerifier {
 
     private static final String CLAIM_VERSION = "ver";
 
+    private static final String CLAIM_IDP = "idp";
+
     private final SecretKey signingKey;
 
     private final Duration ttl;
@@ -82,6 +84,7 @@ public final class JwtTokenCodec implements TokenCodec, TokenVerifier {
                 .and()
                 .claim(JwtTokenCodec.CLAIM_USERNAME, claims.username())
                 .claim(JwtTokenCodec.CLAIM_VERSION, claims.version())
+                .claim(JwtTokenCodec.CLAIM_IDP, claims.idp())
                 .issuedAt(Date.from(issuedAt))
                 .expiration(Date.from(issuedAt.plus(this.ttl)))
                 .signWith(this.signingKey)
@@ -111,7 +114,8 @@ public final class JwtTokenCodec implements TokenCodec, TokenVerifier {
             if (subject == null || version == null) {
                 return Optional.empty();
             }
-            return Optional.of(new VerifiedToken(this.issuer, subject, version));
+            return Optional.of(new VerifiedToken(
+                    this.issuer, subject, version, claims.get(JwtTokenCodec.CLAIM_IDP, String.class)));
         } catch (final JwtException | IllegalArgumentException ex) {
             // 只记 debug 且不带令牌原文：过期令牌是常态，日志里出现可用令牌等于把凭据写进日志系统。
             JwtTokenCodec.log.debug("令牌校验失败: {}", ex.getClass().getSimpleName());

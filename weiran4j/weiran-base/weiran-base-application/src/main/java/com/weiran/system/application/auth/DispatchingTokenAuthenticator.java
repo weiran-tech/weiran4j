@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@link TokenAuthenticator} 实现：认证拆成三段（D-014）——
@@ -52,13 +53,17 @@ public class DispatchingTokenAuthenticator implements TokenAuthenticator {
                 .issuerOf(token)
                 .map(this.verifiers::get)
                 .flatMap(verifier -> verifier.verify(token))
-                .flatMap(this.identityResolver::resolve)
-                .flatMap(userId -> this.permissionSource.load(userId).map(snapshot -> toLoginUser(userId, snapshot)));
+                .flatMap(verified -> this.identityResolver
+                        .resolve(verified)
+                        .flatMap(userId -> this.permissionSource
+                                .load(userId)
+                                .map(snapshot -> toLoginUser(userId, snapshot, verified.idp()))));
     }
 
-    private static LoginUser toLoginUser(final long userId, final PrincipalSnapshot snapshot) {
+    private static LoginUser toLoginUser(
+            final long userId, final PrincipalSnapshot snapshot, final @Nullable String idp) {
         return new LoginUser(
-                userId, snapshot.username(), snapshot.nickname(), snapshot.roles(), snapshot.permissions());
+                userId, snapshot.username(), snapshot.nickname(), snapshot.roles(), snapshot.permissions(), idp);
     }
 
     private static Map<String, TokenVerifier> index(final Collection<TokenVerifier> verifiers) {

@@ -7,7 +7,8 @@ import { ApiError, CODE_BAD_CREDENTIALS } from '@/utils/request';
 import './LockScreen.css';
 
 interface LockScreenProps {
-    user: { nickname?: string | null; username?: string; avatar?: string | null } | null;
+    /** `hasPassword === false`（没有本地密码的外部身份用户）时不显示密码框，只能「重新登录」 */
+    user: { nickname?: string | null; username?: string; avatar?: string | null; hasPassword?: boolean } | null;
     /** 密码校验通过、退场动画结束后调用 */
     onUnlocked: () => void;
     /** 「重新登录」：退出当前账号 */
@@ -100,6 +101,7 @@ export function LockScreen({ user, onUnlocked, onReLogin }: LockScreenProps) {
     };
 
     const name = user?.nickname || user?.username || '用户';
+    const noPassword = user?.hasPassword === false;
     const pad = (n: number) => n.toString().padStart(2, '0');
     const dateText = now.toLocaleDateString('zh-CN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -140,38 +142,47 @@ export function LockScreen({ user, onUnlocked, onReLogin }: LockScreenProps) {
                     </Avatar>
                     <div className="lock-screen__username">{name}</div>
                 </div>
-                <div className={`lock-screen__form${shaking ? ' lock-screen__form--shake' : ''}`}>
-                    <Input
-                        ref={inputRef}
-                        className="lock-screen__input"
-                        mode="password"
-                        aria-label="登录密码"
-                        placeholder="输入登录密码解锁"
-                        prefix={<Lock size={15} />}
-                        value={password}
-                        onChange={(v) => {
-                            setPassword(v);
-                            setError(null);
-                        }}
-                        // 不用 Semi 的 onEnterPress：它挂在已废弃的 keypress 上（semi-foundation input/foundation.js），
-                        // 真实浏览器由 CDP 注入按键或输入法组字时不一定派发；keydown 总会到
-                        onKeyDown={(e) => {
-                            // 注入的按键可能只带 keyCode 不带 key，两者都认
-                            if ((e.key === 'Enter' || e.keyCode === 13) && !e.nativeEvent.isComposing) unlock();
-                        }}
-                    />
-                    {error && (
-                        <div className="lock-screen__error" role="alert">
-                            {error}
-                        </div>
-                    )}
-                    <Button type="primary" theme="solid" block loading={verify.isPending} disabled={!password} onClick={unlock} style={{ marginTop: 12 }}>
-                        解锁
-                    </Button>
-                    <Button className="lock-screen__relogin" type="tertiary" theme="borderless" block onClick={onReLogin} style={{ marginTop: 4 }}>
-                        重新登录
-                    </Button>
-                </div>
+                {noPassword ? (
+                    <div className="lock-screen__form">
+                        <div className="lock-screen__hint">当前账号未设置本地密码，请重新登录后继续</div>
+                        <Button type="primary" theme="solid" block onClick={onReLogin} style={{ marginTop: 12 }}>
+                            重新登录
+                        </Button>
+                    </div>
+                ) : (
+                    <div className={`lock-screen__form${shaking ? ' lock-screen__form--shake' : ''}`}>
+                        <Input
+                            ref={inputRef}
+                            className="lock-screen__input"
+                            mode="password"
+                            aria-label="登录密码"
+                            placeholder="输入登录密码解锁"
+                            prefix={<Lock size={15} />}
+                            value={password}
+                            onChange={(v) => {
+                                setPassword(v);
+                                setError(null);
+                            }}
+                            // 不用 Semi 的 onEnterPress：它挂在已废弃的 keypress 上（semi-foundation input/foundation.js），
+                            // 真实浏览器由 CDP 注入按键或输入法组字时不一定派发；keydown 总会到
+                            onKeyDown={(e) => {
+                                // 注入的按键可能只带 keyCode 不带 key，两者都认
+                                if ((e.key === 'Enter' || e.keyCode === 13) && !e.nativeEvent.isComposing) unlock();
+                            }}
+                        />
+                        {error && (
+                            <div className="lock-screen__error" role="alert">
+                                {error}
+                            </div>
+                        )}
+                        <Button type="primary" theme="solid" block loading={verify.isPending} disabled={!password} onClick={unlock} style={{ marginTop: 12 }}>
+                            解锁
+                        </Button>
+                        <Button className="lock-screen__relogin" type="tertiary" theme="borderless" block onClick={onReLogin} style={{ marginTop: 4 }}>
+                            重新登录
+                        </Button>
+                    </div>
+                )}
             </div>
         </div>,
         host,
