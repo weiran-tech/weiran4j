@@ -58,6 +58,22 @@ class AuthCookiesTest {
     }
 
     @Test
+    @DisplayName("外部登录流程 Cookie：HttpOnly、SameSite=Lax、Path=/api/auth/sso、10 分钟；清除时 Max-Age=0")
+    void ssoStateCookie() {
+        final AuthCookies cookies = new AuthCookies(new AuthCookieProperties(true));
+        final ResponseCookie state = cookies.ssoState("signed");
+        assertThat(state.getName()).isEqualTo(AuthCookies.SSO_COOKIE);
+        assertThat(state.getValue()).isEqualTo("signed");
+        assertThat(state.isHttpOnly()).isTrue();
+        assertThat(state.getSameSite()).isEqualTo("Lax");
+        assertThat(state.getPath()).isEqualTo("/api/auth/sso");
+        assertThat(state.getMaxAge()).isEqualTo(Duration.ofMinutes(10));
+        assertThat(state.isSecure()).isTrue();
+        assertThat(cookies.clearSsoState().getMaxAge()).isZero();
+        assertThat(cookies.clearSsoState().getPath()).isEqualTo("/api/auth/sso");
+    }
+
+    @Test
     @DisplayName("CSRF 值的用户 ID 解析：格式不对一律为空")
     void parsesCsrfUserId() {
         assertThat(AuthCookies.csrfUserId("12.x")).hasValue(12L);

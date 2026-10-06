@@ -17,6 +17,9 @@ public enum CommonErrors implements ErrorCode {
     /** 用户名或密码错误（用户名不存在也用这个码，防止枚举账号）。 */
     BAD_CREDENTIALS(40101, 401, "用户名或密码错误"),
 
+    /** 外部身份校验失败：票据 / 授权码无效、state 不符、id_token 验签失败、流程过期（D-015）。 */
+    EXTERNAL_AUTH_FAILED(40102, 401, "外部身份校验失败，请重新登录"),
+
     /** 无权限。 */
     FORBIDDEN(40300, 403, "无权限访问"),
 
@@ -25,6 +28,12 @@ public enum CommonErrors implements ErrorCode {
 
     /** CSRF 校验失败：以 Cookie 认证的写请求缺少或带错了 {@code X-CSRF-Token}。 */
     CSRF_REJECTED(40302, 403, "请求校验失败，请刷新页面后重试"),
+
+    /** 外部身份未绑定本地账号且不允许自动开通（D-015：只对已通过 IdP 认证的人可见，不泄露本地账号是否存在）。 */
+    ACCOUNT_NOT_PROVISIONED(40303, 403, "账号未开通，请联系管理员"),
+
+    /** 密码登录已关闭，只能用外部身份登录（内置超管除外）。 */
+    PASSWORD_LOGIN_DISABLED(40304, 403, "密码登录已关闭，请使用统一身份登录"),
 
     /** 资源不存在。 */
     NOT_FOUND(40400, 404, "资源不存在"),

@@ -7,6 +7,7 @@ import com.weiran.common.error.BizException;
 import com.weiran.common.response.ApiResponse;
 import com.weiran.framework.auth.AuthCookies;
 import com.weiran.framework.auth.CurrentUser;
+import com.weiran.framework.auth.LoginUser;
 import com.weiran.framework.auth.PublicApi;
 import com.weiran.framework.log.OperationLog;
 import com.weiran.framework.web.ClientIpResolver;
@@ -20,9 +21,13 @@ import com.weiran.system.api.auth.AuthService;
 import com.weiran.system.api.auth.ChangePasswordCommand;
 import com.weiran.system.api.auth.ClientContext;
 import com.weiran.system.api.auth.CurrentUserView;
+import com.weiran.system.api.auth.ExternalLoginService;
 import com.weiran.system.api.auth.LoginCommand;
 import com.weiran.system.api.auth.LoginResult;
+import com.weiran.system.api.auth.LogoutResult;
+import com.weiran.system.api.auth.ProvidersView;
 import com.weiran.system.api.auth.UpdateProfileCommand;
+import com.weiran.system.api.auth.UserIdentityView;
 import com.weiran.system.api.menu.MenuNode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,7 +37,9 @@ import java.util.List;
 import java.util.Locale;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -57,12 +64,18 @@ public class AuthController {
 
     private final AuthCookies authCookies;
 
+    private final ExternalLoginService externalLoginService;
+
     /** 构造控制器。 */
     public AuthController(
-            final AuthService authService, final ObjectMapper objectMapper, final AuthCookies authCookies) {
+            final AuthService authService,
+            final ObjectMapper objectMapper,
+            final AuthCookies authCookies,
+            final ExternalLoginService externalLoginService) {
         this.authService = authService;
         this.objectMapper = objectMapper;
         this.authCookies = authCookies;
+        this.externalLoginService = externalLoginService;
     }
 
     /** 登录。 */
@@ -85,9 +98,31 @@ public class AuthController {
 
     /** 登出。 */
     @PostMapping("/logout")
-    public ApiResponse<Void> logout(final HttpServletRequest http, final HttpServletResponse response) {
-        this.authService.logout(CurrentUser.require().id(), AuthController.clientOf(http));
+    public LogoutResult logout(final HttpServletRequest http, final HttpServletResponse response) {
+        final LoginUser user = CurrentUser.require();
+        final LogoutResult result = this.authService.logout(user.id(), AuthController.clientOf(http), user.idp());
         AuthController.addCookies(response, this.authCookies.clear());
+        return result;
+    }
+
+    /** 登录页需要的认证方式：外部身份提供方与密码登录开关（不含任何密钥与地址）。 */
+    @PublicApi
+    @GetMapping("/providers")
+    public ProvidersView providers() {
+        return this.externalLoginService.providers();
+    }
+
+    /** 本人的外部身份。 */
+    @GetMapping("/identities")
+    public List<UserIdentityView> identities() {
+        return this.externalLoginService.identitiesOf(CurrentUser.require().id());
+    }
+
+    /** 本人解绑外部身份（没有本地密码时不能解绑最后一个）。 */
+    @OperationLog(module = "个人中心", description = "解绑外部账号")
+    @DeleteMapping("/identities/{id}")
+    public ApiResponse<Void> unbindIdentity(@PathVariable final long id) {
+        this.externalLoginService.unbindOwn(CurrentUser.require().id(), id);
         return ApiResponse.ok();
     }
 

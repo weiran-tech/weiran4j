@@ -22,8 +22,12 @@ public interface AuthService {
      */
     AuthenticatedUser authenticate(String username, String password, ClientContext client);
 
-    /** 登出：只写登出日志（JWT 无状态；浏览器的 Cookie 由接口层清除）。 */
-    void logout(long userId, ClientContext client);
+    /**
+     * 登出：写登出日志（JWT 无状态；浏览器的 Cookie 由接口层清除），并给出外部身份提供方的登出地址。
+     *
+     * @param idp 本次会话的外部身份提供方 id；密码登录为 {@code null}
+     */
+    LogoutResult logout(long userId, ClientContext client, @Nullable String idp);
 
     /** 当前用户信息。 */
     CurrentUserView me(long userId);

@@ -58,6 +58,8 @@ export interface CurrentUserView {
     departmentName: string | null;
     roles: string[];
     permissions: string[];
+    /** false = 没有本地密码（外部身份自动开通的用户）：密码登录、锁屏校验一律 40101，不能改密码 */
+    hasPassword: boolean;
 }
 
 export interface ProfileUpdateRequest {
@@ -81,6 +83,44 @@ export interface FavoriteMenusSaveRequest {
 /** POST /api/auth/verify-password：锁屏解锁；错误返回 40101，不影响会话 */
 export interface VerifyPasswordRequest {
     password: string;
+}
+
+/** POST /api/auth/logout 的响应：会话来自配置了登出的外部身份提供方时为其登出地址，前端整页跳转；否则 null */
+export interface LogoutResult {
+    ssoLogoutUrl: string | null;
+}
+
+/* ---------- 外部身份（契约 §6.1、§6.2，D-015） ---------- */
+
+export type ProviderType = 'oidc' | 'cas';
+
+export interface ProviderView {
+    id: string;
+    type: ProviderType;
+    name: string;
+}
+
+/** GET /api/auth/providers（公开）：只含已启用的提供方 */
+export interface ProvidersView {
+    passwordLoginEnabled: boolean;
+    providers: ProviderView[];
+}
+
+/** 已绑定的外部身份：本人 `/api/auth/identities`，管理员 `/api/users/{id}/identities` 结构相同 */
+export interface UserIdentityView {
+    id: number;
+    provider: string;
+    providerName: string;
+    externalId: string;
+    displayName: string | null;
+    createdAt: string;
+}
+
+/** POST /api/users/{id}/identities：管理员手工绑定 */
+export interface BindIdentityRequest {
+    provider: string;
+    externalId: string;
+    displayName?: string;
 }
 
 /* ---------- 菜单 ---------- */

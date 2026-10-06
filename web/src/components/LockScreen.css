@@ -163,6 +163,13 @@
     text-align: center;
 }
 
+/* 没有本地密码的用户：只有一句说明 + 「重新登录」 */
+.lock-screen__hint {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.72);
+    text-align: center;
+}
+
 /* 「重新登录」：Semi tertiary 文字色是给浅色背景的，深色遮罩上看不见 */
 .lock-screen__relogin.semi-button {
     color: rgba(255, 255, 255, 0.72);

@@ -4,11 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.weiran.system.domain.auth.TokenCodec;
 import com.weiran.system.domain.auth.TokenIssuerReader;
 import com.weiran.system.domain.auth.TokenVerifier;
+import com.weiran.system.domain.identity.ExternalIdentityProviders;
+import com.weiran.system.domain.identity.SsoStateSigner;
 import com.weiran.system.domain.user.PasswordHasher;
+import com.weiran.system.infrastructure.identity.AuthProvidersProperties;
+import com.weiran.system.infrastructure.identity.ConfiguredExternalIdentityProviders;
+import com.weiran.system.infrastructure.identity.HmacSsoStateSigner;
 import com.weiran.system.infrastructure.persistence.MybatisDepartmentRepository;
 import com.weiran.system.infrastructure.persistence.MybatisLoginLogRepository;
 import com.weiran.system.infrastructure.persistence.MybatisMenuRepository;
 import com.weiran.system.infrastructure.persistence.MybatisRoleRepository;
+import com.weiran.system.infrastructure.persistence.MybatisUserIdentityRepository;
 import com.weiran.system.infrastructure.persistence.MybatisUserRepository;
 import com.weiran.system.infrastructure.security.AuthJwtProperties;
 import com.weiran.system.infrastructure.security.BCryptPasswordHasher;
@@ -31,13 +37,14 @@ import org.springframework.context.annotation.Import;
  */
 @AutoConfiguration
 @MapperScan("com.weiran.system.infrastructure.persistence.mapper")
-@EnableConfigurationProperties({SystemSecurityProperties.class, AuthJwtProperties.class})
+@EnableConfigurationProperties({SystemSecurityProperties.class, AuthJwtProperties.class, AuthProvidersProperties.class})
 @Import({
     MybatisUserRepository.class,
     MybatisRoleRepository.class,
     MybatisMenuRepository.class,
     MybatisDepartmentRepository.class,
-    MybatisLoginLogRepository.class
+    MybatisLoginLogRepository.class,
+    MybatisUserIdentityRepository.class
 })
 public class SystemInfrastructureAutoConfiguration {
 
@@ -56,6 +63,21 @@ public class SystemInfrastructureAutoConfiguration {
     @ConditionalOnMissingBean
     public TokenIssuerReader tokenIssuerReader(final ObjectMapper objectMapper) {
         return new JwtIssuerReader(objectMapper);
+    }
+
+    /** 外部身份提供方注册表（配置不完整时启动失败）。 */
+    @Bean
+    @ConditionalOnMissingBean
+    public ExternalIdentityProviders externalIdentityProviders(
+            final AuthProvidersProperties properties, final ObjectMapper objectMapper, final Clock clock) {
+        return new ConfiguredExternalIdentityProviders(properties, objectMapper, clock);
+    }
+
+    /** 外部登录流程状态签名（密钥由 JWT 密钥派生）。 */
+    @Bean
+    @ConditionalOnMissingBean
+    public SsoStateSigner ssoStateSigner(final AuthJwtProperties properties, final ObjectMapper objectMapper) {
+        return new HmacSsoStateSigner(properties.secret(), objectMapper);
     }
 
     /** BCrypt 密码哈希。 */

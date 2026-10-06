@@ -1,6 +1,7 @@
-import { Button, Form, Toast } from '@douyinfe/semi-ui';
+import { Banner, Button, Form, Toast } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import { useRef } from 'react';
+import { ExternalAccountsCard } from '@/components/ExternalAccountsCard';
 import { PageContainer } from '@/components/PageContainer';
 import { useDictOptions } from '@/hooks/queries/dicts';
 import { useChangePassword, useUpdateProfile } from '@/hooks/queries/auth';
@@ -85,43 +86,49 @@ export default function ProfilePage() {
                     </Button>
                 </Form>
             </PageContainer>
+            <ExternalAccountsCard />
             <PageContainer title="修改密码">
-                <Form<PasswordForm>
-                    labelPosition="left"
-                    labelWidth={96}
-                    style={{ maxWidth: 520 }}
-                    getFormApi={(api) => {
-                        pwdApi.current = api;
-                    }}
-                    onSubmit={submitPassword}
-                >
-                    <Form.Input field="oldPassword" label="原密码" mode="password" rules={[{ required: true, message: '请输入原密码' }]} />
-                    <Form.Input
-                        field="newPassword"
-                        label="新密码"
-                        mode="password"
-                        extraText="8–64 位，须同时包含字母与数字"
-                        rules={[
-                            { required: true, message: '请输入新密码' },
-                            { pattern: PASSWORD_RULE, message: PASSWORD_RULE_MESSAGE },
-                        ]}
-                    />
-                    <Form.Input
-                        field="confirmPassword"
-                        label="确认新密码"
-                        mode="password"
-                        rules={[
-                            { required: true, message: '请再次输入新密码' },
-                            {
-                                validator: (_r: unknown, value: unknown) => value === pwdApi.current?.getValue('newPassword'),
-                                message: '两次输入的密码不一致',
-                            },
-                        ]}
-                    />
-                    <Button htmlType="submit" type="primary" theme="solid" loading={changePassword.isPending} style={{ marginLeft: 96 }}>
-                        修改密码
-                    </Button>
-                </Form>
+                {user.hasPassword === false ? (
+                    // 外部身份自动开通的用户没有本地密码，后端对改密码返回 40000
+                    <Banner type="info" description="未设置本地密码，可请管理员重置后再使用密码登录" closeIcon={null} />
+                ) : (
+                    <Form<PasswordForm>
+                        labelPosition="left"
+                        labelWidth={96}
+                        style={{ maxWidth: 520 }}
+                        getFormApi={(api) => {
+                            pwdApi.current = api;
+                        }}
+                        onSubmit={submitPassword}
+                    >
+                        <Form.Input field="oldPassword" label="原密码" mode="password" rules={[{ required: true, message: '请输入原密码' }]} />
+                        <Form.Input
+                            field="newPassword"
+                            label="新密码"
+                            mode="password"
+                            extraText="8–64 位，须同时包含字母与数字"
+                            rules={[
+                                { required: true, message: '请输入新密码' },
+                                { pattern: PASSWORD_RULE, message: PASSWORD_RULE_MESSAGE },
+                            ]}
+                        />
+                        <Form.Input
+                            field="confirmPassword"
+                            label="确认新密码"
+                            mode="password"
+                            rules={[
+                                { required: true, message: '请再次输入新密码' },
+                                {
+                                    validator: (_r: unknown, value: unknown) => value === pwdApi.current?.getValue('newPassword'),
+                                    message: '两次输入的密码不一致',
+                                },
+                            ]}
+                        />
+                        <Button htmlType="submit" type="primary" theme="solid" loading={changePassword.isPending} style={{ marginLeft: 96 }}>
+                            修改密码
+                        </Button>
+                    </Form>
+                )}
             </PageContainer>
         </>
     );

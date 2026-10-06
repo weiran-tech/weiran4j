@@ -59,6 +59,12 @@ public final class User {
         return this.id;
     }
 
+    /** 是否有本地密码。 */
+    public boolean hasPassword() {
+        // 外部身份自动开通的用户没有本地密码；sys_user.password 非空约束下用空串表示（D-015）。
+        return !this.passwordHash.isEmpty();
+    }
+
     /** 是否启用。 */
     public boolean isEnabled() {
         return this.status == EnableStatus.ENABLED;

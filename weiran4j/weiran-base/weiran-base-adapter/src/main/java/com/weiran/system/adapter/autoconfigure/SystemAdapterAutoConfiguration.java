@@ -5,6 +5,7 @@ import com.weiran.system.adapter.web.DepartmentController;
 import com.weiran.system.adapter.web.LoginLogController;
 import com.weiran.system.adapter.web.MenuController;
 import com.weiran.system.adapter.web.RoleController;
+import com.weiran.system.adapter.web.SsoController;
 import com.weiran.system.adapter.web.UserController;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -15,6 +16,7 @@ import org.springframework.context.annotation.Import;
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @Import({
     AuthController.class,
+    SsoController.class,
     UserController.class,
     RoleController.class,
     MenuController.class,
