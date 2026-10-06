@@ -10,6 +10,9 @@ export interface ApiResponse<T> {
     data: T;
 }
 
+/** 失败响应体（契约 §4）：比成功体多 requestId，与响应头 X-Request-Id 一致；成功体没有该键 */
+export type ApiErrorBody = { code: number; message: string; data: null; requestId?: string };
+
 export interface PageResult<T> {
     list: T[];
     total: number;

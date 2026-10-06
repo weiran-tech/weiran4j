@@ -19,12 +19,15 @@ export const CSRF_HEADER = 'X-CSRF-Token';
 export class ApiError extends Error {
     readonly code: number;
     readonly status: number;
+    /** 契约 §4：服务端请求号（失败体 `requestId`，缺失时取响应头 `X-Request-Id`）；网络错误没有 */
+    readonly requestId?: string;
 
-    constructor(code: number, message: string, status = 0) {
+    constructor(code: number, message: string, status = 0, requestId?: string) {
         super(message || `请求失败（code=${code}）`);
         this.name = 'ApiError';
         this.code = code;
         this.status = status;
+        if (requestId) this.requestId = requestId;
     }
 }
 
@@ -40,8 +43,17 @@ function isApiResponse(v: unknown): v is ApiResponse<unknown> {
     return typeof v === 'object' && v !== null && typeof (v as { code?: unknown }).code === 'number';
 }
 
+/** 失败体 `requestId` 优先，其次响应头 `X-Request-Id`；都没有返回 undefined */
+function pickRequestId(payload: unknown, res: Response): string | undefined {
+    const fromBody = (payload as { requestId?: unknown } | null)?.requestId;
+    if (typeof fromBody === 'string' && fromBody) return fromBody;
+    return res.headers?.get('X-Request-Id') || undefined;
+}
+
 function fail(err: ApiError, silent: boolean | undefined): never {
-    if (!silent) Toast.error(err.message);
+    const { requestId } = err;
+    if (requestId) console.warn(`[request] code=${err.code} requestId=${requestId}`);
+    if (!silent) Toast.error(requestId ? `${err.message}（请求号 ${requestId.slice(0, 8)}）` : err.message);
     throw err;
 }
 
@@ -52,7 +64,9 @@ function fail(err: ApiError, silent: boolean | undefined): never {
  * - 非 GET 请求在有会话时带 `X-CSRF-Token: <weiran_csrf>`；
  * - code === 0（数字）返回 data；
  * - 其它 code 抛 ApiError 并 Toast message（含 40302 CSRF 校验失败，不清会话）；
- * - 会话失效（code 40100，或 HTTP 401 且不是「密码错误」）清会话，路由守卫随即跳登录页。
+ * - 会话失效（code 40100，或 HTTP 401 且不是「密码错误」）清会话，路由守卫随即跳登录页；
+ * - 失败时 ApiError 带 requestId（失败体 → 响应头 `X-Request-Id`），Toast 追加前 8 位请求号，
+ *   console.warn 输出完整值，方便拿去后端日志里 grep（silent 不 Toast，但仍带 requestId）。
  */
 export async function request<T>(url: string, options: RequestOptions = {}): Promise<T> {
     const { method = 'GET', body, silent, signal } = options;
@@ -82,6 +96,7 @@ export async function request<T>(url: string, options: RequestOptions = {}): Pro
     } catch {
         payload = null;
     }
+    const requestId = pickRequestId(payload, res);
 
     const code = isApiResponse(payload) ? payload.code : res.ok ? -1 : res.status * 100;
     const sessionExpired =
@@ -91,14 +106,14 @@ export async function request<T>(url: string, options: RequestOptions = {}): Pro
         // 登录页上本就没有会话，不必再清
         if (session) clearSession();
         const message = isApiResponse(payload) && payload.message ? payload.message : '登录已失效，请重新登录';
-        return fail(new ApiError(CODE_UNAUTHORIZED, message, res.status), silent);
+        return fail(new ApiError(CODE_UNAUTHORIZED, message, res.status, requestId), silent);
     }
 
     if (!isApiResponse(payload)) {
-        return fail(new ApiError(-1, res.ok ? '响应解析失败' : `请求失败（HTTP ${res.status}）`, res.status), silent);
+        return fail(new ApiError(-1, res.ok ? '响应解析失败' : `请求失败（HTTP ${res.status}）`, res.status, requestId), silent);
     }
     if (payload.code !== 0) {
-        return fail(new ApiError(payload.code, payload.message || '操作失败', res.status), silent);
+        return fail(new ApiError(payload.code, payload.message || '操作失败', res.status, requestId), silent);
     }
     return payload.data as T;
 }

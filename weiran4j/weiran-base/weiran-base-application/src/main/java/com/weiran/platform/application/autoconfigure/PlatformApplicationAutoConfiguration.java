@@ -1,5 +1,6 @@
 package com.weiran.platform.application.autoconfigure;
 
+import com.weiran.framework.log.MdcTaskDecorator;
 import com.weiran.framework.log.OperationLogRecorder;
 import com.weiran.platform.application.config.ConfigApplicationService;
 import com.weiran.platform.application.dict.DictApplicationService;
@@ -22,7 +23,8 @@ public class PlatformApplicationAutoConfiguration {
 
     /**
      * 操作日志记录器，自带专用线程池：队列有界，满了直接拒绝（记录器捕获后记 warn），不阻塞业务线程；
-     * 关闭时等待已提交的日志写完（最多 10 秒）。
+     * 关闭时等待已提交的日志写完（最多 10 秒）——不超过 {@code spring.lifecycle.timeout-per-shutdown-phase}（默认 30 秒），
+     * 否则容器会在线程池等完之前就被平台强杀。任务带上提交请求的 MDC（请求号），异步线程里的日志也能按请求号检索。
      */
     @Bean
     @ConditionalOnMissingBean(OperationLogRecorder.class)
@@ -35,6 +37,7 @@ public class PlatformApplicationAutoConfiguration {
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(10);
+        executor.setTaskDecorator(new MdcTaskDecorator());
         executor.initialize();
         return new AsyncOperationLogRecorder(repository, executor);
     }

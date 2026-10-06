@@ -47,6 +47,10 @@ pnpm test / pnpm lint / pnpm build   # 目前只作用于前端
 pnpm openspec:check               # = node openspec/check.mjs，结构检查，零依赖
 node openspec/check.mjs --explain # 看全部检查项
 pnpm hooks:install                # 新 clone 后跑一次，启用 .githooks/pre-commit
+
+# ── 部署（Docker Compose，操作手册见 weiran4j/docs/02-部署.md）──
+cp weiran4j/.env.example weiran4j/.env   # 填 WEIRAN_DB_PASSWORD、WEIRAN_JWT_SECRET
+export COMPOSE_ENV_FILES=weiran4j/.env && docker compose up -d --build
 ```
 
 > ⚠️ **不要打开 Gradle 配置缓存**，也**不要同时跑两个 `clean check`**。
@@ -73,7 +77,7 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
     ├── weiran-base/             # 后台基座（DDD 五层）：身份与权限（认证 / 用户 / 角色 / 菜单 / 部门 / 登录日志，
     │                            #   Java 包 com.weiran.system）+ 平台能力（字典 / 系统配置 / 操作日志，包 com.weiran.platform）
     ├── weiran-app/              # 可执行应用：依赖聚合 + application.yml + 集成测试
-    └── docs/                    # 决策记录、架构与接口契约
+    └── docs/                    # 决策记录、架构与接口契约、部署手册（02-部署.md）
 ```
 
 业务模块的五层：`weiran-<mod>-{api,domain,application,infrastructure,adapter}`。模块路径是**扁平**的
@@ -252,7 +256,8 @@ vitest + jsdom + @testing-library/react。**断言 Semi `Form.*` 受控控件时
   `bootRun` 默认激活 `local` profile 并从 `weiran4j/config/` 读取——路径由 `weiran-app/build.gradle.kts`
   写死为绝对路径，因为 `bootRun` 的工作目录是 `weiran-app/`，靠 Spring Boot 默认的 `./config/`
   探测会找错地方。
-- **部署**：环境变量，对应 `application.yml` 里的 `${WEIRAN_*}` 占位符，见 `weiran4j/.env.example`。
+- **部署**：环境变量，对应 `application.yml` 里的 `${WEIRAN_*}` 占位符，见 `weiran4j/.env.example`（新增占位符必须同步它，`EnvExampleTest` 会拦）。
+  完整步骤、同源与反代透传头、日志与排障见 [`weiran4j/docs/02-部署.md`](weiran4j/docs/02-部署.md)。
   `WEIRAN_JWT_SECRET` 至少 32 字节，缺失或过短时应用启动失败。
 - 仓内只有 `.example` 模板，没有真实值。
 - 本地库用独立的空库 `weiran4j`（Flyway 自动建表与种子）。**不要把本地配置指向任何已有业务库**：

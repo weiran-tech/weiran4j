@@ -7,10 +7,12 @@ import { ApiError, http, request } from '../request';
 import { signIn } from '@/test/session';
 import { getSession } from '../session';
 
-function respond(body: unknown, status = 200) {
+function respond(body: unknown, status = 200, headers: Record<string, string> = {}) {
     vi.stubGlobal(
         'fetch',
-        vi.fn(() => Promise.resolve(new Response(typeof body === 'string' ? body : JSON.stringify(body), { status }))),
+        vi.fn(() =>
+            Promise.resolve(new Response(typeof body === 'string' ? body : JSON.stringify(body), { status, headers })),
+        ),
     );
 }
 
@@ -123,5 +125,47 @@ describe('request', () => {
         vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))));
         await expect(request('/api/x')).rejects.toMatchObject({ code: -1 });
         expect(Toast.error).toHaveBeenCalledWith('网络请求失败，请检查网络连接');
+    });
+
+    describe('requestId', () => {
+        const RID = '0123456789abcdef0123456789abcdef';
+
+        it('失败体带 requestId：Toast 含前 8 位，ApiError 带完整值', async () => {
+            respond({ code: 50000, message: '服务器内部错误', data: null, requestId: RID }, 500);
+            const err = await request('/api/x').catch((e: unknown) => e);
+            expect((err as ApiError).requestId).toBe(RID);
+            expect(Toast.error).toHaveBeenCalledWith('服务器内部错误（请求号 01234567）');
+        });
+
+        it('失败体没有 requestId 时退回响应头 X-Request-Id', async () => {
+            respond({ code: 40900, message: '用户名已存在', data: null }, 409, { 'X-Request-Id': RID });
+            const err = await request('/api/x').catch((e: unknown) => e);
+            expect((err as ApiError).requestId).toBe(RID);
+            expect(Toast.error).toHaveBeenCalledWith('用户名已存在（请求号 01234567）');
+        });
+
+        it('会话失效分支也带 requestId', async () => {
+            respond({ code: 40100, message: '登录已失效，请重新登录', data: null, requestId: RID }, 401);
+            await expect(request('/api/x')).rejects.toMatchObject({ code: 40100, requestId: RID });
+        });
+
+        it('两处都没有时文案不变，requestId 为空', async () => {
+            respond({ code: 40900, message: '用户名已存在', data: null }, 409);
+            const err = await request('/api/x').catch((e: unknown) => e);
+            expect((err as ApiError).requestId).toBeUndefined();
+            expect(Toast.error).toHaveBeenCalledWith('用户名已存在');
+        });
+
+        it('成功响应不受影响（带响应头也不 Toast）', async () => {
+            respond({ code: 0, message: 'ok', data: { id: 1 } }, 200, { 'X-Request-Id': RID });
+            await expect(request('/api/x')).resolves.toEqual({ id: 1 });
+            expect(Toast.error).not.toHaveBeenCalled();
+        });
+
+        it('silent 时不 Toast，但 ApiError 带 requestId', async () => {
+            respond({ code: 50000, message: '服务器内部错误', data: null, requestId: RID }, 500);
+            await expect(request('/api/x', { silent: true })).rejects.toMatchObject({ requestId: RID });
+            expect(Toast.error).not.toHaveBeenCalled();
+        });
     });
 });

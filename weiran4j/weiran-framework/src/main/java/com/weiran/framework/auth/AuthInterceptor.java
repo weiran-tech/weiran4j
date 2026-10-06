@@ -36,6 +36,9 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Slf4j
 public class AuthInterceptor implements HandlerInterceptor {
 
+    /** 当前用户 ID 的请求属性名：给 {@code RequestIdFilter} 的访问日志用（{@link CurrentUser} 在 afterCompletion 就清掉了）。 */
+    public static final String USER_ID_ATTRIBUTE = AuthInterceptor.class.getName() + ".userId";
+
     private static final String BEARER_PREFIX = "bearer ";
 
     /** 需要 CSRF 校验的方法；GET / HEAD / OPTIONS 不改状态，不查。 */
@@ -76,7 +79,10 @@ public class AuthInterceptor implements HandlerInterceptor {
                 throw new BizException(CommonErrors.FORBIDDEN);
             }
         }
-        user.ifPresent(CurrentUser::set);
+        user.ifPresent(loginUser -> {
+            CurrentUser.set(loginUser);
+            request.setAttribute(AuthInterceptor.USER_ID_ATTRIBUTE, loginUser.id());
+        });
         return true;
     }
 

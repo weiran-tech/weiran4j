@@ -4,9 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.weiran.common.error.BizException;
 import com.weiran.common.error.CommonErrors;
@@ -30,10 +35,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -164,10 +171,54 @@ class WebLayerTest {
         this.mockMvc = MockMvcBuilders.standaloneSetup(
                         new TestController(), new SkippedController(), new MixedController())
                 .setControllerAdvice(new ApiResponseBodyAdvice(objectMapper), new GlobalExceptionHandler())
+                .addFilters(new RequestIdFilter())
                 .addMappedInterceptors(
                         new String[] {"/api/**"},
                         new AuthInterceptor(beanFactory.getBeanProvider(TokenAuthenticator.class)))
                 .build();
+    }
+
+    @Test
+    @DisplayName("失败体带 requestId 且与响应头一致；成功体没有 requestId 键")
+    void errorBodyCarriesRequestId() throws Exception {
+        final MvcResult failed = this.mockMvc
+                .perform(get("/api/test/me").header(RequestIdFilter.HEADER, "abc-1"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().string(RequestIdFilter.HEADER, "abc-1"))
+                .andExpect(jsonPath("$.requestId").value("abc-1"))
+                .andExpect(jsonPath("$.data").isEmpty())
+                .andReturn();
+        assertThat(failed.getResponse().getContentAsString()).contains("\"requestId\"");
+        this.mockMvc
+                .perform(get("/api/test/biz"))
+                .andExpect(jsonPath("$.requestId").isString());
+        this.mockMvc
+                .perform(get("/api/test/public"))
+                .andExpect(header().exists(RequestIdFilter.HEADER))
+                .andExpect(jsonPath("$.requestId").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("4xx 业务异常记 WARN 不带堆栈；未知异常记 ERROR 带堆栈")
+    void logsExceptionsBySeverity() throws Exception {
+        final Logger logger = (Logger) LoggerFactory.getLogger(GlobalExceptionHandler.class);
+        final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            this.mockMvc.perform(get("/api/test/biz"));
+            this.mockMvc.perform(get("/api/test/boom"));
+        } finally {
+            logger.detachAppender(appender);
+        }
+        assertThat(appender.list).hasSize(2);
+        final ILoggingEvent warn = appender.list.get(0);
+        assertThat(warn.getLevel()).isEqualTo(Level.WARN);
+        assertThat(warn.getFormattedMessage()).contains("40901").contains("内置数据不可删除");
+        assertThat(warn.getThrowableProxy()).isNull();
+        final ILoggingEvent error = appender.list.get(1);
+        assertThat(error.getLevel()).isEqualTo(Level.ERROR);
+        assertThat(error.getThrowableProxy()).isNotNull();
     }
 
     @Test
