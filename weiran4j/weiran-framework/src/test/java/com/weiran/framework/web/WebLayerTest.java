@@ -4,19 +4,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.weiran.common.error.BizException;
-import com.weiran.common.error.CommonErrors;
-import com.weiran.common.response.ApiResponse;
+import com.weiran.framework.auth.AuthCookies;
 import com.weiran.framework.auth.AuthInterceptor;
 import com.weiran.framework.auth.CurrentUser;
 import com.weiran.framework.auth.LoginUser;
 import com.weiran.framework.auth.PublicApi;
 import com.weiran.framework.auth.RequiresPermission;
 import com.weiran.framework.auth.TokenAuthenticator;
+import com.weiran.framework.error.BizException;
+import com.weiran.framework.error.CommonErrors;
+import com.weiran.framework.response.ApiResponse;
+import jakarta.servlet.http.Cookie;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.lang.annotation.Retention;
@@ -24,13 +31,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,6 +49,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 class WebLayerTest {
+
+    /** 张三（id=2）的 CSRF 值。 */
+    private static final String USER_CSRF = "2.abc";
+
+    /** {@code /api/test/write} 被执行的次数：CSRF 被拒时业务代码不应执行。 */
+    private static final AtomicInteger WRITES = new AtomicInteger();
 
     private MockMvc mockMvc;
 
@@ -54,6 +70,12 @@ class WebLayerTest {
 
         @GetMapping("/me")
         String me() {
+            return CurrentUser.require().username();
+        }
+
+        @PostMapping("/write")
+        String write() {
+            WebLayerTest.WRITES.incrementAndGet();
             return CurrentUser.require().username();
         }
 
@@ -145,13 +167,58 @@ class WebLayerTest {
             default -> Optional.empty();
         };
         beanFactory.registerSingleton("authenticator", authenticator);
+        WebLayerTest.WRITES.set(0);
         this.mockMvc = MockMvcBuilders.standaloneSetup(
                         new TestController(), new SkippedController(), new MixedController())
                 .setControllerAdvice(new ApiResponseBodyAdvice(objectMapper), new GlobalExceptionHandler())
+                .addFilters(new RequestIdFilter())
                 .addMappedInterceptors(
                         new String[] {"/api/**"},
                         new AuthInterceptor(beanFactory.getBeanProvider(TokenAuthenticator.class)))
                 .build();
+    }
+
+    @Test
+    @DisplayName("失败体带 requestId 且与响应头一致；成功体没有 requestId 键")
+    void errorBodyCarriesRequestId() throws Exception {
+        final MvcResult failed = this.mockMvc
+                .perform(get("/api/test/me").header(RequestIdFilter.HEADER, "abc-1"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().string(RequestIdFilter.HEADER, "abc-1"))
+                .andExpect(jsonPath("$.requestId").value("abc-1"))
+                .andExpect(jsonPath("$.data").isEmpty())
+                .andReturn();
+        assertThat(failed.getResponse().getContentAsString()).contains("\"requestId\"");
+        this.mockMvc
+                .perform(get("/api/test/biz"))
+                .andExpect(jsonPath("$.requestId").isString());
+        this.mockMvc
+                .perform(get("/api/test/public"))
+                .andExpect(header().exists(RequestIdFilter.HEADER))
+                .andExpect(jsonPath("$.requestId").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("4xx 业务异常记 WARN 不带堆栈；未知异常记 ERROR 带堆栈")
+    void logsExceptionsBySeverity() throws Exception {
+        final Logger logger = (Logger) LoggerFactory.getLogger(GlobalExceptionHandler.class);
+        final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            this.mockMvc.perform(get("/api/test/biz"));
+            this.mockMvc.perform(get("/api/test/boom"));
+        } finally {
+            logger.detachAppender(appender);
+        }
+        assertThat(appender.list).hasSize(2);
+        final ILoggingEvent warn = appender.list.get(0);
+        assertThat(warn.getLevel()).isEqualTo(Level.WARN);
+        assertThat(warn.getFormattedMessage()).contains("40901").contains("内置数据不可删除");
+        assertThat(warn.getThrowableProxy()).isNull();
+        final ILoggingEvent error = appender.list.get(1);
+        assertThat(error.getLevel()).isEqualTo(Level.ERROR);
+        assertThat(error.getThrowableProxy()).isNotNull();
     }
 
     @Test
@@ -186,6 +253,82 @@ class WebLayerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").value("zhangsan"));
         assertThat(CurrentUser.get()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("没有 Bearer 头时从 weiran_token Cookie 取令牌；两者都有时以 Bearer 为准")
+    void readsTokenFromCookie() throws Exception {
+        this.mockMvc
+                .perform(get("/api/test/me").cookie(new Cookie(AuthCookies.TOKEN_COOKIE, "user")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").value("zhangsan"));
+        this.mockMvc
+                .perform(get("/api/test/me")
+                        .header("Authorization", "Bearer admin")
+                        .cookie(new Cookie(AuthCookies.TOKEN_COOKIE, "user")))
+                .andExpect(jsonPath("$.data").value("admin"));
+        this.mockMvc
+                .perform(get("/api/test/me").cookie(new Cookie(AuthCookies.TOKEN_COOKIE, "nope")))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(40100));
+    }
+
+    @Test
+    @DisplayName("Cookie 认证的写请求：缺 CSRF 头、头与 Cookie 不一致、CSRF 值不属于当前用户都返回 403 / 40302 且不执行业务")
+    void rejectsCookieWriteWithoutValidCsrf() throws Exception {
+        final Cookie token = new Cookie(AuthCookies.TOKEN_COOKIE, "user");
+        this.mockMvc
+                .perform(post("/api/test/write")
+                        .cookie(token, new Cookie(AuthCookies.CSRF_COOKIE, WebLayerTest.USER_CSRF)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(40302));
+        this.mockMvc
+                .perform(post("/api/test/write")
+                        .cookie(token, new Cookie(AuthCookies.CSRF_COOKIE, WebLayerTest.USER_CSRF))
+                        .header(AuthCookies.CSRF_HEADER, "2.other"))
+                .andExpect(jsonPath("$.code").value(40302));
+        this.mockMvc
+                .perform(post("/api/test/write").cookie(token).header(AuthCookies.CSRF_HEADER, WebLayerTest.USER_CSRF))
+                .andExpect(jsonPath("$.code").value(40302));
+        this.mockMvc
+                .perform(post("/api/test/write")
+                        .cookie(token, new Cookie(AuthCookies.CSRF_COOKIE, "1.abc"))
+                        .header(AuthCookies.CSRF_HEADER, "1.abc"))
+                .andExpect(jsonPath("$.code").value(40302));
+        assertThat(WebLayerTest.WRITES.get()).isZero();
+        assertThat(CurrentUser.get()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Cookie 认证的写请求带正确的 CSRF 头即放行")
+    void acceptsCookieWriteWithCsrf() throws Exception {
+        this.mockMvc
+                .perform(post("/api/test/write")
+                        .cookie(
+                                new Cookie(AuthCookies.TOKEN_COOKIE, "user"),
+                                new Cookie(AuthCookies.CSRF_COOKIE, WebLayerTest.USER_CSRF))
+                        .header(AuthCookies.CSRF_HEADER, WebLayerTest.USER_CSRF))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").value("zhangsan"));
+        assertThat(WebLayerTest.WRITES.get()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("Bearer 认证的写请求、Cookie 认证的 GET、公开接口的写请求都不查 CSRF")
+    void skipsCsrfWhereNotApplicable() throws Exception {
+        this.mockMvc
+                .perform(post("/api/test/write").header("Authorization", "Bearer user"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0));
+        this.mockMvc
+                .perform(get("/api/test/me").cookie(new Cookie(AuthCookies.TOKEN_COOKIE, "user")))
+                .andExpect(jsonPath("$.code").value(0));
+        this.mockMvc
+                .perform(post("/api/test/body")
+                        .cookie(new Cookie(AuthCookies.TOKEN_COOKIE, "user"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"x\"}"))
+                .andExpect(jsonPath("$.code").value(0));
     }
 
     @Test

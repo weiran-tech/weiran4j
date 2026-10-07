@@ -27,13 +27,19 @@
 
 | 组件 | 位置 | 什么时候用 | 坑 |
 | --- | --- | --- | --- |
-| **LockScreen** | `components/LockScreen.tsx` + `LockScreen.css` | 全屏锁屏遮罩(偏好 `enableLockScreen`,由 AdminLayout 在锁定时渲染):时钟 + 头像 + 密码框,调 `POST /api/auth/verify-password` 解锁,「重新登录」退出。锁定状态在 `hooks/useLockScreen.ts`(`lockScreen()` / `unlockScreen()` / `useIsLocked()`,存 `sessionStorage.weiran_locked`,刷新后仍锁定;登录、`clearSession` 时自动解除) | 用**登录密码**解锁,不像 mono4ts 另设本地锁屏密码。错误码 40101 在遮罩内提示「密码错误」,**不会**清令牌——依赖 `utils/request.ts` 对 40101 不走会话失效分支,改那里要回来看这里。回车在 `keydown` 提交,**不用 Semi Input 的 `onEnterPress`**(它挂在已废弃的 `keypress` 上,CDP 注入按键时不一定派发)。遮罩经 portal 挂在 body 下自己的容器里,锁定期间把 **body 其它子节点全部设 `inert`**(布局 + Semi 挂到 body 上的 Modal/SideSheet/Popover 浮层),解锁恢复;遮罩内另有 Tab 焦点陷阱。锁定后才出现的 body 子节点(Toast)不会被 inert |
+| **LockScreen** | `components/LockScreen.tsx` + `LockScreen.css` | 全屏锁屏遮罩(偏好 `enableLockScreen`,由 AdminLayout 在锁定时渲染):时钟 + 头像 + 密码框,调 `POST /api/auth/verify-password` 解锁,「重新登录」退出。`user.hasPassword === false`(外部身份自动开通、没有本地密码)时不渲染密码框与「解锁」,只剩一句说明和「重新登录」。锁定状态在 `hooks/useLockScreen.ts`(`lockScreen()` / `unlockScreen()` / `useIsLocked()`,存 `sessionStorage.weiran_locked`,刷新后仍锁定;登录、`clearSession` 时自动解除) | 用**登录密码**解锁,不像 mono4ts 另设本地锁屏密码。错误码 40101 在遮罩内提示「密码错误」,**不会**清令牌——依赖 `utils/request.ts` 对 40101 不走会话失效分支,改那里要回来看这里。回车在 `keydown` 提交,**不用 Semi Input 的 `onEnterPress`**(它挂在已废弃的 `keypress` 上,CDP 注入按键时不一定派发)。遮罩经 portal 挂在 body 下自己的容器里,锁定期间把 **body 其它子节点全部设 `inert`**(布局 + Semi 挂到 body 上的 Modal/SideSheet/Popover 浮层),解锁恢复;遮罩内另有 Tab 焦点陷阱。锁定后才出现的 body 子节点(Toast)不会被 inert |
 
 ## 权限
 
 | 组件 | 位置 | 什么时候用 | 坑 |
 | --- | --- | --- | --- |
 | **Permission** | `components/Permission.tsx` | 按钮级权限:`<Permission code="system:user:create">…</Permission>`;`code` 传数组时满足任一即可,`fallback` 默认不渲染 | 只控制**显示**,真正的拦截在后端 `@RequiresPermission`。需要在逻辑里判断时用 `hooks/usePermission` 的 `hasPermission()`;`permissions` 含 `"*"`(超管)视为全部 |
+
+## 账号与外部身份(D-015)
+
+| 组件 | 位置 | 什么时候用 | 坑 |
+| --- | --- | --- | --- |
+| **ExternalAccountsCard** | `components/ExternalAccountsCard.tsx` | 个人中心的「外部账号」卡片(无 props):列出本人已绑定的外部身份(提供方、外部标识、显示名、绑定时间)并可解绑(Popconfirm);每个**尚未绑定**的提供方一个「绑定 {name}」按钮,`location.assign(ssoAuthorizeUrl(id, {redirect: '/profile', mode: 'bind'}))` 整页跳转;挂载时读 URL 的 `?bound=<id>` / `?ssoError=<code>` 显示 Banner 后清掉这两个参数。没有启用任何提供方时整张卡片不渲染 | 发起绑定 / 登录必须**整页跳转**(后端 302 到提供方),不能用 `http` / fetch。结果参数在**挂载时**读一次(回跳是整页加载);页面被 `KeepAliveOutlet` 缓存后再从站内跳到 `/profile?bound=…` 不会再提示。本人解绑最后一个且无本地密码时后端 40901,提示由 `utils/request.ts` 统一 Toast。管理员视角的同类功能是用户管理页的 `pages/system/users/UserIdentitiesModal.tsx`(列表 + 解绑二次确认,只剩一个时提示「解绑后该用户可能无法登录」+ 手工绑定表单,行操作受 `system:user:identity` 控制),两者共用 `hooks/queries/identities.ts` |
 
 ## 字典与状态
 
@@ -75,13 +81,13 @@
 - `hooks/useMediaQuery.ts`:`useMediaQuery(query)` / `useIsMobile()`(< 768px)/ `usePrefersDark()`。断点常量在 `lib/breakpoints.ts`,CSS 侧写 `@media (--md-down)`(`styles/breakpoints.css` 经 postcss-custom-media 注入所有 CSS,**不要硬编码 px 断点**,两边改一处必须同步另一处)。jsdom 的 `matchMedia` 恒为 false,测试里默认是桌面布局;测窄屏用 `vi.stubGlobal('matchMedia', …)`。
 - `utils/request.ts`:请求封装。**`code === 0`(数字)才算成功**;`40100` 清令牌跳登录,`40101` 不清。不要在页面里再写 `fetch`。
 - `utils/page-registry.ts`:菜单 `component` 字符串 → 页面懒加载。**路由不在 `App.tsx` 里登记**。
-- `hooks/queries/*`:每个资源一份 TanStack Query hooks,新接口先在这里加,再在页面里用。收藏菜单与锁屏校验在 `hooks/queries/auth.ts`(`useFavoriteMenus` / `useSaveFavoriteMenus` / `useVerifyPassword`)。
+- `hooks/queries/*`:每个资源一份 TanStack Query hooks,新接口先在这里加,再在页面里用。收藏菜单与锁屏校验在 `hooks/queries/auth.ts`(`useFavoriteMenus` / `useSaveFavoriteMenus` / `useVerifyPassword`)。外部身份在 `hooks/queries/identities.ts`:`useProviders()`(公开接口,登录页未登录也调;静默,失败按「无提供方、密码登录开启」降级)、`useMyIdentities` / `useUnbindMyIdentity`、`useUserIdentities` / `useBindUserIdentity` / `useUnbindUserIdentity`,以及 `ssoAuthorizeUrl(id, {redirect, mode})`(拼 authorize 地址,带 `config.apiBaseUrl` 前缀)与 `ssoErrorMessage(code)`(`ssoError` 的提示文案)。
 - `utils/menu.ts` 的 `flattenMenuPages()`:菜单树 → 可跳转的菜单页平铺列表(带祖先标题、可见性、keepAlive),全局搜索、收藏、页面缓存白名单共用。
 
 ## 偏好(`hooks/usePreferences.tsx` + `hooks/PreferencesProvider.tsx`)
 
 - **字段定义与默认值的唯一事实源**是 `hooks/usePreferences.tsx`(44 个,43 个来自 mono4ts、`doubleRailStyle` 来自 zenith-admin;后端 `/api/auth/preferences` 只存不校验)。读用 `usePreferences().preferences`,写用 `setPreferences(partial)`;Provider 外调用直接抛错。
-- `PreferencesProvider`:本地缓存 `localStorage.weiran_preferences`(读写容错,非法字段逐项回落默认),归属用户记在 `weiran_preferences_owner`(用户 id,取自 JWT 的 `sub`,`utils/token.ts` 的 `tokenUserId()` 只解码不验签);登录后 GET 服务端偏好合并覆盖本地,服务端为 `null` 时**只有本地缓存归属 = 当前用户才迁上去**;修改 500ms 防抖 PUT;「恢复默认」清本地并立即 PUT;**未登录(登录页)只写本地、不发请求**。
+- `PreferencesProvider`:本地缓存 `localStorage.weiran_preferences`(读写容错,非法字段逐项回落默认),归属用户记在 `weiran_preferences_owner`(用户 id,取自 `weiran_csrf` Cookie 的前缀,`utils/session.ts` 的 `sessionUserId()`;该 Cookie 不是凭据,令牌本身在 HttpOnly Cookie 里,页面读不到);登录后 GET 服务端偏好合并覆盖本地,服务端为 `null` 时**只有本地缓存归属 = 当前用户才迁上去**;修改 500ms 防抖 PUT;「恢复默认」清本地并立即 PUT;**未登录(登录页)只写本地、不发请求**。
 - 除 `filesViewMode` 外 42 个字段都已接通行为并在抽屉里(2026-09-27 第二阶段补齐 C 组:导航布局、页签风格 / 动画、路由动画、页面缓存、菜单搜索(现为全局搜索)、收藏、锁屏、列设置、面包屑子菜单、分组标题吸顶)。各字段的消费处见上面布局表与 `ColumnSettings` / `LockScreen` 条目。
 - 坑:**`filesViewMode` 预留给文件模块,当前无消费方**——本项目没有文件模块,它只有类型与默认值,不在抽屉里。将来加文件模块时再接通并放进抽屉。
 - 坑:`tabAnimation` 与 `routeAnimation` 是两件事(同 mono4ts):前者是页签条目的进出场,后者是内容区进场;开启页面缓存的页面不播路由动画。

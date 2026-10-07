@@ -5,9 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.weiran.common.error.BizException;
 import com.weiran.framework.auth.CurrentUser;
 import com.weiran.framework.auth.LoginUser;
+import com.weiran.framework.error.BizException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;

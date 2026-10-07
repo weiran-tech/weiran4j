@@ -5,15 +5,15 @@
 > 本文件同时覆盖子表 `sys_dict_item`（字典项）。
 >
 > 事实源：
-> [`DictController.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/platform/adapter/web/DictController.java)、
-> [`SaveDictRequest.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/platform/adapter/web/request/SaveDictRequest.java) /
-> [`SaveDictItemRequest.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/platform/adapter/web/request/SaveDictItemRequest.java)、
-> [`DictApplicationService.java`](../../../weiran4j/weiran-base/weiran-base-application/src/main/java/com/weiran/platform/application/dict/DictApplicationService.java)、
-> [`Dict.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/platform/domain/dict/Dict.java) /
-> [`DictItem.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/platform/domain/dict/DictItem.java)、
-> [`MybatisDictRepository.java`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/java/com/weiran/platform/infrastructure/persistence/MybatisDictRepository.java)、
-> [`V202609260101__platform_init_schema.sql`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/resources/db/migration/platform/V202609260101__platform_init_schema.sql) /
-> [`V202609260102__platform_seed_data.sql`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/resources/db/migration/platform/V202609260102__platform_seed_data.sql)、
+> [`DictController.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/platform/adapter/web/DictController.java)、
+> [`SaveDictRequest.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/platform/adapter/web/request/SaveDictRequest.java) /
+> [`SaveDictItemRequest.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/platform/adapter/web/request/SaveDictItemRequest.java)、
+> [`DictApplicationService.java`](../../../weiran4j/weiran-system/weiran-system-application/src/main/java/com/weiran/platform/application/dict/DictApplicationService.java)、
+> [`Dict.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/platform/domain/dict/Dict.java) /
+> [`DictItem.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/platform/domain/dict/DictItem.java)、
+> [`MybatisDictRepository.java`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/java/com/weiran/platform/infrastructure/persistence/MybatisDictRepository.java)、
+> [`V202609260101__platform_init_schema.sql`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/platform/V202609260101__platform_init_schema.sql) /
+> [`V202609260102__platform_seed_data.sql`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/platform/V202609260102__platform_seed_data.sql)、
 > [`DictsPage.tsx`](../../../web/src/pages/system/dicts/DictsPage.tsx) /
 > [`DictFormModals.tsx`](../../../web/src/pages/system/dicts/DictFormModals.tsx)、
 > [`hooks/queries/dicts.ts`](../../../web/src/hooks/queries/dicts.ts)、
@@ -29,7 +29,7 @@
 | 菜单 | 系统管理 › 字典管理（`sys_menu.id = 7`） |
 | 路由 | `/system/dicts` |
 | 页面组件 | `system/dicts/DictsPage`（左：`NavListPanel` 字典列表，同 mono4ts；右：`DictItemsPanel` 字典项；弹窗 `DictFormModal`、`DictItemFormModal`） |
-| 后端模块 | `weiran-base`（DDD 五层）；`DictController` → `DictApplicationService` → `MybatisDictRepository` |
+| 后端模块 | `weiran-system`（DDD 五层）；`DictController` → `DictApplicationService` → `MybatisDictRepository` |
 | 接口前缀 | `/api/dicts` |
 | 权限码 | `system:dict:list` · `system:dict:create` · `system:dict:update`（**字典项的增删改也用它**）· `system:dict:delete`；`GET /code/{code}/items` 仅需登录 |
 | 种子 | 内置字典 `sys_user_gender`（male 男 / female 女 / unknown 未知）、`sys_common_status`（enabled 启用 / disabled 禁用），均带颜色 |

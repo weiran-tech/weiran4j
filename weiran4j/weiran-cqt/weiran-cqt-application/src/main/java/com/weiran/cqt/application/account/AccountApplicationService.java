@@ -1,6 +1,5 @@
 package com.weiran.cqt.application.account;
 
-import com.weiran.common.error.BizException;
 import com.weiran.cqt.api.account.AccountProfileView;
 import com.weiran.cqt.api.account.AccountService;
 import com.weiran.cqt.api.account.LoginResult;
@@ -18,6 +17,7 @@ import com.weiran.cqt.domain.account.Registration;
 import com.weiran.cqt.domain.account.RegistrationForm;
 import com.weiran.cqt.domain.portal.PortalTokenCodec;
 import com.weiran.cqt.domain.region.RegionRepository;
+import com.weiran.framework.error.BizException;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Optional;

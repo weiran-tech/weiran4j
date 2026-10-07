@@ -3,11 +3,11 @@ package com.weiran.cqt.application.file;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.weiran.common.error.BizException;
 import com.weiran.cqt.api.error.CqtErrors;
 import com.weiran.cqt.api.file.UploadedFileView;
 import com.weiran.cqt.domain.file.FileStorage;
 import com.weiran.cqt.domain.file.FileStorageException;
+import com.weiran.framework.error.BizException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;

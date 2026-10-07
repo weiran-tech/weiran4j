@@ -3,7 +3,7 @@ package com.weiran.cqt.domain.account;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.weiran.common.error.BizException;
+import com.weiran.framework.error.BizException;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

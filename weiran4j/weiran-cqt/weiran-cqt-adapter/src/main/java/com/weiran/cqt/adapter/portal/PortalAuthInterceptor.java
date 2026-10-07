@@ -1,8 +1,8 @@
 package com.weiran.cqt.adapter.portal;
 
-import com.weiran.common.error.BizException;
-import com.weiran.common.error.CommonErrors;
 import com.weiran.cqt.api.portal.PortalAuthService;
+import com.weiran.framework.error.BizException;
+import com.weiran.framework.error.CommonErrors;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Locale;

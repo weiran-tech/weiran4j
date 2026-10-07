@@ -38,7 +38,7 @@ cd weiran4j && export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 ./gradlew spotlessApply           # 格式化（改完代码先跑这个）
 ./gradlew check --no-daemon       # 全量门禁：编译 + 测试 + Checkstyle + SpotBugs + Forbidden APIs
                                   #   + Error Prone/NullAway + 覆盖率；集成测试用 Testcontainers，需要 Docker
-./gradlew :weiran-base-domain:check   # 只验一个模块，迭代时用
+./gradlew :weiran-system-domain:check   # 只验一个模块，迭代时用
 ./gradlew :weiran-app:bootRun     # 起服务（需要 MySQL 与 weiran4j/config/application-local.yml）
 
 # ── 前端与 openspec（在仓库根）──
@@ -47,6 +47,10 @@ pnpm test / pnpm lint / pnpm build   # 目前只作用于前端
 pnpm openspec:check               # = node openspec/check.mjs，结构检查，零依赖
 node openspec/check.mjs --explain # 看全部检查项
 pnpm hooks:install                # 新 clone 后跑一次，启用 .githooks/pre-commit
+
+# ── 部署（Docker Compose，操作手册见 weiran4j/docs/02-部署.md）──
+cp weiran4j/.env.example weiran4j/.env   # 填 WEIRAN_DB_PASSWORD、WEIRAN_JWT_SECRET
+export COMPOSE_ENV_FILES=weiran4j/.env && docker compose up -d --build
 ```
 
 > ⚠️ **不要打开 Gradle 配置缓存**，也**不要同时跑两个 `clean check`**。
@@ -67,17 +71,17 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 └── weiran4j/                    # 后端：Gradle 多模块（package.json 只为接入 turbo，名 @weiran/server）
     ├── build-logic/             # 约定插件。质量规则的唯一来源，不要在模块里重复配置
     ├── weiran-dependencies/     # BOM（import Spring Boot + MyBatis-Plus BOM）。框架版本只在这里；下游业务版本在其 biz-dependencies.gradle.kts（D-013）
-    ├── weiran-common/           # 纯 Java：错误码、分页、响应包络、树工具
-    ├── weiran-framework/        # Spring 基础设施：统一响应、全局异常、认证拦截、@RequiresPermission、
-    │                            #   @OperationLog、MyBatis-Plus 配置与审计字段填充
-    ├── weiran-base/             # 后台基座（DDD 五层）：身份与权限（认证 / 用户 / 角色 / 菜单 / 部门 / 登录日志，
+    ├── weiran-framework/        # 框架层：纯 Java 契约包（错误码、分页、响应包络、树工具，domain/api 只能用这些）
+    │                            #   + Spring 基础设施（统一响应、全局异常、认证拦截、@RequiresPermission、
+    │                            #   @OperationLog、MyBatis-Plus 配置与审计字段填充）。框架库不向下游传递（D-016）
+    ├── weiran-system/           # 后台基座（DDD 五层）：身份与权限（认证 / 用户 / 角色 / 菜单 / 部门 / 登录日志，
     │                            #   Java 包 com.weiran.system）+ 平台能力（字典 / 系统配置 / 操作日志，包 com.weiran.platform）
     ├── weiran-app/              # 可执行应用：依赖聚合 + application.yml + 集成测试
-    └── docs/                    # 决策记录、架构与接口契约
+    └── docs/                    # 决策记录、架构与接口契约、部署手册（02-部署.md）
 ```
 
 业务模块的五层：`weiran-<mod>-{api,domain,application,infrastructure,adapter}`。模块路径是**扁平**的
-（`:weiran-base-api`），目录是**嵌套**的（`weiran-base/weiran-base-api`）——新增业务模块只需建好
+（`:weiran-system-api`），目录是**嵌套**的（`weiran-system/weiran-system-api`）——新增业务模块只需建好
 `weiran4j/weiran-<mod>/weiran-<mod>-{五层}/` 目录，`settings.gradle.kts` 会自动发现，BOM 与 `weiran-app` 的依赖随之生成，
 不改任何构建脚本（D-012）。**建了其中几层却不齐时构建直接失败**，报错里列出缺的层。
 
@@ -103,13 +107,13 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 | `openspec/` | 本仓库的规格治理流水线：`rules/`（现在必须）· `design/`（过去为什么）· `state/`（现状 + 欠账）· `schemas/` · `specs/` · `changes/` · `guards/` · `check.mjs` · `config.yaml` · `project.json` |
 | `.githooks/` | 把流水线接到本地提交（门禁 ②）；`pnpm hooks:install` 启用 |
 
-### 门禁：设计上三道，现在只有两道
+### 门禁：三道
 
 | # | 门禁 | 强度 | 现状 |
 | --- | --- | --- | --- |
 | ① | Claude Code hook：写/改后跑 `check.mjs --hook`，只查改动涉及的插件，20s 超时 | 即时 · 不阻断 | ✅ 在跑 |
 | ② | `.githooks/pre-commit`：改动命中 `openspec/`、`weiran4j/`、`web/` 才跑全量 `check.mjs` | 阻断（`--no-verify` 可应急绕过） | ✅ 需先 `pnpm hooks:install` |
-| ③ | CI 全量 build / test / lint | 兜底 | ❌ **没有**：仓库没有 `.github/workflows/`，后端 `check` 与前端测试只在本地跑。见 [`artifact.md#05`](openspec/state/bizs/artifact.md) |
+| ③ | GitHub Actions [`ci.yml`](.github/workflows/ci.yml)：PR 与推送 main 时并行跑后端 `check`（JDK 21 + Testcontainers）、前端 `lint/test/build`、`openspec/check.mjs` | 兜底 | ✅ 在跑（`artifact.md#05` 已关）。⚠️ 还**没有分支保护**（[`artifact.md#12`](openspec/state/bizs/artifact.md)）：CI 红了照样能合并，需要仓库管理员在 GitHub → Settings → Branches 给 `main` 设置「合并前必须通过以上三个检查」 |
 
 ### 用哪个 skill 开 / 推进 / 归档 change
 
@@ -138,7 +142,7 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 
 | 文件 | 什么时候**必须**读 | 有无机械校验 |
 | --- | --- | --- |
-| [`rules/enforced/constitution.md`](openspec/rules/enforced/constitution.md) | 写 `design.md` 的「宪法对照」表时；**改表结构或种子数据前（CP-7：只能追加 Flyway 脚本，已合入的永不修改）**；碰密码/令牌路径时（CP-8：只用 BCrypt，吊销只走 `token_version`）；给模块加依赖或版本号时（CP-4）；**新增业务模块、让业务依赖基座、新增错误码 / 权限码 / 菜单 id 时（CP-12 … CP-15：依赖只能业务 → 基座 → 框架，业务只依赖 `weiran-base-api`，号段先在 [`weiran4j/docs/business-modules.md`](weiran4j/docs/business-modules.md) 登记）**；要放宽任何质量规则时（CP-5/CP-6） | ✅ `L2c/constitution-check` + `TEMPLATE/constitution-rows` |
+| [`rules/enforced/constitution.md`](openspec/rules/enforced/constitution.md) | 写 `design.md` 的「宪法对照」表时；**改表结构或种子数据前（CP-7：只能追加 Flyway 脚本，已合入的永不修改）**；碰密码/令牌路径时（CP-8：只用 BCrypt，吊销只走 `token_version`）；给模块加依赖或版本号时（CP-4）；**新增业务模块、让业务依赖基座、新增错误码 / 权限码 / 菜单 id 时（CP-12 … CP-15：依赖只能业务 → 基座 → 框架，业务只依赖 `weiran-system-api`，号段先在 [`weiran4j/docs/business-modules.md`](weiran4j/docs/business-modules.md) 登记）**；要放宽任何质量规则时（CP-5/CP-6） | ✅ `L2c/constitution-check` + `TEMPLATE/constitution-rows` |
 | [`rules/enforced/project.md`](openspec/rules/enforced/project.md) | 新增 Gradle 模块前、**新增页面/菜单前（§一 SL-4/SL-5：菜单行与页面文件配对）**、取 Flyway 版本号或菜单 id 前（序号型资源）；判断能不能与他人同时推进时（§二 WT-N，本仓库没有 worktree）；写 `proposal.md`/`tasks.md`/`design.md` 前（§三～六 CC/PK/TG/DS-N） | ✅ `TEMPLATE/profile-rows` |
 | [`rules/advisory/components.md`](openspec/rules/advisory/components.md) | **写 `web/` 的页面或组件前 —— 先查再造**；**给侧边菜单加图标时**（目录节点必须用 `renderNavIcon()`）；删除组件或改其对外协议后回来改这里 | 🟡 只查「新增未登记」（`REPO/components-unregistered`），不查描述对不对 |
 | [`rules/advisory/list-view.md`](openspec/rules/advisory/list-view.md) | **写或改 `web/` 的列表页（搜索栏 + 表格）前**；**加列 / 改列宽前**（1440 宽双列布局表格只有 1115px，手机号、时间按最坏数据算宽，否则只有部分行折行）；**往高级筛选面板加字段前**（后端不认的参数被静默忽略，筛了等于没筛） | ❌ 无 —— 全靠这张表唤起 |
@@ -209,7 +213,10 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 - **端口定义在 domain，实现在 infrastructure**。端口签名里出现框架类型，这层反转就白做了。
 - **模块自己负责装配**：每个模块用 `@AutoConfiguration` + `META-INF/spring/...imports` 自我登记，
   应用侧不写 `@ComponentScan` / `@MapperScan`。新增模块时 `weiran-app` 只加一行依赖。
-- **`weiran-framework` 是外层**：`*-domain` 与 `*-api` 只能依赖 `weiran-common`。
+- **`weiran-framework` 的 Spring 部分是外层**：`*-domain` 与 `*-api` 只能用它的纯 Java 契约包
+  （`com.weiran.framework.{error,page,response,status,text,tree}`）。framework 的 Spring / MyBatis-Plus 依赖必须保持
+  `implementation`——改成 `api` 会让 domain 编译期看见框架类型（D-016）；新业务模块的 application / infrastructure / adapter
+  用到哪个框架库（`spring-tx`、MyBatis-Plus starter、`spring-boot-starter-web` 等）在自己的 `build.gradle.kts` 里声明。
 
 完整不变量见 [`openspec/rules/enforced/constitution.md`](openspec/rules/enforced/constitution.md)（CP-1 … CP-15），
 每个 change 的 design 都要逐条对照。
@@ -237,8 +244,14 @@ vitest + jsdom + @testing-library/react。**断言 Semi `Form.*` 受控控件时
 - 认证不用 Spring Security 过滤器链：`weiran-framework` 的 `AuthInterceptor` 拦 `/api/**`，
   `@PublicApi` 放行，`@RequiresPermission` 校验权限码，`CurrentUser` 取当前用户。
 - 权限码登记在 `sys_menu` 的 button 行（如 `system:user:create`）；角色 `super_admin` 放行一切，`/me` 返回 `["*"]`。
-- 令牌吊销只靠 `sys_user.token_version`（JWT 的 `ver` claim）：改密码 / 重置密码 / 禁用账号时递增（宪法 CP-8）。
-- 登录失败不区分「用户不存在」与「密码错误」，统一 `40101`（宪法 CP-10）。前端对 `40100` 清令牌跳登录，对 `40101` 不清。
+- 认证三段式（D-014）：按 JWT `iss` 选 `TokenVerifier` → `IdentityResolver` 认身份并判吊销 → `PermissionSource` 取权限。
+- 令牌吊销只靠 `sys_user.token_version`（JWT 的 `ver` claim）：改密码 / 重置密码 / 禁用账号时递增，且每次请求查库、不走缓存（宪法 CP-8）。
+- 浏览器令牌在 HttpOnly Cookie `weiran_token` 里，页面脚本读不到；前端靠非 HttpOnly 的 `weiran_csrf` 判断登录态，
+  写请求带 `X-CSRF-Token`（缺了 403 / `40302`）。脚本调用登录时带 `X-Auth-Mode: token` 拿令牌，再用 Bearer 头（契约 §4）。**前后端必须同源部署**。
+- 登录失败不区分「用户不存在」与「密码错误」，统一 `40101`（宪法 CP-10）。前端对 `40100` 清会话跳登录，对 `40101` 不清。
+- 外部身份登录（CAS / OIDC，D-015）：浏览器整页跳 `/api/auth/sso/{id}/authorize`，回调由后端换码或验票后下发同一套本地 Cookie。
+  外部身份只按 `sys_user_identity(provider, external_id)` 映射，**不按用户名关联**；自动开通的用户没有本地密码（`password` 为空串，`/me.hasPassword=false`）。
+  提供方用环境变量 `WEIRAN_AUTH_PROVIDERS_<ID>_*` 配置，见 `weiran4j/docs/02-部署.md` §5a。
 - 种子账号 `admin` / `admin123`（Flyway 种子），**上线前必须改密**。
 
 ## 密钥与本地配置
@@ -249,7 +262,8 @@ vitest + jsdom + @testing-library/react。**断言 Semi `Form.*` 受控控件时
   `bootRun` 默认激活 `local` profile 并从 `weiran4j/config/` 读取——路径由 `weiran-app/build.gradle.kts`
   写死为绝对路径，因为 `bootRun` 的工作目录是 `weiran-app/`，靠 Spring Boot 默认的 `./config/`
   探测会找错地方。
-- **部署**：环境变量，对应 `application.yml` 里的 `${WEIRAN_*}` 占位符，见 `weiran4j/.env.example`。
+- **部署**：环境变量，对应 `application.yml` 里的 `${WEIRAN_*}` 占位符，见 `weiran4j/.env.example`（新增占位符必须同步它，`EnvExampleTest` 会拦）。
+  完整步骤、同源与反代透传头、日志与排障见 [`weiran4j/docs/02-部署.md`](weiran4j/docs/02-部署.md)。
   `WEIRAN_JWT_SECRET` 至少 32 字节，缺失或过短时应用启动失败。
 - 仓内只有 `.example` 模板，没有真实值。
 - 本地库用独立的空库 `weiran4j`（Flyway 自动建表与种子）。**不要把本地配置指向任何已有业务库**：

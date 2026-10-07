@@ -1,7 +1,5 @@
 package com.weiran.cqt.application.sms;
 
-import com.weiran.common.error.BizException;
-import com.weiran.common.error.CommonErrors;
 import com.weiran.cqt.api.error.CqtErrors;
 import com.weiran.cqt.api.sms.SmsSendResult;
 import com.weiran.cqt.api.sms.SmsService;
@@ -11,6 +9,8 @@ import com.weiran.cqt.domain.sms.SmsCodeStore;
 import com.weiran.cqt.domain.sms.SmsIpCounter;
 import com.weiran.cqt.domain.sms.SmsSendOutcome;
 import com.weiran.cqt.domain.sms.SmsSender;
+import com.weiran.framework.error.BizException;
+import com.weiran.framework.error.CommonErrors;
 import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Instant;

@@ -1,7 +1,5 @@
 package com.weiran.cqt.application.entry;
 
-import com.weiran.common.error.BizException;
-import com.weiran.common.error.CommonErrors;
 import com.weiran.cqt.api.entry.SignupCommand;
 import com.weiran.cqt.api.entry.SignupResult;
 import com.weiran.cqt.api.entry.SignupService;
@@ -24,6 +22,8 @@ import com.weiran.cqt.domain.entry.SequenceGenerator;
 import com.weiran.cqt.domain.entry.SignupRules;
 import com.weiran.cqt.domain.entry.TeamMembers;
 import com.weiran.cqt.domain.file.FileStorage;
+import com.weiran.framework.error.BizException;
+import com.weiran.framework.error.CommonErrors;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

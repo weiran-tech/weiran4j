@@ -1,9 +1,8 @@
 package com.weiran.framework.web;
 
-import com.weiran.common.error.BizException;
-import com.weiran.common.error.CommonErrors;
-import com.weiran.common.error.ErrorCode;
-import com.weiran.common.response.ApiResponse;
+import com.weiran.framework.error.BizException;
+import com.weiran.framework.error.CommonErrors;
+import com.weiran.framework.error.ErrorCode;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
@@ -43,19 +42,25 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    private static final int SERVER_ERROR = 500;
+
     /** 业务异常。 */
     @ExceptionHandler(BizException.class)
-    public ResponseEntity<ApiResponse<Void>> handleBiz(final BizException ex) {
+    public ResponseEntity<ErrorResponse> handleBiz(final BizException ex) {
         final ErrorCode errorCode = ex.getErrorCode();
-        if (errorCode.httpStatus() >= 500) {
-            GlobalExceptionHandler.log.error("业务异常: {}", ex.getMessage(), ex);
+        if (errorCode.httpStatus() >= GlobalExceptionHandler.SERVER_ERROR) {
+            GlobalExceptionHandler.log.error("业务异常 {}: {}", errorCode.code(), ex.getMessage(), ex);
+        } else {
+            // 4xx 是预期内的失败（参数错、无权限、冲突……）：一行 WARN、不带堆栈，靠请求号和访问日志串起来。
+            GlobalExceptionHandler.log.warn(
+                    "业务异常 {}: {}", errorCode.code(), GlobalExceptionHandler.messageOrDefault(ex, errorCode));
         }
         return GlobalExceptionHandler.respond(errorCode, GlobalExceptionHandler.messageOrDefault(ex, errorCode));
     }
 
     /** 方法级校验（{@code @Validated} 类上的参数约束）。 */
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiResponse<Void>> handleConstraintViolation(final ConstraintViolationException ex) {
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(final ConstraintViolationException ex) {
         final String message = ex.getConstraintViolations().stream()
                 .findFirst()
                 .map(GlobalExceptionHandler::describe)
@@ -65,14 +70,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     /** 唯一键冲突兜底：应用层通常会先查重给出更具体的提示，并发写入时才会走到这里。 */
     @ExceptionHandler(DuplicateKeyException.class)
-    public ResponseEntity<ApiResponse<Void>> handleDuplicateKey(final DuplicateKeyException ex) {
+    public ResponseEntity<ErrorResponse> handleDuplicateKey(final DuplicateKeyException ex) {
         GlobalExceptionHandler.log.warn("唯一键冲突: {}", ex.getMostSpecificCause().getMessage());
         return GlobalExceptionHandler.respond(CommonErrors.DUPLICATE_KEY, CommonErrors.DUPLICATE_KEY.message());
     }
 
     /** 其它未预期异常：记 error 日志，响应里不暴露任何细节。 */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleUnexpected(final Exception ex) {
+    public ResponseEntity<ErrorResponse> handleUnexpected(final Exception ex) {
         GlobalExceptionHandler.log.error("未处理的异常", ex);
         return GlobalExceptionHandler.respond(CommonErrors.INTERNAL_ERROR, CommonErrors.INTERNAL_ERROR.message());
     }
@@ -93,12 +98,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             errorCode = CommonErrors.INTERNAL_ERROR;
             GlobalExceptionHandler.log.error("Spring MVC 内部异常", ex);
         }
-        final ApiResponse<Void> response = ApiResponse.fail(errorCode, GlobalExceptionHandler.describe(ex, errorCode));
+        final ErrorResponse response = ErrorResponse.of(errorCode, GlobalExceptionHandler.describe(ex, errorCode));
         return ResponseEntity.status(errorCode.httpStatus()).headers(headers).body(response);
     }
 
-    private static ResponseEntity<ApiResponse<Void>> respond(final ErrorCode errorCode, final String message) {
-        return ResponseEntity.status(errorCode.httpStatus()).body(ApiResponse.fail(errorCode, message));
+    private static ResponseEntity<ErrorResponse> respond(final ErrorCode errorCode, final String message) {
+        return ResponseEntity.status(errorCode.httpStatus()).body(ErrorResponse.of(errorCode, message));
     }
 
     private static String messageOrDefault(final Exception ex, final ErrorCode errorCode) {

@@ -10,11 +10,13 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
-import com.weiran.common.page.PageQuery;
+import com.weiran.framework.auth.AuthCookieProperties;
+import com.weiran.framework.auth.AuthCookies;
 import com.weiran.framework.auth.AuthInterceptor;
 import com.weiran.framework.auth.TokenAuthenticator;
 import com.weiran.framework.log.OperationLogAspect;
 import com.weiran.framework.log.OperationLogRecorder;
+import com.weiran.framework.page.PageQuery;
 import com.weiran.framework.persistence.AuditMetaObjectHandler;
 import com.weiran.framework.persistence.AuditorProvider;
 import com.weiran.framework.persistence.CurrentUserAuditorProvider;
@@ -22,6 +24,7 @@ import com.weiran.framework.time.WeiranTime;
 import com.weiran.framework.web.ApiResponseBodyAdvice;
 import com.weiran.framework.web.GlobalExceptionHandler;
 import com.weiran.framework.web.HealthController;
+import com.weiran.framework.web.RequestIdFilter;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -32,9 +35,12 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.Ordered;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -95,11 +101,30 @@ public class WeiranFrameworkAutoConfiguration {
         }
     }
 
-    /** Web：认证拦截器、请求参数时间格式、统一响应、全局异常、健康检查、操作日志切面。 */
+    /** Web：认证拦截器与认证 Cookie、请求参数时间格式、统一响应、全局异常、健康检查、操作日志切面。 */
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+    @EnableConfigurationProperties(AuthCookieProperties.class)
     @Import({ApiResponseBodyAdvice.class, GlobalExceptionHandler.class, HealthController.class})
     static class WebConfiguration {
+
+        /** 请求号与访问日志：最高优先级、作用于全部路径，异常处理与操作日志都能拿到请求号。 */
+        @Bean
+        @ConditionalOnMissingBean(RequestIdFilter.class)
+        FilterRegistrationBean<RequestIdFilter> requestIdFilter() {
+            final FilterRegistrationBean<RequestIdFilter> registration =
+                    new FilterRegistrationBean<>(new RequestIdFilter());
+            registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+            registration.addUrlPatterns("/*");
+            return registration;
+        }
+
+        /** 认证 Cookie 的生成与清除，由登录 / 登出接口调用。 */
+        @Bean
+        @ConditionalOnMissingBean
+        AuthCookies authCookies(final AuthCookieProperties properties) {
+            return new AuthCookies(properties);
+        }
 
         @Bean
         @ConditionalOnMissingBean

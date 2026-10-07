@@ -14,3 +14,7 @@ coverage/
 
 # Env
 *.local
+# 部署用的 .env 一律不提交（weiran4j/.gitignore 已忽略 weiran4j/.env；这里兜底仓库根）
+.env
+.env.*
+!.env.example

@@ -1,6 +1,6 @@
 package com.weiran.cqt.api.error;
 
-import com.weiran.common.error.ErrorCode;
+import com.weiran.framework.error.ErrorCode;
 
 /**
  * weiran-cqt 业务错误码：五位，前三位为 HTTP 状态，后两位取本模块登记的序号段 {@code 20}–{@code 39}（宪法 CP-14）。

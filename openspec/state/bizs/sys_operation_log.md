@@ -4,15 +4,15 @@
 > 契约文档 `weiran4j/docs/01-架构与接口契约.md` 只作索引；它与代码不一致的地方以代码为准写在下文，并在 §6 登记。
 >
 > 事实源：
-> [`OperationLogController.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/platform/adapter/web/OperationLogController.java)、
-> [`OperationLogApplicationService.java`](../../../weiran4j/weiran-base/weiran-base-application/src/main/java/com/weiran/platform/application/operationlog/OperationLogApplicationService.java) /
-> [`AsyncOperationLogRecorder.java`](../../../weiran4j/weiran-base/weiran-base-application/src/main/java/com/weiran/platform/application/operationlog/AsyncOperationLogRecorder.java)、
-> [`MybatisOperationLogRepository.java`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/java/com/weiran/platform/infrastructure/persistence/MybatisOperationLogRepository.java)、
+> [`OperationLogController.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/platform/adapter/web/OperationLogController.java)、
+> [`OperationLogApplicationService.java`](../../../weiran4j/weiran-system/weiran-system-application/src/main/java/com/weiran/platform/application/operationlog/OperationLogApplicationService.java) /
+> [`AsyncOperationLogRecorder.java`](../../../weiran4j/weiran-system/weiran-system-application/src/main/java/com/weiran/platform/application/operationlog/AsyncOperationLogRecorder.java)、
+> [`MybatisOperationLogRepository.java`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/java/com/weiran/platform/infrastructure/persistence/MybatisOperationLogRepository.java)、
 > [`OperationLog.java`](../../../weiran4j/weiran-framework/src/main/java/com/weiran/framework/log/OperationLog.java) /
 > [`OperationLogAspect.java`](../../../weiran4j/weiran-framework/src/main/java/com/weiran/framework/log/OperationLogAspect.java) /
 > [`SensitiveDataMasker.java`](../../../weiran4j/weiran-framework/src/main/java/com/weiran/framework/log/SensitiveDataMasker.java) /
 > [`ClientIpResolver.java`](../../../weiran4j/weiran-framework/src/main/java/com/weiran/framework/web/ClientIpResolver.java)、
-> [`V202609260101__platform_init_schema.sql`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/resources/db/migration/platform/V202609260101__platform_init_schema.sql)、
+> [`V202609260101__platform_init_schema.sql`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/platform/V202609260101__platform_init_schema.sql)、
 > [`OperationLogsPage.tsx`](../../../web/src/pages/logs/OperationLogsPage.tsx)（页面与内嵌 `OperationLogDetail`）、
 > [`hooks/queries/logs.ts`](../../../web/src/hooks/queries/logs.ts)、[`types/api.ts`](../../../web/src/types/api.ts)。
 >
@@ -26,7 +26,7 @@
 | 菜单 | 日志审计 › 操作日志（`sys_menu.id = 11`） |
 | 路由 | `/logs/operation` |
 | 页面组件 | `logs/OperationLogsPage`（详情侧滑 `OperationLogDetail`） |
-| 后端模块 | 写入：`weiran-framework` 的 `OperationLogAspect` → SPI `OperationLogRecorder` → `weiran-base` 的 `AsyncOperationLogRecorder`；查询：`OperationLogController` → `OperationLogApplicationService` |
+| 后端模块 | 写入：`weiran-framework` 的 `OperationLogAspect` → SPI `OperationLogRecorder` → `weiran-system` 的 `AsyncOperationLogRecorder`；查询：`OperationLogController` → `OperationLogApplicationService` |
 | 接口 | `GET /api/operation-logs`、`GET /api/operation-logs/{id}`（只读） |
 | 权限码 | `system:operation-log:list`（列表与详情共用；种子里没有对应按钮节点） |
 

@@ -22,16 +22,36 @@ spring:
     locale: zh_CN
     locale-resolver: fixed
 
+  lifecycle:
+    # 每个停机阶段最多等多久（进行中的请求、操作日志线程池）；容器编排的强杀时限要比它长（见 docs/02-部署.md）。
+    timeout-per-shutdown-phase: ${WEIRAN_SHUTDOWN_TIMEOUT:30s}
+
 server:
   port: ${WEIRAN_PORT:3300}
+  # Spring Boot 3.4 起默认就是 graceful；显式写出，不随框架默认值漂移。
+  shutdown: graceful
 
 weiran:
   system:
     bcrypt-strength: 10
+  auth:
     jwt:
       # 生产环境必须由环境变量注入，至少 32 字节；缺失或过短时应用启动失败。仓库里不放真实密钥。
       secret: ${WEIRAN_JWT_SECRET:}
       ttl: ${WEIRAN_JWT_TTL:12h}
+      # 本地令牌的签发方与受众（JWT iss / aud），认证按 iss 选校验器（D-014）。
+      issuer: ${WEIRAN_JWT_ISSUER:weiran4j}
+      audience: ${WEIRAN_JWT_AUDIENCE:weiran4j}
+    cookie:
+      # 认证 Cookie 是否带 Secure。线上走 HTTPS 保持 true；本地 http://localhost 在 config/application-local.yml 设 false。
+      secure: ${WEIRAN_COOKIE_SECURE:true}
+    # 对外访问地址（不带结尾斜杠）：拼外部登录的回调与登出回跳地址，不从请求头推断（防 Host 头注入，D-015）。
+    public-base-url: ${WEIRAN_PUBLIC_BASE_URL:http://localhost:5373}
+    password-login:
+      # 关闭后只有内置超管能用密码登录（外部身份提供方故障时的应急入口）。
+      enabled: ${WEIRAN_PASSWORD_LOGIN_ENABLED:true}
+    # 外部身份提供方（CAS / OIDC）按部署配置，写成环境变量 WEIRAN_AUTH_PROVIDERS_<ID>_*，见 docs/02-部署.md。
+    providers: {}
 
 mybatis-plus:
   configuration:
@@ -49,3 +69,9 @@ springdoc:
 logging:
   level:
     com.weiran: ${WEIRAN_LOG_LEVEL:INFO}
+  # 日志文件目录与保留天数，logback-spring.xml 读取（local / test profile 只输出到控制台，不写文件）。
+  file:
+    path: ${WEIRAN_LOG_DIR:logs}
+  logback:
+    rollingpolicy:
+      max-history: ${WEIRAN_LOG_MAX_HISTORY:30}

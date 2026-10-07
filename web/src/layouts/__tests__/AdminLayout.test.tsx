@@ -3,9 +3,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '@/App';
 import { defaultPreferences, type UserPreferences } from '@/hooks/usePreferences';
 import { PREFERENCES_STORAGE_KEY, savePreferences } from '@/lib/preferences-storage';
-import { fakeJwt, mockFetch, openPreferences, renderWithProviders } from '@/test/helpers';
+import { mockFetch, openPreferences, renderWithProviders } from '@/test/helpers';
 import type { CurrentUserView, MenuNode } from '@/types/api';
-import { setToken } from '@/utils/token';
+import { signIn } from '@/test/session';
 import { collectDirAncestors, nextOpenKeys } from '../AdminLayout';
 
 const me: CurrentUserView = {
@@ -20,6 +20,7 @@ const me: CurrentUserView = {
     departmentName: '总公司',
     roles: ['super_admin'],
     permissions: ['*'],
+    hasPassword: true,
 };
 
 const base = { permission: null, sort: 0, visible: true, keepAlive: false, isExternal: false, status: 'enabled' as const, children: [] };
@@ -66,7 +67,7 @@ function stubMobileViewport() {
 
 function renderAuthed(route = '/dashboard', prefs: Partial<UserPreferences> = {}) {
     // 本地偏好属于当前登录用户（id 1），服务端为 null 时按「自己的缓存」迁移而不是回落默认值
-    setToken(fakeJwt(1));
+    signIn(1);
     savePreferences({ ...defaultPreferences, ...prefs }, 1);
     const fetch = mockFetch({
         'GET /api/auth/me': me,

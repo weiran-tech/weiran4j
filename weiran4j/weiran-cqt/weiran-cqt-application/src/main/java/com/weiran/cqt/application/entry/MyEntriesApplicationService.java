@@ -1,7 +1,5 @@
 package com.weiran.cqt.application.entry;
 
-import com.weiran.common.error.BizException;
-import com.weiran.common.error.CommonErrors;
 import com.weiran.cqt.api.entry.EntryDetailView;
 import com.weiran.cqt.api.entry.MyEntriesService;
 import com.weiran.cqt.api.entry.MyEntryView;
@@ -10,6 +8,8 @@ import com.weiran.cqt.domain.account.AccountRepository;
 import com.weiran.cqt.domain.account.CredentialType;
 import com.weiran.cqt.domain.entry.EntryDetailRow;
 import com.weiran.cqt.domain.entry.EntryRepository;
+import com.weiran.framework.error.BizException;
+import com.weiran.framework.error.CommonErrors;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.transaction.annotation.Transactional;

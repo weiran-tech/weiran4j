@@ -3,7 +3,7 @@ import { useSyncExternalStore } from 'react';
 /**
  * 锁屏状态（偏好 enableLockScreen）。
  *
- * 存 sessionStorage：刷新后仍保持锁定，关掉浏览器标签页即失效（令牌在 localStorage，锁屏不是登录态的一部分）。
+ * 存 sessionStorage：刷新后仍保持锁定，关掉浏览器标签页即失效（会话在 Cookie 里，锁屏不是登录态的一部分）。
  * 做成可订阅的外部 store，顶栏按钮、快捷键与锁屏遮罩共用一份状态。
  * 与 mono4ts 的差异：mono4ts 要求先设一个本地锁屏密码（base64 存 localStorage）；
  * 这里直接用登录密码，经 `POST /api/auth/verify-password` 校验，不在浏览器里保存任何口令。

@@ -10,6 +10,9 @@ export interface ApiResponse<T> {
     data: T;
 }
 
+/** 失败响应体（契约 §4）：比成功体多 requestId，与响应头 X-Request-Id 一致；成功体没有该键 */
+export type ApiErrorBody = { code: number; message: string; data: null; requestId?: string };
+
 export interface PageResult<T> {
     list: T[];
     total: number;
@@ -32,10 +35,15 @@ export interface LoginRequest {
     password: string;
 }
 
+/**
+ * POST /api/auth/login 的响应（契约 §6.1）。默认模式下令牌只走 HttpOnly Cookie，
+ * `accessToken` 为 null 或缺省，前端两种都按「没有」处理、也不读它；`X-Auth-Mode: token` 时才有值（给非浏览器客户端）。
+ */
 export interface LoginResult {
-    accessToken: string;
-    tokenType: 'Bearer';
+    accessToken?: string | null;
+    tokenType: string;
     expiresIn: number;
+    userId: number;
 }
 
 export interface CurrentUserView {
@@ -50,6 +58,8 @@ export interface CurrentUserView {
     departmentName: string | null;
     roles: string[];
     permissions: string[];
+    /** false = 没有本地密码（外部身份自动开通的用户）：密码登录、锁屏校验一律 40101，不能改密码 */
+    hasPassword: boolean;
 }
 
 export interface ProfileUpdateRequest {
@@ -70,9 +80,47 @@ export interface FavoriteMenusSaveRequest {
     menuIds: number[];
 }
 
-/** POST /api/auth/verify-password：锁屏解锁；错误返回 40101，不影响令牌 */
+/** POST /api/auth/verify-password：锁屏解锁；错误返回 40101，不影响会话 */
 export interface VerifyPasswordRequest {
     password: string;
+}
+
+/** POST /api/auth/logout 的响应：会话来自配置了登出的外部身份提供方时为其登出地址，前端整页跳转；否则 null */
+export interface LogoutResult {
+    ssoLogoutUrl: string | null;
+}
+
+/* ---------- 外部身份（契约 §6.1、§6.2，D-015） ---------- */
+
+export type ProviderType = 'oidc' | 'cas';
+
+export interface ProviderView {
+    id: string;
+    type: ProviderType;
+    name: string;
+}
+
+/** GET /api/auth/providers（公开）：只含已启用的提供方 */
+export interface ProvidersView {
+    passwordLoginEnabled: boolean;
+    providers: ProviderView[];
+}
+
+/** 已绑定的外部身份：本人 `/api/auth/identities`，管理员 `/api/users/{id}/identities` 结构相同 */
+export interface UserIdentityView {
+    id: number;
+    provider: string;
+    providerName: string;
+    externalId: string;
+    displayName: string | null;
+    createdAt: string;
+}
+
+/** POST /api/users/{id}/identities：管理员手工绑定 */
+export interface BindIdentityRequest {
+    provider: string;
+    externalId: string;
+    displayName?: string;
 }
 
 /* ---------- 菜单 ---------- */

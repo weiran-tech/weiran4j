@@ -1,0 +1,188 @@
+$ (cd weiran4j && JAVA_HOME=${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)} ./gradlew check --no-daemon) && pnpm --filter @weiran/web lint
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+> Task :weiran-dependencies:check UP-TO-DATE
+> Task :check UP-TO-DATE
+> Task :weiran-base-api:processResources NO-SOURCE
+> Task :weiran-base-domain:processResources NO-SOURCE
+> Task :weiran-base-api:processTestResources NO-SOURCE
+> Task :weiran-framework:processResources UP-TO-DATE
+> Task :weiran-base-domain:processTestResources NO-SOURCE
+> Task :weiran-base-adapter:processResources UP-TO-DATE
+> Task :weiran-base-application:processResources UP-TO-DATE
+> Task :weiran-app:processResources UP-TO-DATE
+> Task :weiran-framework:processTestResources NO-SOURCE
+> Task :weiran-base-adapter:processTestResources NO-SOURCE
+> Task :weiran-base-infrastructure:processResources UP-TO-DATE
+> Task :weiran-base-application:processTestResources NO-SOURCE
+> Task :weiran-base-infrastructure:processTestResources NO-SOURCE
+> Task :weiran-app:processTestResources UP-TO-DATE
+> Task :weiran-common:compileJava UP-TO-DATE
+> Task :weiran-common:processResources NO-SOURCE
+> Task :weiran-common:classes UP-TO-DATE
+> Task :weiran-common:jar UP-TO-DATE
+> Task :weiran-common:checkstyleMain UP-TO-DATE
+> Task :weiran-common:compileTestJava UP-TO-DATE
+> Task :weiran-common:processTestResources NO-SOURCE
+> Task :weiran-common:testClasses UP-TO-DATE
+> Task :weiran-common:checkstyleTest UP-TO-DATE
+> Task :weiran-common:forbiddenApisMain UP-TO-DATE
+> Task :weiran-common:forbiddenApisTest SKIPPED
+> Task :weiran-common:forbiddenApis UP-TO-DATE
+> Task :weiran-common:test UP-TO-DATE
+> Task :weiran-common:jacocoTestCoverageVerification UP-TO-DATE
+> Task :weiran-base-adapter:spotlessJava UP-TO-DATE
+> Task :weiran-base-application:spotlessJava UP-TO-DATE
+> Task :weiran-common:jacocoTestReport UP-TO-DATE
+> Task :weiran-base-api:spotlessJava UP-TO-DATE
+> Task :weiran-framework:spotlessJava UP-TO-DATE
+> Task :weiran-base-infrastructure:spotlessJava UP-TO-DATE
+> Task :weiran-base-adapter:spotlessJavaCheck UP-TO-DATE
+> Task :weiran-base-infrastructure:spotlessJavaCheck UP-TO-DATE
+> Task :weiran-base-application:spotlessJavaCheck UP-TO-DATE
+> Task :weiran-base-adapter:spotlessCheck UP-TO-DATE
+> Task :weiran-base-application:spotlessCheck UP-TO-DATE
+> Task :weiran-base-domain:spotlessJava UP-TO-DATE
+> Task :weiran-base-infrastructure:spotlessCheck UP-TO-DATE
+> Task :weiran-base-api:compileJava UP-TO-DATE
+> Task :weiran-base-api:classes UP-TO-DATE
+> Task :weiran-base-api:jar UP-TO-DATE
+> Task :weiran-base-domain:compileJava UP-TO-DATE
+> Task :weiran-base-domain:classes UP-TO-DATE
+> Task :weiran-base-domain:jar UP-TO-DATE
+> Task :weiran-base-api:checkstyleMain UP-TO-DATE
+> Task :weiran-common:spotbugsMain UP-TO-DATE
+> Task :weiran-base-api:compileTestJava NO-SOURCE
+> Task :weiran-base-api:testClasses UP-TO-DATE
+> Task :weiran-base-api:checkstyleTest NO-SOURCE
+> Task :weiran-base-domain:checkstyleMain UP-TO-DATE
+> Task :weiran-common:spotbugsTest UP-TO-DATE
+> Task :weiran-base-api:forbiddenApisMain UP-TO-DATE
+> Task :weiran-base-api:forbiddenApisTest SKIPPED
+> Task :weiran-base-api:forbiddenApis UP-TO-DATE
+> Task :weiran-base-api:test NO-SOURCE
+> Task :weiran-base-api:jacocoTestCoverageVerification SKIPPED
+> Task :weiran-base-api:jacocoTestReport SKIPPED
+> Task :weiran-base-domain:compileTestJava UP-TO-DATE
+> Task :weiran-common:spotlessJava UP-TO-DATE
+> Task :weiran-base-domain:testClasses UP-TO-DATE
+> Task :weiran-common:spotlessJavaCheck UP-TO-DATE
+> Task :weiran-common:spotlessCheck UP-TO-DATE
+> Task :weiran-common:check UP-TO-DATE
+> Task :weiran-base-api:spotbugsMain UP-TO-DATE
+> Task :weiran-base-domain:checkstyleTest UP-TO-DATE
+> Task :weiran-base-api:spotbugsTest NO-SOURCE
+> Task :weiran-base-api:spotlessJavaCheck UP-TO-DATE
+> Task :weiran-base-api:spotlessCheck UP-TO-DATE
+> Task :weiran-base-api:check UP-TO-DATE
+> Task :weiran-base-domain:forbiddenApisMain UP-TO-DATE
+> Task :weiran-base-domain:forbiddenApisTest SKIPPED
+> Task :weiran-base-domain:forbiddenApis UP-TO-DATE
+> Task :weiran-framework:compileJava UP-TO-DATE
+> Task :weiran-base-domain:test UP-TO-DATE
+> Task :weiran-framework:classes UP-TO-DATE
+> Task :weiran-framework:jar UP-TO-DATE
+> Task :weiran-base-domain:jacocoTestCoverageVerification UP-TO-DATE
+> Task :weiran-framework:checkstyleMain UP-TO-DATE
+> Task :weiran-base-domain:jacocoTestReport UP-TO-DATE
+> Task :weiran-base-application:compileJava UP-TO-DATE
+> Task :weiran-base-application:classes UP-TO-DATE
+> Task :weiran-base-application:jar UP-TO-DATE
+> Task :weiran-base-infrastructure:compileJava UP-TO-DATE
+> Task :weiran-base-infrastructure:classes UP-TO-DATE
+> Task :weiran-base-domain:spotbugsMain UP-TO-DATE
+> Task :weiran-base-infrastructure:jar UP-TO-DATE
+> Task :weiran-base-application:checkstyleMain UP-TO-DATE
+> Task :weiran-base-domain:spotbugsTest UP-TO-DATE
+> Task :weiran-framework:compileTestJava UP-TO-DATE
+> Task :weiran-base-domain:spotlessJavaCheck UP-TO-DATE
+> Task :weiran-framework:testClasses UP-TO-DATE
+> Task :weiran-base-domain:spotlessCheck UP-TO-DATE
+> Task :weiran-base-domain:check UP-TO-DATE
+> Task :weiran-base-adapter:compileJava UP-TO-DATE
+> Task :weiran-base-adapter:classes UP-TO-DATE
+> Task :weiran-base-adapter:jar UP-TO-DATE
+> Task :weiran-base-application:compileTestJava UP-TO-DATE
+> Task :weiran-framework:checkstyleTest UP-TO-DATE
+> Task :weiran-base-application:testClasses UP-TO-DATE
+> Task :weiran-framework:forbiddenApisMain UP-TO-DATE
+> Task :weiran-framework:forbiddenApisTest SKIPPED
+> Task :weiran-framework:forbiddenApis UP-TO-DATE
+> Task :weiran-base-application:checkstyleTest UP-TO-DATE
+> Task :weiran-base-application:forbiddenApisMain UP-TO-DATE
+> Task :weiran-base-application:forbiddenApisTest SKIPPED
+> Task :weiran-base-application:forbiddenApis UP-TO-DATE
+> Task :weiran-base-application:test UP-TO-DATE
+> Task :weiran-base-application:jacocoTestCoverageVerification SKIPPED
+> Task :weiran-framework:test UP-TO-DATE
+> Task :weiran-base-adapter:compileTestJava NO-SOURCE
+> Task :weiran-base-adapter:testClasses UP-TO-DATE
+> Task :weiran-base-adapter:checkstyleTest NO-SOURCE
+> Task :weiran-framework:jacocoTestCoverageVerification UP-TO-DATE
+> Task :weiran-base-infrastructure:compileTestJava UP-TO-DATE
+> Task :weiran-base-infrastructure:testClasses UP-TO-DATE
+> Task :weiran-framework:jacocoTestReport UP-TO-DATE
+> Task :weiran-framework:spotbugsMain UP-TO-DATE
+> Task :weiran-framework:spotbugsTest UP-TO-DATE
+> Task :weiran-framework:spotlessJavaCheck UP-TO-DATE
+> Task :weiran-framework:spotlessCheck UP-TO-DATE
+> Task :weiran-framework:check UP-TO-DATE
+> Task :weiran-base-adapter:forbiddenApisMain
+> Task :weiran-base-adapter:forbiddenApisTest SKIPPED
+> Task :weiran-base-adapter:forbiddenApis
+> Task :weiran-base-adapter:test NO-SOURCE
+> Task :weiran-base-adapter:jacocoTestCoverageVerification SKIPPED
+> Task :weiran-base-adapter:jacocoTestReport SKIPPED
+> Task :weiran-base-adapter:spotbugsTest NO-SOURCE
+> Task :weiran-base-infrastructure:forbiddenApisMain
+> Task :weiran-base-infrastructure:forbiddenApisTest SKIPPED
+> Task :weiran-base-infrastructure:forbiddenApis
+> Task :weiran-base-infrastructure:test UP-TO-DATE
+> Task :weiran-base-infrastructure:jacocoTestCoverageVerification SKIPPED
+> Task :weiran-app:spotlessJava
+> Task :weiran-app:compileJava UP-TO-DATE
+> Task :weiran-app:classes UP-TO-DATE
+> Task :weiran-base-infrastructure:jacocoTestReport
+> Task :weiran-base-application:jacocoTestReport
+> Task :weiran-app:compileTestJava UP-TO-DATE
+> Task :weiran-app:testClasses UP-TO-DATE
+> Task :weiran-base-infrastructure:checkstyleTest
+> Task :weiran-app:forbiddenApisMain
+> Task :weiran-app:forbiddenApisTest SKIPPED
+> Task :weiran-app:forbiddenApis
+> Task :weiran-app:test UP-TO-DATE
+> Task :weiran-app:checkstyleMain
+> Task :weiran-app:jacocoTestCoverageVerification
+> Task :weiran-base-adapter:checkstyleMain
+> Task :weiran-base-infrastructure:checkstyleMain
+> Task :weiran-app:spotlessJavaCheck
+> Task :weiran-app:spotlessCheck
+
+> Task :weiran-app:verifyFrameworkVersions
+verifyFrameworkVersions: 运行时模块 84 个，其中框架已管理 71 个，白名单豁免 2 条
+
+> Task :weiran-app:jacocoTestReport
+> Task :weiran-base-application:spotbugsTest
+> Task :weiran-app:checkstyleTest
+> Task :weiran-base-application:spotbugsMain
+> Task :weiran-base-application:check
+> Task :weiran-base-adapter:spotbugsMain
+> Task :weiran-base-adapter:check
+> Task :weiran-base-infrastructure:spotbugsTest
+> Task :weiran-base-infrastructure:spotbugsMain
+> Task :weiran-base-infrastructure:check
+> Task :weiran-app:spotbugsMain
+> Task :weiran-app:spotbugsTest
+> Task :weiran-app:check
+
+BUILD SUCCESSFUL in 18s
+100 actionable tasks: 22 executed, 78 up-to-date
+$ eslint src
+exit=0

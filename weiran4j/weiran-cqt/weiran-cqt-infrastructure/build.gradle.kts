@@ -12,6 +12,9 @@ weiranConventions {
 dependencies {
     api(project(":weiran-cqt-domain"))
     implementation(project(":weiran-framework"))
+    // framework 不再传递框架库（D-016），持久化与 JSON 用到的自己声明。
+    implementation("com.baomidou:mybatis-plus-spring-boot3-starter")
+    implementation("com.fasterxml.jackson.core:jackson-databind")
     implementation("io.jsonwebtoken:jjwt-api")
     implementation("org.springframework.security:spring-security-crypto")
     implementation("com.github.ben-manes.caffeine:caffeine")

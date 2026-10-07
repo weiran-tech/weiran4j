@@ -4,22 +4,22 @@
 > 契约文档 `weiran4j/docs/01-架构与接口契约.md` 只作索引；它与代码不一致的地方以代码为准写在下文，并在 §6 登记。
 >
 > 事实源：
-> [`UserController.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/system/adapter/web/UserController.java)、
-> [`CreateUserRequest.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/system/adapter/web/request/CreateUserRequest.java) /
-> [`UpdateUserRequest.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/system/adapter/web/request/UpdateUserRequest.java) /
-> [`ResetPasswordRequest.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/system/adapter/web/request/ResetPasswordRequest.java)、
-> [`UserApplicationService.java`](../../../weiran4j/weiran-base/weiran-base-application/src/main/java/com/weiran/system/application/user/UserApplicationService.java)、
-> [`User.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/system/domain/user/User.java) /
-> [`PasswordPolicy.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/system/domain/user/PasswordPolicy.java) /
-> [`Gender.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/system/domain/user/Gender.java)、
-> [`MybatisUserRepository.java`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/java/com/weiran/system/infrastructure/persistence/MybatisUserRepository.java) /
-> [`SysUserDO.java`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/java/com/weiran/system/infrastructure/persistence/entity/SysUserDO.java)、
-> [`V202609260001__system_init_schema.sql`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/resources/db/migration/system/V202609260001__system_init_schema.sql) /
-> [`V202609270001__system_user_preferences.sql`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/resources/db/migration/system/V202609270001__system_user_preferences.sql)、
-> 个人偏好 / 收藏 / 锁屏：[`AuthController.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/system/adapter/web/AuthController.java) →
-> [`AuthApplicationService.java`](../../../weiran4j/weiran-base/weiran-base-application/src/main/java/com/weiran/system/application/auth/AuthApplicationService.java)，
-> 领域规则 [`UserPreferences.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/system/domain/user/UserPreferences.java) /
-> [`FavoriteMenus.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/system/domain/user/FavoriteMenus.java)、
+> [`UserController.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/system/adapter/web/UserController.java)、
+> [`CreateUserRequest.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/system/adapter/web/request/CreateUserRequest.java) /
+> [`UpdateUserRequest.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/system/adapter/web/request/UpdateUserRequest.java) /
+> [`ResetPasswordRequest.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/system/adapter/web/request/ResetPasswordRequest.java)、
+> [`UserApplicationService.java`](../../../weiran4j/weiran-system/weiran-system-application/src/main/java/com/weiran/system/application/user/UserApplicationService.java)、
+> [`User.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/user/User.java) /
+> [`PasswordPolicy.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/user/PasswordPolicy.java) /
+> [`Gender.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/user/Gender.java)、
+> [`MybatisUserRepository.java`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/java/com/weiran/system/infrastructure/persistence/MybatisUserRepository.java) /
+> [`SysUserDO.java`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/java/com/weiran/system/infrastructure/persistence/entity/SysUserDO.java)、
+> [`V202609260001__system_init_schema.sql`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/V202609260001__system_init_schema.sql) /
+> [`V202609270001__system_user_preferences.sql`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/V202609270001__system_user_preferences.sql)、
+> 个人偏好 / 收藏 / 锁屏：[`AuthController.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/system/adapter/web/AuthController.java) →
+> [`AuthApplicationService.java`](../../../weiran4j/weiran-system/weiran-system-application/src/main/java/com/weiran/system/application/auth/AuthApplicationService.java)，
+> 领域规则 [`UserPreferences.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/user/UserPreferences.java) /
+> [`FavoriteMenus.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/user/FavoriteMenus.java)、
 > [`UsersPage.tsx`](../../../web/src/pages/system/users/UsersPage.tsx) /
 > [`UserFormModal.tsx`](../../../web/src/pages/system/users/UserFormModal.tsx) /
 > [`ResetPasswordModal.tsx`](../../../web/src/pages/system/users/ResetPasswordModal.tsx)、
@@ -35,7 +35,7 @@
 | 菜单 | 系统管理 › 用户管理（`sys_menu.id = 3`） |
 | 路由 | `/system/users` |
 | 页面组件 | `system/users/UsersPage`（弹窗 `UserFormModal`、`ResetPasswordModal`） |
-| 后端模块 | `weiran-base`（DDD 五层）；`UserController` → `UserApplicationService` → `MybatisUserRepository` |
+| 后端模块 | `weiran-system`（DDD 五层）；`UserController` → `UserApplicationService` → `MybatisUserRepository` |
 | 接口前缀 | `/api/users` |
 | 权限码 | `system:user:list`（列表/详情）· `system:user:create` · `system:user:update` · `system:user:delete` · `system:user:reset-password`；`GET /options` 仅需登录 |
 | 种子 | `admin`（id=1，内置，初始密码 `admin123`，部门「总公司」，绑定 `super_admin`） |
@@ -152,7 +152,8 @@
   偏好与收藏标 `updateStrategy = NEVER`。
   因此登录、改密、禁用之间不会互相覆盖；但管理员编辑这六列之间仍是后写覆盖（见 #01）。
 - **令牌吊销**：改密 / 管理员重置 / 启用→禁用三处让 `token_version` 原子加一。编辑用户若未改变启用状态，令牌不受影响。
-- **授权快照缓存**：编辑、删除、重置密码都会 `cache.evict(userId)`；前端当前登录人自己的 `me` / 菜单查询
+  认证时 `token_version` 与 `status` 每次请求按主键查库（`findAuthState`），不经过下面的快照缓存，所以多实例下吊销同样立即生效（宪法 CP-8）。
+- **授权快照缓存**（用户名 / 昵称 / 角色 / 权限码，30s）：编辑、删除、重置密码都会 `cache.evict(userId)`，只作用于本进程；前端当前登录人自己的 `me` / 菜单查询
   `staleTime=Infinity`，改自己的角色后侧边栏与按钮不刷新（同一机制见 `sys_role.md#01`）。
 - **部门可选禁用部门**：表单部门树取自不带 `status` 的 `GET /api/departments`，后端也只校验存在性，用户可被挂到禁用部门下。
 - **`last_login_ip`**：与登录日志同源于 `ClientIpResolver`（`X-Forwarded-For` 优先），可被伪造的问题登记在 `artifact.md#03`。
@@ -182,9 +183,27 @@
   新增与重置密码同样执行 8–64 位含字母数字的密码策略；内置用户不可禁用（40901）且必须保留 `super_admin`（40901）；
   只有超管能授予或移除 `super_admin`（40300）；编辑时省略的 `gender` / `status` 保持原值。契约需补记。
 
+- **#10 ⚠️ P3 启用外部身份后，用户列表在部分布局下横向滚动**
+  症状：配置了外部身份提供方后，操作列多出「外部身份」（宽度 176 → 248），列宽合计 1186。1440 宽屏幕下，双列（可用 1115）与侧边 / 混合（1135）布局会出现横向滚动；顶部菜单布局不受影响，没配置提供方的部署也不受影响。
+  可选的改法：把「重置密码」「外部身份」收进「…」菜单（需要给 `TableActions` 加「部分收起」能力），或者压窄其它列。
+
 ## 7. changelog
 
 新条目插在本节最上方（按日期倒序，新在上）。
+
+**2026-10-06**（`external-identity-login`）
+
+- 外部身份登录（D-015）：
+  - 外部身份自动开通的用户没有本地密码（`password` 存空串，`/me.hasPassword=false`），用密码登录、锁屏解锁都返回 40101，修改密码返回 40000；管理员重置密码后恢复本地密码。
+  - 删除用户时连带删除其外部身份绑定。
+  - 行操作新增「外部身份」（`system:user:identity`），只在配置了提供方时显示。
+  - 关闭密码登录（`WEIRAN_PASSWORD_LOGIN_ENABLED=false`）后，只有内置超管还能用密码登录。
+  - 绑定规则见 `sys_user_identity.md`。
+
+**2026-10-05**（`auth-seams-cookie-ci`）
+
+- 认证改为三段式（D-014）：吊销判定（`token_version` / `status`）每次请求查库，不再经过 30s 授权快照缓存；新增仓储方法 `findAuthState`。
+- 浏览器登录改为 HttpOnly Cookie 交付令牌（契约 §4、§6.1），本表字段与接口不变。
 
 **2026-09-27**
 - **#08 ✅ P3 设计稿高级筛选的 8 个字段后端不支持，面板暂未放出**

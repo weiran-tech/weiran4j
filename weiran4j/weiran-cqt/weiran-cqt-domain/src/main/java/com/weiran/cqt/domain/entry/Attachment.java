@@ -1,6 +1,6 @@
 package com.weiran.cqt.domain.entry;
 
-import com.weiran.common.error.BizException;
+import com.weiran.framework.error.BizException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;

@@ -4,15 +4,15 @@
 > 契约文档 `weiran4j/docs/01-架构与接口契约.md` 只作索引；它与代码不一致的地方以代码为准写在下文，并在 §6 登记。
 >
 > 事实源：
-> [`ConfigController.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/platform/adapter/web/ConfigController.java)、
-> [`SaveConfigRequest.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/platform/adapter/web/request/SaveConfigRequest.java)、
-> [`ConfigApplicationService.java`](../../../weiran4j/weiran-base/weiran-base-application/src/main/java/com/weiran/platform/application/config/ConfigApplicationService.java)、
-> [`SystemConfig.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/platform/domain/config/SystemConfig.java) /
-> [`ConfigType.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/platform/domain/config/ConfigType.java)、
-> [`JacksonJsonSyntax.java`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/java/com/weiran/platform/infrastructure/json/JacksonJsonSyntax.java)、
-> [`MybatisConfigRepository.java`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/java/com/weiran/platform/infrastructure/persistence/MybatisConfigRepository.java)、
-> [`V202609260101__platform_init_schema.sql`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/resources/db/migration/platform/V202609260101__platform_init_schema.sql) /
-> [`V202609260102__platform_seed_data.sql`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/resources/db/migration/platform/V202609260102__platform_seed_data.sql)、
+> [`ConfigController.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/platform/adapter/web/ConfigController.java)、
+> [`SaveConfigRequest.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/platform/adapter/web/request/SaveConfigRequest.java)、
+> [`ConfigApplicationService.java`](../../../weiran4j/weiran-system/weiran-system-application/src/main/java/com/weiran/platform/application/config/ConfigApplicationService.java)、
+> [`SystemConfig.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/platform/domain/config/SystemConfig.java) /
+> [`ConfigType.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/platform/domain/config/ConfigType.java)、
+> [`JacksonJsonSyntax.java`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/java/com/weiran/platform/infrastructure/json/JacksonJsonSyntax.java)、
+> [`MybatisConfigRepository.java`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/java/com/weiran/platform/infrastructure/persistence/MybatisConfigRepository.java)、
+> [`V202609260101__platform_init_schema.sql`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/platform/V202609260101__platform_init_schema.sql) /
+> [`V202609260102__platform_seed_data.sql`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/platform/V202609260102__platform_seed_data.sql)、
 > [`ConfigsPage.tsx`](../../../web/src/pages/system/configs/ConfigsPage.tsx)（页面、内嵌 `ConfigFormModal` 与 `validateConfigValue`）、
 > [`hooks/queries/configs.ts`](../../../web/src/hooks/queries/configs.ts)。
 >
@@ -26,7 +26,7 @@
 | 菜单 | 系统管理 › 系统配置（`sys_menu.id = 8`） |
 | 路由 | `/system/configs` |
 | 页面组件 | `system/configs/ConfigsPage`（同文件内的 `ConfigFormModal`） |
-| 后端模块 | `weiran-base`；`ConfigController` → `ConfigApplicationService` → `MybatisConfigRepository` |
+| 后端模块 | `weiran-system`；`ConfigController` → `ConfigApplicationService` → `MybatisConfigRepository` |
 | 接口前缀 | `/api/configs` |
 | 权限码 | `system:config:list` · `system:config:create` · `system:config:update` · `system:config:delete`；`GET /public/{key}` 为 `@PublicApi`（免登录） |
 | 种子 | `sys.site.title` = `Weiran Admin`（string，内置） |

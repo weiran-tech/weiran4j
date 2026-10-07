@@ -60,6 +60,15 @@ const LEGACY_CHANGE_NAMED = new Set(PROJECT.capabilities?.legacyChangeNamed ?? [
  */
 const KNOWN_ARCHIVE_DRIFT = new Set(PROJECT.capabilities?.knownArchiveDrift ?? [])
 
+/**
+ * L10/archive-fidelity 的起始基线:主 spec 先于任何 delta 手写落库的能力(见 project.json)。
+ * 重放从这里登记的需求名起算 —— 否则第一个改它的 change 会被误判成「MODIFIED 指向从未声明的需求」
+ * 与「主 spec 有没人声明过的需求」。与 knownArchiveDrift 不同:登记后该能力仍受完整的保真检查。
+ */
+const ARCHIVE_BASELINE = new Map(
+  Object.entries(PROJECT.capabilities?.archiveBaseline ?? {}).map(([cap, v]) => [cap, v?.requirements ?? []]),
+)
+
 /** 事件名的形状:动词开头,或 -fixed / -cleanup 结尾。持久能力不会长这样。 */
 const EVENT_SHAPED_CAP =
   /^(fix|add|remove|update|create|migrate|refactor|audit|align|generalize|drop|restore|enable|disable)-|-(fixed|cleanup)$/
@@ -2056,8 +2065,8 @@ function checkArchiveFidelity() {
       if (!existsSync(f)) continue
       if (KNOWN_ARCHIVE_DRIFT.has(cap)) continue
       if (!expected.has(cap)) {
-        expected.set(cap, new Set())
-        seenIn.set(cap, [])
+        expected.set(cap, new Set(ARCHIVE_BASELINE.get(cap) ?? []))
+        seenIn.set(cap, ARCHIVE_BASELINE.has(cap) ? ['(基线)'] : [])
       }
       seenIn.get(cap).push(changeName)
       const set = expected.get(cap)

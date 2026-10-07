@@ -1,6 +1,5 @@
 package com.weiran.cqt.application.file;
 
-import com.weiran.common.error.BizException;
 import com.weiran.cqt.api.error.CqtErrors;
 import com.weiran.cqt.api.file.FileUploadService;
 import com.weiran.cqt.api.file.UploadContent;
@@ -8,6 +7,7 @@ import com.weiran.cqt.api.file.UploadedFileView;
 import com.weiran.cqt.domain.file.FileStorage;
 import com.weiran.cqt.domain.file.FileStorageException;
 import com.weiran.cqt.domain.file.UploadedFiles;
+import com.weiran.framework.error.BizException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Clock;

@@ -23,7 +23,6 @@ dependencies {
 
     constraints {
         // 本仓模块，供未来外部消费方无版本引入。
-        api("com.weiran:weiran-common:${project.version}")
         api("com.weiran:weiran-framework:${project.version}")
         // 业务模块清单由 settings.gradle.kts 按目录发现（D-012），这里不再手写。
         @Suppress("UNCHECKED_CAST") // settings 写入的就是 List<String>；gradle.extra 只能按 Any? 取出。

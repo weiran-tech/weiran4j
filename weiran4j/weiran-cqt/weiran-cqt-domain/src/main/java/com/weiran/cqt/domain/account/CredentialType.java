@@ -1,6 +1,6 @@
 package com.weiran.cqt.domain.account;
 
-import com.weiran.common.error.BizException;
+import com.weiran.framework.error.BizException;
 import java.text.Normalizer;
 import java.util.Locale;
 import org.jspecify.annotations.Nullable;

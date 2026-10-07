@@ -9,5 +9,5 @@ weiranConventions {
 }
 
 dependencies {
-    api(project(":weiran-common"))
+    api(project(":weiran-framework"))
 }

@@ -3,12 +3,12 @@ package com.weiran.app;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.weiran.common.error.BizException;
 import com.weiran.cqt.adapter.portal.PortalAccount;
 import com.weiran.cqt.adapter.portal.PortalController;
 import com.weiran.cqt.adapter.portal.PortalPublic;
 import com.weiran.cqt.adapter.portal.PortalResult;
 import com.weiran.cqt.domain.portal.PortalTokenCodec;
+import com.weiran.framework.error.BizException;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;

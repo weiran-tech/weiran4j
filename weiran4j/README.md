@@ -36,9 +36,8 @@ cd .. && pnpm install && pnpm dev      # 后端 bootRun(3300) + 前端 vite(5373
 | --- | --- |
 | `build-logic` | 约定插件：Checkstyle / Spotless / SpotBugs / Forbidden APIs / Error Prone + NullAway / Jacoco |
 | `weiran-dependencies` | BOM：框架版本只在这里；fork 下游的业务版本在 `biz-dependencies.gradle.kts`（D-013） |
-| `weiran-common` | 错误码、分页、响应包络（纯 Java） |
-| `weiran-framework` | 统一响应、全局异常、认证拦截、`@RequiresPermission`、`@OperationLog`、MyBatis-Plus 配置 |
-| `weiran-base-*` | 后台基座：认证 / 用户 / 角色 / 菜单 / 部门 / 登录日志（包 `com.weiran.system`）+ 字典 / 系统配置 / 操作日志（包 `com.weiran.platform`） |
+| `weiran-framework` | 纯 Java 契约（错误码、分页、响应包络）+ 统一响应、全局异常、认证拦截、`@RequiresPermission`、`@OperationLog`、MyBatis-Plus 配置 |
+| `weiran-system-*` | 后台基座：认证 / 用户 / 角色 / 菜单 / 部门 / 登录日志（包 `com.weiran.system`）+ 字典 / 系统配置 / 操作日志（包 `com.weiran.platform`） |
 | `weiran-app` | 启动模块与集成测试 |
 
 ## 文档

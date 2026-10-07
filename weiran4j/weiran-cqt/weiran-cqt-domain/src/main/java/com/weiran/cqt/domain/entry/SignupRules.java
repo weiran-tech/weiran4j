@@ -1,6 +1,6 @@
 package com.weiran.cqt.domain.entry;
 
-import com.weiran.common.error.BizException;
+import com.weiran.framework.error.BizException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;

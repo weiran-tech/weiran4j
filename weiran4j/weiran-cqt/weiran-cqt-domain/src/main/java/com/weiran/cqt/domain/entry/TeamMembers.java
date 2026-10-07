@@ -1,8 +1,8 @@
 package com.weiran.cqt.domain.entry;
 
-import com.weiran.common.error.BizException;
 import com.weiran.cqt.domain.account.CredentialType;
 import com.weiran.cqt.domain.account.Credentials;
+import com.weiran.framework.error.BizException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;

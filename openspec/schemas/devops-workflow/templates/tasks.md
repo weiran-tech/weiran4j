@@ -33,10 +33,10 @@ updated_at: ""
   再同步下面标题末尾的 ID。两边 ID 不一致会被 `TEMPLATE/profile-rows` 拦。
 -->
 
-## 1. 共享契约层 `weiran-common`(TG-1)
+## 1. 共享契约层 `weiran-framework`(TG-1)
 
 > 对应 `exec/plan.md` 的 Layer 0,**串行先做**,完成后冻结签名。
-> 涉及面:跨模块错误码 / 分页契约。改动影响所有依赖 `weiran-common` 的模块。
+> 涉及面:跨模块错误码 / 分页契约。改动影响所有依赖 `weiran-framework` 的模块。
 > **不涉及就整组删掉。**
 
 - [ ] 1.1 <具体改动>(FR-00N)

@@ -7,6 +7,13 @@ const DEFAULT_APP_TITLE = 'Weiran Admin';
 // 刻意保持最小：不搬 mono4ts 的分包调优，等首屏体积真的成为问题再回去取那份经验。
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '');
+    // 契约 §4：认证 Cookie 为 SameSite=Strict、后端不开 CORS，前后端必须同源；dev 与 build 都在这里拦下绝对地址
+    if (/^https?:\/\//i.test(env.VITE_API_BASE_URL ?? '')) {
+        throw new Error(
+            `VITE_API_BASE_URL 不能是绝对地址（当前为 ${env.VITE_API_BASE_URL}）：前后端必须同源部署（认证 Cookie SameSite=Strict、无 CORS），` +
+                'VITE_API_BASE_URL 只能是路径前缀（如 /admin-api）或留空；跨域访问请在网关 / 反向代理层把接口挂到同一域名下。',
+        );
+    }
     // 只用于 dev server 代理目标，不会打进客户端产物
     const apiTarget = env.VITE_API_PROXY_TARGET || 'http://localhost:3300';
 

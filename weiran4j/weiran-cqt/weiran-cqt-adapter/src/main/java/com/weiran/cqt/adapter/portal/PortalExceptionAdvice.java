@@ -1,8 +1,8 @@
 package com.weiran.cqt.adapter.portal;
 
-import com.weiran.common.error.BizException;
-import com.weiran.common.error.CommonErrors;
-import com.weiran.common.response.ApiResponse;
+import com.weiran.framework.error.BizException;
+import com.weiran.framework.error.CommonErrors;
+import com.weiran.framework.web.ErrorResponse;
 import com.weiran.framework.web.GlobalExceptionHandler;
 import com.weiran.framework.web.SkipApiResponse;
 import jakarta.validation.ConstraintViolationException;
@@ -49,7 +49,7 @@ public class PortalExceptionAdvice {
                     PortalResult.fail(CommonErrors.BAD_REQUEST.httpStatus(), PortalExceptionAdvice.UPLOAD_TOO_LARGE));
         }
         final ResponseEntity<?> translated = this.translate(ex, request);
-        final PortalResult<Void> body = translated.getBody() instanceof final ApiResponse<?> response
+        final PortalResult<Void> body = translated.getBody() instanceof final ErrorResponse response
                 ? PortalResult.fail(response.code() / 100, response.message())
                 : PortalResult.fail(CommonErrors.INTERNAL_ERROR.httpStatus(), CommonErrors.INTERNAL_ERROR.message());
         return ResponseEntity.ok(body);

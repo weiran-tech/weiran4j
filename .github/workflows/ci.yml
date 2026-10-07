@@ -1,0 +1,61 @@
+# 门禁 ③：PR 与推送 main 时由机器跑一遍本地门禁（artifact.md#05，D-014 同批）。
+# 三个 job 并行；任一失败整次运行失败。不打开 Gradle 配置缓存（D-006）。
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: 后端 check（JDK 21 + Testcontainers）
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      # 托管 runner 自带 Docker，集成测试的 MySQL 由 Testcontainers 拉起；JWT 密钥用测试 profile 里的假值，不需要 secrets。
+      - name: ./gradlew check
+        working-directory: weiran4j
+        run: ./gradlew check --no-daemon
+
+  web:
+    name: 前端 lint / test / build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      # 版本取 package.json 的 packageManager。
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+
+  openspec:
+    name: openspec 结构检查
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node openspec/check.mjs

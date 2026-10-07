@@ -14,8 +14,8 @@ updated_at: ""
 
 | 模块 | 目录/文件 | 为什么看它 |
 |---|---|---|
-| `weiran-common` |  |  |
-| `weiran-base-*`（或本次涉及的业务模块） |  |  |
+| `weiran-framework` |  |  |
+| `weiran-system-*`（或本次涉及的业务模块） |  |  |
 | `web` |  |  |
 
 ## 现有实现
@@ -24,7 +24,7 @@ updated_at: ""
 
 | 能力 | 位置 | 现状 |
 |---|---|---|
-|  | `weiran-base-application/.../XxxService.java:12` |  |
+|  | `weiran-system-application/.../XxxService.java:12` |  |
 
 ## 可复用点
 
@@ -96,8 +96,8 @@ updated_at: ""
 
 | ID | 文件 | 冲突原因 | 是否命中 · 预计改动 |
 |---|---|---|---|
-| SL-6 | `weiran-common/.../error/WeiranErrors.java` | 跨模块错误码基座,**刻意冻结**——新增前先确认真的是跨模块概念,不是某个模块自己的错误码 |  |
-| SL-7 | `weiran-common/.../page/{PageQuery,PageResult}.java` | 跨模块分页契约,前端 `web/src/lib/role.ts` 的 TS 接口需要手动同步,无自动机制 |  |
+| SL-6 | `weiran-framework/.../error/CommonErrors.java` | 跨模块错误码基座,**刻意冻结**——新增前先确认真的是跨模块概念,不是某个模块自己的错误码 |  |
+| SL-7 | `weiran-framework/.../page/{PageQuery,PageResult}.java` | 跨模块分页契约,前端 `web/src/lib/role.ts` 的 TS 接口需要手动同步,无自动机制 |  |
 
 #### 序号型资源(本仓库暂无)
 

@@ -1,7 +1,7 @@
 package com.weiran.cqt.domain.competition;
 
-import com.weiran.common.error.BizException;
-import com.weiran.common.error.CommonErrors;
+import com.weiran.framework.error.BizException;
+import com.weiran.framework.error.CommonErrors;
 import java.time.LocalDateTime;
 import org.jspecify.annotations.Nullable;
 

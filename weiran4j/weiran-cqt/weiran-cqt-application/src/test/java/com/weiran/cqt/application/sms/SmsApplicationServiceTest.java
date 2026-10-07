@@ -3,14 +3,14 @@ package com.weiran.cqt.application.sms;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.weiran.common.error.BizException;
-import com.weiran.common.error.CommonErrors;
 import com.weiran.cqt.api.error.CqtErrors;
 import com.weiran.cqt.domain.sms.SmsCode;
 import com.weiran.cqt.domain.sms.SmsCodeStore;
 import com.weiran.cqt.domain.sms.SmsIpCounter;
 import com.weiran.cqt.domain.sms.SmsSendOutcome;
 import com.weiran.cqt.domain.sms.SmsSender;
+import com.weiran.framework.error.BizException;
+import com.weiran.framework.error.CommonErrors;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;

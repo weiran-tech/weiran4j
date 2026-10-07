@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { http } from '@/utils/request';
-import { useToken } from '@/utils/token';
+import { useSession } from '@/utils/session';
 import type {
     CurrentUserView,
     FavoriteMenusSaveRequest,
@@ -17,21 +17,21 @@ export const authKeys = {
 };
 
 export function useMe() {
-    const token = useToken();
+    const session = useSession();
     return useQuery({
-        queryKey: [...authKeys.me, token],
+        queryKey: [...authKeys.me, session],
         queryFn: () => http.get<CurrentUserView>('/api/auth/me', { silent: true }),
-        enabled: !!token,
+        enabled: !!session,
         staleTime: Infinity,
     });
 }
 
 export function useMyMenus() {
-    const token = useToken();
+    const session = useSession();
     return useQuery({
-        queryKey: [...authKeys.menus, token],
+        queryKey: [...authKeys.menus, session],
         queryFn: () => http.get<MenuNode[]>('/api/auth/menus', { silent: true }),
-        enabled: !!token,
+        enabled: !!session,
         staleTime: Infinity,
     });
 }
@@ -52,11 +52,11 @@ export function useChangePassword() {
 
 /** 收藏的菜单 id（按收藏顺序；后端已过滤掉删除或无权访问的菜单） */
 export function useFavoriteMenus(enabled = true) {
-    const token = useToken();
+    const session = useSession();
     return useQuery({
-        queryKey: [...authKeys.favoriteMenus, token],
+        queryKey: [...authKeys.favoriteMenus, session],
         queryFn: () => http.get<number[]>('/api/auth/favorite-menus', { silent: true }),
-        enabled: enabled && !!token,
+        enabled: enabled && !!session,
         staleTime: Infinity,
     });
 }
@@ -68,8 +68,8 @@ export function useFavoriteMenus(enabled = true) {
  */
 export function useSaveFavoriteMenus() {
     const qc = useQueryClient();
-    const token = useToken();
-    const key = [...authKeys.favoriteMenus, token];
+    const session = useSession();
+    const key = [...authKeys.favoriteMenus, session];
     const mutationKey = [...authKeys.favoriteMenus, 'save'];
     // 回调执行时本次保存仍在计数内：=== 1 表示没有别的保存在排队
     const isLast = () => qc.isMutating({ mutationKey }) <= 1;
@@ -90,7 +90,7 @@ export function useSaveFavoriteMenus() {
     });
 }
 
-/** 锁屏解锁：校验当前用户密码。错误码 40101 不清令牌（见 utils/request.ts），由锁屏自己提示 */
+/** 锁屏解锁：校验当前用户密码。错误码 40101 不清会话（见 utils/request.ts），由锁屏自己提示 */
 export function useVerifyPassword() {
     return useMutation({
         mutationFn: (password: string) =>

@@ -11,4 +11,9 @@ weiranConventions {
 
 dependencies {
     api(project(":weiran-cqt-application"))
+    // framework 不再传递框架库（D-016），Web 与校验自己声明。
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    // PortalExceptionAdvice 要识别 DuplicateKeyException（在 spring-tx 里）。
+    implementation("org.springframework:spring-tx")
 }

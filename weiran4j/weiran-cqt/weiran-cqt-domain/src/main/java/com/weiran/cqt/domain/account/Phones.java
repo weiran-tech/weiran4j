@@ -1,6 +1,6 @@
 package com.weiran.cqt.domain.account;
 
-import com.weiran.common.error.BizException;
+import com.weiran.framework.error.BizException;
 import java.util.regex.Pattern;
 import org.jspecify.annotations.Nullable;
 
