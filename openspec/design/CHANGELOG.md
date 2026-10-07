@@ -10,6 +10,15 @@
 
 ---
 
+## 2026-10-07 · 模块改名同步到规则与模板（D-016）
+
+- `weiran-common` 并入 `weiran-framework`、`weiran-base` 改名 `weiran-system`。`rules/enforced/{constitution,project}.md`、
+  `schemas/devops-workflow/templates/*`、`config.yaml` 里的模块名、路径与命令同步替换；PK-1 / SL-6 / SL-7 / WT-2 / TG-1 标题随之改名。
+- 宪法 CP-2 改为「domain / api 只能用 `weiran-framework` 的纯 Java 契约包」，并写明 `slf4j-api` 例外；CP-1 增加「framework 的框架依赖必须是 `implementation`」。
+- 本文件旧条目与 `changes/archive/` 里的旧模块名不回改。
+
+---
+
 ## 2026-10-06 · L10 归档保真检查支持「起始基线」（change `auth-seams-cookie-ci` 归档时发现）
 
 - 症状：`admin-foundation` 的主 spec 是 D-008 时（`e23c511`）直接手写落库的，没有任何 delta 历史。`auth-seams-cookie-ci` 是第一个改它的 change，`openspec archive` 本身合并正确（新增 6 条、修改 2 条），

@@ -13,8 +13,11 @@
 
 ### CP-1 · 领域层不依赖框架
 
-`weiran-*-domain` 的 `build.gradle.kts` 不得出现 Spring、MyBatis、Jakarta Servlet 或任何 Web 依赖。
-领域规则的单测必须能在不启动容器的情况下跑。
+`weiran-*-domain` 的 `build.gradle.kts` 不得出现 Spring、MyBatis、Jakarta Servlet 或任何 Web 依赖，
+编译期类路径上也不得出现它们。领域规则的单测必须能在不启动容器的情况下跑。
+
+`weiran-framework` 以 `implementation` 引入 Spring 与 MyBatis-Plus、不向下游传递（D-016），
+所以 domain 依赖 `weiran-framework` 时编译期仍看不到框架类型。**把 framework 的任何框架依赖改成 `api` 即违反本条。**
 
 **为什么**：这条边界是可测试性与可迁移性的唯一来源。一旦领域层能 `@Autowired`，
 业务规则就会开始依赖注入时序，此后任何一条规则的验证都要先启动 Spring。
@@ -24,14 +27,17 @@
 依赖只能从外向内：`adapter` → `application` → `domain`，`infrastructure` → `domain`。
 `domain` 不依赖任何其他层；`infrastructure` 与 `adapter` 之间不得直接依赖。
 外层需要内层能力时，由内层定义端口（`domain/port`），外层实现。
-`weiran-framework`（Spring 基础设施）属于外层：`*-domain` 与 `*-api` 只能依赖 `weiran-common`。
+`*-domain` 与 `*-api` 除本模块内层外只能依赖 `weiran-framework`，且只能使用它的纯 Java 契约包
+（`com.weiran.framework.{error,page,response,status,text,tree}`）；`web` / `auth` / `log` / `persistence` /
+`autoconfigure` 等 Spring 基础设施包属于外层，只给 application / infrastructure / adapter 用。
+约定插件给所有 Java 模块注入的 `slf4j-api` 是日志门面，不算框架依赖。
 
 **为什么**：反过来的依赖不会立刻报错，只会让「换实现」这条自由度在某天悄悄消失。
 
 ### CP-3 · 持久化类型不跨层
 
 `*DO`、`BaseMapper`、`IPage`、`Wrappers` 等 MyBatis-Plus 类型只允许出现在
-`*-infrastructure` 模块内。端口签名、应用层与适配层一律用领域模型或 `weiran-common` 的契约类型。
+`*-infrastructure` 模块内。端口签名、应用层与适配层一律用领域模型或 `weiran-framework` 纯 Java 契约包里的类型。
 
 **为什么**：端口签名上出现一个 `IPage`，这层反转就白做了——换 ORM 时要改的不再是一个模块，而是全部。
 
@@ -121,7 +127,7 @@ JWT 携带 `ver`，认证时与库中值比对，且令牌版本与账号状态*
 ### CP-11 · 错误码归属决定 HTTP 状态，不靠 Controller 判断
 
 错误的 HTTP 状态由 `ErrorCode.httpStatus()` 决定（五位错误码的前三位即 HTTP 状态，见
-`weiran-common` 的 `CommonErrors`），由 `weiran-framework` 的全局异常处理器统一输出。
+`weiran-framework` 的 `CommonErrors`），由 `weiran-framework` 的全局异常处理器统一输出。
 Controller 不得手写状态码，也不得捕获业务异常自行转换。
 
 **为什么**：状态码一旦在 Controller 里手写，同一个错误在不同入口就会返回不同状态，
@@ -129,18 +135,18 @@ Controller 不得手写状态码，也不得捕获业务异常自行转换。
 
 ## 三层结构（框架 / 基座 / 业务）
 
-> 仓库按能力分三层（D-011 之后）：**框架** = `weiran-common` + `weiran-framework`（与业务无关的错误码、异常、响应包络、
-> 认证与日志机制）；**基座** = `weiran-base`（身份权限、日志、字典与配置，所有业务共用的后台能力）；
+> 仓库按能力分三层（D-011 之后）：**框架** = `weiran-framework`（与业务无关的错误码、异常、响应包络、
+> 认证与日志机制）；**基座** = `weiran-system`（身份权限、日志、字典与配置，所有业务共用的后台能力）；
 > **业务** = 之后新增的业务模块。下面四条管这三层之间的边界，CP-1 … CP-3 管每一层内部的五层结构。
 
 ### CP-12 · 依赖只能业务 → 基座 → 框架，反向与同层横向禁止
 
-完整的依赖链是 `weiran-app → 业务 → weiran-base → weiran-framework → weiran-common`，箭头方向就是「依赖谁」。
+完整的依赖链是 `weiran-app → 业务 → weiran-system → weiran-framework`，箭头方向就是「依赖谁」。
 `weiran-dependencies`（BOM）不在这条链上，所有模块都向它取版本号。
 
-- `weiran-common` / `weiran-framework` 不得依赖 `weiran-base` 或任何业务模块。框架需要基座的能力时，
+- `weiran-framework` 不得依赖 `weiran-system` 或任何业务模块。框架需要基座的能力时，
   由框架定义 SPI、基座实现（现有的 `TokenAuthenticator`、`OperationLogRecorder` 就是这个模式）。
-- `weiran-base` 不得依赖任何业务模块。
+- `weiran-system` 不得依赖任何业务模块。
 - `weiran-app` 是装配层，在链的最上端：可依赖基座与所有业务模块的 `adapter` / `infrastructure`（用于自动配置装配），
   但不得写业务代码，也不得被任何模块依赖。
 - 业务模块之间不得互相依赖（Gradle 项目依赖与 Java 包引用都不行）；共用的东西上移到基座或框架，
@@ -149,13 +155,13 @@ Controller 不得手写状态码，也不得捕获业务异常自行转换。
 **为什么**：反向依赖不会立刻报错，只会让「基座可以独立升级」这条自由度悄悄消失——
 某天基座要改一张表，才发现动不了，因为某个业务在下面接着。
 
-### CP-13 · 业务只经基座的 `weiran-base-api` 接触基座
+### CP-13 · 业务只经基座的 `weiran-system-api` 接触基座
 
-业务模块对基座的依赖只允许 `:weiran-base-api`（DTO、命令对象、应用服务接口）与 `weiran-framework`
+业务模块对基座的依赖只允许 `:weiran-system-api`（DTO、命令对象、应用服务接口）与 `weiran-framework`
 （`CurrentUser`、`@RequiresPermission`、`@OperationLog` 等）。
-不得依赖 `weiran-base-domain` / `-application` / `-infrastructure` / `-adapter`，
+不得依赖 `weiran-system-domain` / `-application` / `-infrastructure` / `-adapter`，
 不得直接读写基座的表（`sys_*`）、不得引用基座的 `*DO` 与 Mapper。
-业务需要基座里还没有的能力时，先在 `weiran-base-api` 增加接口，再由基座实现。
+业务需要基座里还没有的能力时，先在 `weiran-system-api` 增加接口，再由基座实现。
 例外：`weiran-app`（见 CP-12）为了装配，允许依赖基座的 `adapter` / `infrastructure`，因为它不写业务代码。
 
 **为什么**：基座的表结构是它的内部实现。业务一旦直接 join `sys_user`，基座此后每一次改表都要先找全所有业务里的 SQL，
@@ -168,7 +174,7 @@ Controller 不得手写状态码，也不得捕获业务异常自行转换。
 
 | 序号段 | 归属 | 定义位置 |
 | --- | --- | --- |
-| `00`–`19` | 框架与基座（通用码） | `weiran-common` 的 `CommonErrors`，唯一登记处 |
+| `00`–`19` | 框架与基座（通用码） | `weiran-framework` 的 `CommonErrors`，唯一登记处 |
 | `20`–`99` | 业务模块 | 各业务模块自己的 `*-api` 里（`enum implements ErrorCode`），**每个模块在 `weiran4j/docs/business-modules.md` 领一段并登记** |
 
 业务优先复用 `CommonErrors` 并在 `BizException` 里写具体提示语；只有前端需要按码分支处理时才新增码。

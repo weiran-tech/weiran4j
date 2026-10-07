@@ -15,12 +15,12 @@ AI 协作规范这些清单类资源如何由下游独占的旁路文件追加,�
 
 Gradle 构建 **MUST** 把 `weiran4j/` 下名为 `weiran-<mod>`、且含 `weiran-<mod>-{api,domain,application,infrastructure,adapter}` 五个子目录的目录识别为业务模块,
 无需修改任何构建脚本即完成五层 include、BOM 坐标登记、`weiran-app` 对其 `adapter` / `infrastructure` 的依赖,以及
-`application` / `infrastructure` / `adapter` 三层的覆盖率聚合。`weiran-base` **MUST** 排在清单第一位,其余按名称字母序。
+`application` / `infrastructure` / `adapter` 三层的覆盖率聚合。`weiran-system` **MUST** 排在清单第一位,其余按名称字母序。
 发现结果 **MUST** 以 `gradle.extra["weiran.businessModules"]`(`List<String>`)对其他构建脚本公开。
 
 #### Scenario: 现有仓库的项目集合不变
-- **WHEN** 在只有 `weiran-base` 的仓库执行 `./gradlew projects`
-- **THEN** 业务项目恰为 `weiran-base-{api,domain,application,infrastructure,adapter}` 五个
+- **WHEN** 在只有 `weiran-system` 的仓库执行 `./gradlew projects`
+- **THEN** 业务项目恰为 `weiran-system-{api,domain,application,infrastructure,adapter}` 五个
 - **判据**:`projects` 输出中以 `weiran-` 开头、以五层后缀结尾的项目集合与改动前逐行一致
 
 #### Scenario: 新增五层齐全的目录即被收录

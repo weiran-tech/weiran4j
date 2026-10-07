@@ -1,6 +1,6 @@
 package com.weiran.framework.web;
 
-import com.weiran.common.error.ErrorCode;
+import com.weiran.framework.error.ErrorCode;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.MDC;
 
@@ -9,7 +9,7 @@ import org.slf4j.MDC;
  *
  * <p>与成功体 {@code ApiResponse} 分开：成功体的形状不变（没有 {@code requestId} 键）；失败体多带请求号，
  * 用户截图报障时就能直接拿到它。只由 {@link GlobalExceptionHandler} 产生，{@link ApiResponseBodyAdvice} 原样放行。
- * 放在框架而不是 {@code weiran-common}：请求号来自框架的 {@link RequestIdFilter}（MDC），common 不该知道这些。
+ * 放在 web 包而不是纯 Java 的 response 包：请求号来自框架的 {@link RequestIdFilter}（MDC），纯契约不该知道这些。
  *
  * @param code 五位错误码
  * @param message 提示语

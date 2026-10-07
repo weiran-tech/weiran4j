@@ -2,11 +2,11 @@ package com.weiran.framework.log;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.weiran.common.error.BizException;
-import com.weiran.common.error.CommonErrors;
-import com.weiran.common.response.ApiResponse;
 import com.weiran.framework.auth.CurrentUser;
 import com.weiran.framework.auth.LoginUser;
+import com.weiran.framework.error.BizException;
+import com.weiran.framework.error.CommonErrors;
+import com.weiran.framework.response.ApiResponse;
 import com.weiran.framework.web.ClientIpResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import java.lang.annotation.Annotation;

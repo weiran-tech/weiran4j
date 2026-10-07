@@ -44,7 +44,7 @@ updated_at: ""
 | CP-10 认证失败不泄露账号存在性 | ☐ | |
 | CP-11 错误码归属决定 HTTP 状态，不靠 Controller 判断 | ☐ | |
 | CP-12 依赖只能业务 → 基座 → 框架，反向与同层横向禁止 | ☐ | |
-| CP-13 业务只经基座的 weiran-base-api 接触基座 | ☐ | |
+| CP-13 业务只经基座的 weiran-system-api 接触基座 | ☐ | |
 | CP-14 错误码按号段分配，业务不得占用框架与基座的号段 | ☐ | |
 | CP-15 权限码、菜单 id 与 Flyway 模块段按层隔离 | ☐ | |
 
@@ -58,8 +58,8 @@ flowchart LR
   Application --> Infrastructure["*-infrastructure<br/>MyBatis-Plus / JWT"]
   Infrastructure --> Domain
   Infrastructure --> DB[("MySQL")]
-  Common["weiran-common<br/>错误码 / 分页契约"] --- Domain
-  Common --- Application
+  Framework["weiran-framework<br/>错误码 / 分页契约（纯 Java 包）"] --- Domain
+  Framework --- Application
 ```
 
 ## Data Flow
@@ -83,25 +83,25 @@ flowchart LR
 
 ## 跨模块契约变更(DS-1)
 
-> `weiran-common` 是所有模块的公共依赖,这里的变更会成为 `exec/plan.md` 的 Layer 0 与契约冻结项。
+> `weiran-framework` 是所有模块的公共依赖,这里的变更会成为 `exec/plan.md` 的 Layer 0 与契约冻结项。
 
 | 对象 | 文件 | 动作 | 消费方 |
 |---|---|---|---|
-|  | `weiran-common/.../error/WeiranErrors.java` | 新增/改造(需确认真的是跨模块概念) | 所有依赖 weiran-common 的模块 |
-|  | `weiran-common/.../page/{PageQuery,PageResult}.java` | 分页契约变更 | 各模块 adapter 层 + 前端 |
+|  | `weiran-framework/.../error/CommonErrors.java` | 新增/改造(需确认真的是跨模块概念) | 所有依赖 weiran-framework 的模块 |
+|  | `weiran-framework/.../page/{PageQuery,PageResult}.java` | 分页契约变更 | 各模块 adapter 层 + 前端 |
 
-> 改动后需 `./gradlew :weiran-common:check` 通过,并检查所有消费方是否需要同步。
+> 改动后需 `./gradlew :weiran-framework:check` 通过,并检查所有消费方是否需要同步。
 
 ## API Design(DS-2)
 
 | 路由 | 方法 | 所属模块 | 请求关键字段 | 返回关键字段 | 权限点 |
 |---|---|---|---|---|---|
-|  | GET/POST | `weiran-base-adapter/.../web/` |  |  |  |
+|  | GET/POST | `weiran-system-adapter/.../web/` |  |  |  |
 
 - 统一响应包络由 wuli3 底座的 `ApiResponseBodyAdvice` 产生,**不在本仓库自行定义**——
   design 里只需声明业务字段,不需要重新设计包络本身(`{code, message, timestamp, requestId, data}`,
   **code 是字符串 `"0"`**)
-- 分页:复用 `weiran-common` 的 `PageQuery`/`PageResult`,不自定义分页协议
+- 分页:复用 `weiran-framework` 的 `PageQuery`/`PageResult`,不自定义分页协议
 - 端口签名不得出现框架类型(`*DO`/`BaseMapper`/`IPage`/`Wrappers` 只允许出现在 infrastructure 层)
 
 ## Database Design(DS-3)
@@ -132,7 +132,7 @@ flowchart LR
 | 项 | 设计 |
 |---|---|
 | 依赖方向 | `adapter → application → domain`,`infrastructure → domain` |
-| 新模块的 `@AutoConfiguration` | 参照 `weiran-base-adapter`/`weiran-base-infrastructure` 已有的 `.imports` 登记方式 |
+| 新模块的 `@AutoConfiguration` | 参照 `weiran-system-adapter`/`weiran-system-infrastructure` 已有的 `.imports` 登记方式 |
 | `weiran-app` 依赖聚合 | 新增模块时追加对其 adapter/infrastructure 层的依赖 |
 
 ## 前端设计(DS-6)

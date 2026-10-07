@@ -1,8 +1,8 @@
 package com.weiran.framework.web;
 
-import com.weiran.common.error.BizException;
-import com.weiran.common.error.CommonErrors;
-import com.weiran.common.error.ErrorCode;
+import com.weiran.framework.error.BizException;
+import com.weiran.framework.error.CommonErrors;
+import com.weiran.framework.error.ErrorCode;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;

@@ -2,7 +2,7 @@ package com.weiran.framework.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.weiran.common.response.ApiResponse;
+import com.weiran.framework.response.ApiResponse;
 import java.lang.reflect.Method;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;

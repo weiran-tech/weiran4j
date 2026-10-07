@@ -33,11 +33,6 @@
   症状:首屏需加载约 2.2 MB 静态资源(Semi UI 全量),弱网下登录页白屏时间长。
   `web/vite.config.ts` 没有任何 `manualChunks`(D-007 有意不照搬 mono4ts 的分包调优),等体积真成问题再处理。
 
-- **#07 ⚠️ P3 `*-api` / `*-domain` 模块被约定插件注入 `slf4j-api`**
-  症状:宪法 CP-2 说这两层「只能依赖 `weiran-common`」,但 `build-logic` 的 `JavaConventionsPlugin`
-  给所有 Java 模块都加了 `slf4j-api`,按字面读会以为违反了宪法。实际只是日志门面,不影响分层。
-  关闭条件:要么在 CP-2 里写明 `slf4j-api` 例外,要么约定插件对 api/domain 不注入。
-
 - **#08 ⚠️ P3 登录并发回归测试未在旧实现上验证过**
   症状:`UserRoleIT.concurrentLoginsDoNotUndoPasswordResets` 是为「登录整行回写撤销改密」而写的竞态测试,
   但没有在旧实现上回跑过,不能证明它真能抓住这个回归(竞态本身是概率性的)。
@@ -100,7 +95,21 @@
   且两边各自取「最大号 + 1」会撞号(`REPO/state-id-dup`)。`downstream-extension-points` 只给组件清单与 bizs 文件索引开了旁路文件,
   这两份留作本次不决定(见该 change 的 interview)。可选做法:约定下游写 `artifact.biz.md` / `cross-biz.biz.md`。
 
+- **#21 🔴 P3 domain / api 只用 framework 纯 Java 契约包没有机械拦截**
+  症状:D-016 之后 `*-domain` / `*-api` 依赖整个 `weiran-framework`。签名里带 Spring 类型的类在这两层编译不过,
+  但不带的(如 `@RequiresPermission`、`LoginUser`、`OperationLogEvent`)能编译通过——有人在领域层引用认证或日志机制,
+  `check` 全绿,CP-2「只能用 `error/page/response/status/text/tree`」只靠评审守。
+  可选做法:Checkstyle `ImportControl` 或 ArchUnit 规则,限制 `*.domain..` / `*.api..` 只能 import 上述六个包。
+
 ## changelog
+
+**2026-10-07**(D-016,common 并入 framework)
+
+- **#07 ✅ P3 `*-api` / `*-domain` 模块被约定插件注入 `slf4j-api`**
+  症状:宪法 CP-2 说这两层「只能依赖 `weiran-common`」(D-016 前的措辞),但 `build-logic` 的 `JavaConventionsPlugin`
+  给所有 Java 模块都加了 `slf4j-api`,按字面读会以为违反了宪法。实际只是日志门面,不影响分层。
+  关闭条件:要么在 CP-2 里写明 `slf4j-api` 例外,要么约定插件对 api/domain 不注入。
+  **由 D-016(common 并入 framework)关闭**:CP-2 改写时写明 `slf4j-api` 是日志门面、不算框架依赖。
 
 **2026-10-06**(`deploy-observability`)
 

@@ -25,7 +25,7 @@ derived_from: "../tasks.md"
 
 | tasks.md 条目 | 执行单元 ID | 层 |
 |---|---|---|
-| `1.1` `weiran-common` 契约改动 | `E1` | L0 |
+| `1.1` `weiran-framework` 契约改动 | `E1` | L0 |
 | `2.1` 领域模型与端口 | `E2` | L1 |
 | `3.1` service/route 实现 | `E3` | L1 |
 | `4.1` 前端页面/hook | `E4` | L1 |
@@ -50,7 +50,7 @@ derived_from: "../tasks.md"
 
 ```mermaid
 flowchart TD
-  E1["E1 weiran-common: 跨模块契约"] --> E2["E2 domain/api: 领域模型"]
+  E1["E1 weiran-framework: 跨模块契约"] --> E2["E2 domain/api: 领域模型"]
   E2 --> E3["E3 application/infrastructure: 用例与实现"]
   E3 --> E4["E4 adapter: Controller"]
   E1 --> E5["E5 web: 页面 + hooks"]
@@ -71,9 +71,9 @@ flowchart TD
 
 | 执行单元 | 内容 | 涉及文件 |
 |---|---|---|
-| `E1` |  | `weiran-common/src/main/java/com/weiran/common/...` |
+| `E1` |  | `weiran-framework/src/main/java/com/weiran/framework/...` |
 
-**完成判据**:`./gradlew :weiran-common:check` 通过,且下方「契约冻结」表已填满。
+**完成判据**:`./gradlew :weiran-framework:check` 通过,且下方「契约冻结」表已填满。
 
 ### Layer 1 —— 并行
 
@@ -105,7 +105,7 @@ flowchart TD
 
 | 契约 | 签名 / 结构 | 定义位置 | 消费方(逐单元列出所读/所写的键) | 冻结 |
 |---|---|---|---|---|
-|  |  | `weiran-common/.../XxxDto.java:NN` | `E2` 写 `a`/`b`;`E3` 读 `a` | ☐ |
+|  |  | `weiran-framework/.../XxxDto.java:NN` | `E2` 写 `a`/`b`;`E3` 读 `a` | ☐ |
 
 ### 契约变更记录
 
@@ -143,7 +143,7 @@ flowchart TD
 |---|---|---|---|
 | WT-0 | **工作区已有他人在推进的 change** | ❌ **必须先问这一条** | 别人的红灯会染红你的 `./gradlew check`、别人的 diff 会让 L9 无法单独签字、别人改流水线文件会让你已落章的 design 被判缺行。三条判据(他人未提交改动 / 第二个 change **有文件且近期活跃** / `git log` 有他人提交)见 `rules/enforced/project.md` WT-0 |
 | WT-1 | 纯文档 / spec / openspec 流水线自身的改动 | ✅ 可与代码改动交替推进(仍受 WT-0 约束) | `node openspec/check.mjs` 零依赖,不需要 Gradle 构建。⚠️ 改**流水线本体**命中 WT-0 第 3 条动态读取风险 |
-| WT-2 | 涉及 `weiran-common`,**或流水线本体** | ❌ 必须排队 | `weiran-common` 是所有模块的公共依赖,改了签名要同步检查所有消费方;`rules/**` `schemas/**` `config.yaml` `check.mjs` `guards/**` 被检查**动态读取**,对方一改,你已落章的 design 立刻被判缺行 |
+| WT-2 | 涉及 `weiran-framework`,**或流水线本体** | ❌ 必须排队 | `weiran-framework` 是所有模块的公共依赖,改了签名要同步检查所有消费方;`rules/**` `schemas/**` `config.yaml` `check.mjs` `guards/**` 被检查**动态读取**,对方一改,你已落章的 design 立刻被判缺行 |
 | WT-3 | 单模块、3~5 个文件的小改动 | ✅ 可与他人交替推进(仍受 WT-0 约束) | 改动小不改变"同一工作区同一时刻只能有一个人在改"这条约束——决定能不能并行的是 WT-0/WT-2 是否命中,不是改动大小 |
 
 > **「本 change 内部无并行」是常见且合法的结论。** 本节写「单执行单元,内部无并行」
@@ -164,8 +164,8 @@ flowchart TD
 
 | 执行单元 | 拥有(可写) | 只读 | 禁止触碰 |
 |---|---|---|---|
-| `E3` | `weiran-base-application/src/...`<br>`weiran-base-adapter/src/...` | `weiran-common/**` | `web/**` |
-| `E4` | `web/src/pages/...` | `weiran-common/**` | `weiran-base-*/**` |
+| `E3` | `weiran-system-application/src/...`<br>`weiran-system-adapter/src/...` | `weiran-framework/**` | `web/**` |
+| `E4` | `web/src/pages/...` | `weiran-framework/**` | `weiran-system-*/**` |
 
 ## 6. 测试归属
 

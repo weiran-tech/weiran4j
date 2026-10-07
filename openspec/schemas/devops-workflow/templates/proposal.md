@@ -68,8 +68,8 @@ updated_at: ""
 
 | ID | 包 | 动作 | 影响说明 | Owner |
 |---|---|---|---|---|
-| PK-1 | `weiran-common` | 新增/改造跨模块错误码、分页契约 |  |  |
-| PK-2 | `weiran-base-*`(api/domain/application/infrastructure/adapter) | 新增/改造账号、RBAC、JWT 登录相关能力 |  |  |
+| PK-1 | `weiran-framework` | 新增/改造跨模块错误码、分页契约 |  |  |
+| PK-2 | `weiran-system-*`(api/domain/application/infrastructure/adapter) | 新增/改造账号、RBAC、JWT 登录相关能力 |  |  |
 | PK-3 | `weiran-app` | 新增模块依赖聚合(通常只在新增整个模块时才动) |  |  |
 | PK-4 | `web` | 新增/改造 page、hook、组件 |  |  |
 
@@ -82,7 +82,7 @@ updated_at: ""
 | 类别 | 是否命中 | 说明 |
 |---|---|---|
 | `settings.gradle.kts` / `weiran-dependencies` BOM(新增模块) | ☐ |  |
-| `weiran-common` 的错误码/分页契约 | ☐ |  |
+| `weiran-framework` 的错误码/分页契约 | ☐ |  |
 | `weiran-app/build.gradle.kts` 依赖聚合 | ☐ |  |
 | `web/src/App.tsx` + `AdminLayout.tsx`(路由/菜单) | ☐ |  |
 

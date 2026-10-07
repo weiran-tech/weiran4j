@@ -4,17 +4,17 @@
 > 契约文档 `weiran4j/docs/01-架构与接口契约.md` 只作索引；它与代码不一致的地方以代码为准写在下文，并在 §6 登记。
 >
 > 事实源：
-> [`MenuController.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/system/adapter/web/MenuController.java)、
-> [`SaveMenuRequest.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/system/adapter/web/request/SaveMenuRequest.java)、
-> [`MenuApplicationService.java`](../../../weiran4j/weiran-base/weiran-base-application/src/main/java/com/weiran/system/application/menu/MenuApplicationService.java) /
-> [`MenuAssembler.java`](../../../weiran4j/weiran-base/weiran-base-application/src/main/java/com/weiran/system/application/menu/MenuAssembler.java)、
-> [`Menu.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/system/domain/menu/Menu.java) /
-> [`MenuType.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/system/domain/menu/MenuType.java) /
-> [`Hierarchy.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/system/domain/hierarchy/Hierarchy.java) /
-> [`Authorization.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/system/domain/auth/Authorization.java)、
-> [`MybatisMenuRepository.java`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/java/com/weiran/system/infrastructure/persistence/MybatisMenuRepository.java)、
-> [`V202609260001__system_init_schema.sql`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/resources/db/migration/system/V202609260001__system_init_schema.sql) /
-> [`V202609260002__system_seed_data.sql`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/resources/db/migration/system/V202609260002__system_seed_data.sql)、
+> [`MenuController.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/system/adapter/web/MenuController.java)、
+> [`SaveMenuRequest.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/system/adapter/web/request/SaveMenuRequest.java)、
+> [`MenuApplicationService.java`](../../../weiran4j/weiran-system/weiran-system-application/src/main/java/com/weiran/system/application/menu/MenuApplicationService.java) /
+> [`MenuAssembler.java`](../../../weiran4j/weiran-system/weiran-system-application/src/main/java/com/weiran/system/application/menu/MenuAssembler.java)、
+> [`Menu.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/menu/Menu.java) /
+> [`MenuType.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/menu/MenuType.java) /
+> [`Hierarchy.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/hierarchy/Hierarchy.java) /
+> [`Authorization.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/auth/Authorization.java)、
+> [`MybatisMenuRepository.java`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/java/com/weiran/system/infrastructure/persistence/MybatisMenuRepository.java)、
+> [`V202609260001__system_init_schema.sql`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/V202609260001__system_init_schema.sql) /
+> [`V202609260002__system_seed_data.sql`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/V202609260002__system_seed_data.sql)、
 > [`MenusPage.tsx`](../../../web/src/pages/system/menus/MenusPage.tsx) /
 > [`MenuFormModal.tsx`](../../../web/src/pages/system/menus/MenuFormModal.tsx)、
 > [`hooks/queries/menus.ts`](../../../web/src/hooks/queries/menus.ts)、[`utils/menu.ts`](../../../web/src/utils/menu.ts)、
@@ -30,7 +30,7 @@
 | 菜单 | 系统管理 › 菜单管理（`sys_menu.id = 5`） |
 | 路由 | `/system/menus` |
 | 页面组件 | `system/menus/MenusPage`（弹窗 `MenuFormModal`） |
-| 后端模块 | `weiran-base`；`MenuController` → `MenuApplicationService` → `MybatisMenuRepository` |
+| 后端模块 | `weiran-system`；`MenuController` → `MenuApplicationService` → `MybatisMenuRepository` |
 | 接口前缀 | `/api/menus`（管理）；`/api/auth/menus`（当前用户可见菜单树，`AuthController`） |
 | 权限码 | `system:menu:list` · `system:menu:create` · `system:menu:update` · `system:menu:delete` |
 | 种子 | 菜单 id 1–11 固定（首页、系统管理 6 项、日志审计 2 项），按钮 id 100–119；前端与测试按 ID 引用 |

@@ -4,13 +4,13 @@
 > 契约文档 `weiran4j/docs/01-架构与接口契约.md` 只作索引；它与代码不一致的地方以代码为准写在下文，并在 §6 登记。
 >
 > 事实源：
-> [`DepartmentController.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/system/adapter/web/DepartmentController.java)、
-> [`SaveDepartmentRequest.java`](../../../weiran4j/weiran-base/weiran-base-adapter/src/main/java/com/weiran/system/adapter/web/request/SaveDepartmentRequest.java)、
-> [`DepartmentApplicationService.java`](../../../weiran4j/weiran-base/weiran-base-application/src/main/java/com/weiran/system/application/department/DepartmentApplicationService.java)、
-> [`Department.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/system/domain/department/Department.java) /
-> [`Hierarchy.java`](../../../weiran4j/weiran-base/weiran-base-domain/src/main/java/com/weiran/system/domain/hierarchy/Hierarchy.java)、
-> [`MybatisDepartmentRepository.java`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/java/com/weiran/system/infrastructure/persistence/MybatisDepartmentRepository.java)、
-> [`V202609260001__system_init_schema.sql`](../../../weiran4j/weiran-base/weiran-base-infrastructure/src/main/resources/db/migration/system/V202609260001__system_init_schema.sql)、
+> [`DepartmentController.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/system/adapter/web/DepartmentController.java)、
+> [`SaveDepartmentRequest.java`](../../../weiran4j/weiran-system/weiran-system-adapter/src/main/java/com/weiran/system/adapter/web/request/SaveDepartmentRequest.java)、
+> [`DepartmentApplicationService.java`](../../../weiran4j/weiran-system/weiran-system-application/src/main/java/com/weiran/system/application/department/DepartmentApplicationService.java)、
+> [`Department.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/department/Department.java) /
+> [`Hierarchy.java`](../../../weiran4j/weiran-system/weiran-system-domain/src/main/java/com/weiran/system/domain/hierarchy/Hierarchy.java)、
+> [`MybatisDepartmentRepository.java`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/java/com/weiran/system/infrastructure/persistence/MybatisDepartmentRepository.java)、
+> [`V202609260001__system_init_schema.sql`](../../../weiran4j/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/V202609260001__system_init_schema.sql)、
 > [`DepartmentsPage.tsx`](../../../web/src/pages/system/departments/DepartmentsPage.tsx)（页面与内嵌的 `DepartmentFormModal`）、
 > [`hooks/queries/departments.ts`](../../../web/src/hooks/queries/departments.ts)、
 > [`DepartmentTreeSelect.tsx`](../../../web/src/components/DepartmentTreeSelect.tsx)。
@@ -25,7 +25,7 @@
 | 菜单 | 系统管理 › 部门管理（`sys_menu.id = 6`） |
 | 路由 | `/system/departments` |
 | 页面组件 | `system/departments/DepartmentsPage`（同文件内的 `DepartmentFormModal`） |
-| 后端模块 | `weiran-base`；`DepartmentController` → `DepartmentApplicationService` → `MybatisDepartmentRepository` |
+| 后端模块 | `weiran-system`；`DepartmentController` → `DepartmentApplicationService` → `MybatisDepartmentRepository` |
 | 接口前缀 | `/api/departments` |
 | 权限码 | `system:department:list`（仅详情）· `system:department:create` · `system:department:update` · `system:department:delete`；**部门树 `GET /` 仅需登录**（管理页与各处下拉共用） |
 | 种子 | 根部门「总公司」（id=1，code `HQ`） |

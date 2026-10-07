@@ -33,7 +33,7 @@
 | 你正在做 | 读 | 漏读会怎样 |
 |---|---|---|
 | **新增一个 Gradle 模块**（如 `weiran-area`） | **§一 全部 SL-N** | `settings.gradle.kts` 与 BOM 是全仓单点，漏改会导致新模块编译不进整个构建，或与他人同时改同一文件区域时冲突 |
-| 改 `weiran-common/**`、跨模块共享的 DTO/契约 | §一 对应那条 SL-N | 与他人并行时在共享层撞车 |
+| 改 `weiran-framework` 的纯 Java 契约包、跨模块共享的 DTO/契约 | §一 对应那条 SL-N | 与他人并行时在共享层撞车 |
 | **判断能不能与他人同时推进** | **§二 WT-0~WT-3** | WT-0 的后果：L7 被别的改动染红、L9 拿不到可签字的 diff、L3 落章失去不可变性 |
 | 大改动前评估影响面 | §三 CC-N + §五 PK-N | `proposal.md` 的漏项防线失效 |
 | 排任务顺序 | §四 TG-N | 共享层没排在 Layer 0，并行阶段必冲突 |
@@ -84,13 +84,13 @@
 
 ### 跨模块契约（多层共同消费）
 
-### SL-6 · `weiran-common/src/main/java/com/weiran/common/error/CommonErrors.java`
+### SL-6 · `weiran-framework/src/main/java/com/weiran/framework/error/CommonErrors.java`
 
 跨模块错误码基座（五位数字，前三位 = HTTP 状态）。**刻意冻结为小集合**——模块专属错误码应定义在各自模块
 domain 的 `error` 包里。前端 `web/src/utils/request.ts` 依赖 `40100`（清令牌跳登录）与 `40101`（不清令牌）的区分，
 改这两个码必须同步前端。**不是"该加就加"，而是"新增前先确认真的是跨模块概念"**。
 
-### SL-7 · `weiran-common/src/main/java/com/weiran/common/{page,response}/*`
+### SL-7 · `weiran-framework/src/main/java/com/weiran/framework/{page,response}/*`
 
 跨模块分页与响应包络契约（`{code, message, data}`、`{list, total, page, pageSize}`），
 被全部后端模块与前端 `web/src/types/api.ts` 共同依赖。TS 定义**没有自动同步机制**，改了后端要手动改前端，
@@ -151,10 +151,10 @@ Flyway 以 `out-of-order: true` 运行（D-012）：版本号早于已执行最�
 零依赖，不需要 `pnpm install` 或 Gradle 构建。⚠️ 改流水线本体（`rules/**`、`schemas/**`、
 `config.yaml`、`check.mjs`、`guards/**`）命中 WT-0 第 3 条判据的动态读取风险，谨慎评估。
 
-### WT-2 · 涉及 `weiran-common` 或流水线本体
+### WT-2 · 涉及 `weiran-framework` 或流水线本体
 
-必须排队，不能与另一个同样改 `weiran-common` 或流水线本体的 change 同时推进。
-`weiran-common` 是所有模块的公共依赖，改了签名要同步检查所有消费方；流水线本体被
+必须排队，不能与另一个同样改 `weiran-framework` 或流水线本体的 change 同时推进。
+`weiran-framework` 是所有模块的公共依赖，改了签名要同步检查所有消费方；流水线本体被
 `check.mjs` 动态读取，对方一改，你已落章的 design 立刻被判缺行（同 WT-0 第 3 条）。
 
 ### WT-3 · 单模块、几个文件的小改动
@@ -190,7 +190,7 @@ Flyway 以 `out-of-order: true` 运行（D-012）：版本号早于已执行最�
 ### CC-5 · 审计日志（`audit-context`）
 
 已实现两类：登录日志（`sys_login_log`，登录/登出成功与失败都记）与操作日志（写接口标 `@OperationLog`，
-由 `weiran-base`（包 `com.weiran.platform`）异步落库 `sys_operation_log`，请求体按字段名脱敏）。新增写接口**必须**标 `@OperationLog`。
+由 `weiran-system`（包 `com.weiran.platform`）异步落库 `sys_operation_log`，请求体按字段名脱敏）。新增写接口**必须**标 `@OperationLog`。
 尚无「变更前后数据 diff」。
 
 ### CC-6 · 字段脱敏（`masking`）
@@ -215,7 +215,7 @@ Flyway 以 `out-of-order: true` 运行（D-012）：版本号早于已执行最�
 
 > 排在最前的组对应 Layer 0（串行先做）。顺序错了，派生执行计划时容易切错层。
 
-### TG-1 · 共享契约层 `weiran-common`
+### TG-1 · 共享契约层 `weiran-framework`
 
 对应 `exec/plan.md` 的 Layer 0，**串行先做**，完成后冻结签名。
 涉及面：跨模块错误码 / 分页 / 响应契约，以及 `weiran-framework`（认证、权限、操作日志、统一响应）。
@@ -246,14 +246,14 @@ Flyway 以 `out-of-order: true` 运行（D-012）：版本号早于已执行最�
 
 ## 五、影响的包（决定 `proposal.md` 的影响面声明）
 
-### PK-1 · `weiran-common` / `weiran-framework`
+### PK-1 · `weiran-framework`
 
-跨模块通用：错误码、分页与响应契约（common）；统一响应、全局异常、认证拦截、权限注解、操作日志切面、
-MyBatis-Plus 配置（framework）。改动影响面最广（见 §一 SL-6/SL-7）。
+跨模块通用：错误码、分页与响应契约（纯 Java 契约包，domain / api 可用）；统一响应、全局异常、认证拦截、权限注解、
+操作日志切面、MyBatis-Plus 配置（Spring 基础设施包，D-016 由原 `weiran-common` 并入）。改动影响面最广（见 §一 SL-6/SL-7）。
 
-### PK-2 · `weiran-base-*`（api/domain/application/infrastructure/adapter）
+### PK-2 · `weiran-system-*`（api/domain/application/infrastructure/adapter）
 
-`weiran-base` 是后台基座，DDD 五层：包 `com.weiran.system` 管认证 / 用户 / 角色 / 菜单 / 部门 / 登录日志，包 `com.weiran.platform` 管字典 / 系统配置 / 操作日志（D-011 由两个模块合并而来）。
+`weiran-system` 是后台基座，DDD 五层：包 `com.weiran.system` 管认证 / 用户 / 角色 / 菜单 / 部门 / 登录日志，包 `com.weiran.platform` 管字典 / 系统配置 / 操作日志（D-011 由两个模块合并而来）。
 
 ### PK-3 · `weiran-app`
 
@@ -272,7 +272,7 @@ MyBatis-Plus 配置（framework）。改动影响面最广（见 §一 SL-6/SL-7
 
 ### DS-1 · 跨模块契约变更
 
-`weiran-common` 的错误码/分页契约、或任何模块间共享的接口签名变更，会成为
+`weiran-framework` 的错误码/分页契约、或任何模块间共享的接口签名变更，会成为
 `exec/plan.md` 的 Layer 0 与契约冻结项。
 
 ### DS-2 · API Design
@@ -293,8 +293,8 @@ design 里只声明业务字段；新接口同步写进 `docs/01-架构与接口
 ### DS-5 · 分层与装配
 
 依赖方向是否符合 `adapter → application → domain`、`infrastructure → domain`；
-新模块的 `@AutoConfiguration` 与 `.imports` 登记方式（参照 `weiran-base-adapter`/
-`weiran-base-infrastructure`），Mapper 的 `@MapperScan` 写在本模块 infrastructure 的自动配置里。
+新模块的 `@AutoConfiguration` 与 `.imports` 登记方式（参照 `weiran-system-adapter`/
+`weiran-system-infrastructure`），Mapper 的 `@MapperScan` 写在本模块 infrastructure 的自动配置里。
 
 ### DS-6 · 前端设计
 

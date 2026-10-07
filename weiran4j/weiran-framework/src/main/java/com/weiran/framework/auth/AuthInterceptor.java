@@ -1,7 +1,7 @@
 package com.weiran.framework.auth;
 
-import com.weiran.common.error.BizException;
-import com.weiran.common.error.CommonErrors;
+import com.weiran.framework.error.BizException;
+import com.weiran.framework.error.CommonErrors;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

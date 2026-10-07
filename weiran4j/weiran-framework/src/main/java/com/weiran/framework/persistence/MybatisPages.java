@@ -2,8 +2,8 @@ package com.weiran.framework.persistence;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.weiran.common.page.PageQuery;
-import com.weiran.common.page.PageResult;
+import com.weiran.framework.page.PageQuery;
+import com.weiran.framework.page.PageResult;
 import java.util.function.Function;
 
 /**

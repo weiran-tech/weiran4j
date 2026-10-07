@@ -68,12 +68,12 @@
 |---|---|---|
 | 公共 | —(跨模块业务定义) | [`cross-biz.md`](cross-biz.md) |
 | 公共 | —(架构与技术问题) | [`artifact.md`](artifact.md) |
-| 身份与权限(weiran-base) | `sys_user` 用户 | [`sys_user.md`](sys_user.md) |
-| 身份与权限(weiran-base) | `sys_role` 角色 | [`sys_role.md`](sys_role.md) |
-| 身份与权限(weiran-base) | `sys_menu` 菜单 / 权限点 | [`sys_menu.md`](sys_menu.md) |
-| 身份与权限(weiran-base) | `sys_department` 部门 | [`sys_department.md`](sys_department.md) |
-| 身份与权限(weiran-base) | `sys_login_log` 登录日志 | [`sys_login_log.md`](sys_login_log.md) |
-| 身份与权限(weiran-base) | `sys_user_identity` 外部身份绑定 | [`sys_user_identity.md`](sys_user_identity.md) |
-| 平台能力(weiran-base) | `sys_dict` / `sys_dict_item` 字典 | [`sys_dict.md`](sys_dict.md) |
-| 平台能力(weiran-base) | `sys_config` 系统配置 | [`sys_config.md`](sys_config.md) |
-| 平台能力(weiran-base) | `sys_operation_log` 操作日志 | [`sys_operation_log.md`](sys_operation_log.md) |
+| 身份与权限(weiran-system) | `sys_user` 用户 | [`sys_user.md`](sys_user.md) |
+| 身份与权限(weiran-system) | `sys_role` 角色 | [`sys_role.md`](sys_role.md) |
+| 身份与权限(weiran-system) | `sys_menu` 菜单 / 权限点 | [`sys_menu.md`](sys_menu.md) |
+| 身份与权限(weiran-system) | `sys_department` 部门 | [`sys_department.md`](sys_department.md) |
+| 身份与权限(weiran-system) | `sys_login_log` 登录日志 | [`sys_login_log.md`](sys_login_log.md) |
+| 身份与权限(weiran-system) | `sys_user_identity` 外部身份绑定 | [`sys_user_identity.md`](sys_user_identity.md) |
+| 平台能力(weiran-system) | `sys_dict` / `sys_dict_item` 字典 | [`sys_dict.md`](sys_dict.md) |
+| 平台能力(weiran-system) | `sys_config` 系统配置 | [`sys_config.md`](sys_config.md) |
+| 平台能力(weiran-system) | `sys_operation_log` 操作日志 | [`sys_operation_log.md`](sys_operation_log.md) |
