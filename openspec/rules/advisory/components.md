@@ -61,7 +61,7 @@
 | **FileTypeIcon** | `components/FileTypeIcon.tsx` + `FileTypeIcon.css` | 文件上传缩略图与资源库列表统一显示视频、PDF、Word、PPT、Excel、ZIP 等类型 | 依据文件扩展名展示，图片仍使用真实缩略图；类型图标与实际格式保持一致 |
 | **VideoPreview** | `components/VideoPreview.tsx` + `VideoPreview.css` | 文件上传与资源库复用的页内视频播放器 | 关闭弹窗时卸载播放器；浏览器不支持编码时提供打开或下载入口 |
 | **PdfPreview** | `components/PdfPreview.tsx` + `PdfPreview.css` | 文件上传与资源库复用的浏览器内置 PDF 预览 | 关闭弹窗时卸载 iframe，并提供新标签页打开入口 |
-| **RichTextEditor** | `components/RichTextEditor.tsx` + `RichTextEditor.css` | 通用富文本，保存 HTML，支持粘贴图片、多图上传、视频上传与插入、引用、撤销和重做 | 图片和视频默认由 system 媒体接口上传；图片可通过 `onUploadImage` 注入上传动作；保存表单应在上传期间禁用提交 |
+| **RichTextEditor** | `components/RichTextEditor.tsx` + `RichTextEditor.css` | 通用富文本，保存 HTML，支持粘贴图片、多图上传、视频上传与插入、引用、撤销和重做 | 图片和视频默认由 system 媒体接口上传；图片可通过 `onUploadImage` 注入上传动作；两种上传按钮分别管理禁用状态，保存表单应在任一上传期间禁用提交 |
 | **SystemConfigGroupForm** | `components/SystemConfigGroupForm.tsx` | 系统配置分组的动态字段编辑器，按字段类型渲染控件、校验并保存分组配置；组件演示页也直接复用 | 调用方传 `ConfigView[]`、编辑权限与字段设置回调；默认用系统配置 Query hooks 保存，`onSave` / `onUploadFile` / `onUploadImage` 可注入业务动作 |
 
 ## 布局(`backend/src/layouts/`)

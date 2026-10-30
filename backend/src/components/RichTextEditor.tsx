@@ -32,11 +32,23 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
     const inputRef = useRef<HTMLInputElement>(null);
     const videoInputRef = useRef<HTMLInputElement>(null);
     const editorRef = useRef<ReturnType<typeof useEditor>>(null);
-    const pending = useRef(0);
+    const pending = useRef({ image: 0, video: 0 });
     const mounted = useRef(true);
-    const [uploading, setUploading] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const [uploadingVideo, setUploadingVideo] = useState(false);
     const upload = useUploadSystemFile();
     const settings = useUploadSettings().data ?? DEFAULT_UPLOAD_SETTINGS;
+
+    const changePending = (kind: 'image' | 'video', delta: 1 | -1) => {
+        const previousTotal = pending.current.image + pending.current.video;
+        pending.current[kind] += delta;
+        if (!mounted.current) return;
+        if (kind === 'image') setUploadingImage(pending.current.image > 0);
+        else setUploadingVideo(pending.current.video > 0);
+        const nextTotal = pending.current.image + pending.current.video;
+        if (previousTotal === 0 && nextTotal > 0) onUploadingChange?.(true);
+        if (previousTotal > 0 && nextTotal === 0) onUploadingChange?.(false);
+    };
 
     const insertImages = async (files: File[]) => {
         const currentEditor = editorRef.current;
@@ -48,9 +60,7 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
         });
         if (valid.length === 0) return;
         const position = currentEditor.state.selection.from;
-        pending.current += 1;
-        setUploading(true);
-        onUploadingChange?.(true);
+        changePending('image', 1);
         try {
             const results = await Promise.allSettled(valid.map(async (file) => {
                 const result = onUploadImage ? await onUploadImage(file) : await upload.mutateAsync(file);
@@ -64,11 +74,7 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
             if (results.some((result) => result.status === 'rejected') && onUploadImage) Toast.error('部分图片上传失败，请重试');
             if (mounted.current && currentEditor.isEditable && images.length > 0) currentEditor.chain().focus().insertContentAt(position, images).run();
         } finally {
-            pending.current -= 1;
-            if (mounted.current && pending.current === 0) {
-                setUploading(false);
-                onUploadingChange?.(false);
-            }
+            changePending('image', -1);
         }
     };
 
@@ -82,9 +88,7 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
         });
         if (valid.length === 0) return;
         const position = currentEditor.state.selection.from;
-        pending.current += 1;
-        setUploading(true);
-        onUploadingChange?.(true);
+        changePending('video', 1);
         try {
             const results = await Promise.allSettled(valid.map((file) => upload.mutateAsync(file)));
             const videos = results.flatMap((result) => result.status === 'fulfilled'
@@ -92,11 +96,7 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
                 : []);
             if (mounted.current && currentEditor.isEditable && videos.length > 0) currentEditor.chain().focus().insertContentAt(position, videos).run();
         } finally {
-            pending.current -= 1;
-            if (mounted.current && pending.current === 0) {
-                setUploading(false);
-                onUploadingChange?.(false);
-            }
+            changePending('video', -1);
         }
     };
 
@@ -147,9 +147,9 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
                 <Button size="small" theme={editor.isActive('blockquote') ? 'solid' : 'borderless'} icon={<Quote size={14} />} disabled={disabled} aria-label="引用" onClick={() => editor.chain().focus().toggleBlockquote().run()} />
                 <Button size="small" theme="borderless" icon={<Undo2 size={14} />} disabled={disabled || !editor.can().undo()} aria-label="撤销" onClick={() => editor.chain().focus().undo().run()} />
                 <Button size="small" theme="borderless" icon={<Redo2 size={14} />} disabled={disabled || !editor.can().redo()} aria-label="重做" onClick={() => editor.chain().focus().redo().run()} />
-                <Button size="small" theme="borderless" icon={<ImagePlus size={14} />} loading={uploading} disabled={disabled || uploading} aria-label="上传并插入图片" onClick={() => inputRef.current?.click()} />
+                <Button size="small" theme="borderless" icon={<ImagePlus size={14} />} disabled={disabled || uploadingImage} aria-label="上传并插入图片" onClick={() => inputRef.current?.click()} />
                 <input ref={inputRef} hidden type="file" accept={settings.imageFormats.map((format) => `.${format}`).join(',')} multiple onChange={(event) => { void insertImages(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
-                <Button size="small" theme="borderless" icon={<Video size={14} />} loading={uploading} disabled={disabled || uploading} aria-label="上传并插入视频" onClick={() => videoInputRef.current?.click()} />
+                <Button size="small" theme="borderless" icon={<Video size={14} />} disabled={disabled || uploadingVideo} aria-label="上传并插入视频" onClick={() => videoInputRef.current?.click()} />
                 <input ref={videoInputRef} hidden type="file" accept=".mp4,.webm,.mov" multiple onChange={(event) => { void insertVideos(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
                 </Space>
             </div>
