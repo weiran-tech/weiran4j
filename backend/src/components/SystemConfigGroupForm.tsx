@@ -54,8 +54,12 @@ function ConfigFileField({
 }
 
 function validateField(record: ConfigView, value: unknown): string | null {
-    const text = record.fieldType === 'switch' ? String(Boolean(value)) : toTextValue(value);
+    const text = record.configKey === 'system.upload.image_formats' && Array.isArray(value) ? value.join(',')
+        : record.fieldType === 'switch' ? String(Boolean(value)) : toTextValue(value);
     if (record.required && !text.trim()) return '此项必填';
+    if (record.configKey === 'system.upload.image_formats' && (!Array.isArray(value) || value.length === 0)) return '请至少选择一种格式';
+    if (record.configKey === 'system.upload.file_formats' && !/^(pdf|gif|jpg|jpeg|png|webp|txt|csv|doc|docx|xls|xlsx|ppt|pptx|zip)(,(pdf|gif|jpg|jpeg|png|webp|txt|csv|doc|docx|xls|xlsx|ppt|pptx|zip))*$/.test(text.trim().toLowerCase())) return '请输入支持的扩展名，以英文逗号分隔';
+    if (record.configKey.endsWith('_max_size_mb') && (!Number.isInteger(Number(text)) || Number(text) < 1 || Number(text) > 100)) return '请输入 1～100 的整数';
     if (record.fieldType === 'number' && text.trim() && (text.trim() !== text || Number.isNaN(Number(text)))) {
         return '请输入合法数字';
     }
@@ -100,7 +104,9 @@ export function SystemConfigGroupForm({
         setUploading(uploadingFields.current.size > 0);
     };
     const initValues = useMemo(
-        () => Object.fromEntries(records.map((record) => [String(record.id), record.fieldType === 'switch' ? record.configValue === 'true' : record.configValue])),
+        () => Object.fromEntries(records.map((record) => [String(record.id), record.configKey === 'system.upload.image_formats'
+            ? record.configValue.split(',').filter(Boolean)
+            : record.fieldType === 'switch' ? record.configValue === 'true' : record.configValue])),
         [records],
     );
 
@@ -120,7 +126,8 @@ export function SystemConfigGroupForm({
             const value = values[String(record.id)];
             return {
                 configKey: record.configKey,
-                configValue: record.fieldType === 'switch' ? String(Boolean(value)) : toTextValue(value),
+                configValue: record.configKey === 'system.upload.image_formats' && Array.isArray(value) ? value.join(',')
+                    : record.fieldType === 'switch' ? String(Boolean(value)) : toTextValue(value).trim(),
                 configType: record.configType,
                 groupKey: record.groupKey,
                 fieldType: record.fieldType,
@@ -177,7 +184,9 @@ export function SystemConfigGroupForm({
                     };
                     return (
                         <div key={record.id} style={{ width: '100%' }}>
-                            {record.fieldType === 'textarea' ? (
+                            {record.configKey === 'system.upload.image_formats' ? (
+                                <Form.Select {...common} multiple optionList={['gif', 'jpg', 'jpeg', 'png'].map((format) => ({ label: format, value: format }))} style={{ width: '100%' }} />
+                            ) : record.fieldType === 'textarea' ? (
                                 <Form.TextArea {...common} rows={3} maxLength={65535} />
                             ) : record.fieldType === 'number' ? (
                                 <Form.Input {...common} type="number" />

@@ -3,3 +3,4 @@
 .rich-text-editor__content .ProseMirror { min-height: 160px; padding: 12px; outline: none; }
 .rich-text-editor__content .ProseMirror p { margin: 0 0 8px; }
 .rich-text-editor__content .ProseMirror img { display: block; max-width: 100%; height: auto; }
+.rich-text-editor__content .ProseMirror video { display: block; max-width: 100%; width: 100%; height: auto; margin: 8px 0; }

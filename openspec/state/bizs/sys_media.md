@@ -9,7 +9,7 @@
 | 表 | `sys_media` |
 | 模块 | `weiran-system` |
 | 管理页面 | `/system/media-library` |
-| 管理接口 | `/api-backend/system/media/uploadFile`、`/api-backend/system/mediaLibrary/list`、`/api-backend/system/mediaLibrary/delete/{id}` |
+| 管理接口 | `/api-backend/system/media/uploadFile`、`/api-backend/system/media/getUploadSettings`、`/api-backend/system/mediaLibrary/list`、`/api-backend/system/mediaLibrary/delete/{id}` |
 | 权限 | `system:media-library:list/upload/delete` |
 
 ## 1. 列表
@@ -30,7 +30,7 @@ Semi UI 表格、列设置、操作列与搜索工具栏、system 文件存储�
 
 ## 5. 说明与建议
 
-允许 jpg/jpeg/png/gif/webp、mp4/webm/mov、pdf/txt/csv、doc/docx、xls/xlsx、ppt/pptx、zip。普通文件最大 10 MB，视频最大 100 MB；上传入口、Spring multipart 与 Nginx 限制均允许该大小。本地和 OSS 存储使用同一对象名约束。浏览器能否解码 MOV 取决于本机支持的编码。
+服务端按系统配置 `system.upload.*` 校验：图片格式限 gif/jpg/jpeg/png 多选（默认全选）、图片大小默认 10 MB；视频允许 mp4/webm/mov，大小默认 100 MB；普通文件格式为逗号分隔的受支持扩展名（默认 `pdf,gif`），大小固定 10 MB。大小设置范围 1～100 MB；配置缺失或非法时回退默认值。图片按图片规则校验，不受普通文件格式项影响。上传入口、Spring multipart 与 Nginx 限制均允许最大 100 MB。本地和 OSS 存储使用同一对象名约束。浏览器能否解码 MOV 取决于本机支持的编码。
 
 ## 6. 已知问题汇总
 
@@ -38,6 +38,9 @@ Semi UI 表格、列设置、操作列与搜索工具栏、system 文件存储�
   通用索引与检查器扩展入口已经具备；现有业务模块若尚未在保存事务中调用 `MediaReferenceService.replace` 或注册检查器，其引用仍可能显示「未发现引用」，管理员可误删业务正在使用的文件。各业务模块接入时需逐一补齐。
 
 ## 7. changelog
+
+**2026-10-30**
+- 上传校验改为读取系统上传设置；资源库及通用上传组件获取当前规则，富文本可上传并插入视频。
 
 **2026-10-24**
 - 新增 `sys_media_reference` 与多类型检查器组合，配置和头像自动登记；删除前检查所有来源并锁定资源。业务来源按模块逐一接入。

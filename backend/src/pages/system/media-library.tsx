@@ -4,14 +4,14 @@ import { Copy, Download, Eye, FilePlus2, Play, RefreshCw, Trash2 } from 'lucide-
 import { useRef, useState } from 'react';
 import { useColumnSettings } from '@/components/ColumnSettings';
 import { FileTypeIcon, isPdfFile } from '@/components/FileTypeIcon';
-import { fileUploadError, MAX_FILE_SIZE_MB, MAX_VIDEO_SIZE_MB } from '@/components/FileUpload';
+import { DEFAULT_UPLOAD_SETTINGS, fileUploadError, MAX_FILE_SIZE_MB } from '@/components/FileUpload';
 import { PdfPreview } from '@/components/PdfPreview';
 import { VideoPreview } from '@/components/VideoPreview';
 import { PageContainer } from '@/components/PageContainer';
 import { Permission } from '@/components/Permission';
 import { SearchToolbar, type SearchCondition } from '@/components/SearchToolbar';
 import { useActionsColumn, type TableAction } from '@/components/TableActions';
-import { useDeleteSystemMediaFile, useSystemMediaFiles, useUploadSystemFile } from '@/hooks/queries/system-media';
+import { useDeleteSystemMediaFile, useSystemMediaFiles, useUploadSettings, useUploadSystemFile } from '@/hooks/queries/system-media';
 import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
 import { openFileUrl } from '@/lib/file-url';
 import type { SystemMediaFileQuery, SystemMediaFileView } from '@/types/api';
@@ -54,6 +54,7 @@ export default function SystemMediaLibraryPage() {
     const [deleting, setDeleting] = useState<SystemMediaFileView | null>(null);
     const query = useSystemMediaFiles({ page, pageSize, ...(keyword ? { keyword } : {}), ...(category ? { category } : {}) });
     const upload = useUploadSystemFile();
+    const settings = useUploadSettings().data ?? DEFAULT_UPLOAD_SETTINGS;
     const remove = useDeleteSystemMediaFile();
 
     const search = () => { setKeyword(draftKeyword.trim()); setCategory(draftCategory); setPage(1); };
@@ -65,7 +66,7 @@ export default function SystemMediaLibraryPage() {
 
     const uploadOne = async (item: UploadItem) => {
         setUploads((current) => current.map((row) => row.key === item.key ? { ...row, state: 'uploading', error: undefined } : row));
-        const error = fileUploadError(item.file);
+        const error = fileUploadError(item.file, settings);
         if (error) {
             setUploads((current) => current.map((row) => row.key === item.key ? { ...row, state: 'error', error } : row));
             return;
@@ -132,7 +133,7 @@ export default function SystemMediaLibraryPage() {
         </SearchToolbar>
         <input ref={inputRef} type="file" multiple hidden aria-label="选择文件" onChange={(event) => { const files = Array.from(event.currentTarget.files ?? []); event.currentTarget.value = ''; chooseFiles(files); }} />
         {uploads.length > 0 && <section className="media-library__uploads" aria-label="上传结果">
-            <div className="media-library__uploads-title">本次上传 · 普通文件不超过 {MAX_FILE_SIZE_MB} MB，视频不超过 {MAX_VIDEO_SIZE_MB} MB</div>
+            <div className="media-library__uploads-title">本次上传 · 图片不超过 {settings.imageMaxSizeMb} MB，普通文件不超过 {MAX_FILE_SIZE_MB} MB，视频不超过 {settings.videoMaxSizeMb} MB</div>
             {uploads.map((item) => <div className="media-library__upload-row" key={item.key}>
                 <span className="media-library__upload-name" title={item.file.name}>{item.file.name}</span>
                 {item.state === 'uploading' ? <Typography.Text type="tertiary">上传中</Typography.Text>

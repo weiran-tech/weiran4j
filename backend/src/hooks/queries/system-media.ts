@@ -5,13 +5,22 @@ import type {
     SystemMediaFileQuery,
     SystemMediaFileUpload,
     SystemMediaFileView,
+    SystemMediaUploadSettings,
     PageResult,
 } from '@/types/api';
 
 export const systemMediaKeys = {
     all: ['system-media'] as const,
+    uploadSettings: ['system-media', 'upload-settings'] as const,
     page: (query: SystemMediaFileQuery) => [...systemMediaKeys.all, query] as const,
 };
+
+export function useUploadSettings() {
+    return useQuery({
+        queryKey: systemMediaKeys.uploadSettings,
+        queryFn: () => http.get<SystemMediaUploadSettings>('/api-backend/system/media/getUploadSettings'),
+    });
+}
 
 export function uploadSystemFile(file: File) {
     const body = new FormData();

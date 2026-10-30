@@ -9,6 +9,8 @@ import org.jspecify.annotations.Nullable;
 /** 文件资源管理服务。 */
 public interface MediaService {
 
+    MediaUploadSettingsView uploadSettings();
+
     FileUploadView upload(String originalName, InputStream content, long size, long uploadedBy) throws IOException;
 
     PageResult<MediaView> page(@Nullable String keyword, @Nullable String category, PageQuery pageQuery);

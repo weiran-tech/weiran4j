@@ -31,7 +31,7 @@
 | 后端模块 | `weiran-system`；`ConfigController` → `ConfigApplicationService` → `MybatisConfigRepository` |
 | 接口前缀 | `/api-backend/system/config`；具体 HTTP 接口以 Springdoc OpenAPI 为准 |
 | 权限码 | `system:config:list` · `system:config:create` · `system:config:update` · `system:config:delete`；`GET /public/{key}` 为 `@PublicApi`（免登录） |
-| 种子 | `system.general.title` = `Weiran Admin`（`config_system/general`，string，内置）；`system.user.enable_phone_login` = `false`（`config_system/user`，boolean，内置）；`sms.general.sign_name`（`config_sms/general`）、`sms.system_tpl.captcha_local`、`sms.system_tpl.captcha_aliyun`（`config_sms/system_tpl`，string，内置，默认空）；`config_system` 含 `general`、`user`，`config_sms` 含 `general`、`system_tpl` |
+| 种子 | `system.general.title` = `Weiran Admin`（`config_system/general`，string，内置）；`system.user.enable_phone_login` = `false`（`config_system/user`，boolean，内置）；`system.upload.*` 四项（`config_system/upload`，内置，图片格式 `gif,jpg,jpeg,png`、图片大小 10 MB、视频大小 100 MB、文件格式 `pdf,gif`）；`sms.general.sign_name`（`config_sms/general`）、`sms.system_tpl.captcha_local`、`sms.system_tpl.captcha_aliyun`（`config_sms/system_tpl`，string，内置，默认空）；`config_system` 含 `general`、`user`、`upload`，`config_sms` 含 `general`、`system_tpl` |
 
 ## 1. 可视化表单
 
@@ -112,6 +112,9 @@
 ## 7. changelog
 
 新条目插在本节最上方（按日期倒序，新在上）。
+
+**2026-10-30**
+- 新增上传设置分组；图片格式使用多选，图片和视频大小用 MB 数字输入，文件格式用逗号分隔输入。资源上传从配置读取规则并在服务端校验，富文本支持视频上传和插入。
 
 **2026-10-27**
 - 业务命名空间可经 `ConfigService` 创建和更新 `sys_config`，共享值校验与媒体引用事务；系统管理界面的 `system.` / `sms.` 创建规则保持独立。

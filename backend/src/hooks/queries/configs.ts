@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toQueryString } from '@/lib/query';
+import { systemMediaKeys } from '@/hooks/queries/system-media';
 import { http } from '@/utils/request';
 import type {
     ConfigGroupSaveRequest,
@@ -72,7 +73,10 @@ export function useSaveConfig() {
             id === undefined
                 ? http.post<IdResult>('/api-backend/system/config/create', body)
                 : http.put<null>(`/api-backend/system/config/update/${id}`, body),
-        onSuccess: () => qc.invalidateQueries({ queryKey: configKeys.all }),
+        onSuccess: () => {
+            void qc.invalidateQueries({ queryKey: configKeys.all });
+            void qc.invalidateQueries({ queryKey: systemMediaKeys.uploadSettings });
+        },
     });
 }
 

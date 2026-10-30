@@ -1,38 +1,44 @@
 import { Button, ImagePreview, Toast } from '@douyinfe/semi-ui';
 import { ArrowLeft, ArrowRight, Download, Eye, FilePlus2, Play, RotateCcw, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
-import { useUploadSystemFile } from '@/hooks/queries/system-media';
+import { useUploadSettings, useUploadSystemFile } from '@/hooks/queries/system-media';
+import type { SystemMediaUploadSettings } from '@/types/api';
 import { openFileUrl } from '@/lib/file-url';
 import { FileTypeIcon, fileExtension, isImageFile, isPdfFile, isVideoFile } from './FileTypeIcon';
 import { PdfPreview } from './PdfPreview';
 import { VideoPreview } from './VideoPreview';
 import './FileUpload.css';
 
-const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp']);
 const VIDEO_EXTENSIONS = new Set(['.mp4', '.webm', '.mov']);
-const FILE_EXTENSIONS = new Set([...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS, '.pdf', '.txt', '.csv', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip']);
+const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp']);
+export const DEFAULT_UPLOAD_SETTINGS: SystemMediaUploadSettings = {
+    imageFormats: ['gif', 'jpg', 'jpeg', 'png'], imageMaxSizeMb: 10, videoMaxSizeMb: 100, fileFormats: ['pdf', 'gif'],
+};
 export const MAX_FILE_SIZE_MB = 10;
-export const MAX_VIDEO_SIZE_MB = 100;
 export const DEFAULT_MAX_FILES = 9;
 
 export function isImageUrl(url: string): boolean {
     return isImageFile(url);
 }
 
-export function fileUploadError(file: File): string | null {
-    const extension = `.${fileExtension(file.name)}`;
-    if (!FILE_EXTENSIONS.has(extension)) return '不支持该文件类型';
-    const maxSize = VIDEO_EXTENSIONS.has(extension) ? MAX_VIDEO_SIZE_MB : MAX_FILE_SIZE_MB;
+export function fileUploadError(file: File, settings = DEFAULT_UPLOAD_SETTINGS): string | null {
+    const extension = fileExtension(file.name);
+    const maxSize = VIDEO_EXTENSIONS.has(`.${extension}`) ? settings.videoMaxSizeMb
+        : IMAGE_EXTENSIONS.has(extension) ? settings.imageMaxSizeMb : MAX_FILE_SIZE_MB;
+    if (!VIDEO_EXTENSIONS.has(`.${extension}`) && !IMAGE_EXTENSIONS.has(extension) && !settings.fileFormats.includes(extension)) return '不支持该文件类型';
+    if (IMAGE_EXTENSIONS.has(extension) && !settings.imageFormats.includes(extension)) return '该图片格式未启用';
     if (file.size === 0 || file.size > maxSize * 1024 * 1024) return `文件须大于 0 且不超过 ${maxSize} MB`;
     return null;
 }
 
-export function imageFileError(file: File): string | null {
-    const extension = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
-    if (!IMAGE_EXTENSIONS.has(extension) || file.size === 0 || file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-        return '请选择不超过 10 MB 的 jpg、jpeg、png、gif 或 webp 图片';
-    }
-    return null;
+export function imageFileError(file: File, settings = DEFAULT_UPLOAD_SETTINGS): string | null {
+    if (!settings.imageFormats.includes(fileExtension(file.name))) return `请选择 ${settings.imageFormats.join('、')} 格式的图片`;
+    return fileUploadError(file, settings);
+}
+
+export function videoFileError(file: File, settings = DEFAULT_UPLOAD_SETTINGS): string | null {
+    if (!VIDEO_EXTENSIONS.has(`.${fileExtension(file.name)}`)) return '请选择 mp4、webm 或 mov 视频';
+    return fileUploadError(file, settings);
 }
 
 type UploadFile = (file: File) => Promise<string | { url: string }>;
@@ -51,6 +57,7 @@ type FileUploadProps = {
 export function FileUpload(props: FileUploadProps) {
     const { disabled = false, onUpload, onUploadingChange, maxFiles = DEFAULT_MAX_FILES } = props;
     const upload = useUploadSystemFile();
+    const settings = useUploadSettings().data ?? DEFAULT_UPLOAD_SETTINGS;
     const inputRef = useRef<HTMLInputElement>(null);
     const busy = useRef(false);
     const dragIndexRef = useRef<number | null>(null);
@@ -105,7 +112,7 @@ export function FileUpload(props: FileUploadProps) {
                 Toast.warning(`最多上传 ${maxFiles} 个文件`);
                 break;
             }
-            const error = fileUploadError(file);
+            const error = fileUploadError(file, settings);
             if (error) {
                 Toast.error(error);
                 continue;
@@ -202,8 +209,8 @@ export function FileUpload(props: FileUploadProps) {
                     <span>{uploading ? '上传中…' : urls.length && !props.multiple ? '更换文件' : '上传文件'}</span>
                 </div>}
             </div>
-            {props.multiple && <small>普通文件不超过 {MAX_FILE_SIZE_MB} MB，视频不超过 {MAX_VIDEO_SIZE_MB} MB；最多 {maxFiles} 个（当前 {urls.length}/{maxFiles}）</small>}
-            <input ref={inputRef} hidden type="file" accept={[...FILE_EXTENSIONS].join(',')} multiple={props.multiple} onChange={(event) => { void uploadFiles(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
+            {props.multiple && <small>图片不超过 {settings.imageMaxSizeMb} MB，普通文件不超过 {MAX_FILE_SIZE_MB} MB，视频不超过 {settings.videoMaxSizeMb} MB；最多 {maxFiles} 个（当前 {urls.length}/{maxFiles}）</small>}
+            <input ref={inputRef} hidden type="file" accept={[...new Set([...settings.imageFormats, ...settings.fileFormats, 'mp4', 'webm', 'mov'])].map((item) => `.${item}`).join(',')} multiple={props.multiple} onChange={(event) => { void uploadFiles(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
             {failed.length > 0 && (
                 <Button size="small" icon={<RotateCcw size={14} />} disabled={disabled || uploading} onClick={() => void uploadFiles(failed)}>
                     重试失败的文件（{failed.length}）

@@ -99,9 +99,11 @@ class PlatformIT extends IntegrationTestSupport {
         final String suffix = IntegrationTestSupport.unique("cfg");
         final String prefix = "system.general." + suffix;
         final JsonNode groups = IntegrationTestSupport.data(this.get("/api-backend/system/config/listGroups", admin));
-        assertThat(groups.findValuesAsText("key")).containsExactly("general", "general", "user", "system_tpl", "demo");
+        assertThat(groups.findValuesAsText("key"))
+                .containsExactly("general", "general", "user", "upload", "system_tpl", "demo");
         assertThat(groups.findValuesAsText("groupKey"))
-                .containsExactly("config_system", "config_sms", "config_system", "config_sms", "config_system");
+                .containsExactly(
+                        "config_system", "config_sms", "config_system", "config_system", "config_sms", "config_system");
         assertThat(this.jdbc.queryForObject(
                         "SELECT config_value FROM sys_config WHERE config_key = 'system.user.enable_phone_login'",
                         String.class))

@@ -3,15 +3,19 @@ package com.wulicode.weiran.system.application.media;
 import com.wulicode.weiran.framework.error.BizException;
 import com.wulicode.weiran.framework.page.PageQuery;
 import com.wulicode.weiran.framework.page.PageResult;
+import com.wulicode.weiran.platform.api.config.ConfigService;
+import com.wulicode.weiran.platform.api.config.ConfigView;
 import com.wulicode.weiran.system.api.media.FileUploadView;
 import com.wulicode.weiran.system.api.media.MediaReferenceChecker;
 import com.wulicode.weiran.system.api.media.MediaReferenceLocation;
 import com.wulicode.weiran.system.api.media.MediaService;
+import com.wulicode.weiran.system.api.media.MediaUploadSettingsView;
 import com.wulicode.weiran.system.api.media.MediaView;
 import com.wulicode.weiran.system.domain.media.MediaAsset;
 import com.wulicode.weiran.system.domain.media.MediaFileTypes;
 import com.wulicode.weiran.system.domain.media.MediaReferenceRepository;
 import com.wulicode.weiran.system.domain.media.MediaRepository;
+import com.wulicode.weiran.system.domain.media.MediaUploadPolicy;
 import com.wulicode.weiran.system.domain.storage.FileStorage;
 import com.wulicode.weiran.system.domain.storage.FileStorage.StoredFile;
 import com.wulicode.weiran.system.domain.storage.FileStorageException;
@@ -36,6 +40,7 @@ public class MediaApplicationService implements MediaService {
     private final MediaAssetDeletionService deletionService;
     private final @Nullable MediaReferenceRepository referenceRepository;
     private final List<MediaReferenceChecker> referenceCheckers;
+    private final @Nullable ConfigService configService;
 
     @Autowired
     public MediaApplicationService(
@@ -43,12 +48,14 @@ public class MediaApplicationService implements MediaService {
             final FileStorage fileStorage,
             final MediaAssetDeletionService deletionService,
             final MediaReferenceRepository referenceRepository,
-            final List<MediaReferenceChecker> referenceCheckers) {
+            final List<MediaReferenceChecker> referenceCheckers,
+            final ConfigService configService) {
         this.mediaRepository = mediaRepository;
         this.fileStorage = fileStorage;
         this.deletionService = deletionService;
         this.referenceRepository = referenceRepository;
         this.referenceCheckers = List.copyOf(referenceCheckers);
+        this.configService = configService;
     }
 
     /** 供无需配置仓储的轻量使用者使用。 */
@@ -61,6 +68,24 @@ public class MediaApplicationService implements MediaService {
         this.deletionService = deletionService;
         this.referenceRepository = null;
         this.referenceCheckers = List.of();
+        this.configService = null;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MediaUploadSettingsView uploadSettings() {
+        final MediaUploadPolicy policy = this.uploadPolicy();
+        return new MediaUploadSettingsView(
+                policy.imageFormats(), policy.imageMaxSizeMb(), policy.videoMaxSizeMb(), policy.fileFormats());
+    }
+
+    private MediaUploadPolicy uploadPolicy() {
+        if (this.configService == null) {
+            return MediaUploadPolicy.defaults();
+        }
+        final Map<String, String> values = this.configService.all().stream()
+                .collect(Collectors.toMap(ConfigView::configKey, ConfigView::configValue, (first, ignored) -> first));
+        return MediaUploadPolicy.from(values);
     }
 
     @Override
@@ -71,15 +96,7 @@ public class MediaApplicationService implements MediaService {
         final StoredFile stored;
         try (PushbackInputStream checked = new PushbackInputStream(content, 12)) {
             final String extension = MediaFileTypes.extension(originalName);
-            if (!MediaFileTypes.allowed(extension)) {
-                throw BizException.badRequest("不支持该文件类型");
-            }
-            final long maxSize =
-                    MediaFileTypes.video(extension) ? MediaFileTypes.MAX_VIDEO_SIZE : MediaFileTypes.MAX_FILE_SIZE;
-            if (size == 0 || size > maxSize) {
-                throw BizException.badRequest(
-                        MediaFileTypes.video(extension) ? "视频不能为空且不得超过 100 MB" : "文件不能为空且不得超过 10 MB");
-            }
+            this.uploadPolicy().validate(extension, size);
             final byte[] header = checked.readNBytes(12);
             checked.unread(header);
             if (MediaFileTypes.image(extension) && !MediaApplicationService.matchesImageSignature(extension, header)) {

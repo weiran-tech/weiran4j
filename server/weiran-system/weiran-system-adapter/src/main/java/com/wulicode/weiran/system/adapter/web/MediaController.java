@@ -9,6 +9,7 @@ import com.wulicode.weiran.framework.page.PageResult;
 import com.wulicode.weiran.framework.response.ApiResponse;
 import com.wulicode.weiran.system.api.media.FileUploadView;
 import com.wulicode.weiran.system.api.media.MediaService;
+import com.wulicode.weiran.system.api.media.MediaUploadSettingsView;
 import com.wulicode.weiran.system.api.media.MediaView;
 import java.io.IOException;
 import org.jspecify.annotations.Nullable;
@@ -28,6 +29,11 @@ public class MediaController {
 
     public MediaController(final MediaService service) {
         this.service = service;
+    }
+
+    @GetMapping("/api-backend/system/media/getUploadSettings")
+    public MediaUploadSettingsView uploadSettings() {
+        return this.service.uploadSettings();
     }
 
     @PostMapping({"/api-backend/system/media/uploadImage", "/api-backend/system/media/uploadFile"})

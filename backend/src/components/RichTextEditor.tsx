@@ -1,11 +1,12 @@
 import { Button, Space, Toast } from '@douyinfe/semi-ui';
+import { Node } from '@tiptap/core';
 import Image from '@tiptap/extension-image';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { Bold, Heading2, ImagePlus, Italic, List, ListOrdered, Quote, Redo2, Undo2 } from 'lucide-react';
+import { Bold, Heading2, ImagePlus, Italic, List, ListOrdered, Quote, Redo2, Undo2, Video } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { useUploadSystemFile } from '@/hooks/queries/system-media';
-import { imageFileError } from './FileUpload';
+import { useUploadSettings, useUploadSystemFile } from '@/hooks/queries/system-media';
+import { DEFAULT_UPLOAD_SETTINGS, imageFileError, videoFileError } from './FileUpload';
 import './RichTextEditor.css';
 
 interface RichTextEditorProps {
@@ -17,20 +18,31 @@ interface RichTextEditorProps {
     onUploadingChange?: (uploading: boolean) => void;
 }
 
+const VideoNode = Node.create({
+    name: 'video',
+    group: 'block',
+    atom: true,
+    addAttributes() { return { src: { default: null } }; },
+    parseHTML() { return [{ tag: 'video[src]' }]; },
+    renderHTML({ HTMLAttributes }) { return ['video', { ...HTMLAttributes, controls: 'controls', preload: 'metadata' }]; },
+});
+
 /** 富文本统一入口。图片默认上传到 system 资源库。 */
 export function RichTextEditor({ value, disabled = false, label = '富文本', onChange, onUploadImage, onUploadingChange }: RichTextEditorProps) {
     const inputRef = useRef<HTMLInputElement>(null);
+    const videoInputRef = useRef<HTMLInputElement>(null);
     const editorRef = useRef<ReturnType<typeof useEditor>>(null);
     const pending = useRef(0);
     const mounted = useRef(true);
     const [uploading, setUploading] = useState(false);
     const upload = useUploadSystemFile();
+    const settings = useUploadSettings().data ?? DEFAULT_UPLOAD_SETTINGS;
 
     const insertImages = async (files: File[]) => {
         const currentEditor = editorRef.current;
         if (!currentEditor?.isEditable || files.length === 0) return;
         const valid = files.filter((file) => {
-            const error = imageFileError(file);
+            const error = imageFileError(file, settings);
             if (error) Toast.error(error);
             return !error;
         });
@@ -60,8 +72,36 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
         }
     };
 
+    const insertVideos = async (files: File[]) => {
+        const currentEditor = editorRef.current;
+        if (!currentEditor?.isEditable || files.length === 0) return;
+        const valid = files.filter((file) => {
+            const error = videoFileError(file, settings);
+            if (error) Toast.error(error);
+            return !error;
+        });
+        if (valid.length === 0) return;
+        const position = currentEditor.state.selection.from;
+        pending.current += 1;
+        setUploading(true);
+        onUploadingChange?.(true);
+        try {
+            const results = await Promise.allSettled(valid.map((file) => upload.mutateAsync(file)));
+            const videos = results.flatMap((result) => result.status === 'fulfilled'
+                ? [{ type: 'video', attrs: { src: result.value.url } }]
+                : []);
+            if (mounted.current && currentEditor.isEditable && videos.length > 0) currentEditor.chain().focus().insertContentAt(position, videos).run();
+        } finally {
+            pending.current -= 1;
+            if (mounted.current && pending.current === 0) {
+                setUploading(false);
+                onUploadingChange?.(false);
+            }
+        }
+    };
+
     const editor = useEditor({
-        extensions: [StarterKit, Image.configure({ allowBase64: false })],
+        extensions: [StarterKit, Image.configure({ allowBase64: false }), VideoNode],
         content: value,
         editable: !disabled,
         immediatelyRender: false,
@@ -108,7 +148,9 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
                 <Button size="small" theme="borderless" icon={<Undo2 size={14} />} disabled={disabled || !editor.can().undo()} aria-label="撤销" onClick={() => editor.chain().focus().undo().run()} />
                 <Button size="small" theme="borderless" icon={<Redo2 size={14} />} disabled={disabled || !editor.can().redo()} aria-label="重做" onClick={() => editor.chain().focus().redo().run()} />
                 <Button size="small" theme="borderless" icon={<ImagePlus size={14} />} loading={uploading} disabled={disabled || uploading} aria-label="上传并插入图片" onClick={() => inputRef.current?.click()} />
-                <input ref={inputRef} hidden type="file" accept=".jpg,.jpeg,.png,.gif" multiple onChange={(event) => { void insertImages(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
+                <input ref={inputRef} hidden type="file" accept={settings.imageFormats.map((format) => `.${format}`).join(',')} multiple onChange={(event) => { void insertImages(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
+                <Button size="small" theme="borderless" icon={<Video size={14} />} loading={uploading} disabled={disabled || uploading} aria-label="上传并插入视频" onClick={() => videoInputRef.current?.click()} />
+                <input ref={videoInputRef} hidden type="file" accept=".mp4,.webm,.mov" multiple onChange={(event) => { void insertVideos(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
                 </Space>
             </div>
             <EditorContent className="rich-text-editor__content" editor={editor} />

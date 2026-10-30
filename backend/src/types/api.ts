@@ -442,6 +442,13 @@ export interface ConfigSaveRequest {
 
 /* ---------- 系统媒体库 ---------- */
 
+export interface SystemMediaUploadSettings {
+    imageFormats: string[];
+    imageMaxSizeMb: number;
+    videoMaxSizeMb: number;
+    fileFormats: string[];
+}
+
 export interface SystemMediaFileUpload {
     url: string;
     name: string;
