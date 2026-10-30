@@ -9,7 +9,7 @@
 | 表 | `sys_media` |
 | 模块 | `weiran-system` |
 | 管理页面 | `/system/media-library` |
-| 管理接口 | `/api-backend/system/media/uploadFile`、`/api-backend/system/media/getUploadSettings`、`/api-backend/system/mediaLibrary/list`、`/api-backend/system/mediaLibrary/delete/{id}` |
+| 管理接口 | `/api-backend/system/media/uploadFile`、`/api-backend/system/media/getUploadSettings`、`/api-backend/system/media/getDirectUploadAuthorization`、`/api-backend/system/media/completeDirectUpload`、`/api-backend/system/mediaLibrary/list`、`/api-backend/system/mediaLibrary/delete/{id}` |
 | 权限 | `system:media-library:list/upload/delete` |
 
 ## 1. 列表
@@ -32,6 +32,8 @@ Semi UI 表格、列设置、操作列与搜索工具栏、system 文件存储�
 
 服务端按系统配置 `system.upload.*` 校验：图片格式限 gif/jpg/jpeg/png 多选（默认全选）、图片大小默认 10 MB、可设 1～100 MB；视频允许 mp4/webm/mov，大小默认 100 MB、可设 1～1024 MB；普通文件格式为逗号分隔的受支持扩展名（默认 `pdf,gif`），大小固定 10 MB。配置缺失或非法时回退默认值。图片按图片规则校验，不受普通文件格式项影响。上传入口、Spring multipart 与 Nginx 限制均允许最大 1024 MB。本地和 OSS 存储使用同一对象名约束。浏览器能否解码 MOV 取决于本机支持的编码。
 
+`aliyun` 模式下浏览器获取 15 分钟有效的 OSS 表单授权并按有效期缓存，直传成功后上报对象名、原文件名、大小与授权票据。服务端校验票据所属用户和对象前缀、OSS 对象实际大小及图片/视频文件头，再写入 `sys_media`；业务配置保存时继续由现有引用服务更新 `sys_media_reference`。直传对象名为 `media/UTC年月/授权UUID/文件UUID.扩展名`；原有后端代传与 `local` 模式仍使用 `media/UTC年月/文件UUID.扩展名`。
+
 ## 6. 已知问题汇总
 
 - **#03 部分解决 P2 业务模块引用位置尚未接入资源库**
@@ -40,6 +42,8 @@ Semi UI 表格、列设置、操作列与搜索工具栏、system 文件存储�
 ## 7. changelog
 
 **2026-10-30**
+- 富文本图片和视频上传期间在编辑位置显示占位提示，上传完成或失败后移除，提示不写入 HTML。
+- 阿里云 OSS 模式的浏览器直传采用限时表单授权；成功后由服务端验收并登记资源。
 - 视频上传大小配置上限从 100 MB 提高到 1024 MB，默认仍为 100 MB；同步提高 Spring multipart 与 Nginx 请求上限。
 - 上传校验改为读取系统上传设置；资源库及通用上传组件获取当前规则，富文本可上传并插入视频。
 

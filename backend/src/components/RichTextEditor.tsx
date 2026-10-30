@@ -27,17 +27,38 @@ const VideoNode = Node.create({
     renderHTML({ HTMLAttributes }) { return ['video', { ...HTMLAttributes, controls: 'controls', preload: 'metadata' }]; },
 });
 
+interface UploadPlaceholder { id: number; label: string; top: number; left: number }
+
 /** 富文本统一入口。图片默认上传到 system 资源库。 */
 export function RichTextEditor({ value, disabled = false, label = '富文本', onChange, onUploadImage, onUploadingChange }: RichTextEditorProps) {
     const inputRef = useRef<HTMLInputElement>(null);
     const videoInputRef = useRef<HTMLInputElement>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
     const editorRef = useRef<ReturnType<typeof useEditor>>(null);
     const pending = useRef({ image: 0, video: 0 });
+    const nextPlaceholderId = useRef(0);
     const mounted = useRef(true);
     const [uploadingImage, setUploadingImage] = useState(false);
     const [uploadingVideo, setUploadingVideo] = useState(false);
+    const [placeholders, setPlaceholders] = useState<UploadPlaceholder[]>([]);
     const upload = useUploadSystemFile();
     const settings = useUploadSettings().data ?? DEFAULT_UPLOAD_SETTINGS;
+
+    const addPlaceholder = (editor: NonNullable<ReturnType<typeof useEditor>>, position: number, label: string) => {
+        const id = ++nextPlaceholderId.current;
+        const caret = editor.view.coordsAtPos(position);
+        const content = contentRef.current?.getBoundingClientRect();
+        setPlaceholders((previous) => [...previous, {
+            id, label,
+            top: content ? Math.max(0, caret.top - content.top) : 0,
+            left: content ? Math.max(0, caret.left - content.left) : 0,
+        }]);
+        return id;
+    };
+
+    const removePlaceholder = (id: number) => {
+        if (mounted.current) setPlaceholders((previous) => previous.filter((placeholder) => placeholder.id !== id));
+    };
 
     const changePending = (kind: 'image' | 'video', delta: 1 | -1) => {
         const previousTotal = pending.current.image + pending.current.video;
@@ -60,6 +81,7 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
         });
         if (valid.length === 0) return;
         const position = currentEditor.state.selection.from;
+        const placeholderId = addPlaceholder(currentEditor, position, `图片上传中（${valid.length} 张）…`);
         changePending('image', 1);
         try {
             const results = await Promise.allSettled(valid.map(async (file) => {
@@ -72,8 +94,11 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
                 ? [{ type: 'image', attrs: { src: result.value.url, alt: result.value.name } }]
                 : []);
             if (results.some((result) => result.status === 'rejected') && onUploadImage) Toast.error('部分图片上传失败，请重试');
-            if (mounted.current && currentEditor.isEditable && images.length > 0) currentEditor.chain().focus().insertContentAt(position, images).run();
+            if (mounted.current && currentEditor.isEditable && images.length > 0) {
+                currentEditor.chain().focus().insertContentAt(position, images).run();
+            }
         } finally {
+            removePlaceholder(placeholderId);
             changePending('image', -1);
         }
     };
@@ -88,14 +113,18 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
         });
         if (valid.length === 0) return;
         const position = currentEditor.state.selection.from;
+        const placeholderId = addPlaceholder(currentEditor, position, `视频上传中（${valid.length} 个）…`);
         changePending('video', 1);
         try {
             const results = await Promise.allSettled(valid.map((file) => upload.mutateAsync(file)));
             const videos = results.flatMap((result) => result.status === 'fulfilled'
                 ? [{ type: 'video', attrs: { src: result.value.url } }]
                 : []);
-            if (mounted.current && currentEditor.isEditable && videos.length > 0) currentEditor.chain().focus().insertContentAt(position, videos).run();
+            if (mounted.current && currentEditor.isEditable && videos.length > 0) {
+                currentEditor.chain().focus().insertContentAt(position, videos).run();
+            }
         } finally {
+            removePlaceholder(placeholderId);
             changePending('video', -1);
         }
     };
@@ -153,7 +182,14 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
                 <input ref={videoInputRef} hidden type="file" accept=".mp4,.webm,.mov" multiple onChange={(event) => { void insertVideos(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
                 </Space>
             </div>
-            <EditorContent className="rich-text-editor__content" editor={editor} />
+            <div ref={contentRef} className="rich-text-editor__content">
+                <EditorContent editor={editor} />
+                {placeholders.map((placeholder) => (
+                    <span key={placeholder.id} className="rich-text-editor__upload-placeholder" role="status" style={{ top: placeholder.top, left: placeholder.left }}>
+                        {placeholder.label}
+                    </span>
+                ))}
+            </div>
         </div>
     );
 }

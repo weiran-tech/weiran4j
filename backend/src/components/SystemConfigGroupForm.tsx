@@ -30,6 +30,19 @@ function toStringValue(value: unknown): string {
     return typeof value === 'string' ? value : '';
 }
 
+function readFiles(value: string): string[] {
+    try {
+        const parsed: unknown = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : [];
+    } catch {
+        return [];
+    }
+}
+
+function isFilesField(record: ConfigView): boolean {
+    return record.fieldType === 'files' || (record.configKey === 'system.demo.images' && record.fieldType === 'json');
+}
+
 function ConfigFileField({
     value,
     disabled,
@@ -53,6 +66,30 @@ function ConfigFileField({
     />;
 }
 
+function ConfigMultiFileField({
+    value,
+    disabled,
+    onUpload,
+    onUploadingChange,
+    onChange,
+}: {
+    value: string;
+    disabled: boolean;
+    onUpload?: (file: File) => Promise<string>;
+    onUploadingChange: (active: boolean) => void;
+    onChange: (value: string) => void;
+}) {
+    const [files, setFiles] = useState(() => readFiles(value));
+    return <FileUpload
+        multiple
+        value={files}
+        disabled={disabled}
+        {...(onUpload ? { onUpload } : {})}
+        onUploadingChange={onUploadingChange}
+        onChange={(urls) => { setFiles(urls); onChange(JSON.stringify(urls)); }}
+    />;
+}
+
 function validateField(record: ConfigView, value: unknown): string | null {
     const text = record.configKey === 'system.upload.image_formats' && Array.isArray(value) ? value.join(',')
         : record.fieldType === 'switch' ? String(Boolean(value)) : toTextValue(value);
@@ -65,7 +102,14 @@ function validateField(record: ConfigView, value: unknown): string | null {
         return '请输入合法数字';
     }
     if (record.fieldType === 'switch' && text !== 'true' && text !== 'false') return '请选择开或关';
-    if (record.fieldType === 'json') {
+    if (isFilesField(record)) {
+        try {
+            const files: unknown = JSON.parse(text);
+            if (!Array.isArray(files) || !files.every((file) => typeof file === 'string' && file.length > 0) || files.length > 9) return '请上传最多 9 个文件';
+        } catch {
+            return '文件列表格式不正确';
+        }
+    } else if (record.fieldType === 'json') {
         try {
             JSON.parse(text);
         } catch {
@@ -195,11 +239,24 @@ export function SystemConfigGroupForm({
                                 <Form.Switch {...common} />
                             ) : record.fieldType === 'select' ? (
                                 <Form.Select {...common} optionList={parseConfigFieldOptions(record.fieldOptions ?? '')} style={{ width: '100%' }} />
+                            ) : isFilesField(record) ? (
+                                <div>
+                                    <Form.Input field={field} noLabel style={{ display: 'none' }} />
+                                    <div style={{ marginBottom: 8 }}>{label}</div>
+                                    <ConfigMultiFileField
+                                        key={`${record.id}:${record.configValue}`}
+                                        value={toStringValue(initValues[field])}
+                                        disabled={!canEdit}
+                                        {...(onUploadFile ? { onUpload: onUploadFile } : {})}
+                                        onUploadingChange={(active) => setFieldUploading(record.id, active)}
+                                        onChange={(value) => { api.current?.setValue(field, value); }}
+                                    />
+                                </div>
                             ) : record.fieldType === 'json' ? (
                                 <Form.TextArea {...common} rows={5} maxLength={65535} />
                             ) : record.fieldType === 'file' || record.fieldType === 'image' ? (
                                 <div>
-                                    <Form.Input field={field} style={{ display: 'none' }} />
+                                    <Form.Input field={field} noLabel style={{ display: 'none' }} />
                                     <div style={{ marginBottom: 8 }}>{label}</div>
                                     <ConfigFileField
                                         key={`${record.id}:${record.configValue}`}
@@ -214,7 +271,7 @@ export function SystemConfigGroupForm({
                                 </div>
                             ) : record.fieldType === 'richtext' ? (
                                 <div>
-                                    <Form.Input field={field} style={{ display: 'none' }} />
+                                    <Form.Input field={field} noLabel style={{ display: 'none' }} />
                                     <div style={{ marginBottom: 8 }}>{label}</div>
                                     <RichTextEditor
                                         key={record.id}

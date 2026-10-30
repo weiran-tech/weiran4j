@@ -389,7 +389,7 @@ export interface DictItemSaveRequest {
 /* ---------- 系统配置 ---------- */
 
 export type ConfigType = 'string' | 'number' | 'boolean' | 'json';
-export type ConfigFieldType = 'input' | 'textarea' | 'number' | 'switch' | 'select' | 'json' | 'file' | 'image' | 'richtext';
+export type ConfigFieldType = 'input' | 'textarea' | 'number' | 'switch' | 'select' | 'json' | 'files' | 'file' | 'image' | 'richtext';
 
 export interface ConfigGroupView {
     groupKey: string;
@@ -447,6 +447,16 @@ export interface SystemMediaUploadSettings {
     imageMaxSizeMb: number;
     videoMaxSizeMb: number;
     fileFormats: string[];
+}
+
+export interface SystemMediaDirectUploadAuthorization {
+    uploadUrl: string;
+    keyPrefix: string;
+    accessKeyId: string;
+    policy: string;
+    signature: string;
+    expiresAt: string;
+    ticket: string;
 }
 
 export interface SystemMediaFileUpload {

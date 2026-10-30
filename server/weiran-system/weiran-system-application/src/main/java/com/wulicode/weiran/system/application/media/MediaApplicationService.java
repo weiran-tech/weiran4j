@@ -5,6 +5,8 @@ import com.wulicode.weiran.framework.page.PageQuery;
 import com.wulicode.weiran.framework.page.PageResult;
 import com.wulicode.weiran.platform.api.config.ConfigService;
 import com.wulicode.weiran.platform.api.config.ConfigView;
+import com.wulicode.weiran.system.api.media.CompleteDirectUploadRequest;
+import com.wulicode.weiran.system.api.media.DirectUploadView;
 import com.wulicode.weiran.system.api.media.FileUploadView;
 import com.wulicode.weiran.system.api.media.MediaReferenceChecker;
 import com.wulicode.weiran.system.api.media.MediaReferenceLocation;
@@ -16,6 +18,7 @@ import com.wulicode.weiran.system.domain.media.MediaFileTypes;
 import com.wulicode.weiran.system.domain.media.MediaReferenceRepository;
 import com.wulicode.weiran.system.domain.media.MediaRepository;
 import com.wulicode.weiran.system.domain.media.MediaUploadPolicy;
+import com.wulicode.weiran.system.domain.storage.DirectUploadStorage;
 import com.wulicode.weiran.system.domain.storage.FileStorage;
 import com.wulicode.weiran.system.domain.storage.FileStorage.StoredFile;
 import com.wulicode.weiran.system.domain.storage.FileStorageException;
@@ -86,6 +89,70 @@ public class MediaApplicationService implements MediaService {
         final Map<String, String> values = this.configService.all().stream()
                 .collect(Collectors.toMap(ConfigView::configKey, ConfigView::configValue, (first, ignored) -> first));
         return MediaUploadPolicy.from(values);
+    }
+
+    @Override
+    public @Nullable DirectUploadView directUploadAuthorization(final long userId) {
+        if (!(this.fileStorage instanceof DirectUploadStorage direct)) {
+            return null;
+        }
+        final DirectUploadStorage.Authorization auth = direct.authorize(userId);
+        return new DirectUploadView(
+                auth.uploadUrl(),
+                auth.keyPrefix(),
+                auth.accessKeyId(),
+                auth.policy(),
+                auth.signature(),
+                auth.expiresAt(),
+                auth.ticket());
+    }
+
+    @Override
+    @Transactional
+    public FileUploadView completeDirectUpload(final CompleteDirectUploadRequest request, final long userId) {
+        if (!(this.fileStorage instanceof DirectUploadStorage direct)) {
+            throw BizException.badRequest("当前存储不支持浏览器直传");
+        }
+        if (request == null
+                || request.originalName() == null
+                || request.objectName() == null
+                || request.ticket() == null) {
+            throw BizException.badRequest("上传信息不完整");
+        }
+        final String extension = MediaFileTypes.extension(request.originalName());
+        try {
+            this.uploadPolicy().validate(extension, request.size());
+            if (!extension.equals(MediaFileTypes.extension(request.objectName()))) {
+                throw BizException.badRequest("上传文件类型不匹配");
+            }
+            final DirectUploadStorage.InspectedFile inspected =
+                    direct.inspect(request.objectName(), request.ticket(), userId);
+            final StoredFile stored = inspected.stored();
+            if (stored.size() != request.size()) {
+                throw BizException.badRequest("上传文件大小不匹配");
+            }
+            if (MediaFileTypes.image(extension)
+                    && !MediaApplicationService.matchesImageSignature(extension, inspected.header())) {
+                throw BizException.badRequest("图片文件内容与扩展名不匹配");
+            }
+            if (MediaFileTypes.video(extension)
+                    && !MediaApplicationService.matchesVideoSignature(extension, inspected.header())) {
+                throw BizException.badRequest("视频文件内容与扩展名不匹配");
+            }
+            this.mediaRepository.save(new MediaAsset(
+                    0L,
+                    request.originalName(),
+                    stored.url(),
+                    stored.objectName(),
+                    stored.size(),
+                    userId,
+                    Instant.now()));
+            return new FileUploadView(stored.url(), request.originalName(), stored.objectName(), stored.size());
+        } catch (final IllegalArgumentException ex) {
+            throw BizException.badRequest(ex.getMessage() == null ? "上传对象无效" : ex.getMessage());
+        } catch (final FileStorageException ex) {
+            throw new BizException(com.wulicode.weiran.framework.error.CommonErrors.INTERNAL_ERROR, "上传对象校验失败");
+        }
     }
 
     @Override

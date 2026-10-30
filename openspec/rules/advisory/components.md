@@ -57,12 +57,12 @@
 | --- | --- | --- | --- |
 | **RegionSelect** | `components/RegionSelect.tsx` | 省市县级联选择器；受控值为字符串区划代码路径 `string[]`，数据取登录态 `/api-backend/region/area/getEnabledTree` | 只展示启用节点及启用祖先组成的路径；管理权限不是使用前提，lookup 失败遵循请求层提示 |
 | **IconPicker** | `components/IconPicker.tsx` | 菜单图标选择:弹层网格 + 搜索,可配合 Semi `withField` 当表单项 | 只含 `utils/icons.tsx` 白名单里的 lucide 图标;新图标先加进 `MENU_ICONS` |
-| **FileUpload** | `components/FileUpload.tsx` + `FileUpload.css` | 通用文件上传，单文件值为 URL，多文件值为 URL 数组；支持拖放、图片与 PDF 预览、视频页内播放、其他文件下载、移除、失败重试；多文件拖动时显示插入位置，也可用箭头调整顺序 | 图片缩略图按原比例以长边适配方框，预览支持缩放；图片格式与大小、视频大小、普通文件格式读取系统上传设置，普通文件限 10 MB；多文件默认最多 9 个且满额隐藏上传入口；默认由 system 资源接口上传，业务可通过 `onUpload` 注入上传动作；移除只清引用 |
+| **FileUpload** | `components/FileUpload.tsx` + `FileUpload.css` | 通用文件上传，单文件值为 URL，多文件值为 URL 数组；支持拖放、图片与 PDF 预览、视频页内播放、其他文件下载、移除、失败重试；多文件拖动时显示插入位置，也可用箭头调整顺序 | 图片缩略图按原比例以长边适配方框，预览支持缩放；图片格式与大小、视频大小、普通文件格式读取系统上传设置，普通文件限 10 MB；多文件默认最多 9 个且满额隐藏上传入口；默认经 system 媒体 hook 上传（OSS 模式直传后登记，本地模式后端代传），业务可通过 `onUpload` 注入上传动作；移除只清引用 |
 | **FileTypeIcon** | `components/FileTypeIcon.tsx` + `FileTypeIcon.css` | 文件上传缩略图与资源库列表统一显示视频、PDF、Word、PPT、Excel、ZIP 等类型 | 依据文件扩展名展示，图片仍使用真实缩略图；类型图标与实际格式保持一致 |
 | **VideoPreview** | `components/VideoPreview.tsx` + `VideoPreview.css` | 文件上传与资源库复用的页内视频播放器 | 关闭弹窗时卸载播放器；浏览器不支持编码时提供打开或下载入口 |
 | **PdfPreview** | `components/PdfPreview.tsx` + `PdfPreview.css` | 文件上传与资源库复用的浏览器内置 PDF 预览 | 关闭弹窗时卸载 iframe，并提供新标签页打开入口 |
-| **RichTextEditor** | `components/RichTextEditor.tsx` + `RichTextEditor.css` | 通用富文本，保存 HTML，支持粘贴图片、多图上传、视频上传与插入、引用、撤销和重做 | 图片和视频默认由 system 媒体接口上传；图片可通过 `onUploadImage` 注入上传动作；两种上传按钮分别管理禁用状态，保存表单应在任一上传期间禁用提交 |
-| **SystemConfigGroupForm** | `components/SystemConfigGroupForm.tsx` | 系统配置分组的动态字段编辑器，按字段类型渲染控件、校验并保存分组配置；组件演示页也直接复用 | 调用方传 `ConfigView[]`、编辑权限与字段设置回调；默认用系统配置 Query hooks 保存，`onSave` / `onUploadFile` / `onUploadImage` 可注入业务动作 |
+| **RichTextEditor** | `components/RichTextEditor.tsx` + `RichTextEditor.css` | 通用富文本，保存 HTML，支持粘贴图片、多图上传、视频上传与插入、引用、撤销和重做 | 图片和视频默认由 system 媒体 hook 上传（OSS 模式直传后登记）；图片可通过 `onUploadImage` 注入上传动作；两种上传按钮分别管理禁用状态，上传时在正文插入位置显示不写入 HTML 的占位提示，保存表单应在任一上传期间禁用提交 |
+| **SystemConfigGroupForm** | `components/SystemConfigGroupForm.tsx` | 系统配置分组的动态字段编辑器，按字段类型渲染控件、校验并保存分组配置；`files` 字段用 `FileUpload multiple` 保存 URL JSON 数组，组件演示页也直接复用 | 调用方传 `ConfigView[]`、编辑权限与字段设置回调；默认用系统配置 Query hooks 保存，`onSave` / `onUploadFile` / `onUploadImage` 可注入业务动作 |
 
 ## 布局(`backend/src/layouts/`)
 

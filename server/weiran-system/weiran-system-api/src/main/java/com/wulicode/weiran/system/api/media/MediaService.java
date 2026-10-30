@@ -11,6 +11,11 @@ public interface MediaService {
 
     MediaUploadSettingsView uploadSettings();
 
+    @Nullable
+    DirectUploadView directUploadAuthorization(long userId);
+
+    FileUploadView completeDirectUpload(CompleteDirectUploadRequest request, long userId);
+
     FileUploadView upload(String originalName, InputStream content, long size, long uploadedBy) throws IOException;
 
     PageResult<MediaView> page(@Nullable String keyword, @Nullable String category, PageQuery pageQuery);

@@ -7,6 +7,8 @@ import com.wulicode.weiran.framework.log.OperationLog;
 import com.wulicode.weiran.framework.page.PageQuery;
 import com.wulicode.weiran.framework.page.PageResult;
 import com.wulicode.weiran.framework.response.ApiResponse;
+import com.wulicode.weiran.system.api.media.CompleteDirectUploadRequest;
+import com.wulicode.weiran.system.api.media.DirectUploadView;
 import com.wulicode.weiran.system.api.media.FileUploadView;
 import com.wulicode.weiran.system.api.media.MediaService;
 import com.wulicode.weiran.system.api.media.MediaUploadSettingsView;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,6 +37,19 @@ public class MediaController {
     @GetMapping("/api-backend/system/media/getUploadSettings")
     public MediaUploadSettingsView uploadSettings() {
         return this.service.uploadSettings();
+    }
+
+    @GetMapping("/api-backend/system/media/getDirectUploadAuthorization")
+    @RequiresPermission("system:media-library:upload")
+    @OperationLog(module = "资源库", description = "获取直传授权")
+    public @Nullable DirectUploadView directUploadAuthorization() {
+        return this.service.directUploadAuthorization(CurrentUser.require().id());
+    }
+
+    @PostMapping("/api-backend/system/media/completeDirectUpload")
+    @RequiresPermission("system:media-library:upload")
+    public FileUploadView completeDirectUpload(@RequestBody final CompleteDirectUploadRequest request) {
+        return this.service.completeDirectUpload(request, CurrentUser.require().id());
     }
 
     @PostMapping({"/api-backend/system/media/uploadImage", "/api-backend/system/media/uploadFile"})

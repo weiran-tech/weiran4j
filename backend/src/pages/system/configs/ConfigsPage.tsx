@@ -38,6 +38,7 @@ const FIELD_OPTIONS = [
     { label: '开关', value: 'switch' },
     { label: '下拉选择', value: 'select' },
     { label: 'JSON', value: 'json' },
+    { label: '多文件上传', value: 'files' },
     { label: '单文件上传', value: 'file' },
     { label: '富文本', value: 'richtext' },
 ];
@@ -45,7 +46,7 @@ const FIELD_OPTIONS = [
 function configType(fieldType: ConfigFieldType): ConfigSaveRequest['configType'] {
     if (fieldType === 'number') return 'number';
     if (fieldType === 'switch') return 'boolean';
-    if (fieldType === 'json') return 'json';
+    if (fieldType === 'json' || fieldType === 'files') return 'json';
     return 'string';
 }
 
@@ -76,7 +77,7 @@ function ConfigMetadataModal({
         const type = configType(value.fieldType);
         const body: ConfigSaveRequest = {
             configKey: value.configKey.trim(),
-            configValue: value.configValue ?? '',
+            configValue: value.fieldType === 'files' && !value.configValue?.trim() ? '[]' : value.configValue ?? '',
             configType: type,
             groupKey: value.groupKey.trim(),
             fieldType: value.fieldType,

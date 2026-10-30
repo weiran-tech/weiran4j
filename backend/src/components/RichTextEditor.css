@@ -4,3 +4,5 @@
 .rich-text-editor__content .ProseMirror p { margin: 0 0 8px; }
 .rich-text-editor__content .ProseMirror img { display: block; max-width: 100%; height: auto; }
 .rich-text-editor__content .ProseMirror video { display: block; max-width: 100%; width: 100%; height: auto; margin: 8px 0; }
+.rich-text-editor__content { position: relative; }
+.rich-text-editor__upload-placeholder { position: absolute; z-index: 1; display: inline-flex; align-items: center; padding: 4px 8px; border: 1px dashed var(--semi-color-primary); border-radius: 4px; color: var(--semi-color-primary); background: var(--semi-color-fill-0); font-size: 12px; line-height: 20px; pointer-events: none; }

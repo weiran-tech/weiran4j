@@ -98,7 +98,7 @@ public final class SystemConfig {
                         this.configType == ConfigType.STRING;
                     case "number" -> this.configType == ConfigType.NUMBER;
                     case "switch" -> this.configType == ConfigType.BOOLEAN;
-                    case "json" -> this.configType == ConfigType.JSON;
+                    case "json", "files" -> this.configType == ConfigType.JSON;
                     default -> false;
                 };
         if (!fieldMatches) {

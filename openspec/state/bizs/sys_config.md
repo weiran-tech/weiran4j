@@ -51,7 +51,7 @@
 | --- | --- | --- | --- |
 | 配置键 | 输入；内置项不可改 | 必填、最多 128 字符、`{range}.{group}.{value}`；新建及改键/改组时校验分组一致；重复 100003；内置项改键 100004 | `config_key varchar(128)` 唯一 |
 | 分组 | 从启用的配置分组选择 | 必须是 `sys_group` 中已启用且 `type=config`、`group_key` 与配置键前缀对应的编码 | `group_key varchar(64)` |
-| 表单字段 | 单行 / 多行 / 数字 / 开关 / 下拉 / JSON / 单文件 / 富文本 | 字段类型与值类型匹配；下拉选项为合法 JSON 数组；单文件保存资源 URL，富文本保存 HTML | `field_type varchar(16)`、`field_options varchar(2048)` |
+| 表单字段 | 单行 / 多行 / 数字 / 开关 / 下拉 / JSON / 单文件 / 多文件 / 富文本 | 字段类型与值类型匹配；下拉选项为合法 JSON 数组；单文件保存资源 URL，多文件保存最多 9 个 URL 的 JSON 数组，富文本保存 HTML | `field_type varchar(16)`、`field_options varchar(2048)` |
 | 必填 | 开关 | 必填项不可为空 | `required tinyint(1)` |
 | 类型 | 随控件设置 | 只能 `string/number/boolean/json` | `config_type varchar(16)` 默认 `string` |
 | 配置值 | 由 `field_type` 渲染 | 最多 65535 字符，并按类型校验（见下） | `config_value mediumtext` 默认由应用层提供 |
@@ -114,6 +114,7 @@
 新条目插在本节最上方（按日期倒序，新在上）。
 
 **2026-10-30**
+- 演示配置 `system.demo.images` 的字段类型改为 `files`；系统配置页与 `/demo/config` 共用多文件上传字段，保存 URL 数组，旧 `json` 演示记录在迁移前也能显示上传控件并按原类型保存。
 - 上传设置中的视频大小上限提高到 1024 MB，默认仍为 100 MB；图片大小上限保持 100 MB。
 - 新增上传设置分组；图片格式使用多选，图片和视频大小用 MB 数字输入，文件格式用逗号分隔输入。资源上传从配置读取规则并在服务端校验，富文本支持视频上传和插入。
 
