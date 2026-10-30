@@ -46,17 +46,12 @@ jobs:
       - name: 创建组件包 Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LIB_VERSION: ${{ steps.version.outputs.value }}
         shell: bash
         run: |
-          previous_tag="$(git describe --tags --match 'lib-v*' --abbrev=0 HEAD^ 2>/dev/null || true)"
-          release_options=(
-            --title "组件包 $LIB_VERSION"
-            --verify-tag
-            --latest=false
-            --notes "组件包已发布到 GitHub Packages：com.wulicode.weiran:weiran-dependencies:$LIB_VERSION。"
-          )
-          if [[ -n "$previous_tag" ]]; then
-            release_options+=(--generate-notes --notes-start-tag "$previous_tag")
-          fi
-          gh release create "$GITHUB_REF_NAME" "${release_options[@]}"
+          notes_file="$RUNNER_TEMP/lib-release-notes.md"
+          bash .github/scripts/lib-release-notes.sh "$GITHUB_REF_NAME" > "$notes_file"
+          gh release create "$GITHUB_REF_NAME" \
+            --title "组件包 ${{ steps.version.outputs.value }}" \
+            --verify-tag \
+            --latest=false \
+            --notes-file "$notes_file"
