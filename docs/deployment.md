@@ -85,6 +85,7 @@ Compose 起三个服务：
   - `X-CSRF-Token`：Cookie 认证的写请求必须带，被剥掉会得到 403 / `100103`；
   - `X-Request-Id`：请求号，见 §6；
 - 设置 `X-Forwarded-For`、`X-Forwarded-Proto`。
+- 视频上传配置允许最大 1024 MB；外层代理的请求体限制须大于 1024 MB，并为上传临时文件预留足够磁盘空间。自带 Nginx 限制为 `1030m`，后端 multipart 单文件限制为 `1024MB`、请求限制为 `1025MB`。
 
 ## 5. HTTPS 与 Cookie
 

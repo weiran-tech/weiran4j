@@ -41,10 +41,21 @@ class MediaUploadPolicyTest {
     void invalidSettingsFallBack() {
         final MediaUploadPolicy policy = MediaUploadPolicy.from(Map.of(
                 "system.upload.image_formats", "svg",
-                "system.upload.image_max_size_mb", "0",
-                "system.upload.video_max_size_mb", "101",
+                "system.upload.image_max_size_mb", "101",
+                "system.upload.video_max_size_mb", "1025",
                 "system.upload.file_formats", "exe"));
         assertThat(policy).isEqualTo(MediaUploadPolicy.defaults());
         assertThatThrownBy(() -> policy.validate("png", 0)).isInstanceOf(BizException.class);
+    }
+
+    @Test
+    @DisplayName("视频上限可设为 1024 MB，超过上限的文件被拒绝")
+    void acceptsOneGigabyteVideoLimit() {
+        final MediaUploadPolicy policy = MediaUploadPolicy.from(Map.of("system.upload.video_max_size_mb", "1024"));
+        assertThat(policy.videoMaxSizeMb()).isEqualTo(1024);
+        assertThatCode(() -> policy.validate("mp4", 1024 * MediaUploadPolicyTest.MB))
+                .doesNotThrowAnyException();
+        assertThatThrownBy(() -> policy.validate("mp4", 1024 * MediaUploadPolicyTest.MB + 1))
+                .isInstanceOf(BizException.class);
     }
 }

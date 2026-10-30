@@ -24,8 +24,8 @@ public record MediaUploadPolicy(
         return new MediaUploadPolicy(
                 MediaUploadPolicy.formats(
                         values.get("system.upload.image_formats"), IMAGE_CHOICES, defaults.imageFormats()),
-                MediaUploadPolicy.size(values.get("system.upload.image_max_size_mb"), defaults.imageMaxSizeMb()),
-                MediaUploadPolicy.size(values.get("system.upload.video_max_size_mb"), defaults.videoMaxSizeMb()),
+                MediaUploadPolicy.size(values.get("system.upload.image_max_size_mb"), defaults.imageMaxSizeMb(), 100),
+                MediaUploadPolicy.size(values.get("system.upload.video_max_size_mb"), defaults.videoMaxSizeMb(), 1024),
                 MediaUploadPolicy.formats(
                         values.get("system.upload.file_formats"),
                         Set.of(
@@ -57,13 +57,13 @@ public record MediaUploadPolicy(
         }
     }
 
-    private static int size(final @Nullable String value, final int fallback) {
+    private static int size(final @Nullable String value, final int fallback, final int maximum) {
         if (value == null) {
             return fallback;
         }
         try {
             final int parsed = Integer.parseInt(value);
-            return parsed >= 1 && parsed <= 100 ? parsed : fallback;
+            return parsed >= 1 && parsed <= maximum ? parsed : fallback;
         } catch (final NumberFormatException ignored) {
             return fallback;
         }

@@ -24,8 +24,8 @@ spring:
     locale-resolver: fixed
   servlet:
     multipart:
-      max-file-size: 100MB
-      max-request-size: 101MB
+      max-file-size: 1024MB
+      max-request-size: 1025MB
 
   lifecycle:
     # 每个停机阶段最多等多久（进行中的请求、操作日志线程池）；容器编排的强杀时限要比它长（见 docs/02-部署.md）。

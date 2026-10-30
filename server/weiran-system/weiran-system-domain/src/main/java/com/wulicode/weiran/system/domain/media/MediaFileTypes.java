@@ -6,7 +6,7 @@ import java.util.Locale;
 public final class MediaFileTypes {
 
     public static final long MAX_FILE_SIZE = 10L * 1024L * 1024L;
-    public static final long MAX_VIDEO_SIZE = 100L * 1024L * 1024L;
+    public static final long MAX_VIDEO_SIZE = 1024L * 1024L * 1024L;
 
     private MediaFileTypes() {}
 

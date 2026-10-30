@@ -59,7 +59,8 @@ function validateField(record: ConfigView, value: unknown): string | null {
     if (record.required && !text.trim()) return '此项必填';
     if (record.configKey === 'system.upload.image_formats' && (!Array.isArray(value) || value.length === 0)) return '请至少选择一种格式';
     if (record.configKey === 'system.upload.file_formats' && !/^(pdf|gif|jpg|jpeg|png|webp|txt|csv|doc|docx|xls|xlsx|ppt|pptx|zip)(,(pdf|gif|jpg|jpeg|png|webp|txt|csv|doc|docx|xls|xlsx|ppt|pptx|zip))*$/.test(text.trim().toLowerCase())) return '请输入支持的扩展名，以英文逗号分隔';
-    if (record.configKey.endsWith('_max_size_mb') && (!Number.isInteger(Number(text)) || Number(text) < 1 || Number(text) > 100)) return '请输入 1～100 的整数';
+    if (record.configKey === 'system.upload.image_max_size_mb' && (!Number.isInteger(Number(text)) || Number(text) < 1 || Number(text) > 100)) return '请输入 1～100 的整数';
+    if (record.configKey === 'system.upload.video_max_size_mb' && (!Number.isInteger(Number(text)) || Number(text) < 1 || Number(text) > 1024)) return '请输入 1～1024 的整数';
     if (record.fieldType === 'number' && text.trim() && (text.trim() !== text || Number.isNaN(Number(text)))) {
         return '请输入合法数字';
     }
