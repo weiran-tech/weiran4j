@@ -143,35 +143,42 @@ public class BatchJobWorker implements AutoCloseable, InitializingBean {
                 }
                 this.jobs.decide(work.id(), worker, work.total());
             }
-            for (final BatchTaskDetail item : this.jobs.pending(work.id())) {
+            final List<BatchTaskDetail> pending = this.jobs.pending(work.id());
+            final int batchSize = processor.transactionBatchSize();
+            if (batchSize < 1 || batchSize > 100) {
+                throw new IllegalArgumentException("事务批量大小必须在 1 到 100 之间");
+            }
+            for (int offset = 0; offset < pending.size(); offset += batchSize) {
                 if (this.jobs.stopped(work.id(), worker)) {
                     this.jobs.fail(work.id(), worker, "任务已取消");
                     return;
                 }
                 this.verifyInput(work, processor, source);
+                final List<BatchTaskDetail> batch =
+                        pending.subList(offset, Math.min(offset + batchSize, pending.size()));
                 try {
                     this.transactions.executeWithoutResult(status -> {
-                        this.jobs.lockItem(work.id(), worker, item.itemNo());
-                        try {
-                            final BatchItemResult result = processor.processItem(
-                                    source, work.id(), item.itemNo(), Objects.requireNonNull(item.idempotencyKey()));
-                            this.jobs.succeeded(
-                                    work.id(),
-                                    worker,
-                                    item.itemNo(),
-                                    BatchJobWorker.limitNullable(result.resultType(), 64),
-                                    BatchJobWorker.limitNullable(result.resultId(), 191));
-                        } catch (final Exception ex) {
-                            throw new ItemWriteException(ex);
+                        for (final BatchTaskDetail item : batch) {
+                            this.processItem(work, worker, processor, source, item);
                         }
                     });
                 } catch (final ItemWriteException ex) {
-                    final Throwable cause = ex.getCause();
-                    final String message = cause instanceof BatchFileException fileError
-                            ? BatchJobWorker.limit(fileError.getMessage(), 500)
-                            : "该项写入失败";
-                    if (!this.jobs.stopped(work.id(), worker)) {
-                        this.jobs.failedItem(work.id(), worker, item.itemNo(), message);
+                    if (batch.size() == 1) {
+                        this.recordFailure(work, worker, batch.getFirst(), ex);
+                        continue;
+                    }
+                    for (final BatchTaskDetail item : batch) {
+                        if (this.jobs.stopped(work.id(), worker)) {
+                            this.jobs.fail(work.id(), worker, "任务已取消");
+                            return;
+                        }
+                        this.verifyInput(work, processor, source);
+                        try {
+                            this.transactions.executeWithoutResult(
+                                    status -> this.processItem(work, worker, processor, source, item));
+                        } catch (final ItemWriteException itemError) {
+                            this.recordFailure(work, worker, item, itemError);
+                        }
                     }
                 }
             }
@@ -187,6 +194,38 @@ public class BatchJobWorker implements AutoCloseable, InitializingBean {
             this.jobs.fail(work.id(), worker, message);
         } finally {
             lease.cancel(false);
+        }
+    }
+
+    private void processItem(
+            final BatchWork work,
+            final String worker,
+            final BatchProcessor processor,
+            final BatchSource source,
+            final BatchTaskDetail item) {
+        this.jobs.lockItem(work.id(), worker, item.itemNo());
+        try {
+            final BatchItemResult result = processor.processItem(
+                    source, work.id(), item.itemNo(), Objects.requireNonNull(item.idempotencyKey()));
+            this.jobs.succeeded(
+                    work.id(),
+                    worker,
+                    item.itemNo(),
+                    BatchJobWorker.limitNullable(result.resultType(), 64),
+                    BatchJobWorker.limitNullable(result.resultId(), 191));
+        } catch (final Exception ex) {
+            throw new ItemWriteException(ex);
+        }
+    }
+
+    private void recordFailure(
+            final BatchWork work, final String worker, final BatchTaskDetail item, final ItemWriteException ex) {
+        final Throwable cause = ex.getCause();
+        final String message = cause instanceof BatchFileException fileError
+                ? BatchJobWorker.limit(fileError.getMessage(), 500)
+                : "该项写入失败";
+        if (!this.jobs.stopped(work.id(), worker)) {
+            this.jobs.failedItem(work.id(), worker, item.itemNo(), message);
         }
     }
 

@@ -13,6 +13,11 @@ public interface BatchProcessor {
         return 100L * 1024 * 1024;
     }
 
+    /** 每个数据库事务处理的项数；默认保持逐项提交。 */
+    default int transactionBatchSize() {
+        return 1;
+    }
+
     /** 业务引用处理器返回 REFERENCE，并用原始引用及其不可变指纹打开输入。 */
     default BatchInputMode inputMode() {
         return BatchInputMode.MANAGED_FILE;
