@@ -1,4 +1,4 @@
-import { Select } from '@douyinfe/semi-ui';
+import { OptionSelect } from '@weiran-tech/backend-components';
 import type { CSSProperties } from 'react';
 import { useDictOptions } from '@/hooks/queries/dicts';
 
@@ -11,20 +11,8 @@ interface DictSelectProps {
     showClear?: boolean;
 }
 
-/**
- * 字典下拉（筛选栏等非表单场景）。
- * 表单里直接用 `<Form.Select optionList={useDictOptions(code)} />`，校验与取值更顺手。
- */
-export function DictSelect({ dictCode, value, onChange, placeholder = '请选择', style, showClear = true }: DictSelectProps) {
+/** 字典数据适配层；表单里也可直接传 optionList 给 Semi Form.Select。 */
+export function DictSelect({ dictCode, value, onChange, placeholder, style, showClear }: DictSelectProps) {
     const options = useDictOptions(dictCode);
-    return (
-        <Select
-            value={value}
-            onChange={(v) => onChange?.(typeof v === 'string' ? v : undefined)}
-            optionList={options}
-            placeholder={placeholder}
-            style={style ?? { width: 140 }}
-            showClear={showClear}
-        />
-    );
+    return <OptionSelect options={options} value={value} onChange={onChange} placeholder={placeholder} style={style} showClear={showClear} />;
 }

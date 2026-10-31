@@ -550,67 +550,6 @@ body[theme-mode='dark'] ::-webkit-scrollbar-thumb:hover {
     margin-top: 4px;
 }
 
-/* ===== 业务通用小件 ===== */
-
-.icon-picker-trigger {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-width: 200px;
-    height: 32px;
-    padding: 0 8px 0 12px;
-    border-radius: 6px;
-    background: var(--semi-color-fill-0);
-    cursor: pointer;
-}
-
-.icon-picker-trigger__value {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.icon-picker-trigger__placeholder {
-    color: var(--semi-color-text-2);
-}
-
-.icon-picker-grid {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 4px;
-    max-height: 260px;
-    margin-top: 8px;
-    overflow-y: auto;
-}
-
-.icon-picker-cell {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 34px;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    background: transparent;
-    color: var(--semi-color-text-0);
-    cursor: pointer;
-}
-
-.icon-picker-cell:hover {
-    background: var(--semi-color-fill-0);
-}
-
-.icon-picker-cell--active {
-    border-color: var(--semi-color-primary);
-    color: var(--semi-color-primary);
-}
-
-.icon-picker-empty {
-    grid-column: 1 / -1;
-    padding: 16px;
-    text-align: center;
-    color: var(--semi-color-text-2);
-}
-
 /* 字典与系统配置：共享双栏列表布局，左栏列表骨架保持一致。 */
 .dicts-layout,
 .config-groups-layout {

@@ -15,8 +15,8 @@
 在 `main` 的发布提交通过 CI 后，创建并推送与 `packages/backend-components/package.json` 版本一致的 `backend-components-v<主>.<次>.<修订>` tag。`publish-backend-components.yml` 检查标签、运行前端门禁、构建 JS / 类型声明 / CSS，再用仓库的 `GITHUB_TOKEN` 发布到 GitHub Packages；不需要在仓库保存个人令牌。历史的 `@weiran-tech/web-components@0.1.0` 已发布，npm 包不能原地改名；新名称是独立的包坐标，下游改用新坐标。
 
 ```bash
-git tag backend-components-v0.1.0
-git push origin backend-components-v0.1.0
+git tag backend-components-v0.2.0
+git push origin backend-components-v0.2.0
 ```
 
 下游项目安装指定版本，在项目 `.npmrc` 登记 registry 映射：
@@ -32,7 +32,7 @@ GitHub Packages 的 npm registry 下载包需要鉴权。将具备 `read:package
 ```
 
 ```bash
-pnpm add @weiran-tech/backend-components@0.1.0
+pnpm add @weiran-tech/backend-components@0.2.0
 ```
 
 页面按需导入组件，并导入 `@weiran-tech/backend-components/style.css`；React 19、Semi UI 2 和 lucide-react 由下游安装。首次发布的包默认私有，下游账号还须获得该包的读取权限；如需开放给外部项目，在 GitHub Packages 设置包可见性和访问权限。

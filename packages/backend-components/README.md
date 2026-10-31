@@ -1,8 +1,8 @@
 # @weiran-tech/backend-components
 
-可供独立 React 项目复用的前端组件。当前提供单图上传 `ImageUpload`、文件类型图标 `FileTypeIcon`、导航列表面板 `NavListPanel` / `NavListItem`。包内不发后台请求。
+可供独立 React 项目复用的前端组件。当前提供单图上传 `ImageUpload`、图标选择器 `IconPicker`、字符串选项下拉 `OptionSelect`、文件类型图标 `FileTypeIcon`、导航列表面板 `NavListPanel` / `NavListItem`。包内不发后台请求。
 
-GitHub Packages 安装与版本发布步骤见仓库根的 `docs/releases.md`。下游用固定版本安装，例如 `pnpm add @weiran-tech/backend-components@0.1.0`。
+GitHub Packages 安装与版本发布步骤见仓库根的 `docs/releases.md`。下游在 `backend-components-v0.2.0` 发布后用固定版本安装：`pnpm add @weiran-tech/backend-components@0.2.0`。
 
 ```tsx
 import { ImageUpload } from '@weiran-tech/backend-components';
@@ -24,6 +24,15 @@ import '@weiran-tech/backend-components/style.css';
 `value` 为单个 URL；移除图片时回调空字符串。组件负责格式和大小校验、拖放、进度、失败重试和预览。调用方负责上传接口、权限与错误提示。`backend/src/components/SystemImageUpload.tsx` 是本仓后台的接入示例。
 
 `FileTypeIcon` 接收 `name`（文件名或 URL）和可选 `size`；同时导出 `fileExtension`、`isImageFile`、`isVideoFile`、`isPdfFile`。`NavListPanel<T>` 接收 `dataSource` 和 `renderItem`，可选标题、搜索、加载状态和底部插槽；条目由 `NavListItem` 渲染。面板父容器需要明确高度或最大高度，条目区才能在内部滚动。
+
+表单控件由调用方提供数据。`IconPicker` 接收 `icons`（图标名列表）及 `renderIcon(name, size)`，受控值为图标名；可直接交给 Semi `withField`。`OptionSelect` 接收 `options: { label, value, disabled? }[]`，清空时以 `undefined` 回调。后台分别通过 `components/IconPicker.tsx` 和 `components/DictSelect.tsx` 接入项目图标表、字典查询。
+
+```tsx
+import { IconPicker, OptionSelect } from '@weiran-tech/backend-components';
+
+<IconPicker value={icon} onChange={setIcon} icons={iconNames} renderIcon={(name, size) => <MyIcon name={name} size={size} />} />
+<OptionSelect value={status} onChange={setStatus} options={[{ label: '启用', value: 'enabled' }]} />
+```
 
 所有组件共用 `@weiran-tech/backend-components/style.css`。消费方需要 React 19、Semi UI 2 和 lucide-react；这三项是 peer dependencies。
 
