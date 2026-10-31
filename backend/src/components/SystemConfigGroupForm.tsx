@@ -4,6 +4,7 @@ import { Settings } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { ALL_UPLOAD_TYPES, FileUpload, type UploadType } from '@/components/FileUpload';
 import { RichTextEditor } from '@/components/RichTextEditor';
+import { SystemImageUpload } from '@/components/SystemImageUpload';
 import { useSaveConfig } from '@/hooks/queries/configs';
 import type { ConfigSaveRequest, ConfigView } from '@/types/api';
 
@@ -274,7 +275,14 @@ export function SystemConfigGroupForm({
                                 <div>
                                     <Form.Input field={field} noLabel style={{ display: 'none' }} />
                                     <div style={{ marginBottom: 8 }}>{label}</div>
-                                    <ConfigFileField
+                                    {record.fieldType === 'image' ? <SystemImageUpload
+                                        key={`${record.id}:${record.configValue}`}
+                                        value={toStringValue(initValues[field])}
+                                        disabled={!canEdit}
+                                        {...(onUploadFile ? { onUpload: onUploadFile } : {})}
+                                        onUploadingChange={(active) => setFieldUploading(record.id, active)}
+                                        onChange={(url) => { api.current?.setValue(field, url); }}
+                                    /> : <ConfigFileField
                                         key={`${record.id}:${record.configValue}`}
                                         value={toStringValue(initValues[field])}
                                         disabled={!canEdit}
@@ -284,7 +292,7 @@ export function SystemConfigGroupForm({
                                         onChange={(url) => {
                                             api.current?.setValue(field, url);
                                         }}
-                                    />
+                                    />}
                                 </div>
                             ) : record.fieldType === 'richtext' ? (
                                 <div>

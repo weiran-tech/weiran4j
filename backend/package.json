@@ -13,6 +13,7 @@
     "lint:fix": "eslint src --fix"
   },
   "dependencies": {
+    "@weiran-tech/web-components": "workspace:*",
     "@douyinfe/semi-ui": "^2.104.0",
     "@tiptap/core": "3.31.3",
     "@tiptap/extension-image": "3.31.3",

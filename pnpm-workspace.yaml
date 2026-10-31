@@ -1,6 +1,7 @@
 packages:
   - 'docs'
   - 'backend'
+  - 'packages/*'
   # 后端是 Gradle 项目,登记进工作区只为让 turbo 能编排它的 dev 任务(见 server/package.json)
   - 'server'
 # Semi UI 2.104.0 固定依赖 Tiptap 3.31.3；与编辑器的同系列扩展保持一致。

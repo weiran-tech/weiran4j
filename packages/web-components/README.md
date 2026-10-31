@@ -1,0 +1,30 @@
+# @weiran-tech/web-components
+
+可供独立 React 项目复用的前端组件。当前提供单图上传 `ImageUpload`、文件类型图标 `FileTypeIcon`、导航列表面板 `NavListPanel` / `NavListItem`。包内不发后台请求。
+
+GitHub Packages 安装与版本发布步骤见仓库根的 `docs/releases.md`。下游用固定版本安装，例如 `pnpm add @weiran-tech/web-components@0.1.0`。
+
+```tsx
+import { ImageUpload } from '@weiran-tech/web-components';
+import '@weiran-tech/web-components/style.css';
+
+<ImageUpload
+  value={imageUrl}
+  onChange={setImageUrl}
+  formats={['png', 'jpg', 'webp']}
+  maxSizeMb={10}
+  upload={async (file, onProgress) => {
+    // 调用业务自己的上传接口；上传进度用 onProgress(0..100) 回报。
+    return uploadImage(file, onProgress); // 返回可访问的图片 URL
+  }}
+  onError={(message) => showError(message)}
+/>
+```
+
+`value` 为单个 URL；移除图片时回调空字符串。组件负责格式和大小校验、拖放、进度、失败重试和预览。调用方负责上传接口、权限与错误提示。`backend/src/components/SystemImageUpload.tsx` 是本仓后台的接入示例。
+
+`FileTypeIcon` 接收 `name`（文件名或 URL）和可选 `size`；同时导出 `fileExtension`、`isImageFile`、`isVideoFile`、`isPdfFile`。`NavListPanel<T>` 接收 `dataSource` 和 `renderItem`，可选标题、搜索、加载状态和底部插槽；条目由 `NavListItem` 渲染。面板父容器需要明确高度或最大高度，条目区才能在内部滚动。
+
+所有组件共用 `@weiran-tech/web-components/style.css`。消费方需要 React 19、Semi UI 2 和 lucide-react；这三项是 peer dependencies。
+
+在仓库根运行 `pnpm --filter @weiran-tech/web-components build` 生成 `dist`，`pnpm --filter @weiran-tech/web-components pack:check` 检查包内容；在包目录运行 `npm pack` 生成可安装的 tarball。
