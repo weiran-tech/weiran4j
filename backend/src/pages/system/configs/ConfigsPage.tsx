@@ -40,6 +40,8 @@ const FIELD_OPTIONS = [
     { label: 'JSON', value: 'json' },
     { label: '多文件上传', value: 'files' },
     { label: '单文件上传', value: 'file' },
+    { label: '单图上传', value: 'image' },
+    { label: '视频上传', value: 'video' },
     { label: '富文本', value: 'richtext' },
 ];
 
@@ -81,7 +83,7 @@ function ConfigMetadataModal({
             configType: type,
             groupKey: value.groupKey.trim(),
             fieldType: value.fieldType,
-            fieldOptions: value.fieldType === 'select' ? value.fieldOptions.trim() || null : null,
+            fieldOptions: ['select', 'file', 'files'].includes(value.fieldType) ? value.fieldOptions.trim() || null : null,
             required: value.required,
             description: value.description.trim() || null,
         };
@@ -166,16 +168,27 @@ function ConfigMetadataModal({
                 <Form.Select field="fieldType" label="表单字段" optionList={FIELD_OPTIONS} style={{ width: '100%' }} />
                 <Form.TextArea
                     field="fieldOptions"
-                    label="下拉选项 JSON（仅下拉选择使用）"
+                    label="下拉选项 / 上传类型 JSON"
                     rows={3}
-                    placeholder={'[{"label":"选项一","value":"one"}]'}
+                    placeholder={'下拉：[ {"label":"选项一","value":"one"} ]；上传：["image","video"]'}
                     rules={[
                         {
                             validator: (_rule: unknown, value: unknown) => {
-                                if (api.current?.getValue('fieldType') !== 'select' || !value) return true;
-                                return parseConfigFieldOptions(typeof value === 'string' ? value : '').length > 0;
+                                const fieldType = api.current?.getValue('fieldType');
+                                if (!value) return true;
+                                if (fieldType === 'select') return parseConfigFieldOptions(typeof value === 'string' ? value : '').length > 0;
+                                if (['file', 'files'].includes(fieldType ?? '')) {
+                                    try {
+                                        if (typeof value !== 'string') return false;
+                                        const types: unknown = JSON.parse(value);
+                                        if (!Array.isArray(types)) return false;
+                                        const items: unknown[] = types;
+                                        return items.length > 0 && items.every((type) => typeof type === 'string' && ['image', 'video', 'file'].includes(type));
+                                    } catch { return false; }
+                                }
+                                return true;
                             },
-                            message: '请输入有效的选项数组 JSON',
+                            message: '请输入有效的选项或上传类型数组 JSON',
                         },
                     ]}
                 />

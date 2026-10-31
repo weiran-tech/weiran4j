@@ -389,7 +389,7 @@ export interface DictItemSaveRequest {
 /* ---------- 系统配置 ---------- */
 
 export type ConfigType = 'string' | 'number' | 'boolean' | 'json';
-export type ConfigFieldType = 'input' | 'textarea' | 'number' | 'switch' | 'select' | 'json' | 'files' | 'file' | 'image' | 'richtext';
+export type ConfigFieldType = 'input' | 'textarea' | 'number' | 'switch' | 'select' | 'json' | 'files' | 'file' | 'image' | 'video' | 'richtext';
 
 export interface ConfigGroupView {
     groupKey: string;

@@ -2,7 +2,7 @@ import { Button, Form, Space, Tag, Toast } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import { Settings } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
-import { FileUpload } from '@/components/FileUpload';
+import { ALL_UPLOAD_TYPES, FileUpload, type UploadType } from '@/components/FileUpload';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { useSaveConfig } from '@/hooks/queries/configs';
 import type { ConfigSaveRequest, ConfigView } from '@/types/api';
@@ -19,6 +19,19 @@ export function parseConfigFieldOptions(value: string): Array<{ label: string; v
         });
     } catch {
         return [];
+    }
+}
+
+export function parseUploadTypes(value: string | null, fallback: readonly UploadType[]): readonly UploadType[] {
+    if (!value) return fallback;
+    try {
+        const parsed: unknown = JSON.parse(value);
+        if (!Array.isArray(parsed)) return fallback;
+        const types: unknown[] = parsed;
+        if (types.length === 0 || !types.every((item): item is UploadType => typeof item === 'string' && ALL_UPLOAD_TYPES.includes(item as UploadType))) return fallback;
+        return [...new Set(types)];
+    } catch {
+        return fallback;
     }
 }
 
@@ -46,12 +59,14 @@ function isFilesField(record: ConfigView): boolean {
 function ConfigFileField({
     value,
     disabled,
+    uploadTypes,
     onUpload,
     onUploadingChange,
     onChange,
 }: {
     value: string;
     disabled: boolean;
+    uploadTypes: readonly UploadType[];
     onUpload?: (file: File, onProgress?: (percent: number) => void) => Promise<string>;
     onUploadingChange: (active: boolean) => void;
     onChange: (url: string) => void;
@@ -60,6 +75,7 @@ function ConfigFileField({
     return <FileUpload
         value={currentValue}
         disabled={disabled}
+        uploadTypes={uploadTypes}
         {...(onUpload ? { onUpload } : {})}
         onUploadingChange={onUploadingChange}
         onChange={(url) => { setCurrentValue(url); onChange(url); }}
@@ -69,12 +85,14 @@ function ConfigFileField({
 function ConfigMultiFileField({
     value,
     disabled,
+    uploadTypes,
     onUpload,
     onUploadingChange,
     onChange,
 }: {
     value: string;
     disabled: boolean;
+    uploadTypes: readonly UploadType[];
     onUpload?: (file: File, onProgress?: (percent: number) => void) => Promise<string>;
     onUploadingChange: (active: boolean) => void;
     onChange: (value: string) => void;
@@ -84,6 +102,7 @@ function ConfigMultiFileField({
         multiple
         value={files}
         disabled={disabled}
+        uploadTypes={uploadTypes}
         {...(onUpload ? { onUpload } : {})}
         onUploadingChange={onUploadingChange}
         onChange={(urls) => { setFiles(urls); onChange(JSON.stringify(urls)); }}
@@ -243,6 +262,7 @@ export function SystemConfigGroupForm({
                                         key={`${record.id}:${record.configValue}`}
                                         value={toStringValue(initValues[field])}
                                         disabled={!canEdit}
+                                        uploadTypes={parseUploadTypes(record.fieldOptions, ALL_UPLOAD_TYPES)}
                                         {...(onUploadFile ? { onUpload: onUploadFile } : {})}
                                         onUploadingChange={(active) => setFieldUploading(record.id, active)}
                                         onChange={(value) => { api.current?.setValue(field, value); }}
@@ -250,7 +270,7 @@ export function SystemConfigGroupForm({
                                 </div>
                             ) : record.fieldType === 'json' ? (
                                 <Form.TextArea {...common} rows={5} maxLength={65535} />
-                            ) : record.fieldType === 'file' || record.fieldType === 'image' ? (
+                            ) : record.fieldType === 'file' || record.fieldType === 'image' || record.fieldType === 'video' ? (
                                 <div>
                                     <Form.Input field={field} noLabel style={{ display: 'none' }} />
                                     <div style={{ marginBottom: 8 }}>{label}</div>
@@ -258,6 +278,7 @@ export function SystemConfigGroupForm({
                                         key={`${record.id}:${record.configValue}`}
                                         value={toStringValue(initValues[field])}
                                         disabled={!canEdit}
+                                        uploadTypes={record.fieldType === 'file' ? parseUploadTypes(record.fieldOptions, ['file']) : [record.fieldType]}
                                         {...(onUploadFile ? { onUpload: onUploadFile } : {})}
                                         onUploadingChange={(active) => setFieldUploading(record.id, active)}
                                         onChange={(url) => {

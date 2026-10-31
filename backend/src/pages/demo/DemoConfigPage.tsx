@@ -90,17 +90,21 @@ const GROUPS: DemoGroup[] = [
     { key: 'files', label: '多文件上传', note: '批量上传、排序、预览及最多 9 个文件。', fieldType: 'files', variants: [
         example('demo_files', '多文件', 'files', '[]'),
     ] },
-    { key: 'image', label: '单图上传', note: '查看图片缩略图、替换与预览；当前复用单文件上传控件。', fieldType: 'image', variants: [
+    { key: 'image', label: '单图上传', note: '查看图片缩略图、替换与预览，只接受图片格式。', fieldType: 'image', variants: [
         example('demo_image', '单图', 'image', ''),
+    ] },
+    { key: 'video', label: '视频上传', note: '只接受视频格式，支持播放、替换与移除。', fieldType: 'video', variants: [
+        example('demo_video', '单视频', 'video', ''),
     ] },
     { key: 'richtext', label: '富文本', note: '编辑文本、上传图片与视频，以及只读状态。', fieldType: 'richtext', variants: [
         example('demo_richtext', '富文本内容', 'richtext', '<p><strong>富文本示例</strong>：支持标题、加粗和列表。</p>'),
     ] },
-    { key: 'upload', label: '上传组合', note: '单文件、多文件、单图、视频和富文本共用一个保存操作，可观察多个上传组件同时工作时的状态。视频示例复用单文件控件。', variants: [
+    { key: 'upload', label: '上传组合', note: '单文件、多文件、单图、视频和富文本共用一个保存操作，可观察多个上传组件同时工作时的状态。图片与视频可组合成一个上传入口。', variants: [
         example('demo_upload', '单文件上传', 'file', ''),
         example('demo_upload', '多文件上传', 'files', '[]'),
         example('demo_upload', '单图上传', 'image', ''),
-        example('demo_upload', '视频上传（单文件控件）', 'file', ''),
+        example('demo_upload', '视频上传', 'video', ''),
+        example('demo_upload', '图片＋视频上传', 'files', '[]', false, '["image","video"]'),
         example('demo_upload', '富文本图片与视频', 'richtext', '<p>上传组合示例</p>'),
     ] },
     { key: 'special', label: '特殊验证', note: '每个场景独立提交，方便逐项核对错误提示。', variants: [

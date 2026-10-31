@@ -57,7 +57,7 @@
 | --- | --- | --- | --- |
 | **RegionSelect** | `components/RegionSelect.tsx` | 省市县级联选择器；受控值为字符串区划代码路径 `string[]`，数据取登录态 `/api-backend/region/area/getEnabledTree` | 只展示启用节点及启用祖先组成的路径；管理权限不是使用前提，lookup 失败遵循请求层提示 |
 | **IconPicker** | `components/IconPicker.tsx` | 菜单图标选择:弹层网格 + 搜索,可配合 Semi `withField` 当表单项 | 只含 `utils/icons.tsx` 白名单里的 lucide 图标;新图标先加进 `MENU_ICONS` |
-| **FileUpload** | `components/FileUpload.tsx` + `FileUpload.css` | 通用文件上传，单文件值为 URL，多文件值为 URL 数组；支持拖放、图片与 PDF 预览、视频页内播放、其他文件下载、移除、失败重试；上传框内显示百分比与多文件序号，不显示所选文件名；多文件拖动时显示插入位置，也可用箭头调整顺序 | 图片缩略图按原比例以长边适配方框，预览支持缩放；格式与大小读取系统上传设置；多文件默认最多 9 个且满额隐藏上传入口；默认上传的进度来自浏览器实际发送字节，OSS 模式直传后登记，本地模式后端接收；业务注入 `onUpload(file, onProgress?)` 可选回报进度，否则保留无百分比的上传中提示；移除只清引用 |
+| **FileUpload** | `components/FileUpload.tsx` + `FileUpload.css` | `uploadTypes` 支持 `image`、`video`、`file` 的任意非空组合，单文件值为 URL，多文件值为 URL 数组；支持拖放、图片与 PDF 预览、视频页内播放、其他文件下载、移除、失败重试；上传框内显示百分比与多文件序号，不显示所选文件名；多文件拖动时显示插入位置，也可用箭头调整顺序 | 各类型分别读取系统上传设置中的格式和大小，文件选择与拖放共用校验；未传类型时兼容接收三类；多文件默认最多 9 个且满额隐藏上传入口；默认上传的进度来自浏览器实际发送字节，OSS 模式直传后登记，本地模式后端接收；业务注入 `onUpload(file, onProgress?)` 可选回报进度，否则保留无百分比的上传中提示；移除只清引用 |
 | **FileTypeIcon** | `components/FileTypeIcon.tsx` + `FileTypeIcon.css` | 文件上传缩略图与资源库列表统一显示视频、PDF、Word、PPT、Excel、ZIP 等类型 | 依据文件扩展名展示，图片仍使用真实缩略图；类型图标与实际格式保持一致 |
 | **VideoPreview** | `components/VideoPreview.tsx` + `VideoPreview.css` | 文件上传与资源库复用的页内视频播放器 | 关闭弹窗时卸载播放器；浏览器不支持编码时提供打开或下载入口 |
 | **PdfPreview** | `components/PdfPreview.tsx` + `PdfPreview.css` | 文件上传与资源库复用的浏览器内置 PDF 预览 | 关闭弹窗时卸载 iframe，并提供新标签页打开入口 |

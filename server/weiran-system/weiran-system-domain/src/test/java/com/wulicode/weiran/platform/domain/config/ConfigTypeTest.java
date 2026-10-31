@@ -58,6 +58,23 @@ class ConfigTypeTest {
     }
 
     @Test
+    @DisplayName("视频配置字段接受字符串值和上传类型组合")
+    void acceptsVideoUploadField() {
+        assertThatCode(() -> SystemConfig.builder()
+                        .configKey("system.general.intro_video")
+                        .configValue("/uploads/intro.mp4")
+                        .configType(ConfigType.STRING)
+                        .groupKey("general")
+                        .fieldType("video")
+                        .fieldOptions("[\"image\",\"video\"]")
+                        .required(false)
+                        .builtin(false)
+                        .build()
+                        .validated(ConfigTypeTest.JSON))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
     @DisplayName("内置配置键不可改、不可删，修改时按新类型校验值")
     void protectsBuiltinConfig() {
         final SystemConfig builtin = SystemConfig.builder()

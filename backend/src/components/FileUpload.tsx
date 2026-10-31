@@ -17,8 +17,9 @@ export const DEFAULT_UPLOAD_SETTINGS: SystemMediaUploadSettings = {
 };
 export const DEFAULT_MAX_FILES = 9;
 
-export function uploadLimitsLabel(settings: SystemMediaUploadSettings): string {
-    return `图片不超过 ${settings.imageMaxSizeMb} MB，视频不超过 ${settings.videoMaxSizeMb} MB，普通文件不超过 ${settings.fileMaxSizeMb} MB`;
+export function uploadLimitsLabel(settings: SystemMediaUploadSettings, types: readonly UploadType[] = ALL_UPLOAD_TYPES): string {
+    return types.map((type) => type === 'image' ? `图片不超过 ${settings.imageMaxSizeMb} MB`
+        : type === 'video' ? `视频不超过 ${settings.videoMaxSizeMb} MB` : `普通文件不超过 ${settings.fileMaxSizeMb} MB`).join('，');
 }
 
 export function isImageUrl(url: string): boolean {
@@ -46,10 +47,32 @@ export function videoFileError(file: File, settings = DEFAULT_UPLOAD_SETTINGS): 
     return fileUploadError(file, settings);
 }
 
+export function ordinaryFileError(file: File, settings = DEFAULT_UPLOAD_SETTINGS): string | null {
+    if (!settings.fileFormats.includes(fileExtension(file.name))) return `请选择 ${settings.fileFormats.join('、')} 格式的文件`;
+    if (file.size === 0 || file.size > settings.fileMaxSizeMb * 1024 * 1024) return `文件须大于 0 且不超过 ${settings.fileMaxSizeMb} MB`;
+    return null;
+}
+
+export type UploadType = 'image' | 'video' | 'file';
+
+export const ALL_UPLOAD_TYPES: readonly UploadType[] = ['image', 'video', 'file'];
+
+function uploadFormats(type: UploadType, settings: SystemMediaUploadSettings): string[] {
+    return type === 'image' ? settings.imageFormats : type === 'video' ? settings.videoFormats : settings.fileFormats;
+}
+
+function uploadTypesError(types: readonly UploadType[], file: File, settings: SystemMediaUploadSettings): string | null {
+    const extension = fileExtension(file.name);
+    const type = IMAGE_EXTENSIONS.has(extension) ? 'image' : isVideoFile(file.name) ? 'video' : 'file';
+    if (!types.includes(type)) return `仅支持上传${types.map((item) => item === 'image' ? '图片' : item === 'video' ? '视频' : '文件').join('、')}`;
+    return type === 'image' ? imageFileError(file, settings) : type === 'video' ? videoFileError(file, settings) : ordinaryFileError(file, settings);
+}
+
 type UploadFile = (file: File, onProgress?: (percent: number) => void) => Promise<string | { url: string }>;
 
 type FileUploadProps = {
     disabled?: boolean;
+    uploadTypes?: readonly UploadType[];
     onUpload?: UploadFile;
     onUploadingChange?: (uploading: boolean) => void;
     maxFiles?: number;
@@ -60,10 +83,11 @@ type FileUploadProps = {
 
 /** 文件字段统一入口。默认上传到 system 资源库；业务可注入上传动作。 */
 export function FileUpload(props: FileUploadProps) {
-    const { disabled = false, onUpload, onUploadingChange, maxFiles = DEFAULT_MAX_FILES } = props;
+    const { disabled = false, uploadTypes = ALL_UPLOAD_TYPES, onUpload, onUploadingChange, maxFiles = DEFAULT_MAX_FILES } = props;
     const upload = useUploadSystemFile();
     const settingsQuery = useUploadSettings();
     const settings = settingsQuery.data ?? DEFAULT_UPLOAD_SETTINGS;
+    const uploadNoun = uploadTypes.length === ALL_UPLOAD_TYPES.length ? '文件' : uploadTypes.map((type) => type === 'image' ? '图片' : type === 'video' ? '视频' : '文件').join('、');
     const inputRef = useRef<HTMLInputElement>(null);
     const busy = useRef(false);
     const dragIndexRef = useRef<number | null>(null);
@@ -125,7 +149,7 @@ export function FileUpload(props: FileUploadProps) {
                 Toast.warning(`最多上传 ${maxFiles} 个文件`);
                 break;
             }
-            const error = fileUploadError(file, settingsQuery.data);
+            const error = uploadTypesError(uploadTypes, file, settingsQuery.data);
             if (error) {
                 Toast.error(error);
                 continue;
@@ -207,7 +231,7 @@ export function FileUpload(props: FileUploadProps) {
                     className={`file-upload__dropzone${uploadProgress ? ' file-upload__dropzone--uploading' : ''}`}
                     role="button"
                     tabIndex={uploadDisabled ? -1 : 0}
-                    aria-label={props.multiple ? '上传多个文件' : '上传文件'}
+                    aria-label={props.multiple ? `上传多个${uploadNoun}` : `上传${uploadNoun}`}
                     aria-disabled={uploadDisabled}
                     onClick={() => { if (!uploadDisabled) inputRef.current?.click(); }}
                     onKeyDown={(event) => { if ((event.key === 'Enter' || event.key === ' ') && !uploadDisabled) { event.preventDefault(); inputRef.current?.click(); } }}
@@ -231,13 +255,13 @@ export function FileUpload(props: FileUploadProps) {
                         <span>{uploadProgress.percent === 100 ? '等待确认' : uploadProgress.total > 1 ? `${uploadProgress.index}/${uploadProgress.total}` : '上传中'}</span>
                     </div> : <>
                         <FilePlus2 size={20} />
-                        <span>{urls.length && !props.multiple ? '更换文件' : '上传文件'}</span>
+                        <span>{urls.length && !props.multiple ? `更换${uploadNoun}` : `上传${uploadNoun}`}</span>
                     </>}
                 </div>}
             </div>
-            {props.multiple && <small>{settingsQuery.data ? uploadLimitsLabel(settings) : '正在读取上传配置…'}；最多 {maxFiles} 个（当前 {urls.length}/{maxFiles}）</small>}
+            {props.multiple && <small>{settingsQuery.data ? uploadLimitsLabel(settings, uploadTypes) : '正在读取上传配置…'}；最多 {maxFiles} 个（当前 {urls.length}/{maxFiles}）</small>}
             {settingsQuery.isError && <Button size="small" onClick={() => void settingsQuery.refetch()}>上传配置加载失败，重试</Button>}
-            <input ref={inputRef} hidden type="file" disabled={uploadDisabled} accept={[...new Set([...settings.imageFormats, ...settings.videoFormats, ...settings.fileFormats])].map((item) => `.${item}`).join(',')} multiple={props.multiple} onChange={(event) => { void uploadFiles(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
+            <input ref={inputRef} hidden type="file" disabled={uploadDisabled} accept={[...new Set(uploadTypes.flatMap((type) => uploadFormats(type, settings)))].map((item) => `.${item}`).join(',')} multiple={props.multiple} onChange={(event) => { void uploadFiles(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
             {failed.length > 0 && (
                 <Button size="small" icon={<RotateCcw size={14} />} disabled={uploadDisabled} onClick={() => void uploadFiles(failed)}>
                     重试失败的文件（{failed.length}）
