@@ -190,14 +190,16 @@ export function FileUpload(props: FileUploadProps) {
                         onDragEnd={() => { dragIndexRef.current = null; setDragIndex(null); setInsertPosition(null); }}
                         title={props.multiple ? '拖动文件可调整顺序' : undefined}
                     >
-                        <div className="file-upload__frame">{isImageUrl(url)
-                            ? <img src={url} alt={`已上传图片 ${index + 1}`} />
-                            : <FileTypeIcon name={url} />}</div>
-                        <div className="file-upload__actions">
-                            {props.multiple && <Button size="small" theme="borderless" icon={<ArrowLeft size={14} />} aria-label={`前移文件 ${index + 1}`} disabled={disabled || uploading || index === 0} onClick={() => moveFile(index, index - 1)} />}
-                            <Button size="small" icon={isImageUrl(url) || isPdfFile(url) ? <Eye size={14} /> : isVideoFile(url) ? <Play size={14} /> : <Download size={14} />} aria-label={`${isImageUrl(url) ? '预览图片' : isPdfFile(url) ? '预览 PDF' : isVideoFile(url) ? '播放视频' : '下载文件'} ${index + 1}`} onClick={() => isImageUrl(url) ? setPreviewIndex(index) : isPdfFile(url) ? setPreviewPdfUrl(url) : isVideoFile(url) ? setPreviewVideoUrl(url) : openFileUrl(url)} />
-                            <Button size="small" type="danger" theme="borderless" icon={<Trash2 size={14} />} aria-label={`移除文件 ${index + 1}`} disabled={disabled || uploading} onClick={() => updateUrls(urlsRef.current.filter((_, item) => item !== index))} />
-                            {props.multiple && <Button size="small" theme="borderless" icon={<ArrowRight size={14} />} aria-label={`后移文件 ${index + 1}`} disabled={disabled || uploading || index === urls.length - 1} onClick={() => moveFile(index, index + 1)} />}
+                        <div className="file-upload__frame">
+                            {isImageUrl(url)
+                                ? <img src={url} alt={`已上传图片 ${index + 1}`} />
+                                : <FileTypeIcon name={url} />}
+                            <div className="file-upload__actions">
+                                {props.multiple && <Button size="small" theme="borderless" icon={<ArrowLeft size={14} />} aria-label={`前移文件 ${index + 1}`} disabled={disabled || uploading || index === 0} onClick={() => moveFile(index, index - 1)} />}
+                                <Button size="small" theme="borderless" icon={isImageUrl(url) || isPdfFile(url) ? <Eye size={14} /> : isVideoFile(url) ? <Play size={14} /> : <Download size={14} />} aria-label={`${isImageUrl(url) ? '预览图片' : isPdfFile(url) ? '预览 PDF' : isVideoFile(url) ? '播放视频' : '下载文件'} ${index + 1}`} onClick={() => isImageUrl(url) ? setPreviewIndex(index) : isPdfFile(url) ? setPreviewPdfUrl(url) : isVideoFile(url) ? setPreviewVideoUrl(url) : openFileUrl(url)} />
+                                <Button size="small" type="danger" theme="borderless" icon={<Trash2 size={14} />} aria-label={`移除文件 ${index + 1}`} disabled={disabled || uploading} onClick={() => updateUrls(urlsRef.current.filter((_, item) => item !== index))} />
+                                {props.multiple && <Button size="small" theme="borderless" icon={<ArrowRight size={14} />} aria-label={`后移文件 ${index + 1}`} disabled={disabled || uploading || index === urls.length - 1} onClick={() => moveFile(index, index + 1)} />}
+                            </div>
                         </div>
                     </div>
                 ))}
