@@ -10,7 +10,7 @@
 | 模块 | `weiran-system` |
 | 管理页面 | `/system/media-library` |
 | 管理接口 | `/api-backend/system/media/uploadFile`、`/api-backend/system/media/getUploadSettings`、`/api-backend/system/media/getDirectUploadAuthorization`、`/api-backend/system/media/completeDirectUpload`、`/api-backend/system/mediaLibrary/list`、`/api-backend/system/mediaLibrary/delete/{id}` |
-| 权限 | `system:media-library:list/upload/delete` |
+| 权限 | 上传接口要求登录，不设独立上传权限；资源库列表与删除分别要求 `system:media-library:list/delete` |
 
 ## 1. 列表
 
@@ -40,6 +40,9 @@ Semi UI 表格、列设置、操作列与搜索工具栏、system 文件存储�
   通用索引与检查器扩展入口已经具备；现有业务模块若尚未在保存事务中调用 `MediaReferenceService.replace` 或注册检查器，其引用仍可能显示「未发现引用」，管理员可误删业务正在使用的文件。各业务模块接入时需逐一补齐。
 
 ## 7. changelog
+
+**2026-10-31**
+- 移除 `system:media-library:upload` 按钮权限与上传接口的额外权限检查；登录用户可从配置表单、富文本或资源库上传，列表和删除权限保持独立。
 
 **2026-10-30**
 - 富文本图片和视频上传期间在编辑位置显示占位提示，上传完成或失败后移除，提示不写入 HTML。

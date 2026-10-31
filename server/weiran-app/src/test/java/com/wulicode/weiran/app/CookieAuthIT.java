@@ -98,6 +98,26 @@ class CookieAuthIT extends IntegrationTestSupport {
                 .asText();
     }
 
+    @Test
+    @DisplayName("上传接口只要求登录，不再依赖资源库上传按钮权限")
+    void mediaUploadRequiresLoginOnly() {
+        final String token = this.tokenOf(this.newUser("media_upload"), CookieAuthIT.PASSWORD);
+        final String authorizationPath = "/api-backend/system/media/getDirectUploadAuthorization";
+        IntegrationTestSupport.assertError(this.get(authorizationPath, null), HttpStatus.UNAUTHORIZED, 100101);
+        IntegrationTestSupport.assertOk(this.get(authorizationPath, token));
+        assertThat(this.jdbc.queryForObject(
+                        "select count(*) from sys_menu where permission = 'system:media-library:upload'",
+                        Integer.class))
+                .isZero();
+        IntegrationTestSupport.assertError(
+                this.post(
+                        "/api-backend/system/media/completeDirectUpload",
+                        token,
+                        Map.of("originalName", "a.png", "objectName", "media/202610/a.png", "size", 1, "ticket", "x")),
+                HttpStatus.BAD_REQUEST,
+                100001);
+    }
+
     /** 用测试密钥手工签发 HS256 令牌（只为构造 iss / aud 不合规的情况）。 */
     private static String sign(final Map<String, Object> claims) throws Exception {
         final ObjectMapper mapper = new ObjectMapper();

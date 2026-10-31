@@ -40,20 +40,17 @@ public class MediaController {
     }
 
     @GetMapping("/api-backend/system/media/getDirectUploadAuthorization")
-    @RequiresPermission("system:media-library:upload")
     @OperationLog(module = "资源库", description = "获取直传授权")
     public @Nullable DirectUploadView directUploadAuthorization() {
         return this.service.directUploadAuthorization(CurrentUser.require().id());
     }
 
     @PostMapping("/api-backend/system/media/completeDirectUpload")
-    @RequiresPermission("system:media-library:upload")
     public FileUploadView completeDirectUpload(@RequestBody final CompleteDirectUploadRequest request) {
         return this.service.completeDirectUpload(request, CurrentUser.require().id());
     }
 
     @PostMapping({"/api-backend/system/media/uploadImage", "/api-backend/system/media/uploadFile"})
-    @RequiresPermission("system:media-library:upload")
     @OperationLog(module = "资源库", description = "上传文件")
     public FileUploadView upload(@RequestParam("file") final MultipartFile file) throws IOException {
         if (file.isEmpty() || file.getOriginalFilename() == null) {

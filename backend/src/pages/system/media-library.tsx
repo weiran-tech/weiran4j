@@ -8,7 +8,6 @@ import { DEFAULT_UPLOAD_SETTINGS, fileUploadError, MAX_FILE_SIZE_MB } from '@/co
 import { PdfPreview } from '@/components/PdfPreview';
 import { VideoPreview } from '@/components/VideoPreview';
 import { PageContainer } from '@/components/PageContainer';
-import { Permission } from '@/components/Permission';
 import { SearchToolbar, type SearchCondition } from '@/components/SearchToolbar';
 import { useActionsColumn, type TableAction } from '@/components/TableActions';
 import { useDeleteSystemMediaFile, useSystemMediaFiles, useUploadSettings, useUploadSystemFile } from '@/hooks/queries/system-media';
@@ -126,7 +125,7 @@ export default function SystemMediaLibraryPage() {
             onRefresh={() => void query.refetch()}
             refreshing={query.isFetching}
             conditions={conditions}
-            actions={<Permission code="system:media-library:upload"><Button type="primary" theme="solid" icon={<FilePlus2 size={16} />} onClick={() => inputRef.current?.click()}>上传文件</Button></Permission>}
+            actions={<Button type="primary" theme="solid" icon={<FilePlus2 size={16} />} onClick={() => inputRef.current?.click()}>上传文件</Button>}
         >
             <Input placeholder="按文件名搜索" value={draftKeyword} onChange={setDraftKeyword} onEnterPress={search} showClear style={{ width: 210 }} />
             <Select placeholder="文件类型" value={draftCategory} onChange={(value) => setDraftCategory(value as Category)} optionList={CATEGORY_OPTIONS} showClear style={{ width: 130 }} />
