@@ -37,6 +37,36 @@ export interface RequestOptions {
     /** 静默：不自动 Toast 错误，由调用方处理 */
     silent?: boolean;
     signal?: AbortSignal;
+    /** 文件请求的发送进度；仅 FormData 上传时触发，值为 0–100。 */
+    onUploadProgress?: (percent: number) => void;
+}
+
+function sendFormWithProgress(url: string, method: string, headers: Record<string, string>, body: FormData, onProgress: (percent: number) => void, signal?: AbortSignal): Promise<Response> {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open(method, url);
+        xhr.withCredentials = true;
+        for (const [name, value] of Object.entries(headers)) xhr.setRequestHeader(name, value);
+        xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable && event.total > 0) onProgress(Math.min(100, Math.round(event.loaded / event.total * 100)));
+        };
+        const abort = () => xhr.abort();
+        signal?.addEventListener('abort', abort, { once: true });
+        const done = () => signal?.removeEventListener('abort', abort);
+        xhr.onload = () => {
+            done();
+            if (xhr.status === 0) { reject(new Error('网络请求失败')); return; }
+            const requestId = xhr.getResponseHeader('X-Request-Id');
+            resolve(new Response([204, 205, 304].includes(xhr.status) ? null : xhr.responseText || null, {
+                status: xhr.status,
+                ...(requestId ? { headers: { 'X-Request-Id': requestId } } : {}),
+            }));
+        };
+        xhr.onerror = () => { done(); reject(new Error('网络请求失败')); };
+        xhr.onabort = () => { done(); reject(new DOMException('请求已取消', 'AbortError')); };
+        if (signal?.aborted) { abort(); return; }
+        xhr.send(body);
+    });
 }
 
 function isApiResponse(v: unknown): v is ApiResponse<unknown> {
@@ -69,7 +99,7 @@ function fail(err: ApiError, silent: boolean | undefined): never {
  *   console.warn 输出完整值，方便拿去后端日志里 grep（silent 不 Toast，但仍带 requestId）。
  */
 export async function request<T>(url: string, options: RequestOptions = {}): Promise<T> {
-    const { method = 'GET', body, silent, signal } = options;
+    const { method = 'GET', body, silent, signal, onUploadProgress } = options;
     const headers: Record<string, string> = { Accept: 'application/json' };
     const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
     if (body !== undefined && !isFormData) headers['Content-Type'] = 'application/json';
@@ -79,7 +109,7 @@ export async function request<T>(url: string, options: RequestOptions = {}): Pro
 
     let res: Response;
     try {
-        res = await fetch(`${config.apiBaseUrl}${url}`, {
+        res = onUploadProgress && isFormData ? await sendFormWithProgress(`${config.apiBaseUrl}${url}`, method, headers, body, onUploadProgress, signal) : await fetch(`${config.apiBaseUrl}${url}`, {
             method,
             headers,
             credentials: 'same-origin',

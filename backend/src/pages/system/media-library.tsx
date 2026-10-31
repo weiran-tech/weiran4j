@@ -1,19 +1,21 @@
-import { Button, Input, Modal, Select, Table, Tag, Toast, Typography } from '@douyinfe/semi-ui';
+import { Button, Input, Modal, Progress, Select, Table, Tabs, Tag, Toast, Typography } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { Copy, Download, Eye, FilePlus2, Play, RefreshCw, Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useColumnSettings } from '@/components/ColumnSettings';
 import { FileTypeIcon, isPdfFile } from '@/components/FileTypeIcon';
-import { DEFAULT_UPLOAD_SETTINGS, fileUploadError, MAX_FILE_SIZE_MB } from '@/components/FileUpload';
+import { DEFAULT_UPLOAD_SETTINGS, fileUploadError, uploadLimitsLabel } from '@/components/FileUpload';
 import { PdfPreview } from '@/components/PdfPreview';
 import { VideoPreview } from '@/components/VideoPreview';
 import { PageContainer } from '@/components/PageContainer';
 import { SearchToolbar, type SearchCondition } from '@/components/SearchToolbar';
 import { useActionsColumn, type TableAction } from '@/components/TableActions';
 import { useDeleteSystemMediaFile, useSystemMediaFiles, useUploadSettings, useUploadSystemFile } from '@/hooks/queries/system-media';
+import { usePermission } from '@/hooks/usePermission';
 import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
 import { openFileUrl } from '@/lib/file-url';
 import type { SystemMediaFileQuery, SystemMediaFileView } from '@/types/api';
+import UploadSettingsTab from './upload-settings/UploadSettingsPage';
 import './media-library.css';
 
 interface UploadItem {
@@ -21,6 +23,7 @@ interface UploadItem {
     file: File;
     state: 'uploading' | 'success' | 'error';
     error: string | undefined;
+    progress: number;
 }
 
 type Category = SystemMediaFileQuery['category'];
@@ -37,7 +40,7 @@ function formatBytes(size: number): string {
     return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export default function SystemMediaLibraryPage() {
+function MediaLibraryTab() {
     const inputRef = useRef<HTMLInputElement>(null);
     const { tableProps, pageSize: initialPageSize, pageSizeOpts } = useTableDefaults();
     const [draftKeyword, setDraftKeyword] = useState('');
@@ -53,7 +56,8 @@ export default function SystemMediaLibraryPage() {
     const [deleting, setDeleting] = useState<SystemMediaFileView | null>(null);
     const query = useSystemMediaFiles({ page, pageSize, ...(keyword ? { keyword } : {}), ...(category ? { category } : {}) });
     const upload = useUploadSystemFile();
-    const settings = useUploadSettings().data ?? DEFAULT_UPLOAD_SETTINGS;
+    const settingsQuery = useUploadSettings();
+    const settings = settingsQuery.data ?? DEFAULT_UPLOAD_SETTINGS;
     const remove = useDeleteSystemMediaFile();
 
     const search = () => { setKeyword(draftKeyword.trim()); setCategory(draftCategory); setPage(1); };
@@ -64,21 +68,27 @@ export default function SystemMediaLibraryPage() {
     ];
 
     const uploadOne = async (item: UploadItem) => {
-        setUploads((current) => current.map((row) => row.key === item.key ? { ...row, state: 'uploading', error: undefined } : row));
-        const error = fileUploadError(item.file, settings);
+        setUploads((current) => current.map((row) => row.key === item.key ? { ...row, state: 'uploading', error: undefined, progress: 0 } : row));
+        if (!settingsQuery.data) {
+            setUploads((current) => current.map((row) => row.key === item.key ? { ...row, state: 'error', error: '上传配置尚未加载' } : row));
+            return;
+        }
+        const error = fileUploadError(item.file, settingsQuery.data);
         if (error) {
             setUploads((current) => current.map((row) => row.key === item.key ? { ...row, state: 'error', error } : row));
             return;
         }
         try {
-            await upload.mutateAsync(item.file);
-            setUploads((current) => current.map((row) => row.key === item.key ? { ...row, state: 'success' } : row));
+            await upload.uploadWithProgress(item.file, (progress) => {
+                setUploads((current) => current.map((row) => row.key === item.key ? { ...row, progress } : row));
+            });
+            setUploads((current) => current.map((row) => row.key === item.key ? { ...row, state: 'success', progress: 100 } : row));
         } catch (cause) {
             setUploads((current) => current.map((row) => row.key === item.key ? { ...row, state: 'error', error: cause instanceof Error ? cause.message : '上传失败' } : row));
         }
     };
     const chooseFiles = (files: File[]) => {
-        const selected: UploadItem[] = files.map((file, index) => ({ key: `${Date.now()}-${index}-${file.name}`, file, state: 'uploading', error: undefined }));
+        const selected: UploadItem[] = files.map((file, index) => ({ key: `${Date.now()}-${index}-${file.name}`, file, state: 'uploading', error: undefined, progress: 0 }));
         setUploads((current) => [...selected, ...current]);
         void (async () => { for (const item of selected) await uploadOne(item); })();
     };
@@ -117,7 +127,7 @@ export default function SystemMediaLibraryPage() {
     const { columns: settledColumns, columnSettings } = useColumnSettings('system/media-library', columns);
     const { columns: tableColumns } = useActionsColumn(settledColumns, actionsOf);
 
-    return <PageContainer title="资源库">
+    return <>
         <SearchToolbar
             tools={columnSettings}
             onSearch={search}
@@ -125,17 +135,20 @@ export default function SystemMediaLibraryPage() {
             onRefresh={() => void query.refetch()}
             refreshing={query.isFetching}
             conditions={conditions}
-            actions={<Button type="primary" theme="solid" icon={<FilePlus2 size={16} />} onClick={() => inputRef.current?.click()}>上传文件</Button>}
+            actions={<Button type="primary" theme="solid" icon={<FilePlus2 size={16} />} disabled={!settingsQuery.data} onClick={() => inputRef.current?.click()}>上传文件</Button>}
         >
             <Input placeholder="按文件名搜索" value={draftKeyword} onChange={setDraftKeyword} onEnterPress={search} showClear style={{ width: 210 }} />
             <Select placeholder="文件类型" value={draftCategory} onChange={(value) => setDraftCategory(value as Category)} optionList={CATEGORY_OPTIONS} showClear style={{ width: 130 }} />
         </SearchToolbar>
-        <input ref={inputRef} type="file" multiple hidden aria-label="选择文件" onChange={(event) => { const files = Array.from(event.currentTarget.files ?? []); event.currentTarget.value = ''; chooseFiles(files); }} />
+        <input ref={inputRef} type="file" multiple hidden disabled={!settingsQuery.data} aria-label="选择文件" accept={[...new Set([...settings.imageFormats, ...settings.videoFormats, ...settings.fileFormats])].map((format) => `.${format}`).join(',')} onChange={(event) => { const files = Array.from(event.currentTarget.files ?? []); event.currentTarget.value = ''; chooseFiles(files); }} />
+        {settingsQuery.isError && <Button size="small" onClick={() => void settingsQuery.refetch()}>上传配置加载失败，重试</Button>}
         {uploads.length > 0 && <section className="media-library__uploads" aria-label="上传结果">
-            <div className="media-library__uploads-title">本次上传 · 图片不超过 {settings.imageMaxSizeMb} MB，普通文件不超过 {MAX_FILE_SIZE_MB} MB，视频不超过 {settings.videoMaxSizeMb} MB</div>
+            <div className="media-library__uploads-title">本次上传 · {uploadLimitsLabel(settings)}</div>
             {uploads.map((item) => <div className="media-library__upload-row" key={item.key}>
                 <span className="media-library__upload-name" title={item.file.name}>{item.file.name}</span>
-                {item.state === 'uploading' ? <Typography.Text type="tertiary">上传中</Typography.Text>
+                {item.state === 'uploading' ? <div className="media-library__upload-progress" role="status">
+                    <span>{item.progress === 100 ? '等待确认' : '上传中'} {item.progress}%</span><Progress percent={item.progress} size="small" />
+                </div>
                     : item.state === 'success' ? <Typography.Text type="success">已上传</Typography.Text>
                         : <><Typography.Text type="danger">{item.error}</Typography.Text><Button size="small" icon={<RefreshCw size={14} />} onClick={() => void uploadOne(item)}>重试</Button></>}
             </div>)}
@@ -158,5 +171,19 @@ export default function SystemMediaLibraryPage() {
         <Modal visible={deleting !== null} title="删除文件" onCancel={() => setDeleting(null)} onOk={() => void deleteFile()} okText="删除" okButtonProps={{ type: 'danger', loading: remove.isPending }}>
             <Typography.Paragraph>确定删除「{deleting?.originalName}」？</Typography.Paragraph>
         </Modal>
+    </>;
+}
+
+export default function ResourceManagementPage() {
+    const { hasPermission } = usePermission();
+    return <PageContainer>
+        <Tabs type="line">
+            <Tabs.TabPane tab="资源管理" itemKey="resources">
+                <MediaLibraryTab />
+            </Tabs.TabPane>
+            {hasPermission('system:config:list') && <Tabs.TabPane tab="上传配置" itemKey="upload">
+                <UploadSettingsTab />
+            </Tabs.TabPane>}
+        </Tabs>
     </PageContainer>;
 }

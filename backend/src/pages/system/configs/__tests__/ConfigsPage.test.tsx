@@ -8,6 +8,7 @@ import ConfigsPage from '../ConfigsPage';
 const initialGroups: ConfigGroupView[] = [
     { groupKey: 'config_system', key: 'general', label: '通用设置', isBuiltin: true, canDelete: false, createdAt: '2026-10-20 12:00:00' },
     { groupKey: 'config_system', key: 'user', label: '用户', isBuiltin: true, canDelete: false, createdAt: '2026-10-20 12:00:00' },
+    { groupKey: 'config_system', key: 'demo', label: '组件演示', isBuiltin: true, canDelete: false, createdAt: '2026-10-20 12:00:00' },
     { groupKey: 'config_sms', key: 'system_tpl', label: '系统模板', isBuiltin: true, canDelete: false, createdAt: '2026-10-20 12:00:00' },
 ];
 
@@ -64,6 +65,12 @@ function setup() {
 }
 
 describe('ConfigsPage 配置分组侧栏', () => {
+    it('系统配置不展示演示分组', async () => {
+        setup();
+        expect(await screen.findByText('通用设置', { selector: '.nav-list-item__primary' })).toBeInTheDocument();
+        expect(screen.queryByText('组件演示')).not.toBeInTheDocument();
+    });
+
     it('新增配置项默认使用当前选中的分组', async () => {
         setup();
         fireEvent.click(await screen.findByText('用户'));

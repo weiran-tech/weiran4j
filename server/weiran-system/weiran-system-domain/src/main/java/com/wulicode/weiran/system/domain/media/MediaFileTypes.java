@@ -16,7 +16,9 @@ public final class MediaFileTypes {
     }
 
     public static boolean allowed(final String extension) {
-        return extension.matches("jpg|jpeg|png|gif|webp|pdf|txt|csv|doc|docx|xls|xlsx|ppt|pptx|zip|mp4|webm|mov");
+        return extension.matches("[a-z0-9]{2,10}")
+                && !extension.matches(
+                        "html|htm|svg|xml|xhtml|js|mjs|css|php|phtml|jsp|asp|aspx|exe|dll|bat|cmd|sh|ps1");
     }
 
     public static boolean image(final String extension) {

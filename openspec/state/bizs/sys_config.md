@@ -25,17 +25,17 @@
 | 项 | 值 |
 | --- | --- |
 | 表 | `sys_config` |
-| 菜单 | 系统管理 › 系统配置（`sys_menu.id = 8`）；短信配置独立页面（`sys_menu.id = 12`） |
+| 菜单 | 系统管理 › 系统配置（`sys_menu.id = 8`）；短信配置（id 12）；文件系统（id 13）的「上传配置」Tab |
 | 路由 | `/system/configs` |
 | 页面组件 | `system/configs/ConfigsPage`（同文件内的 `ConfigFormModal`） |
 | 后端模块 | `weiran-system`；`ConfigController` → `ConfigApplicationService` → `MybatisConfigRepository` |
 | 接口前缀 | `/api-backend/system/config`；具体 HTTP 接口以 Springdoc OpenAPI 为准 |
 | 权限码 | `system:config:list` · `system:config:create` · `system:config:update` · `system:config:delete`；`GET /public/{key}` 为 `@PublicApi`（免登录） |
-| 种子 | `system.general.title` = `Weiran Admin`（`config_system/general`，string，内置）；`system.user.enable_phone_login` = `false`（`config_system/user`，boolean，内置）；`system.upload.*` 四项（`config_system/upload`，内置，图片格式 `gif,jpg,jpeg,png`、图片大小 10 MB、视频大小 100 MB、文件格式 `pdf,gif`）；`sms.general.sign_name`（`config_sms/general`）、`sms.system_tpl.captcha_local`、`sms.system_tpl.captcha_aliyun`（`config_sms/system_tpl`，string，内置，默认空）；`config_system` 含 `general`、`user`、`upload`，`config_sms` 含 `general`、`system_tpl` |
+| 种子 | `system.general.title` = `Weiran Admin`（`config_system/general`，string，内置）；`system.user.enable_phone_login` = `false`（`config_system/user`，boolean，内置）；`system.upload.*` 六项（`config_system/upload`，内置，图片、视频和普通文件各有格式与大小限制）；`sms.general.sign_name`（`config_sms/general`）、`sms.system_tpl.captcha_local`、`sms.system_tpl.captcha_aliyun`（`config_sms/system_tpl`，string，内置，默认空）；`config_system` 含 `general`、`user`、`upload`，`config_sms` 含 `general`、`system_tpl` |
 
 ## 1. 可视化表单
 
-系统配置与短信配置共用 `ConfigsPage` 的左侧分组导航、右侧动态表单和配置项管理；短信菜单通过轻量入口传入 `config_sms`，系统配置使用 `config_system`。两者复用 `sys_config`/`sys_group`，按配置域隔离展示和分组管理。短信签名存放于短信域的 `general` 组，验证码模板存放于 `system_tpl` 组。
+系统配置与短信配置共用 `ConfigsPage` 的左侧分组导航、右侧动态表单和配置项管理；短信菜单通过轻量入口传入 `config_sms`，系统配置使用 `config_system`。上传配置由资源管理内的独立 Tab 维护，系统配置页不展示 `upload` 分组；演示专用 `demo` 分组仅在 `/demo/config` 使用，也不在系统配置页展示。三者复用 `sys_config`/`sys_group`。短信签名存放于短信域的 `general` 组，验证码模板存放于 `system_tpl` 组。
 分组由共享分组数据表承载，可供后续模块复用；左栏菜单支持刷新、新增分组，分组条目显示创建时间和内置状态并提供编辑/删除操作。右侧配置详情只展示当前分组名称，不显示创建时间、内置或可删除状态。新增配置项默认使用当前选中分组。
 配置项可在已有分组中新增、编辑和删除（内置项仍不可删除）。
 右侧分组标题与新增配置项按钮共用标题行，标题只显示当前组名；配置字段标题显示说明及内置标签，不单独显示配置键。设置图标紧随必填标记，在标题悬停或聚焦时绝对定位出现，不占用标题前的空间；编辑弹窗内删除按钮始终显示，无删除权限或内置项时置灰。
@@ -90,7 +90,7 @@
 - 配置写入后没有缓存层，公开接口每次查库。
 - 配置保存和删除时，在同一事务同步替换 `sys_media_reference` 中的 `system_config` 引用；资源库仍通过实时检查器核对历史配置值。
 - 业务模块可调用 `ConfigService.createBusiness(namespace, command)` 创建业务键，并调用 `updateBusinessValue(namespace, key, value)` 原位改值；业务键限三级小写结构，保留 `system`、`sms` 命名空间。创建时检查启用的 `config_system` 分组、值类型和字段定义，更新时锁定原记录并复用值校验，只写 `config_value` 与媒体引用。业务接口负责权限，不另开放 system HTTP 路由。
-- 系统配置页面按 `sys_group(type=config,group_key=config_system)` 分组；短信页面按 `group_key=config_sms` 分组。配置键遵循 `{range}.{group}.{value}`，其中 `range=system/sms`、`group=sys_config.group_key=sys_group.code`；新建或变更键、分组时校验。已有不合规的自定义键允许原位改值。`field_type`、`field_options`、`required` 控制表单渲染和校验。匿名读取仅允许 `system.general.title`。
+- 系统配置页面按 `sys_group(type=config,group_key=config_system)` 分组并排除 `upload`；资源管理的上传配置 Tab 编辑 `system.upload.*` 六项；短信页面按 `group_key=config_sms` 分组。配置键遵循 `{range}.{group}.{value}`，其中 `range=system/sms`、`group=sys_config.group_key=sys_group.code`；新建或变更键、分组时校验。已有不合规的自定义键允许原位改值。`field_type`、`field_options`、`required` 控制表单渲染和校验。匿名读取仅允许 `system.general.title`。
 - 短信配置由 `/system/sms` 菜单进入共用的 `ConfigsPage`，传入 `config_sms` 后只呈现短信域分组及 `sms.*` 配置项：`sms.general.sign_name` 位于 `general` 组，`sms.system_tpl.captcha_local` 与 `sms.system_tpl.captcha_aliyun` 位于 `system_tpl` 组。分组与配置项管理共用同一页面流程，分组写接口按配置域定位。
 - 登录页通过公开 `/api-backend/n/system/auth/listProviders` 获取手机号登录状态；后端只有在 `system.user.enable_phone_login=true`、短信发送模式可用且当前模式的验证码模板有效时才返回 `phoneLoginEnabled=true`。`local` 模式的 `sms.system_tpl.captcha_local` 是短信正文，必须包含 `${code}`；发码时替换并写入应用日志。`aliyun` 模式的 `sms.system_tpl.captcha_aliyun` 是已审核模板 CODE。
 - 站点标题仍取自构建期环境变量 `VITE_APP_TITLE`（见 #02）；`backend/src` 不直接调用公开配置接口。
@@ -112,6 +112,12 @@
 ## 7. changelog
 
 新条目插在本节最上方（按日期倒序，新在上）。
+
+**2026-10-31**
+- 系统配置页隐藏演示专用 `demo` 分组；保留其数据供 `/demo/config` 使用。
+- `/demo/config` 新增「上传组合」分组，在同一表单展示单文件、多文件、单图、视频和富文本上传；视频示例复用单文件控件，原有单组件与特殊验证分组保持不变。
+- `/demo/config` 改为按字段类型分别展示组件，额外提供「特殊验证」分组；各组可切换只读状态，临时示例值与真实 `sys_config` 的保存分开。
+- 上传规则移到资源管理的「上传配置」Tab；图片、视频、普通文件分别配置支持格式与大小上限，系统配置页不再展示上传分组。
 
 **2026-10-30**
 - 演示配置 `system.demo.images` 的字段类型改为 `files`；系统配置页与 `/demo/config` 共用多文件上传字段，保存 URL 数组，旧 `json` 演示记录在迁移前也能显示上传控件并按原类型保存。

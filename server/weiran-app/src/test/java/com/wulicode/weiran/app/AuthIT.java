@@ -70,6 +70,7 @@ class AuthIT extends IntegrationTestSupport {
         final JsonNode system = roots.get(1);
         assertThat(system.path("type").asText()).isEqualTo("directory");
         assertThat(AuthIT.ids(system.path("children"))).containsExactly(3L, 4L, 5L, 7L, 8L, 12L, 2000L, 13L);
+        assertThat(system.path("children").get(7).path("title").asText()).isEqualTo("文件系统");
         assertThat(roots.get(4).path("visible").asBoolean()).isFalse();
         final JsonNode users = system.path("children").get(0);
         assertThat(users.path("component").asText()).isEqualTo("system/users/UsersPage");

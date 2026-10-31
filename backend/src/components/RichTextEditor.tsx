@@ -1,4 +1,4 @@
-import { Button, Space, Toast } from '@douyinfe/semi-ui';
+import { Button, Progress, Space, Toast } from '@douyinfe/semi-ui';
 import { Node } from '@tiptap/core';
 import Image from '@tiptap/extension-image';
 import { EditorContent, useEditor } from '@tiptap/react';
@@ -14,7 +14,7 @@ interface RichTextEditorProps {
     disabled?: boolean;
     label?: string;
     onChange: (html: string) => void;
-    onUploadImage?: (file: File) => Promise<string | { url: string; name?: string }>;
+    onUploadImage?: (file: File, onProgress?: (percent: number) => void) => Promise<string | { url: string; name?: string }>;
     onUploadingChange?: (uploading: boolean) => void;
 }
 
@@ -27,7 +27,7 @@ const VideoNode = Node.create({
     renderHTML({ HTMLAttributes }) { return ['video', { ...HTMLAttributes, controls: 'controls', preload: 'metadata' }]; },
 });
 
-interface UploadPlaceholder { id: number; label: string; top: number; left: number }
+interface UploadPlaceholder { id: number; label: string; top: number; left: number; percent: number | null }
 
 /** 富文本统一入口。图片默认上传到 system 资源库。 */
 export function RichTextEditor({ value, disabled = false, label = '富文本', onChange, onUploadImage, onUploadingChange }: RichTextEditorProps) {
@@ -42,14 +42,20 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
     const [uploadingVideo, setUploadingVideo] = useState(false);
     const [placeholders, setPlaceholders] = useState<UploadPlaceholder[]>([]);
     const upload = useUploadSystemFile();
-    const settings = useUploadSettings().data ?? DEFAULT_UPLOAD_SETTINGS;
+    const settingsQuery = useUploadSettings();
+    const settings = settingsQuery.data ?? DEFAULT_UPLOAD_SETTINGS;
+    const uploadSettingsRef = useRef(settingsQuery.data);
 
-    const addPlaceholder = (editor: NonNullable<ReturnType<typeof useEditor>>, position: number, label: string) => {
+    useEffect(() => {
+        uploadSettingsRef.current = settingsQuery.data;
+    }, [settingsQuery.data]);
+
+    const addPlaceholder = (editor: NonNullable<ReturnType<typeof useEditor>>, position: number, label: string, tracked = true) => {
         const id = ++nextPlaceholderId.current;
         const caret = editor.view.coordsAtPos(position);
         const content = contentRef.current?.getBoundingClientRect();
         setPlaceholders((previous) => [...previous, {
-            id, label,
+            id, label, percent: tracked ? 0 : null,
             top: content ? Math.max(0, caret.top - content.top) : 0,
             left: content ? Math.max(0, caret.left - content.left) : 0,
         }]);
@@ -58,6 +64,15 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
 
     const removePlaceholder = (id: number) => {
         if (mounted.current) setPlaceholders((previous) => previous.filter((placeholder) => placeholder.id !== id));
+    };
+
+    const updatePlaceholderProgress = (id: number, files: File[], progress: number[], index: number, percent: number) => {
+        progress[index] = percent;
+        const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+        const overall = totalBytes > 0
+            ? Math.round(files.reduce((sum, file, item) => sum + file.size * (progress[item] ?? 0), 0) / totalBytes)
+            : 0;
+        if (mounted.current) setPlaceholders((previous) => previous.map((placeholder) => placeholder.id === id ? { ...placeholder, percent: overall } : placeholder));
     };
 
     const changePending = (kind: 'image' | 'video', delta: 1 | -1) => {
@@ -74,18 +89,27 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
     const insertImages = async (files: File[]) => {
         const currentEditor = editorRef.current;
         if (!currentEditor?.isEditable || files.length === 0) return;
+        const uploadSettings = uploadSettingsRef.current;
+        if (!uploadSettings) {
+            Toast.error('上传配置尚未加载，请稍后重试');
+            return;
+        }
         const valid = files.filter((file) => {
-            const error = imageFileError(file, settings);
+            const error = imageFileError(file, uploadSettings);
             if (error) Toast.error(error);
             return !error;
         });
         if (valid.length === 0) return;
         const position = currentEditor.state.selection.from;
-        const placeholderId = addPlaceholder(currentEditor, position, `图片上传中（${valid.length} 张）…`);
+        const placeholderId = addPlaceholder(currentEditor, position, `图片上传中（${valid.length} 张）…`, !onUploadImage);
+        const progress = valid.map(() => 0);
         changePending('image', 1);
         try {
-            const results = await Promise.allSettled(valid.map(async (file) => {
-                const result = onUploadImage ? await onUploadImage(file) : await upload.mutateAsync(file);
+            const results = await Promise.allSettled(valid.map(async (file, index) => {
+                const reportProgress = (percent: number) => {
+                    updatePlaceholderProgress(placeholderId, valid, progress, index, percent);
+                };
+                const result = onUploadImage ? await onUploadImage(file, reportProgress) : await upload.uploadWithProgress(file, reportProgress);
                 const url = typeof result === 'string' ? result : result.url;
                 if (!url) throw new Error('上传未返回图片地址');
                 return { url, name: typeof result === 'string' ? file.name : result.name ?? file.name };
@@ -106,17 +130,25 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
     const insertVideos = async (files: File[]) => {
         const currentEditor = editorRef.current;
         if (!currentEditor?.isEditable || files.length === 0) return;
+        const uploadSettings = uploadSettingsRef.current;
+        if (!uploadSettings) {
+            Toast.error('上传配置尚未加载，请稍后重试');
+            return;
+        }
         const valid = files.filter((file) => {
-            const error = videoFileError(file, settings);
+            const error = videoFileError(file, uploadSettings);
             if (error) Toast.error(error);
             return !error;
         });
         if (valid.length === 0) return;
         const position = currentEditor.state.selection.from;
         const placeholderId = addPlaceholder(currentEditor, position, `视频上传中（${valid.length} 个）…`);
+        const progress = valid.map(() => 0);
         changePending('video', 1);
         try {
-            const results = await Promise.allSettled(valid.map((file) => upload.mutateAsync(file)));
+            const results = await Promise.allSettled(valid.map((file, index) => upload.uploadWithProgress(file, (percent) => {
+                updatePlaceholderProgress(placeholderId, valid, progress, index, percent);
+            })));
             const videos = results.flatMap((result) => result.status === 'fulfilled'
                 ? [{ type: 'video', attrs: { src: result.value.url } }]
                 : []);
@@ -176,17 +208,19 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
                 <Button size="small" theme={editor.isActive('blockquote') ? 'solid' : 'borderless'} icon={<Quote size={14} />} disabled={disabled} aria-label="引用" onClick={() => editor.chain().focus().toggleBlockquote().run()} />
                 <Button size="small" theme="borderless" icon={<Undo2 size={14} />} disabled={disabled || !editor.can().undo()} aria-label="撤销" onClick={() => editor.chain().focus().undo().run()} />
                 <Button size="small" theme="borderless" icon={<Redo2 size={14} />} disabled={disabled || !editor.can().redo()} aria-label="重做" onClick={() => editor.chain().focus().redo().run()} />
-                <Button size="small" theme="borderless" icon={<ImagePlus size={14} />} disabled={disabled || uploadingImage} aria-label="上传并插入图片" onClick={() => inputRef.current?.click()} />
+                <Button size="small" theme="borderless" icon={<ImagePlus size={14} />} disabled={disabled || uploadingImage || !settingsQuery.data} aria-label="上传并插入图片" onClick={() => inputRef.current?.click()} />
                 <input ref={inputRef} hidden type="file" accept={settings.imageFormats.map((format) => `.${format}`).join(',')} multiple onChange={(event) => { void insertImages(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
-                <Button size="small" theme="borderless" icon={<Video size={14} />} disabled={disabled || uploadingVideo} aria-label="上传并插入视频" onClick={() => videoInputRef.current?.click()} />
-                <input ref={videoInputRef} hidden type="file" accept=".mp4,.webm,.mov" multiple onChange={(event) => { void insertVideos(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
+                <Button size="small" theme="borderless" icon={<Video size={14} />} disabled={disabled || uploadingVideo || !settingsQuery.data} aria-label="上传并插入视频" onClick={() => videoInputRef.current?.click()} />
+                <input ref={videoInputRef} hidden type="file" accept={settings.videoFormats.map((format) => `.${format}`).join(',')} multiple onChange={(event) => { void insertVideos(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
+                {settingsQuery.isError && <Button size="small" onClick={() => void settingsQuery.refetch()}>重试加载上传配置</Button>}
                 </Space>
             </div>
             <div ref={contentRef} className="rich-text-editor__content">
                 <EditorContent editor={editor} />
                 {placeholders.map((placeholder) => (
                     <span key={placeholder.id} className="rich-text-editor__upload-placeholder" role="status" style={{ top: placeholder.top, left: placeholder.left }}>
-                        {placeholder.label}
+                        <span>{placeholder.label}{placeholder.percent === null ? '' : ` ${placeholder.percent}%${placeholder.percent === 100 ? ' · 等待确认' : ''}`}</span>
+                        {placeholder.percent !== null && <Progress percent={placeholder.percent} size="small" />}
                     </span>
                 ))}
             </div>

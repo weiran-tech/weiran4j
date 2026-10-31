@@ -445,8 +445,10 @@ export interface ConfigSaveRequest {
 export interface SystemMediaUploadSettings {
     imageFormats: string[];
     imageMaxSizeMb: number;
+    videoFormats: string[];
     videoMaxSizeMb: number;
     fileFormats: string[];
+    fileMaxSizeMb: number;
 }
 
 export interface SystemMediaDirectUploadAuthorization {

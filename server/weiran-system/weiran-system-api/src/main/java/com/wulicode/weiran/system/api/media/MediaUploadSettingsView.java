@@ -4,4 +4,9 @@ import java.util.List;
 
 /** 当前上传限制，供前端选择文件时提前校验。 */
 public record MediaUploadSettingsView(
-        List<String> imageFormats, int imageMaxSizeMb, int videoMaxSizeMb, List<String> fileFormats) {}
+        List<String> imageFormats,
+        int imageMaxSizeMb,
+        List<String> videoFormats,
+        int videoMaxSizeMb,
+        List<String> fileFormats,
+        int fileMaxSizeMb) {}

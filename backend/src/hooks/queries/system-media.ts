@@ -53,11 +53,25 @@ async function getDirectAuthorization(): Promise<SystemMediaDirectUploadAuthoriz
     return request;
 }
 
-export async function uploadSystemFile(file: File): Promise<SystemMediaFileUpload> {
+function postDirectWithProgress(url: string, body: FormData, onProgress: (percent: number) => void): Promise<Response> {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url);
+        xhr.withCredentials = false;
+        xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable && event.total > 0) onProgress(Math.min(100, Math.round(event.loaded / event.total * 100)));
+        };
+        xhr.onload = () => xhr.status === 0 ? reject(new Error('对象存储连接失败')) : resolve(new Response(null, { status: xhr.status }));
+        xhr.onerror = () => reject(new Error('对象存储连接失败'));
+        xhr.send(body);
+    });
+}
+
+export async function uploadSystemFile(file: File, onProgress?: (percent: number) => void): Promise<SystemMediaFileUpload> {
     const authorization = await getDirectAuthorization();
     if (authorization) {
         const extension = file.name.split('.').pop()?.toLowerCase();
-        if (!extension || !/^[a-z0-9]{2,5}$/.test(extension)) throw new Error('文件扩展名无效');
+        if (!extension || !/^[a-z0-9]{2,10}$/.test(extension)) throw new Error('文件扩展名无效');
         const objectName = `${authorization.keyPrefix}${crypto.randomUUID()}.${extension}`;
         const body = new FormData();
         body.append('key', objectName);
@@ -69,7 +83,9 @@ export async function uploadSystemFile(file: File): Promise<SystemMediaFileUploa
         body.append('file', file);
         let response: Response;
         try {
-            response = await fetch(authorization.uploadUrl, { method: 'POST', body, credentials: 'omit' });
+            response = onProgress
+                ? await postDirectWithProgress(authorization.uploadUrl, body, onProgress)
+                : await fetch(authorization.uploadUrl, { method: 'POST', body, credentials: 'omit' });
         } catch (error) {
             Toast.error('对象存储连接失败，请检查网络与 OSS 跨域配置');
             throw error;
@@ -79,16 +95,20 @@ export async function uploadSystemFile(file: File): Promise<SystemMediaFileUploa
             Toast.error(`对象存储上传失败（HTTP ${response.status}）`);
             throw new Error(`对象存储上传失败（HTTP ${response.status}）`);
         }
-        return http.post<SystemMediaFileUpload>('/api-backend/system/media/completeDirectUpload', {
+        const completed = await http.post<SystemMediaFileUpload>('/api-backend/system/media/completeDirectUpload', {
             originalName: file.name,
             objectName,
             size: file.size,
             ticket: authorization.ticket,
         });
+        onProgress?.(100);
+        return completed;
     }
     const body = new FormData();
     body.append('file', file);
-    return http.post<SystemMediaFileUpload>('/api-backend/system/media/uploadFile', body);
+    const uploaded = await http.post<SystemMediaFileUpload>('/api-backend/system/media/uploadFile', body, onProgress ? { onUploadProgress: onProgress } : undefined);
+    onProgress?.(100);
+    return uploaded;
 }
 
 export function useSystemMediaFiles(query: SystemMediaFileQuery) {
@@ -101,10 +121,18 @@ export function useSystemMediaFiles(query: SystemMediaFileQuery) {
 
 export function useUploadSystemFile() {
     const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: uploadSystemFile,
+    const mutation = useMutation({
+        mutationFn: (file: File) => uploadSystemFile(file),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: systemMediaKeys.all }),
     });
+    return {
+        ...mutation,
+        uploadWithProgress: async (file: File, onProgress: (percent: number) => void) => {
+            const uploaded = await uploadSystemFile(file, onProgress);
+            void queryClient.invalidateQueries({ queryKey: systemMediaKeys.all });
+            return uploaded;
+        },
+    };
 }
 
 export function useDeleteSystemMediaFile() {

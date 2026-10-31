@@ -69,4 +69,45 @@ describe('uploadSystemFile', () => {
         expect(mocks.get).toHaveBeenCalledTimes(2);
         expect(upload).toHaveBeenCalledTimes(1);
     });
+
+    it('OSS 直传接受上传配置允许的较长扩展名', async () => {
+        mocks.get.mockResolvedValue(authorization);
+        const upload = vi.fn().mockResolvedValue({ ok: true, status: 204 });
+        vi.stubGlobal('fetch', upload);
+        const { uploadSystemFile } = await import('../system-media');
+
+        await uploadSystemFile(new File(['notes'], 'notes.markdown'));
+
+        const body = upload.mock.calls[0]?.[1]?.body as FormData;
+        expect(body.get('key')).toBe(`${authorization.keyPrefix}bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb.markdown`);
+    });
+
+    it('OSS 直传上报实际发送进度，完成后再登记文件', async () => {
+        mocks.get.mockResolvedValue(authorization);
+        const progress = vi.fn();
+        const xhr = {
+            upload: { onprogress: null as ((event: ProgressEvent) => void) | null },
+            onload: null as (() => void) | null,
+            onerror: null as (() => void) | null,
+            status: 204,
+            withCredentials: true,
+            open: vi.fn(),
+            send: vi.fn(() => {
+                xhr.upload.onprogress?.({ lengthComputable: true, loaded: 2, total: 4 } as ProgressEvent);
+                xhr.upload.onprogress?.({ lengthComputable: true, loaded: 4, total: 4 } as ProgressEvent);
+                xhr.onload?.();
+            }),
+        };
+        vi.stubGlobal('XMLHttpRequest', function XMLHttpRequestMock() { return xhr; });
+        vi.stubGlobal('fetch', vi.fn());
+        const { uploadSystemFile } = await import('../system-media');
+
+        await uploadSystemFile(new File(['image'], 'cover.png'), progress);
+
+        expect(xhr.open).toHaveBeenCalledWith('POST', authorization.uploadUrl);
+        expect(xhr.withCredentials).toBe(false);
+        expect(progress.mock.calls.map(([percent]) => percent)).toEqual([50, 100, 100]);
+        expect(mocks.post).toHaveBeenCalledWith('/api-backend/system/media/completeDirectUpload', expect.any(Object));
+        expect(fetch).not.toHaveBeenCalled();
+    });
 });

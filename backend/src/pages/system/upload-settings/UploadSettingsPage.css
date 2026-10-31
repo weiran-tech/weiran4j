@@ -1,0 +1,6 @@
+.upload-settings { max-width: 760px; display: grid; gap: 20px; padding-bottom: 24px; }
+.upload-settings__intro, .upload-settings__group p { margin: 0; color: var(--semi-color-text-2); }
+.upload-settings__group { display: grid; gap: 12px; }
+.upload-settings__group h3 { margin: 0; font-size: 17px; }
+.upload-settings__group small { color: var(--semi-color-text-2); }
+.upload-settings__label { margin-top: 8px; font-weight: 600; }

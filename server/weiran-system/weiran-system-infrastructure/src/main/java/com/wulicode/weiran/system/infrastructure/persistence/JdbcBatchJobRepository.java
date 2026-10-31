@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 /** MySQL 8 任务队列；明细永不因重领而删除，计数只从明细投影。 */
 public class JdbcBatchJobRepository implements BatchJobRepository {
 
+    private static final int MAX_ACTIVE_JOBS_PER_USER = 20;
     private static final RowMapper<BatchJob> JOB_MAPPER = (row, index) -> JdbcBatchJobRepository.map(row);
     private final JdbcTemplate jdbc;
 
@@ -43,8 +44,8 @@ public class JdbcBatchJobRepository implements BatchJobRepository {
                         + "and status in ('queued', 'running', 'cancel_requested')",
                 Integer.class,
                 userId);
-        if (active != null && active >= 3) {
-            throw BizException.conflict("同一账号最多同时保留 3 个待处理任务");
+        if (active != null && active >= MAX_ACTIVE_JOBS_PER_USER) {
+            throw BizException.conflict("同一账号最多同时保留 " + MAX_ACTIVE_JOBS_PER_USER + " 个待处理任务");
         }
         final KeyHolder keys = new GeneratedKeyHolder();
         this.jdbc.update(

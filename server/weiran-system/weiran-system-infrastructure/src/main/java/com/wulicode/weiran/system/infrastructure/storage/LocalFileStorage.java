@@ -48,7 +48,7 @@ public final class LocalFileStorage implements FileStorage {
     }
 
     private Path resolve(final String objectName) {
-        if (!objectName.matches("media/[0-9]{6}/[0-9a-fA-F-]{36}\\.[a-z0-9]{2,5}")
+        if (!objectName.matches("media/[0-9]{6}/[0-9a-fA-F-]{36}\\.[a-z0-9]{2,10}")
                 || !MediaFileTypes.allowed(MediaFileTypes.extension(objectName))) {
             throw new IllegalArgumentException("文件对象名无效");
         }

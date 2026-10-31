@@ -13,3 +13,6 @@
 .file-upload__dropzone span { font-size: 12px; }
 .file-upload__dropzone[aria-disabled='true'] { cursor: not-allowed; opacity: .55; }
 .file-upload__dropzone:not([aria-disabled='true']):hover { border-color: var(--semi-color-primary); color: var(--semi-color-primary); }
+.file-upload__dropzone--uploading[aria-disabled='true'] { opacity: 1; }
+.file-upload__progress { box-sizing: border-box; display: grid; justify-items: center; align-content: center; gap: 2px; width: 100%; min-width: 0; height: 100%; padding: 4px; color: var(--semi-color-text-1); text-align: center; }
+.file-upload__progress .semi-progress { width: 100%; }

@@ -8,7 +8,7 @@
 |---|---|
 | 表 | `sys_media` |
 | 模块 | `weiran-system` |
-| 管理页面 | `/system/media-library` |
+| 管理页面 | 「文件系统」菜单 `/system/media-library`，含「资源管理」「上传配置」两个 Tab |
 | 管理接口 | `/api-backend/system/media/uploadFile`、`/api-backend/system/media/getUploadSettings`、`/api-backend/system/media/getDirectUploadAuthorization`、`/api-backend/system/media/completeDirectUpload`、`/api-backend/system/mediaLibrary/list`、`/api-backend/system/mediaLibrary/delete/{id}` |
 | 权限 | 上传接口要求登录，不设独立上传权限；资源库列表与删除分别要求 `system:media-library:list/delete` |
 
@@ -30,9 +30,11 @@ Semi UI 表格、列设置、操作列与搜索工具栏、system 文件存储�
 
 ## 5. 说明与建议
 
-服务端按系统配置 `system.upload.*` 校验：图片格式限 gif/jpg/jpeg/png 多选（默认全选）、图片大小默认 10 MB、可设 1～100 MB；视频允许 mp4/webm/mov，大小默认 100 MB、可设 1～1024 MB；普通文件格式为逗号分隔的受支持扩展名（默认 `pdf,gif`），大小固定 10 MB。配置缺失或非法时回退默认值。图片按图片规则校验，不受普通文件格式项影响。上传入口、Spring multipart 与 Nginx 限制均允许最大 1024 MB。本地和 OSS 存储使用同一对象名约束。浏览器能否解码 MOV 取决于本机支持的编码。
+服务端按系统配置 `system.upload.*` 校验：图片格式可从 gif/jpg/jpeg/png/webp 选择，大小默认 10 MB、可设 1～100 MB；视频格式可从 mp4/webm/mov 选择，大小默认 100 MB、可设 1～1024 MB；普通文件可增删安全扩展名（默认 `pdf`），大小默认 10 MB、可设 1～1024 MB。三组规则在资源管理的「上传配置」Tab 维护，配置缺失或非法时回退默认值。图片和视频按各自规则及文件头校验，网页和可执行格式不能启用。上传入口、Spring multipart 与 Nginx 限制均允许最大 1024 MB。本地和 OSS 存储使用同一对象名约束。浏览器能否解码 MOV 取决于本机支持的编码。
 
 `aliyun` 模式下浏览器获取 15 分钟有效的 OSS 表单授权并按有效期缓存，直传成功后上报对象名、原文件名、大小与授权票据。服务端校验票据所属用户和对象前缀、OSS 对象实际大小及图片/视频文件头，再写入 `sys_media`；业务配置保存时继续由现有引用服务更新 `sys_media_reference`。直传对象名为 `media/UTC年月/授权UUID/文件UUID.扩展名`；原有后端代传与 `local` 模式仍使用 `media/UTC年月/文件UUID.扩展名`。
+
+文件上传在当前上传框内显示进度，富文本图片/视频上传在正文占位提示中显示进度，资源管理上传列表显示进度；多文件与富文本批次按文件大小汇总。传输达到 100% 后仍需等待后端响应，OSS 直传还需完成服务端登记。自定义上传动作可通过可选回调上报进度；未上报时仅显示上传中状态。OSS 进度监听会触发 CORS 预检，Bucket 须允许页面来源、`POST` 和请求头。
 
 ## 6. 已知问题汇总
 
@@ -42,6 +44,10 @@ Semi UI 表格、列设置、操作列与搜索工具栏、system 文件存储�
 ## 7. changelog
 
 **2026-10-31**
+- 文件、富文本图片和视频上传展示发送进度；资源管理上传列表同步显示百分比，OSS 直传与本地上传共用进度回调。
+- 侧边菜单更名为「文件系统」，Tab 名称保持「资源管理」「上传配置」。
+- 菜单「资源库」更名为「资源管理」，上传配置并入同页 Tab，旧地址保持可用。
+- 上传格式和大小改为图片、视频、普通文件分组配置；普通文件可添加或移除安全扩展名，前端组件和服务端统一按分组规则校验。
 - 移除 `system:media-library:upload` 按钮权限与上传接口的额外权限检查；登录用户可从配置表单、富文本或资源库上传，列表和删除权限保持独立。
 
 **2026-10-30**

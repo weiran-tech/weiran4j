@@ -10,3 +10,8 @@
 .demo-page__sequence-form { display: flex; gap: 12px; }
 .demo-page__sequence-form .semi-input-wrapper { flex: 1; min-width: 0; }
 .demo-page__sequence-result { display: grid; gap: 8px; margin-top: 16px; padding: 16px; border: 1px solid var(--semi-color-border); border-radius: 8px; }
+.demo-config__content { display: grid; gap: 16px; }
+.demo-config__content h3 { margin: 12px 0 0; font-size: 16px; }
+.demo-config__content pre { max-height: 320px; overflow: auto; padding: 12px; border-radius: 6px; background: var(--semi-color-fill-0); }
+.demo-config__readonly { display: inline-flex; align-items: center; gap: 8px; width: fit-content; }
+.demo-config__case { display: grid; gap: 8px; padding: 16px 0; border-bottom: 1px solid var(--semi-color-border); }

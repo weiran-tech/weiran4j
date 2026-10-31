@@ -3,54 +3,87 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mockFetch, renderWithProviders } from '@/test/helpers';
 import { RichTextEditor } from '../RichTextEditor';
 
+function stubUploadRequest(automatic = false) {
+    const requests: Array<{
+        upload: { onprogress: ((event: ProgressEvent) => void) | null };
+        onload: (() => void) | null;
+        emitProgress: (percent: number) => void;
+        finish: () => void;
+    }> = [];
+    class MockUploadRequest {
+        upload = { onprogress: null as ((event: ProgressEvent) => void) | null };
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+        onabort: (() => void) | null = null;
+        status = 200;
+        responseText = JSON.stringify({ code: 0, message: 'ok', data: { url: '/system-uploads/clip.mp4' } });
+        withCredentials = false;
+        open() { /* 测试只需模拟上传响应 */ }
+        setRequestHeader() { /* 测试只需模拟上传响应 */ }
+        getResponseHeader() { return null; }
+        send() {
+            requests.push(this);
+            if (automatic) queueMicrotask(() => this.finish());
+        }
+        emitProgress(percent: number) {
+            this.upload.onprogress?.({ lengthComputable: true, loaded: percent, total: 100 } as ProgressEvent);
+        }
+        finish() {
+            this.emitProgress(100);
+            this.onload?.();
+        }
+        abort() { this.onabort?.(); }
+    }
+    vi.stubGlobal('XMLHttpRequest', MockUploadRequest);
+    return requests;
+}
+
 describe('RichTextEditor', () => {
     afterEach(() => vi.unstubAllGlobals());
 
     it('上传视频后插入可播放的 video HTML', async () => {
-        const { calls, fn } = mockFetch({
+        mockFetch({
             'GET /api-backend/system/media/getDirectUploadAuthorization': null,
             'GET /api-backend/system/media/getUploadSettings': {
-                imageFormats: ['png'], imageMaxSizeMb: 2, videoMaxSizeMb: 5, fileFormats: ['pdf'],
+                imageFormats: ['png'], imageMaxSizeMb: 2, videoFormats: ['mp4', 'webm', 'mov'], videoMaxSizeMb: 5, fileFormats: ['pdf'], fileMaxSizeMb: 3,
             },
             'POST /api-backend/system/media/uploadFile': {
                 url: '/system-uploads/clip.mp4', name: 'clip.mp4', path: 'clip.mp4', size: 1,
             },
         });
-        let finishUpload!: () => void;
-        const uploadPending = new Promise<void>((resolve) => { finishUpload = resolve; });
-        vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
-            const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-            if (init?.method === 'POST' && url.includes('/api-backend/system/media/uploadFile')) {
-                return uploadPending.then(() => fn(input, init));
-            }
-            return fn(input, init);
-        }));
+        const requests = stubUploadRequest();
         const onChange = vi.fn();
         const { container } = renderWithProviders(<RichTextEditor value="<p>正文</p>" onChange={onChange} />);
-        fireEvent.click(await screen.findByRole('button', { name: '上传并插入视频' }));
+        const videoButton = await screen.findByRole('button', { name: '上传并插入视频' });
+        await waitFor(() => expect(videoButton).toBeEnabled());
+        fireEvent.click(videoButton);
         const input = container.querySelector('input[type="file"][accept=".mp4,.webm,.mov"]');
         expect(input).not.toBeNull();
         fireEvent.change(input!, { target: { files: [new File(['video'], 'clip.mp4', { type: 'video/mp4' })] } });
         expect(await screen.findByRole('status')).toHaveTextContent('视频上传中（1 个）');
         expect(onChange).not.toHaveBeenCalledWith(expect.stringContaining('视频上传中'));
-        act(() => finishUpload());
+        await waitFor(() => expect(requests).toHaveLength(1));
+        act(() => requests[0]!.emitProgress(50));
+        expect(screen.getByRole('status')).toHaveTextContent('50%');
+        act(() => requests[0]!.finish());
         await waitFor(() => expect(onChange).toHaveBeenCalledWith(expect.stringContaining('<video')));
         expect(screen.queryByRole('status')).toBeNull();
         expect(onChange.mock.lastCall?.[0]).toContain('src="/system-uploads/clip.mp4"');
         expect(onChange.mock.lastCall?.[0]).toContain('controls');
-        expect(calls.some((call) => call.method === 'POST' && call.path === '/api-backend/system/media/uploadFile')).toBe(true);
+        expect(requests).toHaveLength(1);
     });
 
     it('图片和视频分别禁用自己的按钮，表单等待全部上传完成', async () => {
         mockFetch({
             'GET /api-backend/system/media/getDirectUploadAuthorization': null,
             'GET /api-backend/system/media/getUploadSettings': {
-                imageFormats: ['png'], imageMaxSizeMb: 2, videoMaxSizeMb: 5, fileFormats: ['pdf'],
+                imageFormats: ['png'], imageMaxSizeMb: 2, videoFormats: ['mp4', 'webm', 'mov'], videoMaxSizeMb: 5, fileFormats: ['pdf'], fileMaxSizeMb: 3,
             },
             'POST /api-backend/system/media/uploadFile': {
                 url: '/system-uploads/clip.mp4', name: 'clip.mp4', path: 'clip.mp4', size: 1,
             },
         });
+        stubUploadRequest(true);
         let resolveImage!: (url: string) => void;
         const onUploadImage = vi.fn(() => new Promise<string>((resolve) => { resolveImage = resolve; }));
         const onUploadingChange = vi.fn();
@@ -86,7 +119,7 @@ describe('RichTextEditor', () => {
     it('图片上传失败后清除占位提示', async () => {
         mockFetch({
             'GET /api-backend/system/media/getUploadSettings': {
-                imageFormats: ['png'], imageMaxSizeMb: 2, videoMaxSizeMb: 5, fileFormats: ['pdf'],
+                imageFormats: ['png'], imageMaxSizeMb: 2, videoFormats: ['mp4', 'webm', 'mov'], videoMaxSizeMb: 5, fileFormats: ['pdf'], fileMaxSizeMb: 3,
             },
         });
         let rejectImage!: (error: Error) => void;

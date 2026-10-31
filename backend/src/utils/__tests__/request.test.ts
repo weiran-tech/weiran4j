@@ -77,6 +77,43 @@ describe('request', () => {
         expect(init?.body).toBe(body);
     });
 
+    it('multipart 上传进度走 XHR，并保持 CSRF 与统一响应处理', async () => {
+        const session = signIn(7, 'abc');
+        const progress = vi.fn();
+        const headers: Record<string, string> = {};
+        const xhr = {
+            upload: { onprogress: null as ((event: ProgressEvent) => void) | null },
+            onload: null as (() => void) | null,
+            onerror: null as (() => void) | null,
+            onabort: null as (() => void) | null,
+            status: 200,
+            responseText: JSON.stringify({ code: 0, message: 'ok', data: { url: '/system-uploads/image.png' } }),
+            withCredentials: false,
+            open: vi.fn(),
+            setRequestHeader: vi.fn((name: string, value: string) => { headers[name] = value; }),
+            getResponseHeader: vi.fn(() => null),
+            send: vi.fn(() => {
+                xhr.upload.onprogress?.({ lengthComputable: true, loaded: 1, total: 2 } as ProgressEvent);
+                xhr.upload.onprogress?.({ lengthComputable: true, loaded: 2, total: 2 } as ProgressEvent);
+                xhr.onload?.();
+            }),
+            abort: vi.fn(),
+        };
+        vi.stubGlobal('XMLHttpRequest', function XMLHttpRequestMock() { return xhr; });
+        vi.stubGlobal('fetch', vi.fn());
+        const body = new FormData();
+        body.append('file', new File(['image'], 'image.png'));
+
+        await expect(http.post('/api-backend/system/media/uploadFile', body, { onUploadProgress: progress })).resolves.toEqual({ url: '/system-uploads/image.png' });
+        expect(xhr.open).toHaveBeenCalledWith('POST', '/api-backend/system/media/uploadFile');
+        expect(xhr.withCredentials).toBe(true);
+        expect(headers['X-CSRF-Token']).toBe(session);
+        expect(headers['Content-Type']).toBeUndefined();
+        expect(xhr.send).toHaveBeenCalledWith(body);
+        expect(progress.mock.calls.map(([percent]) => percent)).toEqual([50, 100]);
+        expect(fetch).not.toHaveBeenCalled();
+    });
+
     it.each(['POST', 'DELETE'] as const)('%s 同样带 X-CSRF-Token', async (method) => {
         const session = signIn();
         respond({ code: 0, message: 'ok', data: null });

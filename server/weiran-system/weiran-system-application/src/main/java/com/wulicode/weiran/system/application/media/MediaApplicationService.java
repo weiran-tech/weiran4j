@@ -79,7 +79,12 @@ public class MediaApplicationService implements MediaService {
     public MediaUploadSettingsView uploadSettings() {
         final MediaUploadPolicy policy = this.uploadPolicy();
         return new MediaUploadSettingsView(
-                policy.imageFormats(), policy.imageMaxSizeMb(), policy.videoMaxSizeMb(), policy.fileFormats());
+                policy.imageFormats(),
+                policy.imageMaxSizeMb(),
+                policy.videoFormats(),
+                policy.videoMaxSizeMb(),
+                policy.fileFormats(),
+                policy.fileMaxSizeMb());
     }
 
     private MediaUploadPolicy uploadPolicy() {

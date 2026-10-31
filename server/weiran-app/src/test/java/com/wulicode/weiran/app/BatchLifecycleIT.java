@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 
+import com.wulicode.weiran.framework.error.BizException;
 import com.wulicode.weiran.framework.page.PageQuery;
 import com.wulicode.weiran.system.api.batch.BatchJobService;
 import com.wulicode.weiran.system.domain.batch.BatchJobRepository;
@@ -36,6 +37,30 @@ class BatchLifecycleIT extends IntegrationTestSupport {
 
     @Autowired
     private PlatformTransactionManager transactionManager;
+
+    @Test
+    @Transactional
+    @DisplayName("同账号允许 20 个待处理任务，第 21 个被拒绝，取消后释放名额")
+    void activeTaskLimitIsTwenty() {
+        final int existing = Objects.requireNonNull(this.jdbc.queryForObject(
+                "select count(*) from sys_task where created_by = 1 and status in ('queued', 'running', 'cancel_requested')",
+                Integer.class));
+        assertThat(existing).isLessThan(20);
+        long first = 0;
+        for (int index = existing; index < 20; index++) {
+            final long id = this.jobs.create(
+                    "test_limit", "input.xlsx", "batch/202610/test.xlsx", "managed_file", FINGERPRINT, 1);
+            if (first == 0) {
+                first = id;
+            }
+        }
+        this.jobs.requestCancel(first, 1);
+        this.jobs.create("test_limit", "replacement.xlsx", "batch/202610/test.xlsx", "managed_file", FINGERPRINT, 1);
+        assertThatThrownBy(() -> this.jobs.create(
+                        "test_limit", "overflow.xlsx", "batch/202610/test.xlsx", "managed_file", FINGERPRINT, 1))
+                .isInstanceOf(BizException.class)
+                .hasMessageContaining("最多同时保留 20 个待处理任务");
+    }
 
     @Test
     @DisplayName("真实 worker 对预检部分失败继续入库，全部通过任务成功，计数与明细一致")

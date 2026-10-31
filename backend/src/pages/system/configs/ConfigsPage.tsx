@@ -260,7 +260,7 @@ export default function ConfigsPage({ domain = 'config_system' }: { domain?: Con
     const { hasAnyPermission } = usePermission();
     const { data } = useConfigAll();
     const { data: groupCatalog = [], isFetching: isFetchingGroups, refetch: refetchGroups } = useConfigGroups();
-    const domainGroups = groupCatalog.filter((group) => group.groupKey === domain);
+    const domainGroups = groupCatalog.filter((group) => group.groupKey === domain && (domain !== 'config_system' || !['upload', 'demo'].includes(group.key)));
     const deleteConfig = useDeleteConfig();
     const deleteConfigGroup = useDeleteConfigGroup();
     const [editing, setEditing] = useState<ConfigView | null | undefined>(undefined);

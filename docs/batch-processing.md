@@ -6,6 +6,8 @@
 
 任务状态为 `queued`、`running`、`cancel_requested`、`succeeded`、`partial_failed`、`failed`、`cancelled`。阶段为 `uploading`、`validating`、`deciding`、`processing`、`summarizing`；历史任务的 `waiting`、`preparing`、`finished` 阶段仍可查询。状态表达排队、运行或终态；阶段表达处理位置，两者不能互相替代。
 
+同一账号最多保留 20 个非终态任务，按 `queued`、`running`、`cancel_requested` 合计；完成、失败或取消后释放名额。创建时锁定用户行，防止并发请求绕过限额。
+
 上传完成后才创建可入队的任务。平台托管文件保存到私有 `batch/YYYYMM/` 对象，任务记录保存 SHA-256。业务引用型任务保存引用和处理器计算的 SHA-256 指纹，不创建占位文件。处理器在恢复及逐项入库前重新校验输入；文件或清单变化时整个任务失败。已完成任务的托管文件保留七天，之后仅清除源文件，任务和明细仍保留。
 
 预检必须识别完整输入，并对每个处理项写一条 `validating` 明细。文件损坏、模板无法识别等任务级异常阻止整个任务入库，此时 `total` 可为 `null`。预检结束后将总项数持久化，进入自动决策。决策只为预检通过的项建立 `processing/pending` 明细；预检失败项不进入入库。`decided_at` 和 `selected_count` 持久化决策结果，恢复时只执行待处理项。

@@ -1,4 +1,4 @@
-import { Button, ImagePreview, Toast } from '@douyinfe/semi-ui';
+import { Button, ImagePreview, Progress, Toast } from '@douyinfe/semi-ui';
 import { ArrowLeft, ArrowRight, Download, Eye, FilePlus2, Play, RotateCcw, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { useUploadSettings, useUploadSystemFile } from '@/hooks/queries/system-media';
@@ -9,13 +9,17 @@ import { PdfPreview } from './PdfPreview';
 import { VideoPreview } from './VideoPreview';
 import './FileUpload.css';
 
-const VIDEO_EXTENSIONS = new Set(['.mp4', '.webm', '.mov']);
 const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp']);
 export const DEFAULT_UPLOAD_SETTINGS: SystemMediaUploadSettings = {
-    imageFormats: ['gif', 'jpg', 'jpeg', 'png'], imageMaxSizeMb: 10, videoMaxSizeMb: 100, fileFormats: ['pdf', 'gif'],
+    imageFormats: ['gif', 'jpg', 'jpeg', 'png'], imageMaxSizeMb: 10,
+    videoFormats: ['mp4', 'webm', 'mov'], videoMaxSizeMb: 100,
+    fileFormats: ['pdf'], fileMaxSizeMb: 10,
 };
-export const MAX_FILE_SIZE_MB = 10;
 export const DEFAULT_MAX_FILES = 9;
+
+export function uploadLimitsLabel(settings: SystemMediaUploadSettings): string {
+    return `图片不超过 ${settings.imageMaxSizeMb} MB，视频不超过 ${settings.videoMaxSizeMb} MB，普通文件不超过 ${settings.fileMaxSizeMb} MB`;
+}
 
 export function isImageUrl(url: string): boolean {
     return isImageFile(url);
@@ -23,9 +27,10 @@ export function isImageUrl(url: string): boolean {
 
 export function fileUploadError(file: File, settings = DEFAULT_UPLOAD_SETTINGS): string | null {
     const extension = fileExtension(file.name);
-    const maxSize = VIDEO_EXTENSIONS.has(`.${extension}`) ? settings.videoMaxSizeMb
-        : IMAGE_EXTENSIONS.has(extension) ? settings.imageMaxSizeMb : MAX_FILE_SIZE_MB;
-    if (!VIDEO_EXTENSIONS.has(`.${extension}`) && !IMAGE_EXTENSIONS.has(extension) && !settings.fileFormats.includes(extension)) return '不支持该文件类型';
+    const maxSize = isVideoFile(file.name) ? settings.videoMaxSizeMb
+        : IMAGE_EXTENSIONS.has(extension) ? settings.imageMaxSizeMb : settings.fileMaxSizeMb;
+    if (isVideoFile(file.name) && !settings.videoFormats.includes(extension)) return '该视频格式未启用';
+    if (!isVideoFile(file.name) && !IMAGE_EXTENSIONS.has(extension) && !settings.fileFormats.includes(extension)) return '不支持该文件类型';
     if (IMAGE_EXTENSIONS.has(extension) && !settings.imageFormats.includes(extension)) return '该图片格式未启用';
     if (file.size === 0 || file.size > maxSize * 1024 * 1024) return `文件须大于 0 且不超过 ${maxSize} MB`;
     return null;
@@ -37,11 +42,11 @@ export function imageFileError(file: File, settings = DEFAULT_UPLOAD_SETTINGS): 
 }
 
 export function videoFileError(file: File, settings = DEFAULT_UPLOAD_SETTINGS): string | null {
-    if (!VIDEO_EXTENSIONS.has(`.${fileExtension(file.name)}`)) return '请选择 mp4、webm 或 mov 视频';
+    if (!settings.videoFormats.includes(fileExtension(file.name))) return `请选择 ${settings.videoFormats.join('、')} 格式的视频`;
     return fileUploadError(file, settings);
 }
 
-type UploadFile = (file: File) => Promise<string | { url: string }>;
+type UploadFile = (file: File, onProgress?: (percent: number) => void) => Promise<string | { url: string }>;
 
 type FileUploadProps = {
     disabled?: boolean;
@@ -57,12 +62,15 @@ type FileUploadProps = {
 export function FileUpload(props: FileUploadProps) {
     const { disabled = false, onUpload, onUploadingChange, maxFiles = DEFAULT_MAX_FILES } = props;
     const upload = useUploadSystemFile();
-    const settings = useUploadSettings().data ?? DEFAULT_UPLOAD_SETTINGS;
+    const settingsQuery = useUploadSettings();
+    const settings = settingsQuery.data ?? DEFAULT_UPLOAD_SETTINGS;
     const inputRef = useRef<HTMLInputElement>(null);
     const busy = useRef(false);
     const dragIndexRef = useRef<number | null>(null);
     const mounted = useRef(true);
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState<{ index: number; total: number; percent: number | null } | null>(null);
+    const uploadDisabled = disabled || uploading || !settingsQuery.data;
     const [failed, setFailed] = useState<File[]>([]);
     const [previewIndex, setPreviewIndex] = useState<number | null>(null);
     const [previewVideoUrl, setPreviewVideoUrl] = useState<string | null>(null);
@@ -103,22 +111,31 @@ export function FileUpload(props: FileUploadProps) {
 
     const uploadFiles = async (files: File[]) => {
         if (disabled || busy.current || files.length === 0) return;
+        if (!settingsQuery.data) {
+            Toast.error('上传配置尚未加载，请稍后重试');
+            return;
+        }
         busy.current = true;
         setUploading(true);
         onUploadingChange?.(true);
         const failures: File[] = [];
-        for (const file of props.multiple ? files : files.slice(0, 1)) {
+        const batch = props.multiple ? files : files.slice(0, 1);
+        for (const [index, file] of batch.entries()) {
             if (props.multiple && urlsRef.current.length >= maxFiles) {
                 Toast.warning(`最多上传 ${maxFiles} 个文件`);
                 break;
             }
-            const error = fileUploadError(file, settings);
+            const error = fileUploadError(file, settingsQuery.data);
             if (error) {
                 Toast.error(error);
                 continue;
             }
             try {
-                const result = onUpload ? await onUpload(file) : await upload.mutateAsync(file);
+                setUploadProgress({ index: index + 1, total: batch.length, percent: onUpload ? null : Math.round(index / batch.length * 100) });
+                const reportProgress = (percent: number) => {
+                    if (mounted.current) setUploadProgress({ index: index + 1, total: batch.length, percent: Math.round((index + percent / 100) / batch.length * 100) });
+                };
+                const result = onUpload ? await onUpload(file, reportProgress) : await upload.uploadWithProgress(file, reportProgress);
                 const url = typeof result === 'string' ? result : result.url;
                 if (!url) throw new Error('上传未返回文件地址');
                 if (mounted.current) updateUrls(props.multiple ? [...urlsRef.current, url] : [url]);
@@ -131,6 +148,7 @@ export function FileUpload(props: FileUploadProps) {
         if (mounted.current) {
             setFailed(failures);
             setUploading(false);
+            setUploadProgress(null);
             onUploadingChange?.(false);
         }
     };
@@ -184,13 +202,13 @@ export function FileUpload(props: FileUploadProps) {
                     </div>
                 ))}
                 {(props.multiple ? urls.length < maxFiles : true) && <div
-                    className="file-upload__dropzone"
+                    className={`file-upload__dropzone${uploadProgress ? ' file-upload__dropzone--uploading' : ''}`}
                     role="button"
-                    tabIndex={disabled || uploading ? -1 : 0}
+                    tabIndex={uploadDisabled ? -1 : 0}
                     aria-label={props.multiple ? '上传多个文件' : '上传文件'}
-                    aria-disabled={disabled || uploading}
-                    onClick={() => { if (!disabled && !uploading) inputRef.current?.click(); }}
-                    onKeyDown={(event) => { if ((event.key === 'Enter' || event.key === ' ') && !disabled && !uploading) { event.preventDefault(); inputRef.current?.click(); } }}
+                    aria-disabled={uploadDisabled}
+                    onClick={() => { if (!uploadDisabled) inputRef.current?.click(); }}
+                    onKeyDown={(event) => { if ((event.key === 'Enter' || event.key === ' ') && !uploadDisabled) { event.preventDefault(); inputRef.current?.click(); } }}
                     onDragOver={(event) => {
                         event.preventDefault();
                         event.dataTransfer.dropEffect = dragIndexRef.current !== null ? 'move' : 'copy';
@@ -205,14 +223,21 @@ export function FileUpload(props: FileUploadProps) {
                         setInsertPosition(null);
                     }}
                 >
-                    <FilePlus2 size={20} />
-                    <span>{uploading ? '上传中…' : urls.length && !props.multiple ? '更换文件' : '上传文件'}</span>
+                    {uploadProgress ? <div className="file-upload__progress" role="status">
+                        <strong>{uploadProgress.percent === null ? '上传中…' : `${uploadProgress.percent}%`}</strong>
+                        {uploadProgress.percent !== null && <Progress percent={uploadProgress.percent} size="small" />}
+                        <span>{uploadProgress.percent === 100 ? '等待确认' : uploadProgress.total > 1 ? `${uploadProgress.index}/${uploadProgress.total}` : '上传中'}</span>
+                    </div> : <>
+                        <FilePlus2 size={20} />
+                        <span>{urls.length && !props.multiple ? '更换文件' : '上传文件'}</span>
+                    </>}
                 </div>}
             </div>
-            {props.multiple && <small>图片不超过 {settings.imageMaxSizeMb} MB，普通文件不超过 {MAX_FILE_SIZE_MB} MB，视频不超过 {settings.videoMaxSizeMb} MB；最多 {maxFiles} 个（当前 {urls.length}/{maxFiles}）</small>}
-            <input ref={inputRef} hidden type="file" accept={[...new Set([...settings.imageFormats, ...settings.fileFormats, 'mp4', 'webm', 'mov'])].map((item) => `.${item}`).join(',')} multiple={props.multiple} onChange={(event) => { void uploadFiles(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
+            {props.multiple && <small>{settingsQuery.data ? uploadLimitsLabel(settings) : '正在读取上传配置…'}；最多 {maxFiles} 个（当前 {urls.length}/{maxFiles}）</small>}
+            {settingsQuery.isError && <Button size="small" onClick={() => void settingsQuery.refetch()}>上传配置加载失败，重试</Button>}
+            <input ref={inputRef} hidden type="file" disabled={uploadDisabled} accept={[...new Set([...settings.imageFormats, ...settings.videoFormats, ...settings.fileFormats])].map((item) => `.${item}`).join(',')} multiple={props.multiple} onChange={(event) => { void uploadFiles(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
             {failed.length > 0 && (
-                <Button size="small" icon={<RotateCcw size={14} />} disabled={disabled || uploading} onClick={() => void uploadFiles(failed)}>
+                <Button size="small" icon={<RotateCcw size={14} />} disabled={uploadDisabled} onClick={() => void uploadFiles(failed)}>
                     重试失败的文件（{failed.length}）
                 </Button>
             )}

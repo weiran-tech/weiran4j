@@ -146,7 +146,7 @@ public final class OssFileStorage implements FileStorage, DirectUploadStorage, A
     }
 
     private static boolean validDirectKey(final String value) {
-        return value.matches("media/[0-9]{6}/[0-9a-f-]{36}/[0-9a-f-]{36}\\.[a-z0-9]{2,5}")
+        return value.matches("media/[0-9]{6}/[0-9a-f-]{36}/[0-9a-f-]{36}\\.[a-z0-9]{2,10}")
                 && MediaFileTypes.allowed(MediaFileTypes.extension(value));
     }
 
@@ -164,7 +164,7 @@ public final class OssFileStorage implements FileStorage, DirectUploadStorage, A
 
     @Override
     public void delete(final String objectName) {
-        if (!Objects.requireNonNull(objectName).matches("media/[0-9]{6}/[0-9a-fA-F-]{36}\\.[a-z0-9]{2,5}")
+        if (!Objects.requireNonNull(objectName).matches("media/[0-9]{6}/[0-9a-fA-F-]{36}\\.[a-z0-9]{2,10}")
                 && !OssFileStorage.validDirectKey(objectName)) {
             throw new IllegalArgumentException("文件对象名无效");
         }

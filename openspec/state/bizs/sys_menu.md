@@ -33,7 +33,7 @@
 | 后端模块 | `weiran-system`；`MenuController` → `MenuApplicationService` → `MybatisMenuRepository` |
 | 接口前缀 | `/api/menus`（管理）；`/api/auth/menus`（当前用户可见菜单树，`AuthController`） |
 | 权限码 | `system:menu:list` · `system:menu:create` · `system:menu:update` · `system:menu:delete` |
-| 种子 | 通用菜单 id 1–13 固定；可选 local/test 演示 id 14–20；安全设置 id 23 为隐藏路由；按钮 id 100–129；前端与测试按 ID 引用 |
+| 种子 | 通用菜单 id 1–13 固定，id 13 为「文件系统」；可选 local/test 演示 id 14–20；安全设置 id 23 为隐藏路由；按钮 id 100–129；前端与测试按 ID 引用 |
 
 ## 1. 列表
 
@@ -123,6 +123,8 @@
 新条目插在本节最上方（按日期倒序，新在上）。
 
 **2026-10-31**
+- 菜单 id 13 从「资源管理」更名为「文件系统」，页面内的两个 Tab 不变。
+- 菜单 id 13 从「资源库」更名为「资源管理」，上传配置并入该页第二个 Tab；临时独立菜单 id 24 已清理。
 - 移除资源库“上传文件”按钮 id 124 及其角色关联；登录用户上传文件不再依赖资源库按钮权限。
 
 **2026-10-27**
