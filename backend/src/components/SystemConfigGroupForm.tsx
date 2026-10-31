@@ -136,6 +136,7 @@ export function SystemConfigGroupForm({
 }) {
     const api = useRef<FormApi<Record<string, unknown>> | null>(null);
     const save = useSaveConfig();
+    const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
     const uploadingFields = useRef(new Set<number>());
     const setFieldUploading = (id: number, active: boolean) => {
@@ -173,12 +174,17 @@ export function SystemConfigGroupForm({
                 description: record.description,
             };
         });
-        if (onSave) {
-            await onSave(requests);
-        } else {
-            await Promise.all(records.map((record, index) => save.mutateAsync({ id: record.id, body: requests[index]! })));
+        setSaving(true);
+        try {
+            if (onSave) {
+                await onSave(requests);
+            } else {
+                await Promise.all(records.map((record, index) => save.mutateAsync({ id: record.id, body: requests[index]! })));
+            }
+            Toast.success(onSave ? '示例值已保存到数据库' : '分组配置已保存');
+        } finally {
+            setSaving(false);
         }
-        Toast.success(onSave ? '示例值已保存到当前页面' : '分组配置已保存');
     };
 
     return (
@@ -282,7 +288,7 @@ export function SystemConfigGroupForm({
                     );
                 })}
                 {canEdit && (
-                    <Button type="primary" theme="solid" loading={save.isPending} disabled={uploading} onClick={() => void submit().catch(() => undefined)}>
+                    <Button type="primary" theme="solid" loading={saving || save.isPending} disabled={uploading} onClick={() => void submit().catch(() => undefined)}>
                         保存本组
                     </Button>
                 )}

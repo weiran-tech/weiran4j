@@ -3,12 +3,24 @@ import { useState } from 'react';
 import { NavListItem, NavListPanel } from '@/components/NavListPanel';
 import { PageContainer } from '@/components/PageContainer';
 import { SystemConfigGroupForm } from '@/components/SystemConfigGroupForm';
-import { useConfigAll } from '@/hooks/queries/configs';
+import { useConfigAll, useSaveConfig } from '@/hooks/queries/configs';
 import { usePermission } from '@/hooks/usePermission';
 import type { ConfigFieldType, ConfigSaveRequest, ConfigView } from '@/types/api';
 import './demo.css';
 
 const DEMO_PREFIX = 'system.demo.';
+const SAVED_SAMPLES_KEY = `${DEMO_PREFIX}samples`;
+
+function parseSavedSamples(value: string | undefined): Record<string, string> {
+    if (!value) return {};
+    try {
+        const parsed: unknown = JSON.parse(value);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+        return Object.fromEntries(Object.entries(parsed).filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
+    } catch {
+        return {};
+    }
+}
 
 interface DemoGroup {
     key: string;
@@ -112,21 +124,38 @@ const SPECIAL_NOTES = [
 
 export default function DemoConfigPage() {
     const query = useConfigAll();
+    const save = useSaveConfig();
     const { hasPermission } = usePermission();
     const [selected, setSelected] = useState('input');
     const [readonly, setReadonly] = useState(false);
     const [saved, setSaved] = useState<Record<string, string>>({});
     const group = GROUPS.find((item) => item.key === selected) ?? GROUPS[0]!;
-    const records = (query.data ?? []).filter((record) => record.configKey.startsWith(DEMO_PREFIX));
-    const actualRecords = group.fieldType ? records.filter((record) => record.fieldType === group.fieldType) : [];
-    const canEdit = hasPermission('system:config:update');
-    const variants = group.variants.map((record) => ({ ...record, configValue: saved[record.configKey] ?? record.configValue }));
-    const savedValues = group.variants.filter((record) => record.configKey in saved).map((record) => ({
+    const sampleConfig = query.data?.find((record) => record.configKey === SAVED_SAMPLES_KEY);
+    const persisted = parseSavedSamples(sampleConfig?.configValue);
+    const currentValues = { ...persisted, ...saved };
+    const canEdit = hasPermission(sampleConfig ? 'system:config:update' : 'system:config:create');
+    const variants = group.variants.map((record) => ({ ...record, configValue: currentValues[record.configKey] ?? record.configValue }));
+    const savedValues = group.variants.filter((record) => record.configKey in currentValues).map((record) => ({
         key: record.configKey,
-        value: saved[record.configKey],
+        value: currentValues[record.configKey],
     }));
-    const saveVariants = (values: ConfigSaveRequest[]) => {
-        setSaved((previous) => ({ ...previous, ...Object.fromEntries(values.map((value) => [value.configKey, value.configValue])) }));
+    const saveVariants = async (values: ConfigSaveRequest[]) => {
+        const next = { ...currentValues, ...Object.fromEntries(values.map((value) => [value.configKey, value.configValue])) };
+        await save.mutateAsync({
+            ...(sampleConfig ? { id: sampleConfig.id } : {}),
+            body: {
+                configKey: SAVED_SAMPLES_KEY,
+                configValue: JSON.stringify(next),
+                configType: 'json',
+                groupKey: 'demo',
+                fieldType: 'json',
+                fieldOptions: null,
+                required: false,
+                description: '组件演示保存值',
+            },
+        });
+        setSaved(next);
+        await query.refetch();
     };
 
     return (
@@ -146,18 +175,20 @@ export default function DemoConfigPage() {
             </div>
             <PageContainer title={`${group.label} · 组件演示`} extra={<span className="demo-page__hint">local/test 专用</span>}>
                 <div className="demo-config__content">
-                    <Typography.Text type="tertiary">{group.note} 示例值只保留在当前页面；示例上传仍使用资源库，真实配置单独保存到 sys_config。</Typography.Text>
+                    <Typography.Text type="tertiary">{group.note} 示例值保存到 sys_config，刷新后仍会保留；示例上传使用资源库。</Typography.Text>
                     <label className="demo-config__readonly">
                         <Switch checked={readonly} onChange={setReadonly} aria-label="只读状态" />
                         <span>只读状态</span>
                     </label>
                     <h3>选项与状态</h3>
-                    {group.key === 'special' ? variants.map((record, index) => <section key={record.id} className="demo-config__case">
+                    {query.isPending ? <Spin /> : query.isError ? (
+                        <Typography.Text type="danger">演示配置读取失败；请确认账号具有系统配置查看权限。</Typography.Text>
+                    ) : group.key === 'special' ? variants.map((record, index) => <section key={record.id} className="demo-config__case">
                         <Typography.Text type="tertiary">{SPECIAL_NOTES[index]}</Typography.Text>
                         <SystemConfigGroupForm
                             key={`variant:${record.id}:${readonly}`}
                             records={[record]}
-                            canEdit={!readonly}
+                            canEdit={!readonly && canEdit}
                             showSettings={false}
                             onEdit={() => undefined}
                             onSave={saveVariants}
@@ -165,35 +196,15 @@ export default function DemoConfigPage() {
                     </section>) : <SystemConfigGroupForm
                         key={`variants:${group.key}:${readonly}`}
                         records={variants}
-                        canEdit={!readonly}
+                        canEdit={!readonly && canEdit}
                         showSettings={false}
                         onEdit={() => undefined}
                         onSave={saveVariants}
                     />}
                     {savedValues.length > 0 && <details>
-                        <summary>查看本页保存的示例值</summary>
+                        <summary>查看数据库中保存的示例值</summary>
                         <pre>{JSON.stringify(savedValues, null, 2)}</pre>
                     </details>}
-                    {group.fieldType && <>
-                        <h3>真实配置</h3>
-                        {query.isPending ? <Spin /> : query.isError ? (
-                            <Typography.Text type="danger">配置读取失败；请确认账号具有系统配置查看权限。</Typography.Text>
-                        ) : actualRecords.length === 0 ? (
-                            <Typography.Text type="tertiary">当前类型没有已播种的真实配置项。</Typography.Text>
-                        ) : <>
-                            <SystemConfigGroupForm
-                                key={`actual:${group.key}`}
-                                records={actualRecords}
-                                canEdit={canEdit}
-                                showSettings={false}
-                                onEdit={() => undefined}
-                            />
-                            <details>
-                                <summary>查看 sys_config 已保存值</summary>
-                                <pre>{JSON.stringify(actualRecords.map((record) => ({ key: record.configKey, value: record.configValue })), null, 2)}</pre>
-                            </details>
-                        </>}
-                    </>}
                 </div>
             </PageContainer>
         </div>
