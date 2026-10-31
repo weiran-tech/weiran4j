@@ -1,6 +1,6 @@
 {
   "name": "@weiran-tech/backend-components",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Reusable React components for Weiran admin applications",
   "type": "module",
   "repository": {

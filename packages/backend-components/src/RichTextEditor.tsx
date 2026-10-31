@@ -1,5 +1,5 @@
 import { Button, Progress, Space, Toast } from '@douyinfe/semi-ui';
-import { Node } from '@tiptap/core';
+import { Node, isNodeSelection, mergeAttributes, type Editor } from '@tiptap/core';
 import Image from '@tiptap/extension-image';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -7,6 +7,7 @@ import { Bold, Heading2, ImagePlus, Italic, List, ListOrdered, Quote, Redo2, Und
 import { useEffect, useRef, useState } from 'react';
 import { DEFAULT_UPLOAD_SETTINGS, imageFileError, videoFileError } from './FileUpload';
 import type { UploadFile, UploadSettings } from './FileUpload';
+import { mediaAttributes, mediaStyle, normalizeMediaAlign, normalizeMediaWidth, type MediaAlign } from './richTextMedia';
 import './RichTextEditor.css';
 
 export interface RichTextEditorProps {
@@ -22,16 +23,41 @@ export interface RichTextEditorProps {
     onUploadingChange?: ((uploading: boolean) => void) | undefined;
 }
 
+const MediaImage = Image.extend({
+    addAttributes() { return { ...this.parent?.(), ...mediaAttributes }; },
+    renderHTML({ node, HTMLAttributes }) {
+        return ['img', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
+            style: mediaStyle(node.attrs.width, node.attrs.align),
+        })];
+    },
+});
+
 const VideoNode = Node.create({
     name: 'video',
     group: 'block',
     atom: true,
-    addAttributes() { return { src: { default: null } }; },
+    addAttributes() { return { src: { default: null }, ...mediaAttributes }; },
     parseHTML() { return [{ tag: 'video[src]' }]; },
-    renderHTML({ HTMLAttributes }) { return ['video', { ...HTMLAttributes, controls: 'controls', preload: 'metadata' }]; },
+    renderHTML({ node, HTMLAttributes }) {
+        return ['video', { ...HTMLAttributes, style: mediaStyle(node.attrs.width, node.attrs.align),
+            controls: 'controls', preload: 'metadata' }];
+    },
 });
 
 interface UploadPlaceholder { id: number; label: string; top: number; left: number; percent: number | null }
+interface SelectedMedia { type: 'image' | 'video'; width: string; align: MediaAlign }
+
+function selectedMediaFrom(editor: Editor): SelectedMedia | null {
+    const { selection } = editor.state;
+    if (!isNodeSelection(selection)) return null;
+    const type = selection.node.type.name;
+    if (type !== 'image' && type !== 'video') return null;
+    return {
+        type,
+        width: normalizeMediaWidth(selection.node.attrs.width),
+        align: normalizeMediaAlign(selection.node.attrs.align),
+    };
+}
 
 /** 富文本统一入口；上传动作和限制由调用方提供。 */
 export function RichTextEditor({ value, disabled = false, label = '富文本', onChange, settings: uploadSettings,
@@ -46,6 +72,8 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
     const [uploadingImage, setUploadingImage] = useState(false);
     const [uploadingVideo, setUploadingVideo] = useState(false);
     const [placeholders, setPlaceholders] = useState<UploadPlaceholder[]>([]);
+    const [selectedMedia, setSelectedMedia] = useState<SelectedMedia | null>(null);
+    const [widthDraft, setWidthDraft] = useState('100');
     const settings = uploadSettings ?? DEFAULT_UPLOAD_SETTINGS;
     const uploadSettingsRef = useRef(uploadSettings);
 
@@ -165,7 +193,7 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
     };
 
     const editor = useEditor({
-        extensions: [StarterKit, Image.configure({ allowBase64: false }), VideoNode],
+        extensions: [StarterKit, MediaImage.configure({ allowBase64: false }), VideoNode],
         content: value,
         editable: !disabled,
         immediatelyRender: false,
@@ -197,6 +225,39 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
         if (editor.getHTML() !== value) editor.commands.setContent(value || '', { emitUpdate: false });
     }, [disabled, editor, value]);
 
+    useEffect(() => {
+        if (!editor) return;
+        const sync = () => setSelectedMedia((previous) => {
+            const next = selectedMediaFrom(editor);
+            return previous?.type === next?.type && previous?.width === next?.width && previous?.align === next?.align
+                ? previous : next;
+        });
+        editor.on('selectionUpdate', sync);
+        editor.on('update', sync);
+        sync();
+        return () => { editor.off('selectionUpdate', sync); editor.off('update', sync); };
+    }, [editor]);
+
+    useEffect(() => {
+        if (selectedMedia) setWidthDraft(selectedMedia.width.replace(/(%|px)$/, ''));
+    }, [selectedMedia?.width, selectedMedia?.type]);
+
+    const setMediaLayout = (attributes: { width?: string; align?: MediaAlign }) => {
+        if (selectedMedia && !disabled) editor?.commands.updateAttributes(selectedMedia.type, attributes);
+    };
+
+    const commitWidth = (unit: '%' | 'px') => {
+        if (!selectedMedia) return;
+        const amount = Number(widthDraft);
+        if (!Number.isFinite(amount) || amount < 1) {
+            setWidthDraft(selectedMedia.width.replace(/(%|px)$/, ''));
+            return;
+        }
+        const normalized = Math.min(Math.round(amount), unit === '%' ? 100 : 2000);
+        setWidthDraft(String(normalized));
+        setMediaLayout({ width: `${normalized}${unit}` });
+    };
+
     if (!editor) return null;
 
     return (
@@ -217,6 +278,25 @@ export function RichTextEditor({ value, disabled = false, label = '富文本', o
                 <input ref={videoInputRef} hidden type="file" accept={settings.videoFormats.map((format) => `.${format}`).join(',')} multiple onChange={(event) => { void insertVideos(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
                 {settingsError && onRetrySettings && <Button size="small" onClick={onRetrySettings}>重试加载上传配置</Button>}
                 </Space>
+                {selectedMedia && <div className="rich-text-editor__media-tools" role="group" aria-label={`${selectedMedia.type === 'image' ? '图片' : '视频'}布局`}>
+                    <span>{selectedMedia.type === 'image' ? '图片' : '视频'}尺寸</span>
+                    <input type="number" min={1} max={selectedMedia.width.endsWith('%') ? 100 : 2000}
+                        aria-label="媒体宽度" value={widthDraft} disabled={disabled}
+                        onChange={(event) => setWidthDraft(event.currentTarget.value)}
+                        onBlur={() => commitWidth(selectedMedia.width.endsWith('%') ? '%' : 'px')}
+                        onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); event.currentTarget.blur(); } }} />
+                    <select aria-label="宽度单位" value={selectedMedia.width.endsWith('%') ? '%' : 'px'} disabled={disabled}
+                        onChange={(event) => commitWidth(event.currentTarget.value as '%' | 'px')}>
+                        <option value="%">%</option>
+                        <option value="px">px</option>
+                    </select>
+                    <label>位置 <select aria-label="媒体位置" value={selectedMedia.align} disabled={disabled}
+                        onChange={(event) => setMediaLayout({ align: event.currentTarget.value as MediaAlign })}>
+                        <option value="left">左侧</option>
+                        <option value="center">居中</option>
+                        <option value="right">右侧</option>
+                    </select></label>
+                </div>}
             </div>
             <div ref={contentRef} className="rich-text-editor__content">
                 <EditorContent editor={editor} />

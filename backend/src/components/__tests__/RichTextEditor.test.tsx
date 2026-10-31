@@ -1,4 +1,5 @@
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import { RichTextEditor as PackageRichTextEditor } from '@weiran-tech/backend-components';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mockFetch, renderWithProviders } from '@/test/helpers';
 import { RichTextEditor } from '../RichTextEditor';
@@ -40,6 +41,60 @@ function stubUploadRequest(automatic = false) {
 
 describe('RichTextEditor', () => {
     afterEach(() => vi.unstubAllGlobals());
+
+    const settings = {
+        imageFormats: ['png'], imageMaxSizeMb: 2,
+        videoFormats: ['mp4'], videoMaxSizeMb: 5,
+        fileFormats: ['pdf'], fileMaxSizeMb: 3,
+    };
+
+    it('选中图片后设置百分比宽度与位置，保存并重新加载布局', async () => {
+        const onChange = vi.fn();
+        const upload = vi.fn(() => Promise.resolve('/image.png'));
+        const { container, unmount } = render(<PackageRichTextEditor
+            value={'<p>正文</p><img src="/image.png" width="400">'} onChange={onChange} settings={settings} upload={upload} />);
+        const image = await waitFor(() => {
+            const node = container.querySelector('.ProseMirror img');
+            expect(node).not.toBeNull();
+            return node!;
+        });
+        expect(image).toHaveAttribute('data-media-width', '400px');
+        fireEvent.click(image);
+        expect(await screen.findByRole('group', { name: '图片布局' })).toBeInTheDocument();
+        fireEvent.change(screen.getByRole('combobox', { name: '宽度单位' }), { target: { value: '%' } });
+        fireEvent.change(screen.getByRole('spinbutton', { name: '媒体宽度' }), { target: { value: '50' } });
+        fireEvent.blur(screen.getByRole('spinbutton', { name: '媒体宽度' }));
+        fireEvent.change(screen.getByRole('combobox', { name: '媒体位置' }), { target: { value: 'center' } });
+        const html = onChange.mock.lastCall?.[0] as string;
+        expect(html).toContain('data-media-width="50%"');
+        expect(html).toContain('data-media-align="center"');
+        expect(html).toContain('width: 50%');
+        unmount();
+        const reloaded = render(<PackageRichTextEditor value={html} onChange={onChange} settings={settings} upload={upload} />);
+        expect(reloaded.container.querySelector('.ProseMirror img')).toHaveAttribute('data-media-width', '50%');
+    });
+
+    it('选中视频后设置像素宽度与右侧位置', async () => {
+        const onChange = vi.fn();
+        const { container } = render(<PackageRichTextEditor
+            value={'<p>正文</p><video src="/clip.mp4" controls></video>'}
+            onChange={onChange} settings={settings} upload={vi.fn(() => Promise.resolve('/clip.mp4'))} />);
+        const video = await waitFor(() => {
+            const node = container.querySelector('.ProseMirror video');
+            expect(node).not.toBeNull();
+            return node!;
+        });
+        fireEvent.click(video);
+        expect(await screen.findByRole('group', { name: '视频布局' })).toBeInTheDocument();
+        fireEvent.change(screen.getByRole('combobox', { name: '宽度单位' }), { target: { value: 'px' } });
+        fireEvent.change(screen.getByRole('spinbutton', { name: '媒体宽度' }), { target: { value: '320' } });
+        fireEvent.blur(screen.getByRole('spinbutton', { name: '媒体宽度' }));
+        fireEvent.change(screen.getByRole('combobox', { name: '媒体位置' }), { target: { value: 'right' } });
+        const html = onChange.mock.lastCall?.[0] as string;
+        expect(html).toContain('data-media-width="320px"');
+        expect(html).toContain('data-media-align="right"');
+        expect(html).toContain('width: 320px');
+    });
 
     it('上传视频后插入可播放的 video HTML', async () => {
         mockFetch({

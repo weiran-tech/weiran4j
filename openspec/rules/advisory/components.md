@@ -63,7 +63,7 @@
 | **FileTypeIcon** | `packages/backend-components/src/FileTypeIcon.tsx` + CSS；`components/FileTypeIcon.tsx` 为兼容入口 | 文件上传缩略图与资源库列表统一显示视频、PDF、Word、PPT、Excel、ZIP 等类型 | 依据文件扩展名展示，图片仍使用真实缩略图；类型图标与实际格式保持一致 |
 | **VideoPreview** | `packages/backend-components/src/VideoPreview.tsx` + CSS；`components/VideoPreview.tsx` 为兼容入口 | 文件上传与资源库复用的页内视频播放器 | 关闭弹窗时卸载播放器；浏览器不支持编码时提供打开或下载入口 |
 | **PdfPreview** | `packages/backend-components/src/PdfPreview.tsx` + CSS；`components/PdfPreview.tsx` 为兼容入口 | 文件上传与资源库复用的浏览器内置 PDF 预览 | 关闭弹窗时卸载 iframe，并提供新标签页打开入口；仅接受 HTTP(S) 地址 |
-| **RichTextEditor** | `packages/backend-components/src/RichTextEditor.tsx` + CSS；`components/RichTextEditor.tsx` 为系统上传适配层 | 通用富文本，保存 HTML，支持粘贴图片、多图上传、视频上传与插入、引用、撤销和重做 | 包内由调用方提供 `settings` 和 `upload`，可另传 `onUploadImage`；后台适配层注入 system 媒体 hook。两种上传按钮分别管理禁用状态，上传时在正文插入位置显示不写入 HTML 的占位及批次总体进度；保存表单应在任一上传期间禁用提交 |
+| **RichTextEditor** | `packages/backend-components/src/RichTextEditor.tsx` + CSS；`components/RichTextEditor.tsx` 为系统上传适配层 | 通用富文本，保存 HTML，支持粘贴图片、多图上传、视频上传与插入、引用、撤销和重做；选中图片/视频后可设置 1～100% 或 1～2000px 宽度及左/中/右位置，高度保持原比例 | 包内由调用方提供 `settings` 和 `upload`，可另传 `onUploadImage`；后台适配层注入 system 媒体 hook。媒体布局写入 HTML 的安全数据属性和内联样式，重开后保留。两种上传按钮分别管理禁用状态，上传时在正文插入位置显示不写入 HTML 的占位及批次总体进度；保存表单应在任一上传期间禁用提交 |
 | **SystemConfigGroupForm** | `components/SystemConfigGroupForm.tsx` | 系统配置分组的动态字段编辑器，按字段类型渲染控件、校验并保存分组配置；`files` 字段用 `FileUpload multiple` 保存 URL JSON 数组，组件演示页也直接复用 | 调用方传 `ConfigView[]`、编辑权限与字段设置回调；默认用系统配置 Query hooks 保存，`onSave` / `onUploadFile` / `onUploadImage` 可注入业务动作 |
 
 ## 布局(`backend/src/layouts/`)
