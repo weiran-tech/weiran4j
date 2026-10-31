@@ -30,14 +30,14 @@ jobs:
           WEB_VERSION="$version" node -e "if (require('./packages/web-components/package.json').version !== process.env.WEB_VERSION) process.exit(1)"
           git merge-base --is-ancestor HEAD origin/main || { echo '发布标签必须指向 main 已合入的提交'; exit 1; }
       - run: pnpm install --frozen-lockfile
+      - name: 构建组件包
+        working-directory: packages/web-components
+        run: npm run build
       - name: 前端门禁
         run: |
           pnpm lint
           pnpm test
           node openspec/check.mjs
-      - name: 构建组件包
-        working-directory: packages/web-components
-        run: npm run build
       - uses: actions/setup-node@v7
         with:
           node-version: 22

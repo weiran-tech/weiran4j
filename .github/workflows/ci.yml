@@ -46,6 +46,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # backend 的类型检查与 ESLint 会读取工作区组件包的 dist/*.d.ts。
+      - run: pnpm --filter @weiran-tech/web-components build
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm build
