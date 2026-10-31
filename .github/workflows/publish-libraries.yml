@@ -21,7 +21,10 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-          cache: gradle
+      # 标签只读取 main 的 Gradle 缓存，避免各版本标签写入重复缓存。
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: true
       - name: 校验发布版本
         id: version
         shell: bash
@@ -34,7 +37,8 @@ jobs:
         run: bash .github/scripts/lib-release-notes.sh "$GITHUB_REF_NAME" > "$RUNNER_TEMP/lib-release-notes.md"
       - name: 后端门禁
         working-directory: server
-        run: ./gradlew check --no-daemon -PlibVersion=${{ steps.version.outputs.value }}
+        # 与 main CI 使用同一构建输入，复用已验证的编译与检查输出；版本号只用于发布坐标。
+        run: ./gradlew check --no-daemon
       - uses: actions/setup-node@v7
         with:
           node-version: 22

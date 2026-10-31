@@ -26,7 +26,8 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-          cache: gradle
+      # main 写入 Gradle 构建缓存，lib 标签发布时可复用编译与任务输出。
+      - uses: gradle/actions/setup-gradle@v6
       # 托管 runner 自带 Docker，集成测试的 MySQL 由 Testcontainers 拉起；JWT 密钥用测试 profile 里的假值，不需要 secrets。
       - name: ./gradlew check
         working-directory: server
