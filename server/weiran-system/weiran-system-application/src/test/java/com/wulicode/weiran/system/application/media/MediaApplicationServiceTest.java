@@ -55,6 +55,7 @@ class MediaApplicationServiceTest {
         when(fileStorage.store(
                         org.mockito.ArgumentMatchers.anyString(),
                         org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.anyLong(),
                         org.mockito.ArgumentMatchers.anyLong()))
                 .thenThrow(new FileStorageException("文件存储未配置"));
         final MediaApplicationService service = new MediaApplicationService(

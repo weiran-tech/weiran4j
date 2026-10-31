@@ -9,7 +9,7 @@ import java.io.InputStream;
 public final class DisabledFileStorage implements FileStorage {
 
     @Override
-    public StoredFile store(final String originalName, final InputStream input, final long size) {
+    public StoredFile store(final String originalName, final InputStream input, final long size, final long userId) {
         throw new FileStorageException("文件存储未配置");
     }
 

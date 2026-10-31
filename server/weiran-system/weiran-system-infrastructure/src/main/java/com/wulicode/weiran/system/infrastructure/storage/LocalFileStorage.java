@@ -1,6 +1,5 @@
 package com.wulicode.weiran.system.infrastructure.storage;
 
-import com.wulicode.weiran.system.domain.media.MediaFileTypes;
 import com.wulicode.weiran.system.domain.storage.FileStorage;
 import com.wulicode.weiran.system.domain.storage.FileStorage.StoredFile;
 import com.wulicode.weiran.system.domain.storage.FileStorageException;
@@ -9,10 +8,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
-import java.util.UUID;
 
 /** 本地文件存储，仅供开发与测试环境使用。 */
 public final class LocalFileStorage implements FileStorage {
@@ -26,8 +21,8 @@ public final class LocalFileStorage implements FileStorage {
     }
 
     @Override
-    public StoredFile store(final String originalName, final InputStream input, final long size) {
-        final String objectName = LocalFileStorage.newObjectName(originalName);
+    public StoredFile store(final String originalName, final InputStream input, final long size, final long userId) {
+        final String objectName = MediaObjectNames.newUserObjectName(originalName, userId, Clock.systemUTC());
         final Path target = this.resolve(objectName);
         try {
             Files.createDirectories(target.getParent());
@@ -48,8 +43,7 @@ public final class LocalFileStorage implements FileStorage {
     }
 
     private Path resolve(final String objectName) {
-        if (!objectName.matches("media/[0-9]{6}/[0-9a-fA-F-]{36}\\.[a-z0-9]{2,10}")
-                || !MediaFileTypes.allowed(MediaFileTypes.extension(objectName))) {
+        if (!MediaObjectNames.validStoredKey(objectName)) {
             throw new IllegalArgumentException("文件对象名无效");
         }
         final Path path = this.root.resolve(objectName).normalize();
@@ -57,17 +51,6 @@ public final class LocalFileStorage implements FileStorage {
             throw new IllegalArgumentException("文件对象名越出存储目录");
         }
         return path;
-    }
-
-    static String newObjectName(final String originalName) {
-        final int dot = originalName.lastIndexOf('.');
-        final String extension = (dot < 0 ? "" : originalName.substring(dot + 1)).toLowerCase(Locale.ROOT);
-        if (!MediaFileTypes.allowed(extension)) {
-            throw new IllegalArgumentException("文件扩展名无效");
-        }
-        return "media/" + YearMonth.now(Clock.systemUTC()).format(DateTimeFormatter.ofPattern("yyyyMM", Locale.ROOT))
-                + "/"
-                + UUID.randomUUID() + "." + extension;
     }
 
     private static String trimSlash(final String value) {

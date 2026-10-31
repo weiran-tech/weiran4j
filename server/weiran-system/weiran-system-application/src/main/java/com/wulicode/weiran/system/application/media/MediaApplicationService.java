@@ -177,7 +177,7 @@ public class MediaApplicationService implements MediaService {
             if (MediaFileTypes.video(extension) && !MediaApplicationService.matchesVideoSignature(extension, header)) {
                 throw BizException.badRequest("视频文件内容与扩展名不匹配");
             }
-            stored = this.fileStorage.store(originalName, checked, size);
+            stored = this.fileStorage.store(originalName, checked, size, uploadedBy);
         } catch (final IOException | RuntimeException ex) {
             if (ex instanceof BizException businessException) {
                 throw businessException;

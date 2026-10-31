@@ -46,6 +46,7 @@ dependencies {
 
         // OSS 存储适配器由通用 system 文件存储提供。
         api("com.aliyun.oss:aliyun-sdk-oss:3.18.5")
+        api("org.hashids:hashids:1.0.3")
 
         // system 的阿里云短信 SendSms 适配器。
         api("com.aliyun:dysmsapi20170525:4.6.0")

@@ -13,7 +13,7 @@ vi.mock('@douyinfe/semi-ui', () => ({ Toast: { error: mocks.error } }));
 
 const authorization = {
     uploadUrl: 'https://bucket.oss-cn-hangzhou.aliyuncs.com',
-    keyPrefix: 'media/202610/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/',
+    keyPrefix: 'media/u/abcdefgh/20261031/',
     accessKeyId: 'public-key-id',
     policy: 'policy',
     signature: 'signature',

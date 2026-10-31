@@ -16,12 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.Base64;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.UUID;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -29,8 +24,6 @@ import javax.crypto.spec.SecretKeySpec;
 public final class OssFileStorage implements FileStorage, DirectUploadStorage, AutoCloseable {
 
     private static final long MAX_DIRECT_SIZE = 1024L * 1024 * 1024;
-    private static final DateTimeFormatter MONTH =
-            DateTimeFormatter.ofPattern("yyyyMM", Locale.ROOT).withZone(ZoneOffset.UTC);
 
     private final SystemStorageProperties.Aliyun properties;
     private final OSS client;
@@ -44,8 +37,8 @@ public final class OssFileStorage implements FileStorage, DirectUploadStorage, A
     }
 
     @Override
-    public StoredFile store(final String originalName, final InputStream input, final long size) {
-        final String objectName = LocalFileStorage.newObjectName(originalName);
+    public StoredFile store(final String originalName, final InputStream input, final long size, final long userId) {
+        final String objectName = MediaObjectNames.newUserObjectName(originalName, userId, java.time.Clock.systemUTC());
         final ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(size);
         final String extension = MediaFileTypes.extension(originalName);
@@ -68,7 +61,7 @@ public final class OssFileStorage implements FileStorage, DirectUploadStorage, A
     public Authorization authorize(final long userId) {
         final Instant now = Instant.now();
         final Instant expiresAt = now.plusSeconds(15 * 60);
-        final String prefix = "media/" + OssFileStorage.MONTH.format(now) + "/" + UUID.randomUUID() + "/";
+        final String prefix = MediaObjectNames.userPrefix(userId, java.time.Clock.systemUTC());
         final String policyJson = "{\"expiration\":\"" + expiresAt + "\",\"conditions\":["
                 + "{\"bucket\":\"" + this.properties.bucket() + "\"},"
                 + "[\"starts-with\",\"$key\",\"" + prefix + "\"],"
@@ -95,7 +88,7 @@ public final class OssFileStorage implements FileStorage, DirectUploadStorage, A
 
     @Override
     public InspectedFile inspect(final String objectName, final String ticket, final long userId) {
-        if (!OssFileStorage.validDirectKey(objectName) || ticket == null) {
+        if (!MediaObjectNames.validDirectKey(objectName) || ticket == null) {
             throw new IllegalArgumentException("上传对象无效");
         }
         final String[] parts = ticket.split("\\.", -1);
@@ -145,11 +138,6 @@ public final class OssFileStorage implements FileStorage, DirectUploadStorage, A
         }
     }
 
-    private static boolean validDirectKey(final String value) {
-        return value.matches("media/[0-9]{6}/[0-9a-f-]{36}/[0-9a-f-]{36}\\.[a-z0-9]{2,10}")
-                && MediaFileTypes.allowed(MediaFileTypes.extension(value));
-    }
-
     private static String signTicket(final String payload, final String secret) {
         try {
             final Mac mac = Mac.getInstance("HmacSHA256");
@@ -164,11 +152,7 @@ public final class OssFileStorage implements FileStorage, DirectUploadStorage, A
 
     @Override
     public void delete(final String objectName) {
-        if (!Objects.requireNonNull(objectName).matches("media/[0-9]{6}/[0-9a-fA-F-]{36}\\.[a-z0-9]{2,10}")
-                && !OssFileStorage.validDirectKey(objectName)) {
-            throw new IllegalArgumentException("文件对象名无效");
-        }
-        if (!MediaFileTypes.allowed(MediaFileTypes.extension(objectName))) {
+        if (!MediaObjectNames.validStoredKey(objectName)) {
             throw new IllegalArgumentException("文件对象名无效");
         }
         try {

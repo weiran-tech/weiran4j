@@ -5,7 +5,7 @@ import java.io.InputStream;
 /** 图片对象存储端口。 */
 public interface FileStorage {
 
-    StoredFile store(String originalName, InputStream input, long size);
+    StoredFile store(String originalName, InputStream input, long size, long userId);
 
     void delete(String objectName);
 

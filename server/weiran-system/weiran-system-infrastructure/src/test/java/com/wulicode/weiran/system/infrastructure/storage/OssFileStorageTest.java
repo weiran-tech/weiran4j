@@ -21,7 +21,7 @@ class OssFileStorageTest {
                     new String(Base64.getDecoder().decode(authorization.policy()), StandardCharsets.UTF_8);
 
             assertThat(authorization.uploadUrl()).isEqualTo("https://my-bucket.oss-cn-hangzhou.aliyuncs.com");
-            assertThat(authorization.keyPrefix()).startsWith("media/").endsWith("/");
+            assertThat(authorization.keyPrefix()).matches("media/u/[a-z0-9]{8,}/[0-9]{8}/");
             assertThat(authorization.expiresAt()).isAfter(Instant.now());
             assertThat(policy)
                     .contains(
