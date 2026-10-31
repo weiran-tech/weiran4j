@@ -1,5 +1,5 @@
-import { ImageUpload } from '@weiran-tech/web-components';
-import '@weiran-tech/web-components/style.css';
+import { ImageUpload } from '@weiran-tech/backend-components';
+import '@weiran-tech/backend-components/style.css';
 import { Button, Toast } from '@douyinfe/semi-ui';
 import { useState } from 'react';
 import { useUploadSettings, useUploadSystemFile } from '@/hooks/queries/system-media';

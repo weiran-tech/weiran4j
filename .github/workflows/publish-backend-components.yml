@@ -3,7 +3,7 @@ name: 发布前端组件包
 on:
   push:
     tags:
-      - 'web-v*'
+      - 'backend-components-v*'
 
 permissions:
   contents: read
@@ -25,13 +25,13 @@ jobs:
       - name: 校验标签与包版本
         shell: bash
         run: |
-          version="${GITHUB_REF_NAME#web-v}"
-          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'tag 必须形如 web-v1.2.3'; exit 1; }
-          WEB_VERSION="$version" node -e "if (require('./packages/web-components/package.json').version !== process.env.WEB_VERSION) process.exit(1)"
+          version="${GITHUB_REF_NAME#backend-components-v}"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'tag 必须形如 backend-components-v1.2.3'; exit 1; }
+          WEB_VERSION="$version" node -e "if (require('./packages/backend-components/package.json').version !== process.env.WEB_VERSION) process.exit(1)"
           git merge-base --is-ancestor HEAD origin/main || { echo '发布标签必须指向 main 已合入的提交'; exit 1; }
       - run: pnpm install --frozen-lockfile
       - name: 构建组件包
-        working-directory: packages/web-components
+        working-directory: packages/backend-components
         run: npm run build
       - name: 前端门禁
         run: |
@@ -44,7 +44,7 @@ jobs:
           registry-url: https://npm.pkg.github.com
           scope: '@weiran-tech'
       - name: 发布到 GitHub Packages
-        working-directory: packages/web-components
+        working-directory: packages/backend-components
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm publish
