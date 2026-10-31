@@ -7,3 +7,14 @@ export { IconPicker } from './IconPicker';
 export type { IconPickerProps } from './IconPicker';
 export { OptionSelect } from './OptionSelect';
 export type { OptionSelectProps, OptionSelectOption } from './OptionSelect';
+export { FileUpload, DEFAULT_UPLOAD_SETTINGS, DEFAULT_MAX_FILES, ALL_UPLOAD_TYPES,
+    uploadLimitsLabel, isImageUrl, fileUploadError, imageFileError, videoFileError, ordinaryFileError } from './FileUpload';
+export type { FileUploadProps, UploadFile, UploadSettings, UploadType } from './FileUpload';
+export { RichTextEditor } from './RichTextEditor';
+export type { RichTextEditorProps } from './RichTextEditor';
+export { VideoPreview } from './VideoPreview';
+export type { VideoPreviewProps } from './VideoPreview';
+export { PdfPreview } from './PdfPreview';
+export type { PdfPreviewProps } from './PdfPreview';
+export { TextAvatar } from './TextAvatar';
+export type { TextAvatarProps, TextAvatarValue } from './TextAvatar';

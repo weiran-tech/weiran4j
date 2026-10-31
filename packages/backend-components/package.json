@@ -1,6 +1,6 @@
 {
   "name": "@weiran-tech/backend-components",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Reusable React components for Weiran admin applications",
   "type": "module",
   "repository": {
@@ -25,10 +25,20 @@
   "peerDependencies": {
     "react": "^19.0.0",
     "@douyinfe/semi-ui": "^2.104.0",
-    "lucide-react": "^1.61.0"
+    "lucide-react": "^1.61.0",
+    "@tiptap/core": "^3.31.3",
+    "@tiptap/extension-image": "^3.31.3",
+    "@tiptap/pm": "^3.31.3",
+    "@tiptap/react": "^3.31.3",
+    "@tiptap/starter-kit": "^3.31.3"
   },
   "devDependencies": {
     "@douyinfe/semi-ui": "^2.104.0",
+    "@tiptap/core": "3.31.3",
+    "@tiptap/extension-image": "3.31.3",
+    "@tiptap/pm": "3.31.3",
+    "@tiptap/react": "3.31.3",
+    "@tiptap/starter-kit": "3.31.3",
     "@types/react": "^19.2.17",
     "@vitejs/plugin-react": "^6.1.2",
     "react": "^19.3.1",

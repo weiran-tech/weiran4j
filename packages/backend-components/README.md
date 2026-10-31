@@ -1,8 +1,8 @@
 # @weiran-tech/backend-components
 
-可供独立 React 项目复用的前端组件。当前提供单图上传 `ImageUpload`、图标选择器 `IconPicker`、字符串选项下拉 `OptionSelect`、文件类型图标 `FileTypeIcon`、导航列表面板 `NavListPanel` / `NavListItem`。包内不发后台请求。
+可供独立 React 项目复用的前端组件。提供单图与多文件上传、富文本编辑器、视频与 PDF 预览、文字头像、图标与选项选择器、文件类型图标、导航列表面板。包内不发后台请求。
 
-GitHub Packages 安装与版本发布步骤见仓库根的 `docs/releases.md`。下游在 `backend-components-v0.2.0` 发布后用固定版本安装：`pnpm add @weiran-tech/backend-components@0.2.0`。
+GitHub Packages 安装与版本发布步骤见仓库根的 `docs/releases.md`。下游在 `backend-components-v0.3.0` 发布后用固定版本安装：`pnpm add @weiran-tech/backend-components@0.3.0`。
 
 ```tsx
 import { ImageUpload } from '@weiran-tech/backend-components';
@@ -34,6 +34,28 @@ import { IconPicker, OptionSelect } from '@weiran-tech/backend-components';
 <OptionSelect value={status} onChange={setStatus} options={[{ label: '启用', value: 'enabled' }]} />
 ```
 
-所有组件共用 `@weiran-tech/backend-components/style.css`。消费方需要 React 19、Semi UI 2 和 lucide-react；这三项是 peer dependencies。
+`FileUpload` 接收 `settings`（各类文件的格式与大小限制）和 `upload(file, onProgress)`，上传动作返回 URL 字符串或 `{ url, name? }`。单文件 `value` 是字符串，多文件传 `multiple` 后为字符串数组；`settings` 未加载时上传入口禁用。`RichTextEditor` 同样接收 `settings` 与 `upload`，图片可另外提供 `onUploadImage`。后台的同名组件负责读取系统上传配置并注入系统上传接口，业务已有调用方式保持不变。
+
+```tsx
+import { FileUpload, RichTextEditor } from '@weiran-tech/backend-components';
+import '@weiran-tech/backend-components/style.css';
+
+const settings = {
+  imageFormats: ['png', 'jpg'], imageMaxSizeMb: 10,
+  videoFormats: ['mp4'], videoMaxSizeMb: 100,
+  fileFormats: ['pdf'], fileMaxSizeMb: 10,
+};
+const upload = async (file: File, onProgress: (percent: number) => void) => {
+  // 调用下游上传接口并报告进度；返回可访问的 URL。
+  return uploadFile(file, onProgress);
+};
+
+<FileUpload value={fileUrl} onChange={setFileUrl} settings={settings} upload={upload} />
+<RichTextEditor value={html} onChange={setHtml} settings={settings} upload={upload} />
+```
+
+`VideoPreview` / `PdfPreview` 使用 `{ url, title, onClose }` 控制弹窗；PDF 地址仅允许 HTTP(S)。`TextAvatar` 使用 `{ avatar: { text, background }, fallback, size }` 渲染文字头像，不依赖用户接口。
+
+所有组件共用 `@weiran-tech/backend-components/style.css`。消费方需要 React 19、Semi UI 2 和 lucide-react；富文本还需要 Tiptap 3，这些库均为 peer dependencies。
 
 在仓库根运行 `pnpm --filter @weiran-tech/backend-components build` 生成 `dist`，`pnpm --filter @weiran-tech/backend-components pack:check` 检查包内容；在包目录运行 `npm pack` 生成可安装的 tarball。
