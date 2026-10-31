@@ -24,7 +24,7 @@ if [[ -z "$previous_tag" ]]; then
 fi
 
 while IFS= read -r subject; do
-  if [[ ! "$subject" =~ [一-龥] ]]; then
+  if ! python3 -c 'import re, sys; sys.exit(0 if re.search("[\u4e00-\u9fff]", sys.argv[1]) else 1)' "$subject"; then
     printf '提交标题缺少中文，请新增 %s 编写中文发布说明：%s\n' "$curated_notes" "$subject" >&2
     exit 1
   fi
