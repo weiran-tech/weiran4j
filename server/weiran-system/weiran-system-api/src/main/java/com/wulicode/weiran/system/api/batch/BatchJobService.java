@@ -13,6 +13,9 @@ public interface BatchJobService {
     /** 在调用方事务内创建业务引用任务；引用与清单必须先由业务模块持久化。 */
     BatchJobView createReference(String kind, String name, String reference, long userId);
 
+    /** 在调用方事务内创建 queued 引用任务；无处理器时，调用方须先校验权限与归属、持久化不可变输入并计算 SHA-256。 */
+    BatchJobView createQueuedReference(String kind, String name, String reference, String fingerprint, long userId);
+
     BatchJobView get(long id, long userId);
 
     default List<BatchJobView> recent(final long userId) {

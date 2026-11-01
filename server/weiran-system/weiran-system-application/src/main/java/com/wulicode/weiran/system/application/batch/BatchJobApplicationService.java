@@ -94,6 +94,46 @@ public class BatchJobApplicationService implements BatchJobService {
     }
 
     @Override
+    @Transactional
+    public BatchJobView createQueuedReference(
+            final String kind, final String name, final String reference, final String fingerprint, final long userId) {
+        if (userId <= 0
+                || kind == null
+                || !kind.matches("[A-Za-z0-9._-]{1,64}")
+                || name == null
+                || name.isBlank()
+                || name.length() > 255
+                || reference == null
+                || reference.isBlank()
+                || reference.length() > 255
+                || fingerprint == null
+                || !fingerprint.matches("[a-fA-F0-9]{64}")) {
+            throw BizException.badRequest("批处理输入引用无效");
+        }
+        this.processors.stream()
+                .filter(candidate -> candidate.kind().equals(kind))
+                .findFirst()
+                .ifPresent(processor -> {
+                    if (processor.inputMode() != BatchInputMode.REFERENCE) {
+                        throw BizException.badRequest("该处理类型需要平台托管文件");
+                    }
+                    processor.authorize(userId);
+                    final String actualFingerprint;
+                    try {
+                        actualFingerprint = processor.referenceFingerprint(reference);
+                    } catch (final Exception ex) {
+                        throw BizException.badRequest("批处理输入引用不可用");
+                    }
+                    if (!fingerprint.equalsIgnoreCase(actualFingerprint)) {
+                        throw BizException.badRequest("批处理输入指纹不一致");
+                    }
+                });
+        final long id =
+                this.jobs.createQueuedReference(kind, name, reference, fingerprint.toLowerCase(Locale.ROOT), userId);
+        return this.get(id, userId);
+    }
+
+    @Override
     public BatchJobView get(final long id, final long userId) {
         final BatchJob job = this.jobs.get(id, userId);
         if (job == null) {

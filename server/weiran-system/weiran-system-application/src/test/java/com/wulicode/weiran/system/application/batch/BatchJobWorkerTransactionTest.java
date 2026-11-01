@@ -1,6 +1,7 @@
 package com.wulicode.weiran.system.application.batch;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -70,7 +71,7 @@ class BatchJobWorkerTransactionTest {
             when(this.processor.transactionBatchSize()).thenReturn(10);
             when(this.processor.processItem(any(), anyLong(), anyLong(), anyString()))
                     .thenReturn(BatchItemResult.withoutReference());
-            when(this.jobs.claim(anyString()))
+            when(this.jobs.claim(anyString(), anyList()))
                     .thenReturn(new BatchJobRepository.BatchWork(
                             1, "test", "source", "source", "reference", "fingerprint", "processing", 23L));
             final List<BatchTaskDetail> pending = IntStream.rangeClosed(1, 23)

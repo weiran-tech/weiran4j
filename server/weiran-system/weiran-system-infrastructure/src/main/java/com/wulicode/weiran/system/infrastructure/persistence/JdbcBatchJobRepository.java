@@ -67,6 +67,36 @@ public class JdbcBatchJobRepository implements BatchJobRepository {
     }
 
     @Override
+    @Transactional
+    public long createQueuedReference(
+            final String kind, final String name, final String reference, final String fingerprint, final long userId) {
+        this.jdbc.queryForObject("select id from sys_user where id = ? for update", Long.class, userId);
+        final Integer active = this.jdbc.queryForObject(
+                "select count(*) from sys_task where created_by = ? and status in ('queued', 'running', 'cancel_requested')",
+                Integer.class,
+                userId);
+        if (active != null && active >= MAX_ACTIVE_JOBS_PER_USER) {
+            throw BizException.conflict("同一账号最多同时保留 " + MAX_ACTIVE_JOBS_PER_USER + " 个待处理任务");
+        }
+        final KeyHolder keys = new GeneratedKeyHolder();
+        this.jdbc.update(
+                connection -> {
+                    final var statement = connection.prepareStatement(
+                            "insert into sys_task (kind, source_name, source_key, input_mode, input_fingerprint, "
+                                    + "created_by, phase) values (?, ?, ?, 'reference', ?, ?, 'waiting')",
+                            java.sql.Statement.RETURN_GENERATED_KEYS);
+                    statement.setString(1, kind);
+                    statement.setString(2, name);
+                    statement.setString(3, reference);
+                    statement.setString(4, fingerprint);
+                    statement.setLong(5, userId);
+                    return statement;
+                },
+                keys);
+        return Objects.requireNonNull(keys.getKey()).longValue();
+    }
+
+    @Override
     public @Nullable BatchJob get(final long id, final long userId) {
         return this.jdbc
                 .query("select * from sys_task where id = ? and created_by = ?", JOB_MAPPER, id, userId)
@@ -120,14 +150,21 @@ public class JdbcBatchJobRepository implements BatchJobRepository {
 
     @Override
     @Transactional
-    public @Nullable BatchWork claim(final String worker) {
+    public @Nullable BatchWork claim(final String worker, final List<String> supportedKinds) {
         this.jdbc.update("update sys_task set status = 'cancelled', finished_at = now(), worker = null "
                 + "where status = 'cancel_requested' and heartbeat_at < date_sub(now(), interval 2 minute)");
+        if (supportedKinds.isEmpty()) {
+            return null;
+        }
+        final String placeholders = String.join(",", java.util.Collections.nCopies(supportedKinds.size(), "?"));
+        final List<Object> claimArguments = new ArrayList<>();
+        claimArguments.add(worker);
+        claimArguments.addAll(supportedKinds);
         final int claimed = this.jdbc.update(
                 "update sys_task set status = 'running', worker = ?, heartbeat_at = now() "
-                        + "where status = 'queued' or (status = 'running' and heartbeat_at < date_sub(now(), interval 2 minute)) "
-                        + "order by id limit 1",
-                worker);
+                        + "where (status = 'queued' or (status = 'running' and heartbeat_at < date_sub(now(), interval 2 minute))) "
+                        + "and kind in (" + placeholders + ") order by id limit 1",
+                claimArguments.toArray());
         if (claimed == 0) {
             return null;
         }

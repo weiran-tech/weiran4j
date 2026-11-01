@@ -13,6 +13,7 @@ import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Objects;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,12 +55,35 @@ class BatchLifecycleIT extends IntegrationTestSupport {
                 first = id;
             }
         }
+        assertThatThrownBy(() -> this.jobs.createQueuedReference(
+                        "test_limit", "overflow.xlsx", "reference/overflow", FINGERPRINT, 1))
+                .isInstanceOf(BizException.class)
+                .hasMessageContaining("最多同时保留 20 个待处理任务");
         this.jobs.requestCancel(first, 1);
-        this.jobs.create("test_limit", "replacement.xlsx", "batch/202610/test.xlsx", "managed_file", FINGERPRINT, 1);
+        this.jobs.createQueuedReference("test_limit", "replacement.xlsx", "reference/replacement", FINGERPRINT, 1);
         assertThatThrownBy(() -> this.jobs.create(
                         "test_limit", "overflow.xlsx", "batch/202610/test.xlsx", "managed_file", FINGERPRINT, 1))
                 .isInstanceOf(BizException.class)
                 .hasMessageContaining("最多同时保留 20 个待处理任务");
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("无处理器的引用任务保持排队，安装对应类型后可被领取")
+    void queuedReferenceWaitsForSupportedKind() {
+        final long id = this.service
+                .createQueuedReference("test_deferred", "deferred.zip", "reference/deferred", FINGERPRINT, 1)
+                .id();
+        final var queued = Objects.requireNonNull(this.jobs.get(id, 1));
+        assertThat(queued.status()).isEqualTo("queued");
+        assertThat(queued.phase()).isEqualTo("waiting");
+        assertThat(this.jobs.claim("unsupported-worker", List.of("unrelated_kind")))
+                .isNull();
+        assertThat(Objects.requireNonNull(this.jobs.get(id, 1)).status()).isEqualTo("queued");
+        final var work = Objects.requireNonNull(this.jobs.claim("supported-worker", List.of("test_deferred")));
+        assertThat(work.id()).isEqualTo(id);
+        assertThat(work.inputMode()).isEqualTo("reference");
+        assertThat(work.fingerprint()).isEqualTo(FINGERPRINT);
     }
 
     @Test
@@ -163,13 +187,13 @@ class BatchLifecycleIT extends IntegrationTestSupport {
     @DisplayName("决策后和入库中超时重领保留明细，仅执行未完成项")
     void reclaimKeepsDetailsAndDecision() {
         final long id = this.newTask("reclaim");
-        assertThat(this.jobs.claim("duplicate-worker")).isNull();
+        assertThat(this.jobs.claim("duplicate-worker", List.of("test_reclaim"))).isNull();
         this.jobs.beginValidation(id, "worker-a");
         this.jobs.validation(id, "worker-a", BatchLifecycleIT.item(1, true));
         this.jobs.validation(id, "worker-a", BatchLifecycleIT.item(2, true));
         this.jobs.beginDecision(id, "worker-a", 2);
         this.expire(id);
-        final var deciding = Objects.requireNonNull(this.jobs.claim("worker-b"));
+        final var deciding = Objects.requireNonNull(this.jobs.claim("worker-b", List.of("test_reclaim")));
         assertThat(deciding).isNotNull();
         assertThat(deciding.id()).isEqualTo(id);
         assertThat(deciding.phase()).isEqualTo("deciding");
@@ -177,13 +201,13 @@ class BatchLifecycleIT extends IntegrationTestSupport {
         this.jobs.decide(id, "worker-b", Objects.requireNonNull(deciding.total()));
         this.jobs.succeeded(id, "worker-b", 1, null, null);
         this.expire(id);
-        final var processing = Objects.requireNonNull(this.jobs.claim("worker-c"));
+        final var processing = Objects.requireNonNull(this.jobs.claim("worker-c", List.of("test_reclaim")));
         assertThat(processing).isNotNull();
         assertThat(processing.phase()).isEqualTo("processing");
         assertThat(this.jobs.pending(id)).extracting(BatchTaskDetail::itemNo).containsExactly(2L);
         this.jobs.succeeded(id, "worker-c", 2, null, null);
         this.expire(id);
-        final var summarizing = Objects.requireNonNull(this.jobs.claim("worker-d"));
+        final var summarizing = Objects.requireNonNull(this.jobs.claim("worker-d", List.of("test_reclaim")));
         assertThat(summarizing.phase()).isEqualTo("processing");
         assertThat(this.jobs.pending(id)).isEmpty();
         this.jobs.finish(id, "worker-d");
@@ -216,7 +240,7 @@ class BatchLifecycleIT extends IntegrationTestSupport {
                 LocalDateTime.now(ZoneOffset.UTC));
         this.jobs.validation(id, "worker-a", group);
         this.expire(id);
-        final var resumed = Objects.requireNonNull(this.jobs.claim("worker-b"));
+        final var resumed = Objects.requireNonNull(this.jobs.claim("worker-b", List.of("test_group")));
         assertThat(resumed.phase()).isEqualTo("validating");
         this.jobs.beginValidation(id, "worker-b");
         this.jobs.validation(id, "worker-b", group);
@@ -244,7 +268,8 @@ class BatchLifecycleIT extends IntegrationTestSupport {
         final long id = Objects.requireNonNull(tx.execute(status -> {
             final long taskId =
                     this.jobs.create("test_tx", "input.xlsx", "batch/202610/test.xlsx", "managed_file", FINGERPRINT, 1);
-            assertThat(Objects.requireNonNull(this.jobs.claim("worker-tx")).id())
+            assertThat(Objects.requireNonNull(this.jobs.claim("worker-tx", List.of("test_tx")))
+                            .id())
                     .isEqualTo(taskId);
             this.jobs.beginValidation(taskId, "worker-tx");
             this.jobs.validation(taskId, "worker-tx", BatchLifecycleIT.item(1, true));
@@ -327,7 +352,7 @@ class BatchLifecycleIT extends IntegrationTestSupport {
     private long newTask(final String suffix) {
         final long id = this.jobs.create(
                 "test_" + suffix, "input.xlsx", "batch/202610/test.xlsx", "managed_file", FINGERPRINT, 1);
-        final var claimed = Objects.requireNonNull(this.jobs.claim("worker-a"));
+        final var claimed = Objects.requireNonNull(this.jobs.claim("worker-a", List.of("test_" + suffix)));
         assertThat(claimed).isNotNull();
         assertThat(claimed.id()).isEqualTo(id);
         return id;

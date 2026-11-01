@@ -9,6 +9,8 @@ import org.jspecify.annotations.Nullable;
 public interface BatchJobRepository {
     long create(String kind, String name, String sourceKey, String inputMode, String fingerprint, long userId);
 
+    long createQueuedReference(String kind, String name, String reference, String fingerprint, long userId);
+
     @Nullable
     BatchJob get(long id, long userId);
 
@@ -17,7 +19,7 @@ public interface BatchJobRepository {
     PageResult<BatchTaskDetail> details(long id, @Nullable String stage, @Nullable String status, PageQuery page);
 
     @Nullable
-    BatchWork claim(String worker);
+    BatchWork claim(String worker, List<String> supportedKinds);
 
     void heartbeat(long id, String worker);
 

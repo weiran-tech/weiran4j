@@ -20,10 +20,11 @@
 
 ## 接入处理器
 
-业务模块只依赖 `weiran-system-api`，实现 `BatchProcessor` 并注册为 Spring Bean。创建任务时会检查 `kind()` 是否已注册并调用 `authorize(userId)`。
+业务模块只依赖 `weiran-system-api`，实现 `BatchProcessor` 并注册为 Spring Bean。常规创建任务时会检查 `kind()` 是否已注册并调用 `authorize(userId)`。
 
 - 平台文件处理器使用默认的 `inputMode() == MANAGED_FILE`，通过现有 multipart 创建接口上传。`extension()` 和 `maxBytes()` 约束文件。
 - 业务引用处理器返回 `inputMode() == REFERENCE`，在业务事务内先保存不可变的文件清单或归属关系，再调用 `BatchJobService.createReference(kind, name, reference, userId)`。`referenceFingerprint(reference)` 必须覆盖清单及其指向的内容，返回 64 位 SHA-256；`BatchSource.reference()` 向处理器提供引用，无需单一文件流。
+- 业务处理器尚未安装、但需要先保存任务时，可信业务模块可在同一事务内调用 `BatchJobService.createQueuedReference(kind, name, reference, fingerprint, userId)`。调用方必须先校验用户的业务权限与引用归属，持久化不可变输入，并计算覆盖完整输入的 SHA-256 指纹。若处理器已安装，服务仍会执行 `authorize(userId)`、检查引用输入模式并核对指纹。worker 只领取已安装处理器的类型；未安装期间任务保持 `queued` 并占用该用户的待处理名额，安装对应处理器后才能被领取。
 - `precheck(source, sink)` 扫描全部输入。每个 `BatchValidationItem` 提供稳定正整数 `itemNo`、显示名、源位置、稳定幂等键、通过或失败、可选安全错误摘要及最多 2048 字符的脱敏展示数据。团体作品可用一个项编号，源位置描述多行范围。展示数据不是重做入库的权威输入。
 - `processItem(source, taskId, itemNo, idempotencyKey)` 只会对决策选中的项调用。处理器重新从不可变输入按编号定位，使用持久化的幂等键写入目标数据，并可返回通用结果引用。可继续的项级失败抛 `BatchFileException` 供查看；其他异常会成为安全的通用项级错误。处理器不得自行写 `sys_task_detail` 或任务计数。
 

@@ -73,7 +73,9 @@ public class BatchJobWorker implements AutoCloseable, InitializingBean {
     @Scheduled(fixedDelay = 1500)
     public void consume() {
         final String worker = UUID.randomUUID().toString();
-        final BatchWork work = this.jobs.claim(worker);
+        final List<String> supportedKinds =
+                this.processors.stream().map(BatchProcessor::kind).distinct().toList();
+        final BatchWork work = this.jobs.claim(worker, supportedKinds);
         if (work == null) {
             return;
         }
