@@ -13,10 +13,9 @@
 | `sys_role`、`sys_user_role` | 角色与用户角色关系；关系表有自增 ID，并保留 `(user_id, role_id)` 唯一约束。 |
 | `sys_menu`、`sys_role_menu` | 目录、菜单和按钮权限；角色菜单关系表有自增 ID，并保留 `(role_id, menu_id)` 唯一约束。 |
 | `sys_group`、`sys_dict_item` | 字典与配置共享分组表，按 `type` 隔离；字典项通过 `group_id` 关联。 |
-| `sys_config` | 配置值和字段元数据；按 `config_system`、`config_sms` 分域。 |
+| `sys_config` | 配置值和字段元数据；公开配置按 `config_system`、`config_sms` 分域，内部 `system.security.settings` 保存密码规则与手机多因素认证设置，不对通用配置接口开放。 |
 | `sys_media`、`sys_media_reference` | 资源文件及其引用；删除前检查引用，细节见[资源库引用与删除设计](/资源库引用与删除设计)。 |
 | `sys_login_log`、`sys_operation_log` | 登录事件与操作审计。 |
-| `sys_security_settings` | 全局密码规则与手机多因素认证设置。 |
 | `region` | 行政区划；代码保持唯一，父子关系由区划代码关联。 |
 
 表结构由 Flyway 迁移维护。已执行过的迁移不得修改；后续变更追加新脚本。

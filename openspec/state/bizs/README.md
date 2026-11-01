@@ -73,7 +73,6 @@
 | 身份与权限(weiran-system) | `sys_menu` 菜单 / 权限点 | [`sys_menu.md`](sys_menu.md) |
 | 身份与权限(weiran-system) | `sys_login_log` 登录日志 | [`sys_login_log.md`](sys_login_log.md) |
 | 身份与权限(weiran-system) | `sys_user_identity` 外部身份绑定 | [`sys_user_identity.md`](sys_user_identity.md) |
-| 身份与权限(weiran-system) | `sys_security_settings` 安全设置 | [`sys_security_settings.md`](sys_security_settings.md) |
 | 平台能力(weiran-system) | `sys_group` / `sys_dict_item` 字典与共享分组 | [`sys_group.md`](sys_group.md) |
 | 平台能力(weiran-system) | `sys_config` 系统配置 | [`sys_config.md`](sys_config.md) |
 | 平台能力(weiran-system) | `sys_media` 文件资源 | [`sys_media.md`](sys_media.md) |

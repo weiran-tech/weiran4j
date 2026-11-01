@@ -31,7 +31,7 @@
 | 后端模块 | `weiran-system`；`ConfigController` → `ConfigApplicationService` → `MybatisConfigRepository` |
 | 接口前缀 | `/api-backend/system/config`；具体 HTTP 接口以 Springdoc OpenAPI 为准 |
 | 权限码 | `system:config:list` · `system:config:create` · `system:config:update` · `system:config:delete`；`GET /public/{key}` 为 `@PublicApi`（免登录） |
-| 种子 | `system.general.title` = `Weiran Admin`（`config_system/general`，string，内置）；`system.user.enable_phone_login` = `false`（`config_system/user`，boolean，内置）；`system.upload.*` 六项（`config_system/upload`，内置，图片、视频和普通文件各有格式与大小限制）；`sms.general.sign_name`（`config_sms/general`）、`sms.system_tpl.captcha_local`、`sms.system_tpl.captcha_aliyun`（`config_sms/system_tpl`，string，内置，默认空）；`config_system` 含 `general`、`user`、`upload`，`config_sms` 含 `general`、`system_tpl` |
+| 种子 | `system.general.title` = `Weiran Admin`（`config_system/general`，string，内置）；`system.user.enable_phone_login` = `false`（`config_system/user`，boolean，内置）；`system.upload.*` 六项（`config_system/upload`，内置，图片、视频和普通文件各有格式与大小限制）；`sms.general.sign_name`（`config_sms/general`）、`sms.system_tpl.captcha_local`、`sms.system_tpl.captcha_aliyun`（`config_sms/system_tpl`，string，内置，默认空）；`system.security.settings` 从旧表迁入（`group_key=security`，内部 JSON 配置）；`config_system` 含 `general`、`user`、`upload`，`config_sms` 含 `general`、`system_tpl`，不登记公开 `security` 分组 |
 
 ## 1. 可视化表单
 
@@ -91,6 +91,7 @@
 - 配置保存和删除时，在同一事务同步替换 `sys_media_reference` 中的 `system_config` 引用；资源库仍通过实时检查器核对历史配置值。
 - 业务模块可调用 `ConfigService.createBusiness(namespace, command)` 创建业务键，并调用 `updateBusinessValue(namespace, key, value)` 原位改值；业务键限三级小写结构，保留 `system`、`sms` 命名空间。创建时检查启用的 `config_system` 分组、值类型和字段定义，更新时锁定原记录并复用值校验，只写 `config_value` 与媒体引用。业务接口负责权限，不另开放 system HTTP 路由。
 - 系统配置页面按 `sys_group(type=config,group_key=config_system)` 分组并排除 `upload`；资源管理的上传配置 Tab 编辑 `system.upload.*` 六项；短信页面按 `group_key=config_sms` 分组。配置键遵循 `{range}.{group}.{value}`，其中 `range=system/sms`、`group=sys_config.group_key=sys_group.code`；新建或变更键、分组时校验。已有不合规的自定义键允许原位改值。`field_type`、`field_options`、`required` 控制表单渲染和校验。匿名读取仅允许 `system.general.title`。
+- 安全设置独占内部键 `system.security.settings`（`group_key=security`）：单条 JSON 保存密码最小/最大长度、必需字符类型、MFA 开关、设备免验天数与 `revision`。该组不登记 `sys_group`，通用配置列表、分页和详情不返回它，通用新增/编辑/删除及分组管理也不得触及；只有安全设置接口读写。保存时按 JSON 修订号乐观并发更新，修订号变化使旧设备信任凭据失效。旧 `sys_security_settings` 表在迁移保留值后删除。
 - 短信配置由 `/system/sms` 菜单进入共用的 `ConfigsPage`，传入 `config_sms` 后只呈现短信域分组及 `sms.*` 配置项：`sms.general.sign_name` 位于 `general` 组，`sms.system_tpl.captcha_local` 与 `sms.system_tpl.captcha_aliyun` 位于 `system_tpl` 组。分组与配置项管理共用同一页面流程，分组写接口按配置域定位。
 - 登录页通过公开 `/api-backend/n/system/auth/listProviders` 获取手机号登录状态；后端只有在 `system.user.enable_phone_login=true`、短信发送模式可用且当前模式的验证码模板有效时才返回 `phoneLoginEnabled=true`。`local` 模式的 `sms.system_tpl.captcha_local` 是短信正文，必须包含 `${code}`；发码时替换并写入应用日志。`aliyun` 模式的 `sms.system_tpl.captcha_aliyun` 是已审核模板 CODE。
 - 站点标题仍取自构建期环境变量 `VITE_APP_TITLE`（见 #02）；`backend/src` 不直接调用公开配置接口。
@@ -112,6 +113,9 @@
 ## 7. changelog
 
 新条目插在本节最上方（按日期倒序，新在上）。
+
+**2026-11-01**
+- 全局安全设置从独立 `sys_security_settings` 表迁入内部 `system.security.settings` JSON 配置，保留密码规则、MFA 值和修订号；通用配置入口不暴露或修改该项，旧表删除。
 
 **2026-10-31**
 - 文件上传组件支持图片、视频、普通文件三种上传类型及其组合，分别按后台设置限制格式与大小；单图字段不再接受视频，视频字段使用独立的视频上传类型；上传组合演示加入图片＋视频入口。

@@ -117,7 +117,9 @@ class PhoneLoginIT extends IntegrationTestSupport {
                             .asBoolean())
                     .isFalse();
         } finally {
-            this.jdbc.update("UPDATE sys_security_settings SET mfa_enabled = 0, revision = revision + 1 WHERE id = 1");
+            this.jdbc.update("UPDATE sys_config SET config_value = json_set(config_value, '$.mfaEnabled', false, "
+                    + "'$.revision', cast(json_unquote(json_extract(config_value, '$.revision')) as unsigned) + 1) "
+                    + "WHERE config_key = 'system.security.settings'");
             this.jdbc.update(
                     "UPDATE sys_config SET config_value = ? WHERE config_key = ?",
                     originalTemplate,

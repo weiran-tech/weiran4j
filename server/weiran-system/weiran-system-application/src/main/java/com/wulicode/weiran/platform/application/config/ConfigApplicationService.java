@@ -25,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 /** 系统配置用例。 */
 public class ConfigApplicationService implements ConfigService {
 
+    private static final String INTERNAL_SECURITY_GROUP = "security";
+
     private final ConfigRepository configRepository;
 
     private final ConfigGroupRepository configGroupRepository;
@@ -59,6 +61,8 @@ public class ConfigApplicationService implements ConfigService {
     @Transactional(readOnly = true)
     public List<ConfigGroupView> groups() {
         return this.configGroupRepository.findEnabled().stream()
+                .filter(item -> !ConfigApplicationService.INTERNAL_SECURITY_GROUP.equals(item.key())
+                        || !"config_system".equals(item.groupKey()))
                 .map(item -> new ConfigGroupView(
                         item.groupKey(),
                         item.key(),
@@ -77,6 +81,7 @@ public class ConfigApplicationService implements ConfigService {
         final String groupDomain = ConfigApplicationService.requireGroupDomain(command.groupKey());
         final String key = command.key().strip();
         final String label = command.label().strip();
+        ConfigApplicationService.rejectInternalGroup(groupDomain, key);
         if (key.isEmpty() || !key.matches("[a-z][a-z0-9_-]*")) {
             throw BizException.badRequest("分组编码必须以小写字母开头，且只能包含小写字母、数字、下划线和连字符");
         }
@@ -99,6 +104,7 @@ public class ConfigApplicationService implements ConfigService {
         final String groupDomain = ConfigApplicationService.requireGroupDomain(command.groupKey());
         final String key = command.key().strip();
         final String label = command.label().strip();
+        ConfigApplicationService.rejectInternalGroup(groupDomain, key);
         if (label.isEmpty()) {
             throw BizException.badRequest("分组名称不能为空");
         }
@@ -115,6 +121,7 @@ public class ConfigApplicationService implements ConfigService {
     public void deleteGroup(final String groupKey, final String code) {
         final String groupDomain = ConfigApplicationService.requireGroupDomain(groupKey);
         final String key = code.strip();
+        ConfigApplicationService.rejectInternalGroup(groupDomain, key);
         final ConfigGroup group = this.configGroupRepository
                 .findEnabledByKey(groupDomain, key)
                 .orElseThrow(() -> BizException.notFound("配置分组不存在"));
@@ -258,11 +265,15 @@ public class ConfigApplicationService implements ConfigService {
     }
 
     private SystemConfig requireConfig(final long id) {
-        return this.configRepository.findById(id).orElseThrow(() -> BizException.notFound("配置不存在"));
+        return this.configRepository
+                .findById(id)
+                .filter(config -> !ConfigApplicationService.INTERNAL_SECURITY_GROUP.equals(config.getGroupKey()))
+                .orElseThrow(() -> BizException.notFound("配置不存在"));
     }
 
     private void requireConfigGroup(final String configKey, final String groupKey) {
         final String groupDomain = configKey.startsWith("sms.") ? "config_sms" : "config_system";
+        ConfigApplicationService.rejectInternalGroup(groupDomain, groupKey);
         if (this.configGroupRepository.findEnabledByKey(groupDomain, groupKey).isEmpty()) {
             throw BizException.badRequest("配置分组不存在或未启用");
         }
@@ -273,6 +284,12 @@ public class ConfigApplicationService implements ConfigService {
             throw BizException.badRequest("配置域无效");
         }
         return groupKey;
+    }
+
+    private static void rejectInternalGroup(final String groupDomain, final String key) {
+        if ("config_system".equals(groupDomain) && ConfigApplicationService.INTERNAL_SECURITY_GROUP.equals(key)) {
+            throw BizException.badRequest("安全设置分组不对外开放");
+        }
     }
 
     private static void requireBusinessKey(final String namespace, final String configKey) {

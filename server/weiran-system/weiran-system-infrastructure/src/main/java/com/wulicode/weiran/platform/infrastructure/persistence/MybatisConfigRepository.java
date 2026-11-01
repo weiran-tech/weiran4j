@@ -110,6 +110,7 @@ public class MybatisConfigRepository implements ConfigRepository {
     @Override
     public PageResult<SystemConfig> page(final @Nullable String keyword, final PageQuery pageQuery) {
         final LambdaQueryWrapper<SysConfigDO> wrapper = Wrappers.lambdaQuery(SysConfigDO.class)
+                .ne(SysConfigDO::getGroupKey, "security")
                 .and(
                         keyword != null,
                         w -> w.like(SysConfigDO::getConfigKey, Likes.escape(keyword))
@@ -126,6 +127,7 @@ public class MybatisConfigRepository implements ConfigRepository {
     public List<SystemConfig> findAll() {
         return this.configMapper
                 .selectList(Wrappers.lambdaQuery(SysConfigDO.class)
+                        .ne(SysConfigDO::getGroupKey, "security")
                         .orderByAsc(SysConfigDO::getGroupKey)
                         .orderByAsc(SysConfigDO::getId))
                 .stream()
