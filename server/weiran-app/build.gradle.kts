@@ -89,3 +89,15 @@ tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
     systemProperty("spring.config.additional-location", "optional:file:$rootDir/config/")
     systemProperty("spring.profiles.active", (findProperty("profile") as String?) ?: "local")
 }
+
+/** 修复指定数据库的 Flyway 历史；连接信息必须由环境变量显式提供，避免误用应用默认值。 */
+tasks.register<JavaExec>("flywayRepair") {
+    group = "database"
+    description = "修复指定数据库的 Flyway 历史记录（不会执行迁移）"
+    dependsOn(tasks.named("classes"))
+    val repairProfile = (findProperty("profile") as String?) ?: "local"
+    classpath = sourceSets.main.get().runtimeClasspath +
+        if (repairProfile == "local" || repairProfile == "test") configurations.testRuntimeClasspath.get() else files()
+    mainClass.set("com.wulicode.weiran.app.FlywayRepairTool")
+    args(repairProfile)
+}

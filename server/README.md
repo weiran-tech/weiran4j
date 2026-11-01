@@ -30,6 +30,8 @@ cd .. && pnpm install && pnpm dev      # 后端(5200) + 前端(5202) + 文档站
 
 打开 http://localhost:5202 ，用 **`admin` / `admin123`** 登录。⚠️ 上线前必须修改该密码。
 
+需要修复 Flyway 历史记录时，先核对目标数据库和迁移文件，并按 [`docs/02-部署.md`](docs/02-部署.md) 的 repair 步骤操作。Gradle 任务为 `:weiran-app:flywayRepair`，不会随 `check` 或应用启动自动执行。
+
 ## 模块
 
 | Gradle 模块 | 职责 |
