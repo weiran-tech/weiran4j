@@ -1,3 +1,3 @@
-export { PdfPreview } from '@weiran-tech/backend-components';
-export type { PdfPreviewProps } from '@weiran-tech/backend-components';
-import '@weiran-tech/backend-components/style.css';
+export { PdfPreview } from '@weiran-tech/semi-components';
+export type { PdfPreviewProps } from '@weiran-tech/semi-components';
+import '@weiran-tech/semi-components/style.css';

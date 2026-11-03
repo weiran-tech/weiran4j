@@ -8,7 +8,7 @@
     "preview": "vitepress preview . --host 0.0.0.0 --port 4173"
   },
   "dependencies": {
-    "@weiran-tech/backend-components": "workspace:*",
+    "@weiran-tech/semi-components": "workspace:*",
     "@douyinfe/semi-ui": "^2.104.0",
     "@tiptap/core": "3.31.3",
     "@tiptap/extension-image": "3.31.3",

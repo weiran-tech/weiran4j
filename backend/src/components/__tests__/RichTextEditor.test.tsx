@@ -1,4 +1,4 @@
-import { RichTextEditor as PackageRichTextEditor } from '@weiran-tech/backend-components';
+import { RichTextEditor as PackageRichTextEditor } from '@weiran-tech/semi-components';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mockFetch, renderWithProviders } from '@/test/helpers';

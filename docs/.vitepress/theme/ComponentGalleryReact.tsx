@@ -1,10 +1,10 @@
 import '@douyinfe/semi-ui/react19-adapter';
-import '@weiran-tech/backend-components/style.css';
+import '@weiran-tech/semi-components/style.css';
 import {
     FileTypeIcon, FileUpload, IconPicker, ImageUpload, NavListItem, NavListPanel,
     OptionSelect, PdfPreview, RichTextEditor, TextAvatar, VideoPreview,
     DEFAULT_UPLOAD_SETTINGS,
-} from '@weiran-tech/backend-components';
+} from '@weiran-tech/semi-components';
 import { Heart, House, Settings } from 'lucide-react';
 import React, { useEffect, useRef, useState, type ReactNode } from 'react';
 import './component-gallery.css';

@@ -1,3 +1,3 @@
-export { VideoPreview } from '@weiran-tech/backend-components';
-export type { VideoPreviewProps } from '@weiran-tech/backend-components';
-import '@weiran-tech/backend-components/style.css';
+export { VideoPreview } from '@weiran-tech/semi-components';
+export type { VideoPreviewProps } from '@weiran-tech/semi-components';
+import '@weiran-tech/semi-components/style.css';

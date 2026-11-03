@@ -1,12 +1,12 @@
 {
-  "name": "@weiran-tech/backend-components",
+  "name": "@weiran-tech/semi-components",
   "version": "0.4.0",
   "description": "Reusable React components for Weiran admin applications",
   "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/weiran-tech/weiran4j.git",
-    "directory": "packages/backend-components"
+    "directory": "packages/semi-components"
   },
   "publishConfig": { "registry": "https://npm.pkg.github.com" },
   "files": ["dist"],

@@ -1,5 +1,5 @@
-import { IconPicker as BaseIconPicker } from '@weiran-tech/backend-components';
-import '@weiran-tech/backend-components/style.css';
+import { IconPicker as BaseIconPicker } from '@weiran-tech/semi-components';
+import '@weiran-tech/semi-components/style.css';
 import { MENU_ICON_NAMES, renderIcon } from '@/utils/icons';
 
 interface IconPickerProps {

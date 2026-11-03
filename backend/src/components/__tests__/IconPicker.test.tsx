@@ -1,4 +1,4 @@
-import { IconPicker } from '@weiran-tech/backend-components';
+import { IconPicker } from '@weiran-tech/semi-components';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 
