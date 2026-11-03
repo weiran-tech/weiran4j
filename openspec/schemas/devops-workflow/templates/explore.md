@@ -89,15 +89,15 @@ updated_at: ""
 | SL-1 | `settings.gradle.kts` | 新增模块要在 `include(...)` 与目录映射块各追加一处,全仓单点 |  |
 | SL-2 | `weiran-dependencies/build.gradle.kts` | BOM 的 `constraints` 块,新增模块要追加五行坐标 |  |
 | SL-3 | `weiran-app/build.gradle.kts` | 新增模块要追加对其 adapter/infrastructure 层的依赖 |  |
-| SL-4 | `backend/src/App.tsx` | 前端路由注册,新增页面必须加一行 |  |
-| SL-5 | `backend/src/layouts/AdminLayout.tsx` | 前端菜单数组,与 SL-4 配对——只加一个不加另一个是静默的(不报错,只是导航/访问对不上) |  |
+| SL-4 | `packages/manage/src/App.tsx` | 前端路由注册,新增页面必须加一行 |  |
+| SL-5 | `packages/manage/src/layouts/AdminLayout.tsx` | 前端菜单数组,与 SL-4 配对——只加一个不加另一个是静默的(不报错,只是导航/访问对不上) |  |
 
 #### 跨模块契约(多层共同消费)
 
 | ID | 文件 | 冲突原因 | 是否命中 · 预计改动 |
 |---|---|---|---|
 | SL-6 | `weiran-framework/.../error/CommonErrors.java` | 跨模块错误码基座,**刻意冻结**——新增前先确认真的是跨模块概念,不是某个模块自己的错误码 |  |
-| SL-7 | `weiran-framework/.../page/{PageQuery,PageResult}.java` | 跨模块分页契约,前端 `backend/src/lib/role.ts` 的 TS 接口需要手动同步,无自动机制 |  |
+| SL-7 | `weiran-framework/.../page/{PageQuery,PageResult}.java` | 跨模块分页契约,前端 `packages/manage/src/lib/role.ts` 的 TS 接口需要手动同步,无自动机制 |  |
 
 #### 序号型资源(本仓库暂无)
 

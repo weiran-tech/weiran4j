@@ -2,14 +2,14 @@
 
 > 属于 `openspec/state/`，只描述当前实现事实；以代码和已合入 Flyway 迁移为准。
 >
-> 事实源：[`RegionController.java`](../../../server/weiran-region/weiran-region-adapter/src/main/java/com/wulicode/weiran/region/adapter/backend/RegionController.java)、
-> [`RegionApplicationService.java`](../../../server/weiran-region/weiran-region-application/src/main/java/com/wulicode/weiran/region/application/region/RegionApplicationService.java)、
-> [`Region.java`](../../../server/weiran-region/weiran-region-domain/src/main/java/com/wulicode/weiran/region/domain/region/Region.java) /
-> [`RegionHierarchy.java`](../../../server/weiran-region/weiran-region-domain/src/main/java/com/wulicode/weiran/region/domain/region/RegionHierarchy.java)、
-> [`MybatisRegionRepository.java`](../../../server/weiran-region/weiran-region-infrastructure/src/main/java/com/wulicode/weiran/region/infrastructure/persistence/MybatisRegionRepository.java)、
-> [`V202610190001__region_initial_schema_and_seed.sql`](../../../server/weiran-region/weiran-region-infrastructure/src/main/resources/db/migration/region/V202610190001__region_initial_schema_and_seed.sql)、
-> [`RegionsPage.tsx`](../../../backend/src/pages/system/regions/RegionsPage.tsx)、[`RegionFormModal.tsx`](../../../backend/src/pages/system/regions/RegionFormModal.tsx)、
-> [`RegionSelect.tsx`](../../../backend/src/components/RegionSelect.tsx)。
+> 事实源：[`RegionController.java`](../../../packages/server/weiran-region/weiran-region-adapter/src/main/java/com/wulicode/weiran/region/adapter/packages/manage/RegionController.java)、
+> [`RegionApplicationService.java`](../../../packages/server/weiran-region/weiran-region-application/src/main/java/com/wulicode/weiran/region/application/region/RegionApplicationService.java)、
+> [`Region.java`](../../../packages/server/weiran-region/weiran-region-domain/src/main/java/com/wulicode/weiran/region/domain/region/Region.java) /
+> [`RegionHierarchy.java`](../../../packages/server/weiran-region/weiran-region-domain/src/main/java/com/wulicode/weiran/region/domain/region/RegionHierarchy.java)、
+> [`MybatisRegionRepository.java`](../../../packages/server/weiran-region/weiran-region-infrastructure/src/main/java/com/wulicode/weiran/region/infrastructure/persistence/MybatisRegionRepository.java)、
+> [`V202610190001__region_initial_schema_and_seed.sql`](../../../packages/server/weiran-region/weiran-region-infrastructure/src/main/resources/db/migration/region/V202610190001__region_initial_schema_and_seed.sql)、
+> [`RegionsPage.tsx`](../../../packages/manage/src/pages/system/regions/RegionsPage.tsx)、[`RegionFormModal.tsx`](../../../packages/manage/src/pages/system/regions/RegionFormModal.tsx)、
+> [`RegionSelect.tsx`](../../../packages/manage/src/components/RegionSelect.tsx)。
 
 ## 0. 概要
 
@@ -44,7 +44,7 @@
 
 ## 2. 字段与表单
 
-新增与编辑使用 [`RegionFormModal`](../../../backend/src/pages/system/regions/RegionFormModal.tsx)。
+新增与编辑使用 [`RegionFormModal`](../../../packages/manage/src/pages/system/regions/RegionFormModal.tsx)。
 
 | 字段 | 规则 | DB 列 |
 | --- | --- | --- |
@@ -73,8 +73,8 @@
 ## 4. 用到的公共组件
 
 - `PageContainer`、`SearchToolbar`、`ColumnSettings`、`TableActions`、`Permission`、`StatusTag`
-- [`RegionSelect`](../../../backend/src/components/RegionSelect.tsx)：地区级联选择器，受控值为 code 字符串路径，只显示启用节点。
-- [`regions.ts`](../../../backend/src/hooks/queries/regions.ts)：地区查询、写入与导出 hooks。
+- [`RegionSelect`](../../../packages/manage/src/components/RegionSelect.tsx)：地区级联选择器，受控值为 code 字符串路径，只显示启用节点。
+- [`regions.ts`](../../../packages/manage/src/hooks/queries/regions.ts)：地区查询、写入与导出 hooks。
 
 ## 5. 说明与建议
 

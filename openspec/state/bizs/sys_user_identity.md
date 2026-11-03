@@ -1,18 +1,18 @@
 # sys_user_identity 外部身份绑定
 
 > 属于 `openspec/state/`，**只描述事实，不是规范**：过期不会被 `check.mjs` 拦截，**以代码为准**，发现不符回来改这里。
-> 契约文档 `server/docs/01-架构与接口契约.md` 只作索引；决策见 `00-决策记录.md` D-015。
+> 契约文档 `packages/server/docs/01-架构与接口契约.md` 只作索引；决策见 `00-决策记录.md` D-015。
 >
 > 事实源：
-> [`ExternalLoginApplicationService.java`](../../../server/weiran-system/weiran-system-application/src/main/java/com/wulicode/weiran/system/application/auth/ExternalLoginApplicationService.java)、
-> [`IdentityProvisioner.java`](../../../server/weiran-system/weiran-system-application/src/main/java/com/wulicode/weiran/system/application/auth/IdentityProvisioner.java)、
-> [`SsoController.java`](../../../server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/system/adapter/backend/SsoController.java)、
-> [`AuthController.java`](../../../server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/system/adapter/backend/AuthController.java)（本人身份）、
-> [`UserController.java`](../../../server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/system/adapter/backend/UserController.java)（管理员身份接口）、
+> [`ExternalLoginApplicationService.java`](../../../packages/server/weiran-system/weiran-system-application/src/main/java/com/wulicode/weiran/system/application/auth/ExternalLoginApplicationService.java)、
+> [`IdentityProvisioner.java`](../../../packages/server/weiran-system/weiran-system-application/src/main/java/com/wulicode/weiran/system/application/auth/IdentityProvisioner.java)、
+> [`SsoController.java`](../../../packages/server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/system/adapter/packages/manage/SsoController.java)、
+> [`AuthController.java`](../../../packages/server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/system/adapter/packages/manage/AuthController.java)（本人身份）、
+> [`UserController.java`](../../../packages/server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/system/adapter/packages/manage/UserController.java)（管理员身份接口）、
 > `weiran-system-infrastructure/.../identity/`（`OidcIdentityProvider`、`CasIdentityProvider`、`ConfiguredExternalIdentityProviders`、`HmacSsoStateSigner`）、
-> [`MybatisUserIdentityRepository.java`](../../../server/weiran-system/weiran-system-infrastructure/src/main/java/com/wulicode/weiran/system/infrastructure/persistence/MybatisUserIdentityRepository.java)、
-> [`V202610060001__system_user_identity.sql`](../../../server/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/V202610060001__system_user_identity.sql)、
-> 前端 [`ExternalAccountsCard.tsx`](../../../backend/src/components/ExternalAccountsCard.tsx)、[`UserIdentitiesModal.tsx`](../../../backend/src/pages/system/users/UserIdentitiesModal.tsx)、[`hooks/queries/identities.ts`](../../../backend/src/hooks/queries/identities.ts)。
+> [`MybatisUserIdentityRepository.java`](../../../packages/server/weiran-system/weiran-system-infrastructure/src/main/java/com/wulicode/weiran/system/infrastructure/persistence/MybatisUserIdentityRepository.java)、
+> [`V202610060001__system_user_identity.sql`](../../../packages/server/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/V202610060001__system_user_identity.sql)、
+> 前端 [`ExternalAccountsCard.tsx`](../../../packages/manage/src/components/ExternalAccountsCard.tsx)、[`UserIdentitiesModal.tsx`](../../../packages/manage/src/pages/system/users/UserIdentitiesModal.tsx)、[`hooks/queries/identities.ts`](../../../packages/manage/src/hooks/queries/identities.ts)。
 >
 > 盘点基线：change `external-identity-login`（2026-10-06，建表）。
 

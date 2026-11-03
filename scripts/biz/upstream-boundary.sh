@@ -8,7 +8,7 @@
 #     以及归档后由 `node openspec/check.mjs --write-index` 重新生成的能力索引——生成物，同步冲突时重新生成，不手工合并）；
 #   - 应急：ALLOW_UPSTREAM_EDIT=1 git commit ...（事后要回 weiran4j 修，再 merge 回来）。
 
-ALLOWED='server/docs/business-modules.md
+ALLOWED='packages/server/docs/business-modules.md
 openspec/state/bizs/artifact.md
 openspec/state/bizs/cross-biz.md
 openspec/specs/README.md'

@@ -84,7 +84,7 @@ updated_at: ""
 | `settings.gradle.kts` / `weiran-dependencies` BOM(新增模块) | ☐ |  |
 | `weiran-framework` 的错误码/分页契约 | ☐ |  |
 | `weiran-app/build.gradle.kts` 依赖聚合 | ☐ |  |
-| `backend/src/App.tsx` + `AdminLayout.tsx`(路由/菜单) | ☐ |  |
+| `packages/manage/src/App.tsx` + `AdminLayout.tsx`(路由/菜单) | ☐ |  |
 
 <!-- /openspec:slot project-structure -->
 

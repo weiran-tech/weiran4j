@@ -1,14 +1,14 @@
 {
   "$schema-note": "openspec 流程中【必须被程序读取】的项目事实。其余项目事实以自由文本写在 templates/ 的 openspec:slot 槽里。改本文件后跑 `node openspec/check.mjs` 验证。",
-  "commands-note": "L7 硬闸门的命令清单，**这是唯一事实源**：`L7/evidence-missing` 按这里的键名要求 `exec/evidence/<键>.log` 逐个存在且非空。命令从仓库根执行：后端在 `server/` 下走 Gradle wrapper（必须 JDK 21，否则 palantir-java-format 失败），前端走仓库根的 pnpm 工作区。后端 `check` 已包含 test、Checkstyle、SpotBugs、Spotless、Forbidden APIs、Error Prone/NullAway 与 Testcontainers 集成测试（需要 Docker）。用 `--no-daemon`：复用的 daemon 曾让 palantir 在所有文件上报 NoClassDefFoundError（见 rules/advisory/toolchain.md）。",
+  "commands-note": "L7 硬闸门的命令清单，**这是唯一事实源**：`L7/evidence-missing` 按这里的键名要求 `exec/evidence/<键>.log` 逐个存在且非空。命令从仓库根执行：后端在 `packages/server/` 下走 Gradle wrapper（必须 JDK 21，否则 palantir-java-format 失败），前端走仓库根的 pnpm 工作区。后端 `check` 已包含 test、Checkstyle、SpotBugs、Spotless、Forbidden APIs、Error Prone/NullAway 与 Testcontainers 集成测试（需要 Docker）。用 `--no-daemon`：复用的 daemon 曾让 palantir 在所有文件上报 NoClassDefFoundError（见 rules/advisory/toolchain.md）。",
   "commands": {
-    "build": "(cd server && JAVA_HOME=${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)} ./gradlew assemble --no-daemon) && pnpm --filter @weiran/backend build",
-    "test": "(cd server && JAVA_HOME=${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)} ./gradlew test --no-daemon) && pnpm --filter @weiran/backend test",
-    "lint": "(cd server && JAVA_HOME=${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)} ./gradlew check --no-daemon) && pnpm --filter @weiran/backend lint"
+    "build": "(cd packages/server && JAVA_HOME=${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)} ./gradlew assemble --no-daemon) && pnpm --filter @weiran/manage build",
+    "test": "(cd packages/server && JAVA_HOME=${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)} ./gradlew test --no-daemon) && pnpm --filter @weiran/manage test",
+    "lint": "(cd packages/server && JAVA_HOME=${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)} ./gradlew check --no-daemon) && pnpm --filter @weiran/manage lint"
   },
   "sourcePaths": [
-    "server/weiran-*",
-    "backend/src"
+    "packages/server/weiran-*",
+    "packages/manage/src"
   ],
   "checks-note": "项目级检查插件。rules-index.mjs 守 AGENTS.md 的规则索引表（`openspec/rules/` 不会被自动注入提示词，那张表是它唯一的唤起途径）；components-registry.mjs 守 `rules/advisory/components.md` 的组件登记完整性（新增未登记即报错）；api-route-convention.mjs 守新 Spring Controller 路由的 `/api-backend/[n/]模块/资源/动作` 结构，按 HEAD 中的精确方法+路径集合兼容存量，并允许 project.json 登记有理由的精确例外；state-waitlist.mjs 守 `state/bizs/*.md` 的文件内 `#NN` 编号（重号、悬空引用、已废止的 T-NN/B-NN）；spec-xref / worktree-orphan / ratchet 与技术栈无关。mono4ts 的 drizzle-journal.mjs 不适用（本仓用 Flyway），Flyway 版本号的唯一性目前由 Flyway 自身在启动时校验。",
   "checks": [

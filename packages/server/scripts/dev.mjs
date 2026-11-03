@@ -34,8 +34,8 @@ if (!javaHome) {
 
 if (!existsSync(join(ROOT, 'config', 'application-local.yml'))) {
     console.warn(
-        '[server] ⚠️ 缺少 server/config/application-local.yml —— 数据库密码与 JWT 密钥读不到,启动会失败。\n'
-            + '         cp server/config/application-local.yml.example server/config/application-local.yml 后填值。',
+        '[server] ⚠️ 缺少 packages/server/config/application-local.yml —— 数据库密码与 JWT 密钥读不到,启动会失败。\n'
+            + '         cp packages/server/config/application-local.yml.example packages/server/config/application-local.yml 后填值。',
     );
 }
 

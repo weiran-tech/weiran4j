@@ -6,7 +6,7 @@
  */
 import { readFileSync, readdirSync } from 'node:fs'
 
-const SOURCE_ROOT = 'server'
+const SOURCE_ROOT = 'packages/server'
 const MAPPING = /^@(RequestMapping|GetMapping|PostMapping|PutMapping|DeleteMapping|PatchMapping)\b\s*(?:\(([^)]*)\))?/
 const CLASS_DECL = /\bclass\s+[A-Za-z_$][\w$]*/
 const METHOD_NAMES = {
@@ -179,7 +179,7 @@ export default {
     const current = new Map()
     // 目录改名尚未提交时，HEAD 里的源码仍位于旧目录；存量路由基线必须继续可读。
     const currentHeadFiles = git(['ls-tree', '-r', '--name-only', 'HEAD', '--', SOURCE_ROOT])
-    const baselineRoot = currentHeadFiles ? SOURCE_ROOT : 'weiran4j'
+    const baselineRoot = currentHeadFiles ? SOURCE_ROOT : 'server'
     const baselineFiles = new Set(git(['ls-tree', '-r', '--name-only', 'HEAD', '--', baselineRoot]).split('\n'))
 
     for (const file of files) {

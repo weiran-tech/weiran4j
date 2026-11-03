@@ -54,8 +54,8 @@ PageContainer                       外壳卡片
 └── XxxFormModal / XxxSheet         新增与编辑共用一个表单弹窗(或侧边抽屉)
 ```
 
-- 数据走 `backend/src/hooks/queries/<资源>.ts` 的 TanStack Query hooks;写操作成功后 invalidate 对应列表。
-- 请求走 `backend/src/utils/request.ts`:`code === 0` 成功,其余抛 `ApiError` 并 Toast 提示 `message`。
+- 数据走 `packages/manage/src/hooks/queries/<资源>.ts` 的 TanStack Query hooks;写操作成功后 invalidate 对应列表。
+- 请求走 `packages/manage/src/utils/request.ts`:`code === 0` 成功,其余抛 `ApiError` 并 Toast 提示 `message`。
 - 树形资源(菜单、部门)不分页,用 Semi Table 的树形数据,「新增下级 / 子项」预填 `parentId`。
 - 公共组件清单与各自的坑见 [`rules/advisory/components.md`](../rules/advisory/components.md)。
 

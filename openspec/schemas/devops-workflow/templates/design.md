@@ -96,7 +96,7 @@ flowchart LR
 
 | 路由 | 方法 | 所属模块 | 请求关键字段 | 返回关键字段 | 权限点 |
 |---|---|---|---|---|---|
-|  | GET/POST | `weiran-system-adapter/.../backend/` |  |  |  |
+|  | GET/POST | `weiran-system-adapter/.../packages/manage/` |  |  |  |
 
 - 统一响应包络由 wuli3 底座的 `ApiResponseBodyAdvice` 产生,**不在本仓库自行定义**——
   design 里只需声明业务字段,不需要重新设计包络本身(`{code, message, timestamp, requestId, data}`,
@@ -120,7 +120,7 @@ flowchart LR
 | 项 | 设计 |
 |---|---|
 | 权限点(`pam_permission`) |  |
-| 菜单挂载(前端硬编码,`backend/src/layouts/AdminLayout.tsx`,无后端表) |  |
+| 菜单挂载(前端硬编码,`packages/manage/src/layouts/AdminLayout.tsx`,无后端表) |  |
 | 是否新增写接口却漏标 `@OperationLog`(操作日志,见 `rules/enforced/project.md` CC-5) |  |
 
 > 数据范围 / 多租户 / 幂等 / 导出任务中心 / 工作流绑定当前均**尚未引入或不适用**
@@ -139,8 +139,8 @@ flowchart LR
 
 | 项 | 内容 |
 |---|---|
-| 页面/路由 | `backend/src/App.tsx` |
-| 菜单挂载 | `backend/src/layouts/AdminLayout.tsx`(含权限点字符串) |
+| 页面/路由 | `packages/manage/src/App.tsx` |
+| 菜单挂载 | `packages/manage/src/layouts/AdminLayout.tsx`(含权限点字符串) |
 | 数据请求方式 |  |
 | 复用组件 |  |
 | 权限控制点 |  |

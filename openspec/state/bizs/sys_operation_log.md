@@ -1,20 +1,20 @@
 # sys_operation_log 操作日志
 
 > 属于 `openspec/state/`，**只描述事实，不是规范**：过期不会被 `check.mjs` 拦截，**以代码为准**，发现不符回来改这里。
-> 契约文档 `server/docs/01-架构与接口契约.md` 只作索引；它与代码不一致的地方以代码为准写在下文，并在 §6 登记。
+> 契约文档 `packages/server/docs/01-架构与接口契约.md` 只作索引；它与代码不一致的地方以代码为准写在下文，并在 §6 登记。
 >
 > 事实源：
-> [`OperationLogController.java`](../../../server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/platform/adapter/backend/OperationLogController.java)、
-> [`OperationLogApplicationService.java`](../../../server/weiran-system/weiran-system-application/src/main/java/com/wulicode/weiran/platform/application/operationlog/OperationLogApplicationService.java) /
-> [`AsyncOperationLogRecorder.java`](../../../server/weiran-system/weiran-system-application/src/main/java/com/wulicode/weiran/platform/application/operationlog/AsyncOperationLogRecorder.java)、
-> [`MybatisOperationLogRepository.java`](../../../server/weiran-system/weiran-system-infrastructure/src/main/java/com/wulicode/weiran/platform/infrastructure/persistence/MybatisOperationLogRepository.java)、
-> [`OperationLog.java`](../../../server/weiran-framework/src/main/java/com/wulicode/weiran/framework/log/OperationLog.java) /
-> [`OperationLogAspect.java`](../../../server/weiran-framework/src/main/java/com/wulicode/weiran/framework/log/OperationLogAspect.java) /
-> [`SensitiveDataMasker.java`](../../../server/weiran-framework/src/main/java/com/wulicode/weiran/framework/log/SensitiveDataMasker.java) /
-> [`ClientIpResolver.java`](../../../server/weiran-framework/src/main/java/com/wulicode/weiran/framework/backend/ClientIpResolver.java)、
-> [`V202609260101__platform_init_schema.sql`](../../../server/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/platform/V202609260101__platform_init_schema.sql)、
-> [`OperationLogsPage.tsx`](../../../backend/src/pages/logs/OperationLogsPage.tsx)（页面与内嵌 `OperationLogDetail`）、
-> [`hooks/queries/logs.ts`](../../../backend/src/hooks/queries/logs.ts)、[`types/api.ts`](../../../backend/src/types/api.ts)。
+> [`OperationLogController.java`](../../../packages/server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/platform/adapter/packages/manage/OperationLogController.java)、
+> [`OperationLogApplicationService.java`](../../../packages/server/weiran-system/weiran-system-application/src/main/java/com/wulicode/weiran/platform/application/operationlog/OperationLogApplicationService.java) /
+> [`AsyncOperationLogRecorder.java`](../../../packages/server/weiran-system/weiran-system-application/src/main/java/com/wulicode/weiran/platform/application/operationlog/AsyncOperationLogRecorder.java)、
+> [`MybatisOperationLogRepository.java`](../../../packages/server/weiran-system/weiran-system-infrastructure/src/main/java/com/wulicode/weiran/platform/infrastructure/persistence/MybatisOperationLogRepository.java)、
+> [`OperationLog.java`](../../../packages/server/weiran-framework/src/main/java/com/wulicode/weiran/framework/log/OperationLog.java) /
+> [`OperationLogAspect.java`](../../../packages/server/weiran-framework/src/main/java/com/wulicode/weiran/framework/log/OperationLogAspect.java) /
+> [`SensitiveDataMasker.java`](../../../packages/server/weiran-framework/src/main/java/com/wulicode/weiran/framework/log/SensitiveDataMasker.java) /
+> [`ClientIpResolver.java`](../../../packages/server/weiran-framework/src/main/java/com/wulicode/weiran/framework/packages/manage/ClientIpResolver.java)、
+> [`V202609260101__platform_init_schema.sql`](../../../packages/server/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/platform/V202609260101__platform_init_schema.sql)、
+> [`OperationLogsPage.tsx`](../../../packages/manage/src/pages/logs/OperationLogsPage.tsx)（页面与内嵌 `OperationLogDetail`）、
+> [`hooks/queries/logs.ts`](../../../packages/manage/src/hooks/queries/logs.ts)、[`types/api.ts`](../../../packages/manage/src/types/api.ts)。
 >
 > 盘点基线：`e23c511`（2026-09-26，D-008 框架重写后的首次盘点）。
 
@@ -126,7 +126,7 @@ User-Agent、时间、错误信息（有才显示）；请求体是 JSON 时格�
   `AsyncOperationLogRecorder.record` 捕获 `RejectedExecutionException`、`append` 捕获 `RuntimeException`，都只记 `warn`。
   设计上「审计日志丢一条，不能让业务请求失败」（类注释），属知情接受；后果是操作日志不保证完整。
 - **#04 🔴 P3 前端 `OperationLogView` 类型注释已过期**
-  `backend/src/types/api.ts` 注释写「契约 §6.9 未逐字段列出，按 §5 sys_operation_log 列的 camelCase 形式」，但契约 §6.9 已逐字段列出
+  `packages/manage/src/types/api.ts` 注释写「契约 §6.9 未逐字段列出，按 §5 sys_operation_log 列的 camelCase 形式」，但契约 §6.9 已逐字段列出
   `OperationLogView`；类型里 `requestBody` 标为可选、`ip` / `userAgent` 标为可空，而后端 `ip` / `userAgent` 恒为非空字符串。
   不影响运行，只是注释与可空性口径不准。
 

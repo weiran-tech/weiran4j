@@ -1,5 +1,11 @@
 # 流程本身的修改记录
 
+## 2026-11-03 · 前后端迁入 packages
+
+- 管理端迁至 `packages/manage/`，工作区包名改为 `@weiran/manage`；后端迁至 `packages/server/`。
+- 同步 L7 命令与源码路径、组件登记和 API 路由守卫的扫描范围、模板中的示例路径，以及提交钩子的触发目录。
+- API 路由守卫在迁移提交前仍从 HEAD 的 `server/` 读取存量基线。
+
 ## 2026-10-28 · 后端与前端目录改名
 
 - 工作区源码目录从 `weiran4j/`、`web/` 分别迁至 `server/`、`backend/`；同步 `project.json` 的命令与源码路径，以及组件和 API 路由守卫的扫描根目录。

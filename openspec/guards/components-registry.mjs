@@ -48,8 +48,8 @@ const BIZ_REGISTRY = 'openspec/rules/advisory/components.biz.md'
 
 /** components.md 自己声明的来源目录 */
 const ROOTS = [
-  'backend/src/components',
-  'backend/src/layouts',
+  'packages/manage/src/components',
+  'packages/manage/src/layouts',
 ]
 
 /** 没有「可复用组件」语义的文件名 */

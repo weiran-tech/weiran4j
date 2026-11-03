@@ -5,14 +5,14 @@
   "scripts": {
     "dev": "turbo run dev",
     "dev:server": "turbo run dev --filter=@weiran/server",
-    "dev:web": "turbo run dev --filter=@weiran/backend",
+    "dev:web": "turbo run dev --filter=@weiran/manage",
     "dev:docs": "turbo run dev --filter=@weiran/docs",
     "build": "turbo run build",
-    "build:web": "turbo run build --filter=@weiran/backend",
+    "build:web": "turbo run build --filter=@weiran/manage",
     "build:docs": "turbo run build --filter=@weiran/docs",
     "docs:preview": "turbo run preview --filter=@weiran/docs",
-    "test": "pnpm --filter @weiran/backend test",
-    "lint": "pnpm --filter @weiran/backend lint",
+    "test": "pnpm --filter @weiran/manage test",
+    "lint": "pnpm --filter @weiran/manage lint",
     "openspec:check": "node openspec/check.mjs",
     "openspec:validate": "openspec validate --strict --changes --no-interactive",
     "hooks:install": "git config core.hooksPath .githooks"

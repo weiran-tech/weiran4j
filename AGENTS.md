@@ -11,8 +11,8 @@
 
 ## 先读这四条
 
-1. **架构、数据与业务契约见 [`server/docs/01-架构与接口契约.md`](server/docs/01-架构与接口契约.md)。**
-   HTTP 接口定义以 Springdoc 根据 Controller 与 DTO 声明生成的 OpenAPI 为准，`/v3/api-docs` 与 Swagger UI 仅在 `local` profile 开启。不要在 `01-架构与接口契约.md` 复述 OpenAPI 已描述的接口内容；该文档只记录 OpenAPI 无法完整表达的架构约束、数据约束、跨接口行为与业务规则。前端 `backend/src/types/api.ts` 手动同步。
+1. **架构、数据与业务契约见 [`packages/server/docs/01-架构与接口契约.md`](packages/server/docs/01-架构与接口契约.md)。**
+   HTTP 接口定义以 Springdoc 根据 Controller 与 DTO 声明生成的 OpenAPI 为准，`/v3/api-docs` 与 Swagger UI 仅在 `local` profile 开启。不要在 `01-架构与接口契约.md` 复述 OpenAPI 已描述的接口内容；该文档只记录 OpenAPI 无法完整表达的架构约束、数据约束、跨接口行为与业务规则。前端 `packages/manage/src/types/api.ts` 手动同步。
 2. **构建必须用 JDK 21。** 本机默认 JDK 可能更高，Gradle daemon 跑在高版本上
    palantir-java-format 会直接崩，报错看起来像代码问题但不是。
    所有 Gradle 命令前置 `JAVA_HOME=$(/usr/libexec/java_home -v 21)`，或用 `mise` 自动切换。
@@ -30,16 +30,16 @@
 # ── 一条命令起后端、后台前端和文档站（仓库根，turbo 编排）──
 pnpm dev                          # = turbo run dev：后端 bootRun(5200) + 后台 vite(5202) + VitePress(5209)
 pnpm dev:server / pnpm dev:web / pnpm dev:docs  # 单独启动后端、后台前端或文档站
-# 后端的 dev 是 server/scripts/dev.mjs：自动找 JDK 21、缺本地配置时先提示，Ctrl-C 会一并停掉应用 JVM。
+# 后端的 dev 是 packages/server/scripts/dev.mjs：自动找 JDK 21、缺本地配置时先提示，Ctrl-C 会一并停掉应用 JVM。
 # 给后端传环境变量（如 SERVER_PORT、WEIRAN_*）必须先在 turbo.json 的 passThroughEnv 里放行，否则被静默丢弃。
 
-# ── 后端（在 server/ 下）──
-cd weiran4j && export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+# ── 后端（在 packages/server/ 下）──
+cd packages/server && export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 ./gradlew spotlessApply           # 格式化（改完代码先跑这个）
 ./gradlew check --no-daemon       # 全量门禁：编译 + 测试 + Checkstyle + SpotBugs + Forbidden APIs
                                   #   + Error Prone/NullAway + 覆盖率；集成测试用 Testcontainers，需要 Docker
 ./gradlew :weiran-system-domain:check   # 只验一个模块，迭代时用
-./gradlew :weiran-app:bootRun     # 起服务（需要 MySQL 与 server/config/application-local.yml）
+./gradlew :weiran-app:bootRun     # 起服务（需要 MySQL 与 packages/server/config/application-local.yml）
 
 # ── 前端、文档站与 openspec（在仓库根）──
 pnpm install
@@ -51,9 +51,9 @@ pnpm openspec:check               # = node openspec/check.mjs，结构检查，�
 node openspec/check.mjs --explain # 看全部检查项
 pnpm hooks:install                # 新 clone 后跑一次，启用 .githooks/pre-commit
 
-# ── 部署（Docker Compose，操作手册见 server/docs/02-部署.md）──
-cp server/.env.example server/.env   # 填 WEIRAN_DB_PASSWORD、WEIRAN_JWT_SECRET
-export COMPOSE_ENV_FILES=server/.env && docker compose up -d --build
+# ── 部署（Docker Compose，操作手册见 packages/server/docs/02-部署.md）──
+cp packages/server/.env.example packages/server/.env   # 填 WEIRAN_DB_PASSWORD、WEIRAN_JWT_SECRET
+export COMPOSE_ENV_FILES=packages/server/.env && docker compose up -d --build
 ```
 
 > ⚠️ **不要打开 Gradle 配置缓存**，也**不要同时跑两个 `clean check`**。
@@ -72,42 +72,43 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 ├── .githooks/pre-commit         # 提交前跑 openspec check
 ├── turbo.json                   # turbo 任务编排（pnpm dev 同时起后端、后台前端与文档站）
 ├── openspec/                    # 规格治理流水线（L0–L10 闸门）
-├── backend/                         # 前端：Vite + React 19 + Semi UI + TanStack Query，路由由菜单驱动
-└── server/                    # 后端：Gradle 多模块（package.json 只为接入 turbo，名 @weiran/server）
-    ├── build-logic/             # 约定插件。质量规则的唯一来源，不要在模块里重复配置
-    ├── weiran-dependencies/     # BOM（import Spring Boot + MyBatis-Plus BOM）。框架版本只在这里；下游业务版本在其 biz-dependencies.gradle.kts（D-013）
-    ├── weiran-framework/        # 框架层：纯 Java 契约包（错误码、分页、响应包络、树工具，domain/api 只能用这些）
-    │                            #   + Spring 基础设施（统一响应、全局异常、认证拦截、@RequiresPermission、
-    │                            #   @OperationLog、MyBatis-Plus 配置与审计字段填充）。框架库不向下游传递（D-016）
-    ├── weiran-system/           # 后台基座（DDD 五层）：身份与权限（认证 / 用户 / 角色 / 菜单 / 登录日志，
-    │                            #   Java 包 com.wulicode.weiran.system）+ 平台能力（字典 / 系统配置 / 操作日志，包 com.wulicode.weiran.platform）
-    ├── weiran-demo/             # 可选演示模块：local/test 菜单、种子及批处理处理器；下游可不复制
-    ├── weiran-app/              # 可执行应用：依赖聚合 + application.yml + 集成测试
-    └── docs/                    # 后端决策记录、接口契约与部署手册（02-部署.md）
+└── packages/                    # pnpm 工作区中的应用与组件
+    ├── manage/                  # 前端：Vite + React 19 + Semi UI + TanStack Query，路由由菜单驱动
+    ├── semi-components/         # 可复用的 Semi UI 组件包
+    └── server/                  # 后端：Gradle 多模块（package.json 只为接入 turbo，名 @weiran/server）
+        ├── build-logic/         # 约定插件。质量规则的唯一来源，不要在模块里重复配置
+        ├── weiran-dependencies/ # BOM（import Spring Boot + MyBatis-Plus BOM）。框架版本只在这里；下游业务版本在其 biz-dependencies.gradle.kts（D-013）
+        ├── weiran-framework/    # 框架层：纯 Java 契约包（错误码、分页、响应包络、树工具，domain/api 只能用这些）
+        │                        # + Spring 基础设施（统一响应、全局异常、认证拦截、@RequiresPermission、
+        │                        # @OperationLog、MyBatis-Plus 配置与审计字段填充）。框架库不向下游传递（D-016）
+        ├── weiran-system/       # 后台基座（DDD 五层）：身份与权限及平台能力
+        ├── weiran-demo/         # 可选演示模块：local/test 菜单、种子及批处理处理器；下游可不复制
+        ├── weiran-app/          # 可执行应用：依赖聚合 + application.yml + 集成测试
+        └── docs/                # 后端决策记录、接口契约与部署手册（02-部署.md）
 ```
 
 业务模块的五层：`weiran-<mod>-{api,domain,application,infrastructure,adapter}`。模块路径是**扁平**的
 （`:weiran-system-api`），目录是**嵌套**的（`weiran-system/weiran-system-api`）——新增业务模块只需建好
-`server/weiran-<mod>/weiran-<mod>-{五层}/` 目录，`settings.gradle.kts` 会自动发现，BOM 与 `weiran-app` 的依赖随之生成，
+`packages/server/weiran-<mod>/weiran-<mod>-{五层}/` 目录，`settings.gradle.kts` 会自动发现，BOM 与 `weiran-app` 的依赖随之生成，
 不改任何构建脚本（D-012）。**建了其中几层却不齐时构建直接失败**，报错里列出缺的层。
 
 ### 下游复制时的组件演示
 
 `weiran-demo` 是可选演示模块，不属于五层业务模块。它在 local/test 播种演示菜单和独立配置数据，并注册 Excel/ZIP 批处理示例处理器。下游复制本项目时可省略整个
-`server/weiran-demo/`，并且**无需复制 `backend/src/pages/demo/` 下的演示页面**。
-批处理通用工作台 `backend/src/components/BatchJobWorkbench.tsx` 属于可复用前端组件，保留在下游；业务页传入处理类型与结果组件，后端实现 `weiran-system-api` 的 `BatchProcessor`。接入步骤见 `docs/batch-processing.md`。
+`packages/server/weiran-demo/`，并且**无需复制 `packages/manage/src/pages/demo/` 下的演示页面**。
+批处理通用工作台 `packages/manage/src/components/BatchJobWorkbench.tsx` 属于可复用前端组件，保留在下游；业务页传入处理类型与结果组件，后端实现 `weiran-system-api` 的 `BatchProcessor`。接入步骤见 `docs/batch-processing.md`。
 `settings.gradle.kts` 和 `weiran-app` 只在模块存在时引入它；前端页面注册表允许缺少演示页。
 通用 `weiran-system` 中已发布的历史演示 Flyway 文件必须保留（CP-7），后续清理迁移会删除这些历史菜单；
 下游保留清理迁移即可。生产构建本身不打包演示模块或演示页面。
 
 ### 新增一个页面 / 功能的完整路径
 
-1. 契约：接口路径、方法、参数与 DTO schema 由 Controller / DTO 声明并生成 OpenAPI；仅将 OpenAPI 无法完整表达的架构、表结构、权限码和业务约束登记在 `server/docs/01-架构与接口契约.md`。
+1. 契约：接口路径、方法、参数与 DTO schema 由 Controller / DTO 声明并生成 OpenAPI；仅将 OpenAPI 无法完整表达的架构、表结构、权限码和业务约束登记在 `packages/server/docs/01-架构与接口契约.md`。
 2. 表结构与菜单：在模块 infrastructure 追加 Flyway 脚本
    `db/migration/<module>/V<yyyyMMddHHmm>__<module>_<desc>.sql`（**已合入的脚本永不修改**，宪法 CP-7），
-   往 `sys_menu` 插菜单行与按钮权限行（`component` = 相对 `backend/src/pages` 的路径）。
+   往 `sys_menu` 插菜单行与按钮权限行（`component` = 相对 `packages/manage/src/pages` 的路径）。
 3. 后端：domain → application → infrastructure → adapter；写接口标 `@RequiresPermission` 与 `@OperationLog`。
-4. 前端：`backend/src/pages/<component>.tsx` + `hooks/queries/*` + `types/api.ts`；按钮用 `<Permission code>`。
+4. 前端：`packages/manage/src/pages/<component>.tsx` + `hooks/queries/*` + `types/api.ts`；按钮用 `<Permission code>`。
    **不需要改 `App.tsx`**——路由由 `/api-backend/system/auth/listCurrentMenus` 驱动；菜单行与页面文件缺一个都不报错（见 project.md SL-4/SL-5）。
    写页面前先查 [`components.md`](openspec/rules/advisory/components.md)；列表页照 [`list-view.md`](openspec/rules/advisory/list-view.md) 的约定做。
 5. 现状文档：新表在 `openspec/state/bizs/` 加一份 `<table>.md`（八段结构，见 [`bizs/README.md`](openspec/state/bizs/README.md)）。
@@ -127,7 +128,7 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 | # | 门禁 | 强度 | 现状 |
 | --- | --- | --- | --- |
 | ① | Claude Code hook：写/改后跑 `check.mjs --hook`，只查改动涉及的插件，20s 超时 | 即时 · 不阻断 | ✅ 在跑 |
-| ② | `.githooks/pre-commit`：改动命中 `openspec/`、`server/`、`backend/` 才跑全量 `check.mjs` | 阻断（`--no-verify` 可应急绕过） | ✅ 需先 `pnpm hooks:install` |
+| ② | `.githooks/pre-commit`：改动命中 `openspec/` 或 `packages/` 才跑全量 `check.mjs` | 阻断（`--no-verify` 可应急绕过） | ✅ 需先 `pnpm hooks:install` |
 | ③ | GitHub Actions [`ci.yml`](.github/workflows/ci.yml)：PR 与推送 main 时并行跑后端 `check`（JDK 21 + Testcontainers）、前端 `lint/test/build`、`openspec/check.mjs` | 兜底 | ✅ 在跑（`artifact.md#05` 已关）。⚠️ 还**没有分支保护**（[`artifact.md#12`](openspec/state/bizs/artifact.md)）：CI 红了照样能合并，需要仓库管理员在 GitHub → Settings → Branches 给 `main` 设置「合并前必须通过以上三个检查」 |
 
 ### 用哪个 skill 开 / 推进 / 归档 change
@@ -157,10 +158,10 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 
 | 文件 | 什么时候**必须**读 | 有无机械校验 |
 | --- | --- | --- |
-| [`rules/enforced/constitution.md`](openspec/rules/enforced/constitution.md) | 写 `design.md` 的「宪法对照」表时；**改表结构或种子数据前（CP-7：只能追加 Flyway 脚本，已合入的永不修改）**；碰密码/令牌路径时（CP-8：只用 BCrypt，吊销只走 `token_version`）；给模块加依赖或版本号时（CP-4）；**新增业务模块、让业务依赖基座、新增错误码 / 权限码 / 菜单 id 时（CP-12 … CP-15：依赖只能业务 → 基座 → 框架，业务只依赖 `weiran-system-api`，号段先在 [`server/docs/business-modules.md`](server/docs/business-modules.md) 登记）**；要放宽任何质量规则时（CP-5/CP-6） | ✅ `L2c/constitution-check` + `TEMPLATE/constitution-rows` |
+| [`rules/enforced/constitution.md`](openspec/rules/enforced/constitution.md) | 写 `design.md` 的「宪法对照」表时；**改表结构或种子数据前（CP-7：只能追加 Flyway 脚本，已合入的永不修改）**；碰密码/令牌路径时（CP-8：只用 BCrypt，吊销只走 `token_version`）；给模块加依赖或版本号时（CP-4）；**新增业务模块、让业务依赖基座、新增错误码 / 权限码 / 菜单 id 时（CP-12 … CP-15：依赖只能业务 → 基座 → 框架，业务只依赖 `weiran-system-api`，号段先在 [`packages/server/docs/business-modules.md`](packages/server/docs/business-modules.md) 登记）**；要放宽任何质量规则时（CP-5/CP-6） | ✅ `L2c/constitution-check` + `TEMPLATE/constitution-rows` |
 | [`rules/enforced/project.md`](openspec/rules/enforced/project.md) | 新增 Gradle 模块前、**新增页面/菜单前（§一 SL-4/SL-5：菜单行与页面文件配对）**、取 Flyway 版本号或菜单 id 前（序号型资源）；判断能不能与他人同时推进时（§二 WT-N，本仓库没有 worktree）；写 `proposal.md`/`tasks.md`/`design.md` 前（§三～六 CC/PK/TG/DS-N） | ✅ `TEMPLATE/profile-rows` |
-| [`rules/advisory/components.md`](openspec/rules/advisory/components.md) | **写 `backend/` 的页面或组件前 —— 先查再造**；**给侧边菜单加图标时**（目录节点必须用 `renderNavIcon()`）；删除组件或改其对外协议后回来改这里 | 🟡 只查「新增未登记」（`REPO/components-unregistered`），不查描述对不对 |
-| [`rules/advisory/list-view.md`](openspec/rules/advisory/list-view.md) | **写或改 `backend/` 的列表页（搜索栏 + 表格）前**；**加列 / 改列宽前**（1440 宽双列布局表格只有 1115px，手机号、时间按最坏数据算宽，否则只有部分行折行）；**往高级筛选面板加字段前**（后端不认的参数被静默忽略，筛了等于没筛） | ❌ 无 —— 全靠这张表唤起 |
+| [`rules/advisory/components.md`](openspec/rules/advisory/components.md) | **写 `packages/manage/` 的页面或组件前 —— 先查再造**；**给侧边菜单加图标时**（目录节点必须用 `renderNavIcon()`）；删除组件或改其对外协议后回来改这里 | 🟡 只查「新增未登记」（`REPO/components-unregistered`），不查描述对不对 |
+| [`rules/advisory/list-view.md`](openspec/rules/advisory/list-view.md) | **写或改 `packages/manage/` 的列表页（搜索栏 + 表格）前**；**加列 / 改列宽前**（1440 宽双列布局表格只有 1115px，手机号、时间按最坏数据算宽，否则只有部分行折行）；**往高级筛选面板加字段前**（后端不认的参数被静默忽略，筛了等于没筛） | ❌ 无 —— 全靠这张表唤起 |
 | [`rules/advisory/api-design.md`](openspec/rules/advisory/api-design.md) | 新增或修改 Spring Controller 路由前；`/api-{type}/{module}/...` 用户鉴权，`/api-{type}/n/{module}/...` 未鉴权，当前 `type=backend` | 🟡 新增非规范路由由 `REPO/api-route-nonconforming` 拦截；存量按精确 method + path 兼容 |
 | [`rules/advisory/pitfalls.md`](openspec/rules/advisory/pitfalls.md) | 走 OpenSpec 流水线的**每一层**开工前，读对应那一节（L0–L10 分节）；**尤其**产出 L7 证据前（`git stash` 会让刚写好的证据全部失效）、判定「本次不修」时（只写在 `verify.md` 里等于把它埋了） | ❌ 无 —— 全靠这张表唤起 |
 | [`rules/advisory/toolchain.md`](openspec/rules/advisory/toolchain.md) | **构建报 `palantir-java-format(...)` 相关错误时**（`InvocationTargetException` / `NoClassDefFoundError`，那不是代码问题）；**集成测试成片失败、日志里有 `NoSuchFileException ... build/` 时**（有人同时在跑 `clean`）；**`pnpm dev` 前面设的环境变量没生效时**（turbo 严格模式静默丢弃未声明的变量）；**编译报「类 X 是公共的, 应在名为 X.java 的文件中声明」、或改过类名大小写准备提交时**（macOS 上 git 会吞掉只改大小写的重命名）；**从旧版或别处搬前端代码时**（`code` 现为数字 `0`） | ❌ 无 —— 全靠这张表唤起 |
@@ -269,19 +270,19 @@ vitest + jsdom + @testing-library/react。**断言 Semi `Form.*` 受控控件时
 - 登录失败不区分「用户不存在」与「密码错误」，统一 `110101`（宪法 CP-10）。前端对 `100101` 清会话跳登录，对 `110101` 不清。
 - 外部身份登录（CAS / OIDC，D-015）：登录发起走 `/api-backend/n/system/auth/authorizeSso/{id}`，绑定发起走 `/api-backend/system/auth/authorizeSso/{id}`；回调走 `/api-backend/n/system/auth/callbackSso/{id}`，由后端换码或验票后下发同一套本地 Cookie。
   外部身份只按 `sys_user_identity(provider, external_id)` 映射，**不按用户名关联**；自动开通的用户没有本地密码（`password` 为空串，`/me.hasPassword=false`）。
-  提供方用环境变量 `WEIRAN_AUTH_PROVIDERS_<ID>_*` 配置，见 `server/docs/02-部署.md` §5a。
+  提供方用环境变量 `WEIRAN_AUTH_PROVIDERS_<ID>_*` 配置，见 `packages/server/docs/02-部署.md` §5a。
 - 种子账号 `admin` / `admin123`（Flyway 种子），**上线前必须改密**。
 
 ## 密钥与本地配置
 
 任何密钥都不进版本库、不进日志（宪法 CP-9）。
 
-- **本地开发**：`server/config/application-local.yml`（已 gitignore，且在源码树之外，不会被打进 jar）。
-  `bootRun` 默认激活 `local` profile 并从 `server/config/` 读取——路径由 `weiran-app/build.gradle.kts`
+- **本地开发**：`packages/server/config/application-local.yml`（已 gitignore，且在源码树之外，不会被打进 jar）。
+  `bootRun` 默认激活 `local` profile 并从 `packages/server/config/` 读取——路径由 `weiran-app/build.gradle.kts`
   写死为绝对路径，因为 `bootRun` 的工作目录是 `weiran-app/`，靠 Spring Boot 默认的 `./config/`
   探测会找错地方。
-- **部署**：环境变量，对应 `application.yml` 里的 `${WEIRAN_*}` 占位符，见 `server/.env.example`（新增占位符必须同步它，`EnvExampleTest` 会拦）。
-  完整步骤、同源与反代透传头、日志与排障见 [`server/docs/02-部署.md`](server/docs/02-部署.md)。
+- **部署**：环境变量，对应 `application.yml` 里的 `${WEIRAN_*}` 占位符，见 `packages/server/.env.example`（新增占位符必须同步它，`EnvExampleTest` 会拦）。
+  完整步骤、同源与反代透传头、日志与排障见 [`packages/server/docs/02-部署.md`](packages/server/docs/02-部署.md)。
   `WEIRAN_JWT_SECRET` 至少 32 字节，缺失或过短时应用启动失败。
 - 仓内只有 `.example` 模板，没有真实值。
 - 本地库用独立的空库 `weiran4j`（Flyway 自动建表与种子）。**不要把本地配置指向任何已有业务库**：

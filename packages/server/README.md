@@ -7,7 +7,7 @@
 | ---- | --------------------------------------------------------------------------------- |
 | 后端 | JDK 21 · Gradle 9 · Spring Boot 3.5 · MyBatis-Plus · Flyway · MySQL 8 · JWT(jjwt)  |
 | 分层 | DDD 五层（api / domain / application / infrastructure / adapter）                  |
-| 前端 | pnpm · Vite · React 19 · Semi UI · TanStack Query · React Router 7（位于仓库根 `backend/`） |
+| 前端 | pnpm · Vite · React 19 · Semi UI · TanStack Query · React Router 7（位于仓库根 `packages/manage/`） |
 | 流程 | openspec（L0–L10 闸门）                                                           |
 
 ## 快速开始
@@ -24,8 +24,8 @@ mysql -uroot -e "CREATE DATABASE weiran4j DEFAULT CHARACTER SET utf8mb4"
 cp config/application-local.yml.example config/application-local.yml   # 填库密码与 JWT 密钥（openssl rand -base64 48）
 
 # 3. 一条命令起前后端（仓库根目录，turbo 编排）
-cd .. && pnpm install && pnpm dev      # 后端(5200) + 前端(5202) + 文档站(5209)，/api 代理到后端
-                                       # 只起后端：pnpm dev:server，或在 server/ 下 ./gradlew :weiran-app:bootRun
+cd ../.. && pnpm install && pnpm dev      # 后端(5200) + 前端(5202) + 文档站(5209)，/api 代理到后端
+                                       # 只起后端：pnpm dev:server，或在 packages/server/ 下 ./gradlew :weiran-app:bootRun
 ```
 
 打开 http://localhost:5202 ，用 **`admin` / `admin123`** 登录。⚠️ 上线前必须修改该密码。
@@ -47,12 +47,12 @@ cd .. && pnpm install && pnpm dev      # 后端(5200) + 前端(5202) + 文档站
 
 | 文档 | 内容 |
 | --- | --- |
-| [`../README.md`](../README.md) | 仓库根目录快速开始 |
-| [`../docs/index.md`](../docs/index.md) | VitePress 项目文档站入口 |
-| [`../docs/usage.md`](../docs/usage.md) | 本地使用指南 |
-| [`../docs/architecture.md`](../docs/architecture.md) | 整体架构 |
-| [`AGENTS.md`](../AGENTS.md)(仓库根) | 开发约定、分层规矩、门禁硬约束（AI 与人都读这份） |
+| [`../README.md`](../../README.md) | 仓库根目录快速开始 |
+| [`../docs/index.md`](../../docs/index.md) | VitePress 项目文档站入口 |
+| [`../docs/usage.md`](../../docs/usage.md) | 本地使用指南 |
+| [`../docs/architecture.md`](../../docs/architecture.md) | 整体架构 |
+| [`AGENTS.md`](../../AGENTS.md)(仓库根) | 开发约定、分层规矩、门禁硬约束（AI 与人都读这份） |
 | [`docs/01-架构与接口契约.md`](docs/01-架构与接口契约.md) | **前后端唯一契约**：模块、表结构、种子数据、全部接口与错误码 |
 | [`docs/00-决策记录.md`](docs/00-决策记录.md) | 关键决策与理由，只增不改（重写见 D-008） |
-| [`openspec/rules/enforced/constitution.md`](../openspec/rules/enforced/constitution.md) | 跨 change 的工程不变量 CP-1…CP-11 |
-| [`openspec/design/README.md`](../openspec/design/README.md) | openspec 流水线怎么用 |
+| [`openspec/rules/enforced/constitution.md`](../../openspec/rules/enforced/constitution.md) | 跨 change 的工程不变量 CP-1…CP-11 |
+| [`openspec/design/README.md`](../../openspec/design/README.md) | openspec 流水线怎么用 |

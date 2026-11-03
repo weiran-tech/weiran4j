@@ -1,8 +1,8 @@
-# 可选 SLS 采集器：与 docker-compose.yml 一起使用，见 server/docs/02-部署.md §6a。
-# 账号 ID、地域、机器组标识和镜像版本均从未入库的 server/.env 注入。
+# 可选 SLS 采集器：与 docker-compose.yml 一起使用，见 packages/server/docs/02-部署.md §6a。
+# 账号 ID、地域、机器组标识和镜像版本均从未入库的 packages/server/.env 注入。
 services:
   loongcollector:
-    image: ${WEIRAN_SLS_IMAGE:?在 server/.env 中设置兼容宿主机 Docker 版本的 LoongCollector 镜像}
+    image: ${WEIRAN_SLS_IMAGE:?在 packages/server/.env 中设置兼容宿主机 Docker 版本的 LoongCollector 镜像}
     environment:
       ALIYUN_LOGTAIL_CONFIG: /etc/ilogtail/conf/${WEIRAN_SLS_UPLOAD_CHANNEL:?设置 WEIRAN_SLS_UPLOAD_CHANNEL}/ilogtail_config.json
       ALIYUN_LOGTAIL_USER_ID: ${WEIRAN_SLS_ACCOUNT_ID:?设置 WEIRAN_SLS_ACCOUNT_ID}

@@ -1,10 +1,10 @@
 # weiran4j 单机部署 / 预发参考（docs/02-部署.md）。
 #
-#   cp server/.env.example server/.env   # 填写 WEIRAN_DB_PASSWORD、WEIRAN_JWT_SECRET
-#   export COMPOSE_ENV_FILES=server/.env      # 或每条命令都带 --env-file server/.env
+#   cp packages/server/.env.example packages/server/.env   # 填写 WEIRAN_DB_PASSWORD、WEIRAN_JWT_SECRET
+#   export COMPOSE_ENV_FILES=packages/server/.env      # 或每条命令都带 --env-file packages/server/.env
 #   docker compose up -d --build
 #
-# 密钥只来自 server/.env（已 gitignore），本文件不写任何真实值。
+# 密钥只来自 packages/server/.env（已 gitignore），本文件不写任何真实值。
 # 生产环境的 HTTPS 由外层负载均衡 / 网关终止；只用 http 访问本 Compose 时需在 .env 设 WEIRAN_COOKIE_SECURE=false。
 name: weiran4j
 
@@ -12,7 +12,7 @@ services:
   mysql:
     image: mysql:8.4
     environment:
-      MYSQL_ROOT_PASSWORD: ${WEIRAN_DB_PASSWORD:?在 server/.env 里设置 WEIRAN_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${WEIRAN_DB_PASSWORD:?在 packages/server/.env 里设置 WEIRAN_DB_PASSWORD}
       MYSQL_DATABASE: weiran4j
       TZ: Asia/Shanghai
     command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci"]
@@ -34,9 +34,9 @@ services:
 
   backend:
     build:
-      context: ./server
+      context: ./packages/server
     image: weiran4j-backend:local
-    env_file: ./server/.env
+    env_file: ./packages/server/.env
     environment:
       # 容器内经服务名访问 MySQL；覆盖 .env 里给本机直连用的地址
       WEIRAN_DB_URL: jdbc:mysql://mysql:3306/weiran4j?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
@@ -49,7 +49,7 @@ services:
         condition: service_healthy
     volumes:
       - backend-logs:/app/logs
-      - ./server/config:/app/config:ro
+      - ./packages/server/config:/app/config:ro
     labels:
       com.wulicode.weiran.sls.service: backend
     # SLS LoongCollector 读取 Docker json-file；限制宿主机上的 stdout 日志占用。
@@ -65,7 +65,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: backend/Dockerfile
+      dockerfile: packages/manage/Dockerfile
     image: weiran4j-web:local
     ports:
       - "${WEIRAN_WEB_PORT:-5202}:80"

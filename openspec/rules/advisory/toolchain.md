@@ -61,7 +61,7 @@ palantir-java-format 需要 javac 内部 API 的模块开放(`--add-exports`),
 
 **症状**(2026-09-26 实测):`SERVER_PORT=3399 pnpm dev` 后端仍然起在 3300(端口被占时报
 `Port 3300 was already in use`),而同一条命令里的 `VITE_PORT=5399` 却生效了。直接跑
-`SERVER_PORT=3399 node server/scripts/dev.mjs` 又是好的 —— 所以不是 Gradle daemon 或 Spring 的问题。
+`SERVER_PORT=3399 node packages/server/scripts/dev.mjs` 又是好的 —— 所以不是 Gradle daemon 或 Spring 的问题。
 
 turbo 2.x 默认**严格环境变量模式**:只有 `turbo.json` 里声明的变量才会传给任务。`VITE_*` 能过,
 是因为 turbo 识别出 Vite 框架、自动放行了这个前缀;`SERVER_PORT`、`WEIRAN_*` 没人声明,就被拦了,**不报任何错**。
@@ -103,7 +103,7 @@ macOS 的文件系统不区分大小写,git 默认 `core.ignorecase=true`。把 
 (`status === 0`)搬来的前端代码,**永远走错误分支**或永远走成功分支——不报错,只是判错。
 
 2026-09-26 重写(D-008)后的唯一格式:`{code, message, data}`,**`code === 0`(数字)为成功**,
-失败为六位数字错误码（服务、资源、错误各两位，如 `100101`）；HTTP 状态单独定义。见 `server/docs/01-架构与接口契约.md` §6。
+失败为六位数字错误码（服务、资源、错误各两位，如 `100101`）；HTTP 状态单独定义。见 `packages/server/docs/01-架构与接口契约.md` §6。
 
 ---
 

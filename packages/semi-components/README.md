@@ -21,7 +21,7 @@ import '@weiran-tech/semi-components/style.css';
 />
 ```
 
-`value` 为单个 URL；移除图片时回调空字符串。组件负责格式和大小校验、拖放、进度、失败重试和预览。调用方负责上传接口、权限与错误提示。`backend/src/components/SystemImageUpload.tsx` 是本仓后台的接入示例。
+`value` 为单个 URL；移除图片时回调空字符串。组件负责格式和大小校验、拖放、进度、失败重试和预览。调用方负责上传接口、权限与错误提示。`packages/manage/src/components/SystemImageUpload.tsx` 是本仓后台的接入示例。
 
 `FileTypeIcon` 接收 `name`（文件名或 URL）和可选 `size`；同时导出 `fileExtension`、`isImageFile`、`isVideoFile`、`isPdfFile`。`NavListPanel<T>` 接收 `dataSource` 和 `renderItem`，可选标题、搜索、加载状态和底部插槽；条目由 `NavListItem` 渲染。面板父容器需要明确高度或最大高度，条目区才能在内部滚动。
 

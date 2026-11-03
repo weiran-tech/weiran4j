@@ -8,6 +8,7 @@
 
 # Project
 node_modules/
+.gradle/
 dist/
 coverage/
 *.tsbuildinfo
@@ -16,7 +17,7 @@ docs/.vitepress/cache/
 
 # Env
 *.local
-# 部署用的 .env 一律不提交（server/.gitignore 已忽略 server/.env；这里兜底仓库根）
+# 部署用的 .env 一律不提交（packages/server/.gitignore 已忽略 packages/server/.env；这里兜底仓库根）
 .env
 .env.*
 !.env.example

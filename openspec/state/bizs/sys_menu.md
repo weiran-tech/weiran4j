@@ -1,24 +1,24 @@
 # sys_menu 菜单管理
 
 > 属于 `openspec/state/`，**只描述事实，不是规范**：过期不会被 `check.mjs` 拦截，**以代码为准**，发现不符回来改这里。
-> 契约文档 `server/docs/01-架构与接口契约.md` 只作索引；它与代码不一致的地方以代码为准写在下文，并在 §6 登记。
+> 契约文档 `packages/server/docs/01-架构与接口契约.md` 只作索引；它与代码不一致的地方以代码为准写在下文，并在 §6 登记。
 >
 > 事实源：
-> [`MenuController.java`](../../../server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/system/adapter/backend/MenuController.java)、
-> [`SaveMenuRequest.java`](../../../server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/system/adapter/backend/request/SaveMenuRequest.java)、
-> [`MenuApplicationService.java`](../../../server/weiran-system/weiran-system-application/src/main/java/com/wulicode/weiran/system/application/menu/MenuApplicationService.java) /
-> [`MenuAssembler.java`](../../../server/weiran-system/weiran-system-application/src/main/java/com/wulicode/weiran/system/application/menu/MenuAssembler.java)、
-> [`Menu.java`](../../../server/weiran-system/weiran-system-domain/src/main/java/com/wulicode/weiran/system/domain/menu/Menu.java) /
-> [`MenuType.java`](../../../server/weiran-system/weiran-system-domain/src/main/java/com/wulicode/weiran/system/domain/menu/MenuType.java) /
-> [`Hierarchy.java`](../../../server/weiran-system/weiran-system-domain/src/main/java/com/wulicode/weiran/system/domain/hierarchy/Hierarchy.java) /
-> [`Authorization.java`](../../../server/weiran-system/weiran-system-domain/src/main/java/com/wulicode/weiran/system/domain/auth/Authorization.java)、
-> [`MybatisMenuRepository.java`](../../../server/weiran-system/weiran-system-infrastructure/src/main/java/com/wulicode/weiran/system/infrastructure/persistence/MybatisMenuRepository.java)、
-> [`V202609260001__system_init_schema.sql`](../../../server/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/V202609260001__system_init_schema.sql) /
-> [`V202609260002__system_seed_data.sql`](../../../server/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/V202609260002__system_seed_data.sql)、
-> [`MenusPage.tsx`](../../../backend/src/pages/system/menus/MenusPage.tsx) /
-> [`MenuFormModal.tsx`](../../../backend/src/pages/system/menus/MenuFormModal.tsx)、
-> [`hooks/queries/menus.ts`](../../../backend/src/hooks/queries/menus.ts)、[`utils/menu.ts`](../../../backend/src/utils/menu.ts)、
-> [`App.tsx`](../../../backend/src/App.tsx)、[`AdminLayout.tsx`](../../../backend/src/layouts/AdminLayout.tsx) / [`useTabs.ts`](../../../backend/src/layouts/useTabs.ts)。
+> [`MenuController.java`](../../../packages/server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/system/adapter/packages/manage/MenuController.java)、
+> [`SaveMenuRequest.java`](../../../packages/server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/system/adapter/packages/manage/request/SaveMenuRequest.java)、
+> [`MenuApplicationService.java`](../../../packages/server/weiran-system/weiran-system-application/src/main/java/com/wulicode/weiran/system/application/menu/MenuApplicationService.java) /
+> [`MenuAssembler.java`](../../../packages/server/weiran-system/weiran-system-application/src/main/java/com/wulicode/weiran/system/application/menu/MenuAssembler.java)、
+> [`Menu.java`](../../../packages/server/weiran-system/weiran-system-domain/src/main/java/com/wulicode/weiran/system/domain/menu/Menu.java) /
+> [`MenuType.java`](../../../packages/server/weiran-system/weiran-system-domain/src/main/java/com/wulicode/weiran/system/domain/menu/MenuType.java) /
+> [`Hierarchy.java`](../../../packages/server/weiran-system/weiran-system-domain/src/main/java/com/wulicode/weiran/system/domain/hierarchy/Hierarchy.java) /
+> [`Authorization.java`](../../../packages/server/weiran-system/weiran-system-domain/src/main/java/com/wulicode/weiran/system/domain/auth/Authorization.java)、
+> [`MybatisMenuRepository.java`](../../../packages/server/weiran-system/weiran-system-infrastructure/src/main/java/com/wulicode/weiran/system/infrastructure/persistence/MybatisMenuRepository.java)、
+> [`V202609260001__system_init_schema.sql`](../../../packages/server/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/V202609260001__system_init_schema.sql) /
+> [`V202609260002__system_seed_data.sql`](../../../packages/server/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/V202609260002__system_seed_data.sql)、
+> [`MenusPage.tsx`](../../../packages/manage/src/pages/system/menus/MenusPage.tsx) /
+> [`MenuFormModal.tsx`](../../../packages/manage/src/pages/system/menus/MenuFormModal.tsx)、
+> [`hooks/queries/menus.ts`](../../../packages/manage/src/hooks/queries/menus.ts)、[`utils/menu.ts`](../../../packages/manage/src/utils/menu.ts)、
+> [`App.tsx`](../../../packages/manage/src/App.tsx)、[`AdminLayout.tsx`](../../../packages/manage/src/layouts/AdminLayout.tsx) / [`useTabs.ts`](../../../packages/manage/src/layouts/useTabs.ts)。
 >
 > 盘点基线：`e23c511`（2026-09-26，D-008 框架重写后的首次盘点）。
 

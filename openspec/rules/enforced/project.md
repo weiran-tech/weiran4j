@@ -71,33 +71,33 @@
 
 ### SL-4 · Flyway 种子菜单（`weiran-*-infrastructure/.../db/migration/**`）
 
-**前端路由由后端 `sys_menu` 驱动**（`/api-backend/system/auth/listCurrentMenus`），`backend/src/App.tsx` 不再逐页登记 `<Route>`。
-新增页面必须**追加一个 Flyway 迁移**往 `sys_menu` 插入菜单行（`component` = 相对 `backend/src/pages` 的路径，无 `.tsx`），
-并按需插入按钮权限行与 `sys_role_menu` 绑定。菜单 id 是全局序号：并行的两个 change 各插一个 id，会撞主键。基座占 `1`–`999`，业务模块从 `1000` 起按 `server/docs/business-modules.md` 登记的段取（宪法 CP-15）。
+**前端路由由后端 `sys_menu` 驱动**（`/api-backend/system/auth/listCurrentMenus`），`packages/manage/src/App.tsx` 不再逐页登记 `<Route>`。
+新增页面必须**追加一个 Flyway 迁移**往 `sys_menu` 插入菜单行（`component` = 相对 `packages/manage/src/pages` 的路径，无 `.tsx`），
+并按需插入按钮权限行与 `sys_role_menu` 绑定。菜单 id 是全局序号：并行的两个 change 各插一个 id，会撞主键。基座占 `1`–`999`，业务模块从 `1000` 起按 `packages/server/docs/business-modules.md` 登记的段取（宪法 CP-15）。
 历史演示菜单迁移保留校验和；可选 `weiran-demo` 仅在 local/test 环境注册演示页面。
 
-### SL-5 · `backend/src/pages/**` 与 `backend/src/utils/page-registry.ts`
+### SL-5 · `packages/manage/src/pages/**` 与 `packages/manage/src/utils/page-registry.ts`
 
 页面文件路径必须与 SL-4 菜单行的 `component` 字段**逐字一致**。
 **SL-4 与 SL-5 是配对的两处**——只有页面没有菜单行，导航不出来也没有路由；
 只有菜单行没有页面，点开是「页面不存在」占位。
 
 > ⚠️ 遗漏是**静默的**：两处缺一个都不报错，只在人工点击验证时才会发现。
-> `backend/src/utils/__tests__` 里有「种子菜单的 component 全部能解析」的测试，新增菜单时同步补上。
+> `packages/manage/src/utils/__tests__` 里有「种子菜单的 component 全部能解析」的测试，新增菜单时同步补上。
 
 ### 跨模块契约（多层共同消费）
 
 ### SL-6 · `weiran-framework/src/main/java/com/wulicode/weiran/framework/error/CommonErrors.java`
 
 跨模块错误码基座（六位数字，服务 / 资源 / 错误各两位；HTTP 状态由 `httpStatus()` 独立指定）。
-**刻意冻结为小集合**——模块专属错误码定义在各自模块的 `*-api` 中。前端 `backend/src/utils/request.ts`
+**刻意冻结为小集合**——模块专属错误码定义在各自模块的 `*-api` 中。前端 `packages/manage/src/utils/request.ts`
 依赖 `100101`（清令牌跳登录）与 `110101`（不清令牌）的区分，
 改这两个码必须同步前端。**不是"该加就加"，而是"新增前先确认真的是跨模块概念"**。
 
 ### SL-7 · `weiran-framework/src/main/java/com/wulicode/weiran/framework/{page,response}/*`
 
 跨模块分页与响应包络契约（`{code, message, data}`、`{list, total, page, pageSize}`），
-被全部后端模块与前端 `backend/src/types/api.ts` 共同依赖。TS 定义**没有自动同步机制**，改了后端要手动改前端，
+被全部后端模块与前端 `packages/manage/src/types/api.ts` 共同依赖。TS 定义**没有自动同步机制**，改了后端要手动改前端，
 并同步 `docs/01-架构与接口契约.md`。
 
 ### 序号型资源
@@ -263,7 +263,7 @@ Flyway 以 `out-of-order: true` 运行（D-012）：版本号早于已执行最�
 
 可执行应用，只做依赖聚合与集成测试（Testcontainers MySQL），没有业务代码。新增模块时在此追加依赖行（见 §一 SL-3）。
 
-### PK-4 · `web`（仓库根下的 `backend/`）
+### PK-4 · `web`（仓库根下的 `packages/manage/`）
 
 前端：Vite + React 19 + Semi UI + TanStack Query。路由由菜单驱动，页面登记见 §一 SL-4/SL-5。
 

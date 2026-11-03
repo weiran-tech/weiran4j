@@ -44,7 +44,7 @@ artifacts:
         · `packages/server/src/db/schema.ts` 与 `db/schema/*.ts`
         · `packages/server/drizzle/*.sql` 与 `drizzle/meta/_journal.json`(序号型资源)
         · `packages/server/src/index.ts`(路由注册)
-        · `packages/backend/src/mocks/handlers/index.ts`、`packages/backend/src/App.tsx`
+        · `packages/manage/src/mocks/handlers/index.ts`、`packages/manage/src/App.tsx`
         **完整判定清单已内嵌在本层模板的「共享层命中」三张表里 —— 逐行过,不要跳。**
         判定流程:命中三张表任意一项 → Layer 0;否则若被 2 个以上执行单元读取 → 也进 Layer 0
         (读也要先冻结);再否则才是普通并行单元。

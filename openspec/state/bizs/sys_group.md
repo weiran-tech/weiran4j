@@ -1,26 +1,26 @@
 # sys_group 字典与共享分组管理
 
 > 属于 `openspec/state/`，**只描述事实，不是规范**：过期不会被 `check.mjs` 拦截，**以代码为准**，发现不符回来改这里。
-> 契约文档 `server/docs/01-架构与接口契约.md` 只作索引；它与代码不一致的地方以代码为准写在下文，并在 §6 登记。
+> 契约文档 `packages/server/docs/01-架构与接口契约.md` 只作索引；它与代码不一致的地方以代码为准写在下文，并在 §6 登记。
 > `sys_group` 通过 `type=dict/config` 同时承载字典与配置分组；配置组再由 `group_key=config_system/config_sms` 区分系统配置与短信配置。本文件同时覆盖子表 `sys_dict_item`（字典项）。
 >
 > 事实源：
-> [`DictController.java`](../../../server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/platform/adapter/backend/DictController.java)、
-> [`SaveDictRequest.java`](../../../server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/platform/adapter/backend/request/SaveDictRequest.java) /
-> [`SaveDictItemRequest.java`](../../../server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/platform/adapter/backend/request/SaveDictItemRequest.java)、
-> [`DictApplicationService.java`](../../../server/weiran-system/weiran-system-application/src/main/java/com/wulicode/weiran/platform/application/dict/DictApplicationService.java)、
-> [`Dict.java`](../../../server/weiran-system/weiran-system-domain/src/main/java/com/wulicode/weiran/platform/domain/dict/Dict.java) /
-> [`DictItem.java`](../../../server/weiran-system/weiran-system-domain/src/main/java/com/wulicode/weiran/platform/domain/dict/DictItem.java)、
-> [`MybatisDictRepository.java`](../../../server/weiran-system/weiran-system-infrastructure/src/main/java/com/wulicode/weiran/platform/infrastructure/persistence/MybatisDictRepository.java)、
-> [`SysGroupDO.java`](../../../server/weiran-system/weiran-system-infrastructure/src/main/java/com/wulicode/weiran/platform/infrastructure/persistence/entity/SysGroupDO.java)、
-> [`MybatisConfigGroupRepository.java`](../../../server/weiran-system/weiran-system-infrastructure/src/main/java/com/wulicode/weiran/platform/infrastructure/persistence/MybatisConfigGroupRepository.java)、
-> [`V202610201001__platform_unify_dict_config_groups.sql`](../../../server/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/platform/V202610201001__platform_unify_dict_config_groups.sql)、
-> [`V202609260101__platform_init_schema.sql`](../../../server/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/platform/V202609260101__platform_init_schema.sql) /
-> [`V202609260102__platform_seed_data.sql`](../../../server/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/platform/V202609260102__platform_seed_data.sql)、
-> [`DictsPage.tsx`](../../../backend/src/pages/system/dicts/DictsPage.tsx) /
-> [`DictFormModals.tsx`](../../../backend/src/pages/system/dicts/DictFormModals.tsx)、
-> [`hooks/queries/dicts.ts`](../../../backend/src/hooks/queries/dicts.ts)、
-> [`DictTag.tsx`](../../../backend/src/components/DictTag.tsx) / [`DictSelect.tsx`](../../../backend/src/components/DictSelect.tsx)。
+> [`DictController.java`](../../../packages/server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/platform/adapter/packages/manage/DictController.java)、
+> [`SaveDictRequest.java`](../../../packages/server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/platform/adapter/packages/manage/request/SaveDictRequest.java) /
+> [`SaveDictItemRequest.java`](../../../packages/server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/platform/adapter/packages/manage/request/SaveDictItemRequest.java)、
+> [`DictApplicationService.java`](../../../packages/server/weiran-system/weiran-system-application/src/main/java/com/wulicode/weiran/platform/application/dict/DictApplicationService.java)、
+> [`Dict.java`](../../../packages/server/weiran-system/weiran-system-domain/src/main/java/com/wulicode/weiran/platform/domain/dict/Dict.java) /
+> [`DictItem.java`](../../../packages/server/weiran-system/weiran-system-domain/src/main/java/com/wulicode/weiran/platform/domain/dict/DictItem.java)、
+> [`MybatisDictRepository.java`](../../../packages/server/weiran-system/weiran-system-infrastructure/src/main/java/com/wulicode/weiran/platform/infrastructure/persistence/MybatisDictRepository.java)、
+> [`SysGroupDO.java`](../../../packages/server/weiran-system/weiran-system-infrastructure/src/main/java/com/wulicode/weiran/platform/infrastructure/persistence/entity/SysGroupDO.java)、
+> [`MybatisConfigGroupRepository.java`](../../../packages/server/weiran-system/weiran-system-infrastructure/src/main/java/com/wulicode/weiran/platform/infrastructure/persistence/MybatisConfigGroupRepository.java)、
+> [`V202610201001__platform_unify_dict_config_groups.sql`](../../../packages/server/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/platform/V202610201001__platform_unify_dict_config_groups.sql)、
+> [`V202609260101__platform_init_schema.sql`](../../../packages/server/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/platform/V202609260101__platform_init_schema.sql) /
+> [`V202609260102__platform_seed_data.sql`](../../../packages/server/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/platform/V202609260102__platform_seed_data.sql)、
+> [`DictsPage.tsx`](../../../packages/manage/src/pages/system/dicts/DictsPage.tsx) /
+> [`DictFormModals.tsx`](../../../packages/manage/src/pages/system/dicts/DictFormModals.tsx)、
+> [`hooks/queries/dicts.ts`](../../../packages/manage/src/hooks/queries/dicts.ts)、
+> [`DictTag.tsx`](../../../packages/manage/src/components/DictTag.tsx) / [`DictSelect.tsx`](../../../packages/manage/src/components/DictSelect.tsx)。
 >
 > 盘点基线：`e23c511`（2026-09-26，D-008 框架重写后的首次盘点）。
 

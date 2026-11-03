@@ -30,7 +30,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
       # 托管 runner 自带 Docker，集成测试的 MySQL 由 Testcontainers 拉起；JWT 密钥用测试 profile 里的假值，不需要 secrets。
       - name: ./gradlew check
-        working-directory: server
+        working-directory: packages/server
         run: ./gradlew check --no-daemon
 
   web:
@@ -46,7 +46,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # backend 的类型检查与 ESLint 会读取工作区组件包的 dist/*.d.ts。
+      # manage 的类型检查与 ESLint 会读取工作区组件包的 dist/*.d.ts。
       - run: pnpm --filter @weiran-tech/semi-components build
       - run: pnpm lint
       - run: pnpm test

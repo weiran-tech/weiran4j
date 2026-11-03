@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
-# weiran4j 后端镜像（docs/02-部署.md）。构建上下文是 server/：
-#   docker build -t weiran4j-backend weiran4j
+# weiran4j 后端镜像（docs/02-部署.md）。构建上下文是 packages/server/：
+#   docker build -t weiran4j-backend packages/server
 # 镜像构建不跑测试：测试由本地 L7 门禁与 GitHub CI 负责（集成测试需要 Docker，构建容器里没有）。
 
 # ---- 构建 ----

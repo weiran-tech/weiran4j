@@ -1,6 +1,6 @@
 # 环境变量与配置模板
 
-部署时将以下模板保存为 `server/.env`，填写密码和密钥，再按[部署与运维](/deployment)启动。`.env` 不应提交到版本库。未填写的可选项可以删除，以使用应用默认值。
+部署时将以下模板保存为 `packages/server/.env`，填写密码和密钥，再按[部署与运维](/deployment)启动。`.env` 不应提交到版本库。未填写的可选项可以删除，以使用应用默认值。
 
 ```dotenv
 # 数据库；Compose 内的数据库地址由 Compose 覆盖
@@ -50,7 +50,7 @@ WEIRAN_SHUTDOWN_TIMEOUT=30s
 
 ## 可选的生产 YAML
 
-需要按 profile 覆盖应用配置时，将下列内容保存为 `server/config/application-prod.yml`，并在 `.env` 中设置 `SPRING_PROFILES_ACTIVE=prod`。Compose 会把这个配置目录只读挂载到后端容器。密钥继续放在 `.env` 中，YAML 只引用环境变量。
+需要按 profile 覆盖应用配置时，将下列内容保存为 `packages/server/config/application-prod.yml`，并在 `.env` 中设置 `SPRING_PROFILES_ACTIVE=prod`。Compose 会把这个配置目录只读挂载到后端容器。密钥继续放在 `.env` 中，YAML 只引用环境变量。
 
 ```yaml
 spring:

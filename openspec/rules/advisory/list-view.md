@@ -1,9 +1,9 @@
 # list-view.md —— 列表页（搜索栏 + 表格）约定
 
-> **本文件没有机械守卫。** 唯一的唤起途径是 `AGENTS.md` 的规则索引表：**写或改 `backend/` 的列表页前读。**
+> **本文件没有机械守卫。** 唯一的唤起途径是 `AGENTS.md` 的规则索引表：**写或改 `packages/manage/` 的列表页前读。**
 >
 > 视觉与交互的源头是设计稿 `wuli-design/testing.pen` 的「用户列表」画板及其笔记；
-> 参考实现以 `backend/src/pages/system/users/UsersPage.tsx` 为主，展示高级筛选和用户专属查询；角色、配置、登录日志与操作日志页面也已接入通用搜索工具栏。
+> 参考实现以 `packages/manage/src/pages/system/users/UsersPage.tsx` 为主，展示高级筛选和用户专属查询；角色、配置、登录日志与操作日志页面也已接入通用搜索工具栏。
 > 组件的接口与坑见 [`components.md`](components.md) 的 `SearchToolbar`、`TableActions`、`ColumnSettings` 条目，这里只写**约定**。
 > 每条都写了「不这样做的症状」——这些问题几乎都不报错，只会在某个宽度、某份数据下才露出来。
 

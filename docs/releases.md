@@ -107,7 +107,7 @@ docker compose --env-file .env -f compose.yml up -d
 所有 Gradle 命令都使用 JDK 21。组件包可先生成 POM，检查 BOM 中每个 `com.wulicode.weiran` 坐标都存在对应 publication；Demo 可按发布工作流构建 bootJar，检查其中的 `weiran-demo` 依赖与迁移。
 
 ```bash
-cd weiran4j
+cd packages/server
 export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 ./gradlew spotlessApply
 ./gradlew check --no-daemon

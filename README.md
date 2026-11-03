@@ -12,7 +12,7 @@ https://weiran-tech.github.io/weiran4j/
 
 ```bash
 mysql -uroot -e "CREATE DATABASE weiran4j DEFAULT CHARACTER SET utf8mb4"
-cp server/config/application-local.yml.example server/config/application-local.yml
+cp packages/server/config/application-local.yml.example packages/server/config/application-local.yml
 ```
 
 在本地配置中填写数据库密码和随机 JWT 密钥，然后运行：
@@ -29,8 +29,8 @@ pnpm dev
 - [使用指南](docs/usage.md)：本地启动、常用命令和部署入口
 - [架构说明](docs/architecture.md)：模块关系、后端分层和请求流程
 - [文档站首页](docs/index.md)：VitePress 文档入口
-- [架构、数据库与业务约束](server/docs/01-架构与接口契约.md)
-- [部署手册](server/docs/02-部署.md)
+- [架构、数据库与业务约束](packages/server/docs/01-架构与接口契约.md)
+- [部署手册](packages/server/docs/02-部署.md)
 - [版本发布](docs/releases.md)：GitHub Packages 组件包与 GHCR 完整 Demo 镜像
 - [开发约定](AGENTS.md)
 

@@ -16,8 +16,8 @@
 | 操作日志 | `sys_operation_log` | weiran-system | `/logs/operation` | `logs/OperationLogsPage` | [`sys_operation_log.md`](sys_operation_log.md) |
 
 > **路由不在前端代码里。** 菜单(含 `path` 与 `component`)存在 `sys_menu`,种子在
-> `server/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/`;
-> 前端拿到 `/api/auth/menus` 后用 `backend/src/utils/page-registry.ts` 的 `import.meta.glob` 把 `component` 解析成懒加载页面。
+> `packages/server/weiran-system/weiran-system-infrastructure/src/main/resources/db/migration/system/`;
+> 前端拿到 `/api/auth/menus` 后用 `packages/manage/src/utils/page-registry.ts` 的 `import.meta.glob` 把 `component` 解析成懒加载页面。
 > **在 `App.tsx` 里 grep 页面名是搜不到路由的。**
 
 ## 2. 关联(应用层保证,库里不建外键约束)

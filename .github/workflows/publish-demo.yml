@@ -23,7 +23,7 @@ jobs:
         run: |
           version="${GITHUB_REF_NAME#demo-v}"
           [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'tag 必须形如 demo-v1.2.3'; exit 1; }
-          test -f server/weiran-demo/build.gradle.kts || { echo '完整 Demo 需要 weiran-demo 模块'; exit 1; }
+          test -f packages/server/weiran-demo/build.gradle.kts || { echo '完整 Demo 需要 weiran-demo 模块'; exit 1; }
           echo "value=$version" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-java@v6
         with:
@@ -31,10 +31,10 @@ jobs:
           java-version: 21
           cache: gradle
       - name: 后端门禁
-        working-directory: server
+        working-directory: packages/server
         run: ./gradlew check --no-daemon
       - name: 验证 Demo bootJar 包含演示模块与演示迁移
-        working-directory: server
+        working-directory: packages/server
         run: |
           ./gradlew :weiran-app:bootJar --no-daemon -Pweiran.demo.image=true -PdemoVersion=${{ steps.version.outputs.value }}
           jar_file="weiran-app/build/libs/weiran-app-${{ steps.version.outputs.value }}.jar"
@@ -61,8 +61,8 @@ jobs:
       - name: 构建后端镜像
         uses: docker/build-push-action@v7
         with:
-          context: ./server
-          file: ./server/Dockerfile
+          context: ./packages/server
+          file: ./packages/server/Dockerfile
           load: true
           build-args: |
             WEIRAN_DEMO_IMAGE=true
@@ -72,7 +72,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: ./backend/Dockerfile
+          file: ./packages/manage/Dockerfile
           load: true
           tags: ghcr.io/weiran-tech/weiran4j-demo-web:${{ steps.version.outputs.value }}
       - name: 启动完整 Demo 并检查演示菜单
@@ -103,8 +103,8 @@ jobs:
         id: backend
         uses: docker/build-push-action@v7
         with:
-          context: ./server
-          file: ./server/Dockerfile
+          context: ./packages/server
+          file: ./packages/server/Dockerfile
           push: true
           build-args: |
             WEIRAN_DEMO_IMAGE=true
@@ -115,7 +115,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: ./backend/Dockerfile
+          file: ./packages/manage/Dockerfile
           push: true
           tags: ghcr.io/weiran-tech/weiran4j-demo-web:${{ steps.version.outputs.value }}
       - name: 创建 Demo Release

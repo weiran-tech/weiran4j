@@ -278,8 +278,8 @@ ROOT project join existsSync statSync read rel err warn git lastCommitTs dirtyFi
 |---|---|---|
 | _(数据库迁移台账)_ | weiran4j 尚未选定迁移方案（Flyway / Liquibase），因此暂无对应插件。选定后需要新写一个：迁移脚本是「序号型共享资源」，序号不递增会让迁移被静默跳过，这类失效不会报错，只会表现为线上 schema 漂移 | 判定**方法**属于流程，判定**代码**属于项目 |
 | `rules-index.mjs` | `AGENTS.md`(及可选的、下游独占的 `AGENTS.biz.md`)的规则索引表双向完整性:①表里登记的 `openspec/rules/` 文件必须存在(`REPO/rules-index-dangling`) ②`rules/` 下的每份 `.md` 必须被登记(`REPO/rules-index-missing`,`README.md` 豁免) | `rules/` **不会被自动注入提示词**,那张表是它唯一的唤起途径 —— 表漏一行,对应规则就等于不存在 |
-| `components-registry.mjs` | `backend/src/components/` 与 `backend/src/layouts/` 下每个组件文件名都必须在 `rules/advisory/components.md` 或(可选的、下游独占的)`components.biz.md` 正文里出现(`REPO/components-unregistered`);测试、`index`/`types`/`constants` 与 `componentsRegistry.exempt` 豁免 | 扫哪几个目录、清单在哪是本仓库约定 |
-| `api-route-convention.mjs` | 当前 `type=backend`：新增 Spring Controller API 路由须采用 `/api-backend/{module}/{resource}/{action}` 或 `/api-backend/n/{module}/{resource}/{action}`；按 HEAD 的精确 method + path 兼容存量。目录改名未提交时，从 HEAD 的旧 `weiran4j/` 读取基线；例外须在 `project.json` 登记理由 | API 路由结构与存量迁移策略是本仓库约定 |
+| `components-registry.mjs` | `packages/manage/src/components/` 与 `packages/manage/src/layouts/` 下每个组件文件名都必须在 `rules/advisory/components.md` 或(可选的、下游独占的)`components.biz.md` 正文里出现(`REPO/components-unregistered`);测试、`index`/`types`/`constants` 与 `componentsRegistry.exempt` 豁免 | 扫哪几个目录、清单在哪是本仓库约定 |
+| `api-route-convention.mjs` | 当前 `type=backend`：新增 Spring Controller API 路由须采用 `/api-backend/{module}/{resource}/{action}` 或 `/api-backend/n/{module}/{resource}/{action}`；按 HEAD 的精确 method + path 兼容存量。目录改名未提交时，从 HEAD 的旧 `server/` 读取基线；例外须在 `project.json` 登记理由 | API 路由结构与存量迁移策略是本仓库约定 |
 | `state-waitlist.mjs` | `state/bizs/*.md` 条目编号:①文件内重号(`REPO/state-id-dup`) ②`<文件名>.md#NN` 引用指向不存在的条目(`REPO/state-id-dangling`) ③又出现已废止的 `T-NN`/`B-NN`(`REPO/state-id-legacy`) | `#NN` 编号格式与 `bizs/` 目录是本仓库 `state/` 的约定 |
 | `ratchet.mjs` | 存量只降不升(见 §7) | 规则内容是项目事实,住在 `project.json` |
 | `spec-xref.mjs` | 主 spec 正文里 `[FR-NNN]` 引用的目标必须存在 | 需求 ID 格式是本仓库约定 |
@@ -312,7 +312,7 @@ ROOT project join existsSync statSync read rel err warn git lastCommitTs dirtyFi
   "id": "select-bare-module-cache",
   "title": "下拉数据源里没有失效路径的模块级裸缓存",
   "principle": "CP-10",                          // 守护哪条宪法,报错时会带出来
-  "roots": ["packages/backend/src/components"],      // 扫哪些目录
+  "roots": ["packages/manage/src/components"],      // 扫哪些目录
   "extensions": [".ts", ".tsx"],                 // 默认 .ts/.tsx
   "exclude": ["path/to/file.ts"],                // 按完整路径排除
   "patterns": ["\\nlet \\w*[Cc]ache\\w*\\s*:"],  // 正则,按全文计数

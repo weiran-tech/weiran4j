@@ -180,7 +180,7 @@ Controller 不得手写状态码，也不得捕获业务异常自行转换。
 | `10` | 框架通用码 | `weiran-framework` 的 `CommonErrors`；资源 `00` 为通用操作、`01` 为认证与请求安全 |
 | `11` | system 基座 | `weiran-system-api` 的 `SystemAuthErrors`；资源 `01` 为认证 |
 | `12` | 地区业务 | `weiran-region-api` 的 `RegionErrors`；资源 `01` 为行政区划 |
-| 其它已登记号码 | 业务模块 | 各业务模块的 `*-api` 中定义 `enum implements ErrorCode`，在 `server/docs/business-modules.md` 登记唯一服务号与资源号 |
+| 其它已登记号码 | 业务模块 | 各业务模块的 `*-api` 中定义 `enum implements ErrorCode`，在 `packages/server/docs/business-modules.md` 登记唯一服务号与资源号 |
 
 业务优先复用 `CommonErrors` 并在 `BizException` 里写具体提示语；需要稳定地区分业务场景时，在所属服务与资源下新增码。
 新增服务号和资源号前先在 `business-modules.md` 登记，不得跨模块重叠。
@@ -191,7 +191,7 @@ Controller 不得手写状态码，也不得捕获业务异常自行转换。
 
 - **权限码**形如 `<模块>:<资源>:<动作>`。`system:` 前缀属于基座（包括字典、系统配置、日志等 platform 包内的能力），
   业务模块不得使用；业务用自己的模块名作前缀。
-- **`sys_menu` 的 id**：`1`–`999` 属于基座，业务模块从 `1000` 起，每个模块在 `server/docs/business-modules.md` 领一段。
+- **`sys_menu` 的 id**：`1`–`999` 属于基座，业务模块从 `1000` 起，每个模块在 `packages/server/docs/business-modules.md` 领一段。
   这是 SL-4 里「全局序号型资源」的分配规则。
 - **Flyway 脚本**放在 `<模块 infrastructure>/src/main/resources/db/migration/<module>/`，文件名 `<module>` 段用业务模块自己的名字，
   业务脚本不得放进基座的 `system/`、`platform/` 目录，也不得修改基座的表结构（要改走 CP-13 的「先在基座加能力」）。

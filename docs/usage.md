@@ -12,10 +12,10 @@
 
 ```bash
 mysql -uroot -e "CREATE DATABASE weiran4j DEFAULT CHARACTER SET utf8mb4"
-cp server/config/application-local.yml.example server/config/application-local.yml
+cp packages/server/config/application-local.yml.example packages/server/config/application-local.yml
 ```
 
-编辑 `server/config/application-local.yml`，填写数据库密码，并用 `openssl rand -base64 48` 生成 JWT 密钥。
+编辑 `packages/server/config/application-local.yml`，填写数据库密码，并用 `openssl rand -base64 48` 生成 JWT 密钥。
 然后启动：
 
 ```bash
@@ -38,10 +38,10 @@ pnpm dev
 | `pnpm build` | 通过 Turbo 构建前端和文档站 |
 | `pnpm test` | 运行前端测试 |
 | `pnpm lint` | 检查前端代码 |
-| `cd weiran4j && ./gradlew check --no-daemon` | 运行后端检查；需使用 JDK 21，集成测试需 Docker |
+| `cd packages/server && ./gradlew check --no-daemon` | 运行后端检查；需使用 JDK 21，集成测试需 Docker |
 | `pnpm openspec:check` | 检查 OpenSpec 需求文档结构 |
 
-后端也可在 `server/` 下单独运行 Gradle 命令。所有 Gradle 构建使用 JDK 21。
+后端也可在 `packages/server/` 下单独运行 Gradle 命令。所有 Gradle 构建使用 JDK 21。
 
 ## 短信联调
 

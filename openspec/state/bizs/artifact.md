@@ -10,7 +10,7 @@
   症状:冷构建配置阶段慢几秒,所有开发者都受影响。
   Spotless 的 palantir-java-format 在配置缓存恢复的类加载器里拿不到 `--add-exports` 的模块开放,
   `IllegalAccessError` 被包成 `palantir-java-format(InvocationTargetException)` 随机报错
-  (实测记录见 `server/gradle.properties`)。
+  (实测记录见 `packages/server/gradle.properties`)。
   关闭条件:Spotless 修复配置缓存兼容性,或改用不依赖 javac 内部 API 的格式化器。(原全局编号待办的第 1 条,随全局编号废止改为本编号)
 
 - **#02 🟡 P2 权限缓存只在单节点内生效**
@@ -31,7 +31,7 @@
 
 - **#06 ⚠️ P3 前端产物未分包**
   症状:首屏需加载约 2.2 MB 静态资源(Semi UI 全量),弱网下登录页白屏时间长。
-  `backend/vite.config.ts` 没有任何 `manualChunks`(D-007 有意不照搬 mono4ts 的分包调优),等体积真成问题再处理。
+  `packages/manage/vite.config.ts` 没有任何 `manualChunks`(D-007 有意不照搬 mono4ts 的分包调优),等体积真成问题再处理。
 
 - **#08 ⚠️ P3 登录并发回归测试未在旧实现上验证过**
   症状:`UserRoleIT.concurrentLoginsDoNotUndoPasswordResets` 是为「登录整行回写撤销改密」而写的竞态测试,
@@ -113,7 +113,7 @@
 
 **2026-10-06**(`deploy-observability`)
 
-- **#09 ✅ P2 `server/.env.example` 仍是重写前的内容**
+- **#09 ✅ P2 `packages/server/.env.example` 仍是重写前的内容**
   症状:按它配置部署环境的人会拿到旧库名与已不存在的 PHP / `pam_*` 说明,且缺 `WEIRAN_JWT_TTL`。
   权限规则禁止 agent 读写 `.env*` 文件,需要人工更新。应列出:`WEIRAN_DB_URL`(库名 `weiran4j`)、
   `WEIRAN_DB_USERNAME`、`WEIRAN_DB_PASSWORD`、`WEIRAN_JWT_SECRET`(至少 32 字节)、`WEIRAN_JWT_TTL=12h`、
@@ -143,7 +143,7 @@
 - **#18 ✅ P2 缺部署步骤文档**
   症状:第一次部署的人只能从 `AGENTS.md` 与 `application.yml` 自行拼出步骤(JDK、库、环境变量、前端产物放哪),
   且 #09 的 `.env.example` 本身是错的。公司手册「项目标准」把服务部署步骤文档列为高优先级交付物。
-  **由 `deploy-observability` 关闭**:新增 `server/docs/02-部署.md`,以及后端 / 前端 Dockerfile、`backend/nginx.conf`(同源反代、透传头)、`docker-compose.yml`(含 MySQL 8)。已真实构建、启动,并经 Nginx 完成登录验证。
+  **由 `deploy-observability` 关闭**:新增 `packages/server/docs/02-部署.md`,以及后端 / 前端 Dockerfile、`packages/manage/nginx.conf`(同源反代、透传头)、`docker-compose.yml`(含 MySQL 8)。已真实构建、启动,并经 Nginx 完成登录验证。
 
 **2026-10-05**(`auth-seams-cookie-ci`)
 
@@ -160,4 +160,4 @@
 
 - 本文件建立,收纳原 `state/waitlist.md` 仍有效的「Gradle 配置缓存被迫关闭」(→ #01)与重写后盘点出的架构 / 技术问题。
 - 原 `waitlist.md` 其余 6 条随 D-008 重写失效(wuli3 依赖、`pam_*` 表、Ban、`PamService` 均已不存在),
-  不迁入本文件;原文见 git 历史 `server/openspec/state/waitlist.md`。
+  不迁入本文件;原文见 git 历史 `packages/server/openspec/state/waitlist.md`。

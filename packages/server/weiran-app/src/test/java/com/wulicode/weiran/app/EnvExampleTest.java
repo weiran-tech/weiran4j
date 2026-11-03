@@ -14,7 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * {@code server/.env.example} 与 {@code application.yml} 的环境变量清单保持一致（deployment FR-001）。
+ * {@code packages/server/.env.example} 与 {@code application.yml} 的环境变量清单保持一致（deployment FR-001）。
  *
  * <p>改配置时漏改 {@code .env.example}，部署的人就会少配一个变量——这类错误不报错，只在线上表现为「默认值不对」。
  * 测试的工作目录是 {@code weiran-app/}（Gradle 默认）。
@@ -45,6 +45,8 @@ class EnvExampleTest {
         expected.addAll(EnvExampleTest.COMPOSE_ONLY);
         final Set<String> declared = EnvExampleTest.collect(EnvExampleTest.DECLARED, Path.of("..", ".env.example"));
 
-        assertThat(declared).as("server/.env.example 的变量（未注释的 NAME= 行）").isEqualTo(expected);
+        assertThat(declared)
+                .as("packages/server/.env.example 的变量（未注释的 NAME= 行）")
+                .isEqualTo(expected);
     }
 }

@@ -22,12 +22,12 @@ Turbo 管理根目录的前端、后端开发启动任务和 VitePress 文档构
 
 | 路径 | 职责 |
 | --- | --- |
-| `backend/` | React 19、TypeScript、Semi UI 后台；动态菜单路由与权限按钮 |
-| `server/weiran-framework/` | 统一响应、异常、认证拦截、权限注解和基础契约 |
-| `server/weiran-system/` | 登录、用户、角色、菜单、字典、系统配置和日志等通用能力 |
-| `server/weiran-region/` | 行政区划管理与查询 |
-| `server/weiran-app/` | 可执行 Spring Boot 应用、配置和集成测试 |
-| `server/weiran-dependencies/` | Gradle 依赖版本平台 |
+| `packages/manage/` | React 19、TypeScript、Semi UI 后台；动态菜单路由与权限按钮 |
+| `packages/server/weiran-framework/` | 统一响应、异常、认证拦截、权限注解和基础契约 |
+| `packages/server/weiran-system/` | 登录、用户、角色、菜单、字典、系统配置和日志等通用能力 |
+| `packages/server/weiran-region/` | 行政区划管理与查询 |
+| `packages/server/weiran-app/` | 可执行 Spring Boot 应用、配置和集成测试 |
+| `packages/server/weiran-dependencies/` | Gradle 依赖版本平台 |
 | `docs/` | VitePress 文档站，纳入 pnpm workspace 与 Turbo |
 | `openspec/` | 需求、规格、工程规则和变更记录 |
 
@@ -36,7 +36,7 @@ Turbo 管理根目录的前端、后端开发启动任务和 VitePress 文档构
 system 和 region 按五层组织，Gradle 项目名保持扁平，例如 `:weiran-system-api`，目录按模块嵌套：
 
 ```text
-server/weiran-region/
+packages/server/weiran-region/
 ├── weiran-region-api/
 ├── weiran-region-domain/
 ├── weiran-region-application/
@@ -67,7 +67,7 @@ server/weiran-region/
 ## 配置和权威文档
 
 - 系统配置页面由分组和表单元数据驱动，具体用法见[系统配置说明](/configuration)。
-- 本地配置放在 `server/config/application-local.yml`，不提交到版本库。
+- 本地配置放在 `packages/server/config/application-local.yml`，不提交到版本库。
 - 部署密钥通过环境变量注入，不写入源码或日志。
 - 数据库、错误码与跨接口业务约束见[接口与数据约定](/contracts)；接口路径与字段以[OpenAPI 文档](/openapi)为准。
 - Docker Compose、环境变量与反向代理见[部署与运维](/deployment)；核心架构取舍见[关键设计决策](/design-decisions)。

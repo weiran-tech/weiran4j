@@ -1,10 +1,10 @@
 # components.md —— 前端公共组件清单(先查再造)
 
-> **写 `backend/` 的页面或组件前先查这里**:查到就复用,查不到才造。
+> **写 `packages/manage/` 的页面或组件前先查这里**:查到就复用,查不到才造。
 > 漏登记的直接后果是下一个人查不到它、把它重造一遍。
 >
 > **新增未登记会被拦**:`openspec/guards/components-registry.mjs`(`REPO/components-unregistered`)
-> 扫描 `backend/src/components/` 与 `backend/src/layouts/`,文件名没在本文件正文里出现就报错。
+> 扫描 `packages/manage/src/components/` 与 `packages/manage/src/layouts/`,文件名没在本文件正文里出现就报错。
 > 它只查「名字在不在」,**不查描述对不对** —— 删除组件或改了对外协议后,回来改对应条目是写的人的事。
 >
 > 确实不该进清单的文件(纯内部实现),加进 `openspec/project.json` 的 `componentsRegistry.exempt` 并写理由。
@@ -53,7 +53,7 @@
 
 ## 选择器
 
-`SystemImageUpload`（`backend/src/components/SystemImageUpload.tsx`）是独立包 `@weiran-tech/semi-components` 的 `ImageUpload` 在后台的接口适配层，读取 system 上传配置、注入上传动作与错误 Toast。单图配置字段使用它；独立前端直接安装包并传入 `upload`、`formats`、`maxSizeMb`。
+`SystemImageUpload`（`packages/manage/src/components/SystemImageUpload.tsx`）是独立包 `@weiran-tech/semi-components` 的 `ImageUpload` 在后台的接口适配层，读取 system 上传配置、注入上传动作与错误 Toast。单图配置字段使用它；独立前端直接安装包并传入 `upload`、`formats`、`maxSizeMb`。
 
 | 组件 | 位置 | 什么时候用 | 坑 |
 | --- | --- | --- | --- |
@@ -66,7 +66,7 @@
 | **RichTextEditor** | `packages/semi-components/src/RichTextEditor.tsx` + CSS；`components/RichTextEditor.tsx` 为系统上传适配层 | 通用富文本，保存 HTML，支持粘贴图片、多图上传、视频上传与插入、引用、撤销和重做；选中图片/视频后可设置 1～100% 或 1～2000px 宽度及左/中/右位置，高度保持原比例 | 包内由调用方提供 `settings` 和 `upload`，可另传 `onUploadImage`；后台适配层注入 system 媒体 hook。媒体布局写入 HTML 的安全数据属性和内联样式，重开后保留。两种上传按钮分别管理禁用状态，上传时在正文插入位置显示不写入 HTML 的占位及批次总体进度；保存表单应在任一上传期间禁用提交 |
 | **SystemConfigGroupForm** | `components/SystemConfigGroupForm.tsx` | 系统配置分组的动态字段编辑器，按字段类型渲染控件、校验并保存分组配置；`files` 字段用 `FileUpload multiple` 保存 URL JSON 数组，组件演示页也直接复用 | 调用方传 `ConfigView[]`、编辑权限与字段设置回调；默认用系统配置 Query hooks 保存，`onSave` / `onUploadFile` / `onUploadImage` 可注入业务动作 |
 
-## 布局(`backend/src/layouts/`)
+## 布局(`packages/manage/src/layouts/`)
 
 | 组件 | 位置 | 是什么 | 坑 |
 | --- | --- | --- | --- |
@@ -111,4 +111,4 @@
 2. 在消费处读 `usePreferences().preferences.<field>` 接通行为(布局类放 `AdminLayout`,表格类放 `useTableDefaults`)。
 3. **行为接通后**才在 `layouts/PreferencesDrawer.tsx` 对应分组加控件(布尔用 `<SwitchRow field=… />`)。
 4. 至少一条测试证明它真的生效(布局类见 `layouts/__tests__/AdminLayout.test.tsx` 的 `renderAuthed(route, prefs)`)。
-5. 契约 `server/docs/01-架构与接口契约.md` §6.1 的字段数若有写死,一并改。后端不需要改。
+5. 契约 `packages/server/docs/01-架构与接口契约.md` §6.1 的字段数若有写死,一并改。后端不需要改。
