@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
@@ -85,9 +87,23 @@ aggregatedCoverageProjects.forEach { path ->
 //      顺带让 IDE 里直接跑 main 方法也能命中同一份配置。
 //   2. `optional:` 前缀让 config/ 不存在时不炸。真正该炸的是缺密钥，那由 JWT 组件启动时报，
 //      错误信息比「文件找不到」精确得多。
+val runtimeProjectPaths = listOf(":weiran-framework") +
+    businessModules.flatMap { module ->
+        listOf("api", "domain", "application", "infrastructure", "adapter").map { layer -> ":$module-$layer" }
+    } + listOfNotNull(if (findProject(":weiran-demo") != null) ":weiran-demo" else null)
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
     systemProperty("spring.config.additional-location", "optional:file:$rootDir/config/")
     systemProperty("spring.profiles.active", (findProperty("profile") as String?) ?: "local")
+}
+gradle.projectsEvaluated {
+    // DevTools 重启可能与另一轮构建重写库 jar 同时发生；开发运行直接读取模块输出目录。
+    val runtimeProjectJars = runtimeProjectPaths.map { path -> project(path).tasks.named<Jar>("jar").flatMap { it.archiveFile } }
+    val runtimeProjectOutputs = runtimeProjectPaths.map { path ->
+        project(path).extensions.getByType<SourceSetContainer>()["main"].output
+    }
+    tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+        classpath = classpath.minus(files(runtimeProjectJars)) + files(runtimeProjectOutputs)
+    }
 }
 
 /** 修复指定数据库的 Flyway 历史；连接信息必须由环境变量显式提供，避免误用应用默认值。 */
