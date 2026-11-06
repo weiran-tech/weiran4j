@@ -12,9 +12,9 @@
 
 ## 发布前端组件包
 
-先将 `packages/semi-components/package.json` 的 `version` 改为 npmjs.org 上尚未发布的版本并提交。待 `main` 的发布提交通过 CI 后，创建并推送与该版本一致的 `semi-components-v<主>.<次>.<修订>` tag。`publish-semi-components.yml` 检查标签、运行前端门禁、构建 JS / 类型声明 / CSS，然后通过 npm 的可信发布机制将公开包发布到 npmjs.org，不使用长期写入令牌。`@weiran-tech/semi-components@0.4.0` 已在 npmjs.org；原 GitHub Packages 包保留，后续版本从 `0.4.1` 起由此工作流发布到 npmjs.org。
+先将 `packages/semi-components/package.json` 的 `version` 改为 npmjs.org 上尚未发布的版本并提交。待 `main` 的发布提交通过 CI 后，创建并推送与该版本一致的 `semi-components-v<主>.<次>.<修订>` tag。`publish-semi-components.yml` 检查标签、运行前端门禁、构建 JS / 类型声明 / CSS，然后通过 npm 的可信发布机制将公开包发布到 npmjs.org，不使用长期写入令牌。`0.4.0` 已发布到 GitHub Packages；首次发布到 npmjs.org 时，须由拥有 `@weiran-tech` scope 权限的账号登录 npm CLI，手动发布 `0.4.0`。包创建成功后才能配置可信发布，并通过此工作流发布 `0.4.1`。
 
-首次使用此工作流前，包管理员需在 [npm 包设置](https://www.npmjs.com/package/@weiran-tech/semi-components/access)的 **Trusted publishing** 中添加 GitHub Actions 发布者：组织 `weiran-tech`，仓库 `weiran4j`，工作流文件 `publish-semi-components.yml`，并允许 **npm publish**。工作流使用 GitHub OIDC（`id-token: write`）与 npm CLI 11.5.1 以上版本；新建的可信发布配置须在两天内完成首次成功发布，否则需要重新创建。
+首次发布 `0.4.0` 后，包管理员需在 [npm 包设置](https://www.npmjs.com/package/@weiran-tech/semi-components/access)的 **Trusted publishing** 中添加 GitHub Actions 发布者：组织 `weiran-tech`，仓库 `weiran4j`，工作流文件 `publish-semi-components.yml`，并允许 **npm publish**。工作流使用 GitHub OIDC（`id-token: write`）与 npm CLI 11.5.1 以上版本；新建的可信发布配置须在两天内完成首次成功发布，否则需要重新创建。
 
 ```bash
 git tag semi-components-v0.4.1
@@ -24,7 +24,7 @@ git push origin semi-components-v0.4.1
 下游项目直接从 npmjs.org 安装公开包。此前若在 `.npmrc` 中将 `@weiran-tech` 映射到 `npm.pkg.github.com`，需删除该映射，否则安装仍会访问 GitHub Packages。
 
 ```bash
-pnpm add @weiran-tech/semi-components@0.4.0
+pnpm add @weiran-tech/semi-components@0.4.1
 ```
 
 页面按需导入组件，并导入 `@weiran-tech/semi-components/style.css`；React 19、Semi UI 2 和 lucide-react 由下游安装。使用 `RichTextEditor` 时还需安装 Tiptap 3 的 core、extension-image、pm、react 和 starter-kit，版本要求见组件包的 `peerDependencies`。
