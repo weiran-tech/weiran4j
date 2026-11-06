@@ -1,4 +1,4 @@
-name: 发布前端组件包
+name: 发布前端组件包到 npmjs.org
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: read
-  packages: write
+  id-token: write
 
 jobs:
   publish:
@@ -40,11 +40,11 @@ jobs:
           node openspec/check.mjs
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
-          registry-url: https://npm.pkg.github.com
+          node-version: 24
+          registry-url: https://registry.npmjs.org
           scope: '@weiran-tech'
-      - name: 发布到 GitHub Packages
+      - name: 安装支持可信发布的 npm CLI
+        run: npm install --global npm@^11.5.1
+      - name: 发布到 npmjs.org
         working-directory: packages/semi-components
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm publish
+        run: npm publish --access public

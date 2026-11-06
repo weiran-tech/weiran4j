@@ -8,7 +8,7 @@
     "url": "git+https://github.com/weiran-tech/weiran4j.git",
     "directory": "packages/semi-components"
   },
-  "publishConfig": { "registry": "https://npm.pkg.github.com" },
+  "publishConfig": { "registry": "https://registry.npmjs.org", "access": "public" },
   "files": ["dist"],
   "sideEffects": ["**/*.css"],
   "main": "./dist/index.js",

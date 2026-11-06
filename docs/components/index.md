@@ -16,4 +16,4 @@
 | [NavListPanel](/components/nav-list-panel) | 数据列表、空列表 |
 | [NavListItem](/components/nav-list-item) | 普通与选中条目 |
 
-使用前请先按[版本发布](/releases)配置 GitHub Packages 并安装固定版本，页面同时导入 `@weiran-tech/semi-components/style.css`。组件包不调用后台接口；实际上传由下游传入 `upload` 回调。
+使用前请按[版本发布](/releases)从 npmjs.org 安装固定版本，页面同时导入 `@weiran-tech/semi-components/style.css`。组件包不调用后台接口；实际上传由下游传入 `upload` 回调。

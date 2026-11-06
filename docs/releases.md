@@ -6,36 +6,28 @@
 | --- | --- | --- |
 | `lib-v1.2.3` | `com.wulicode.weiran:weiran-dependencies:1.2.3` 与全部库模块 | [GitHub Packages Maven/Gradle 仓库](https://maven.pkg.github.com/weiran-tech/weiran4j) |
 | `demo-v1.2.3` | 前端与后端 Demo 容器镜像、Compose 文件 | GHCR 与 [GitHub Releases](https://github.com/weiran-tech/weiran4j/releases) |
-| `semi-components-v1.2.3` | `@weiran-tech/semi-components` React 组件包 | [GitHub Packages npm registry](https://github.com/orgs/weiran-tech/packages) |
+| `semi-components-v1.2.3` | `@weiran-tech/semi-components` React 组件包 | [npmjs.org](https://www.npmjs.com/package/@weiran-tech/semi-components) |
 
 三条版本线可以各自递增。Demo 镜像始终由对应 tag 的仓库源码构建，Release 记录提交 SHA、可追溯的最近 Java 组件包 tag 及两个镜像摘要；不能仅凭版本号推断 Demo 一定使用了已发布组件包的相同代码。
 
 ## 发布前端组件包
 
-在 `main` 的发布提交通过 CI 后，创建并推送与 `packages/semi-components/package.json` 版本一致的 `semi-components-v<主>.<次>.<修订>` tag。`publish-semi-components.yml` 检查标签、运行前端门禁、构建 JS / 类型声明 / CSS，再用仓库的 `GITHUB_TOKEN` 发布到 GitHub Packages；不需要在仓库保存个人令牌。此前已发布的 `@weiran-tech/backend-components@0.4.0` 保留为旧包；`@weiran-tech/semi-components` 是独立包坐标，下游需要更新依赖和导入路径。
+先将 `packages/semi-components/package.json` 的 `version` 改为 npmjs.org 上尚未发布的版本并提交。待 `main` 的发布提交通过 CI 后，创建并推送与该版本一致的 `semi-components-v<主>.<次>.<修订>` tag。`publish-semi-components.yml` 检查标签、运行前端门禁、构建 JS / 类型声明 / CSS，然后通过 npm 的可信发布机制将公开包发布到 npmjs.org，不使用长期写入令牌。`@weiran-tech/semi-components@0.4.0` 已在 npmjs.org；原 GitHub Packages 包保留，后续版本从 `0.4.1` 起由此工作流发布到 npmjs.org。
+
+首次使用此工作流前，包管理员需在 [npm 包设置](https://www.npmjs.com/package/@weiran-tech/semi-components/access)的 **Trusted publishing** 中添加 GitHub Actions 发布者：组织 `weiran-tech`，仓库 `weiran4j`，工作流文件 `publish-semi-components.yml`，并允许 **npm publish**。工作流使用 GitHub OIDC（`id-token: write`）与 npm CLI 11.5.1 以上版本；新建的可信发布配置须在两天内完成首次成功发布，否则需要重新创建。
 
 ```bash
-git tag semi-components-v0.4.0
-git push origin semi-components-v0.4.0
+git tag semi-components-v0.4.1
+git push origin semi-components-v0.4.1
 ```
 
-下游项目安装指定版本，在项目 `.npmrc` 登记 registry 映射：
-
-```text
-@weiran-tech:registry=https://npm.pkg.github.com
-```
-
-GitHub Packages 的 npm registry 下载包需要鉴权。将具备 `read:packages` 权限的 classic PAT 配在开发者用户级 `~/.npmrc` 或 CI 密钥中，不要提交令牌：
-
-```text
-//npm.pkg.github.com/:_authToken=${GITHUB_PACKAGES_TOKEN}
-```
+下游项目直接从 npmjs.org 安装公开包。此前若在 `.npmrc` 中将 `@weiran-tech` 映射到 `npm.pkg.github.com`，需删除该映射，否则安装仍会访问 GitHub Packages。
 
 ```bash
 pnpm add @weiran-tech/semi-components@0.4.0
 ```
 
-页面按需导入组件，并导入 `@weiran-tech/semi-components/style.css`；React 19、Semi UI 2 和 lucide-react 由下游安装。使用 `RichTextEditor` 时还需安装 Tiptap 3 的 core、extension-image、pm、react 和 starter-kit，版本要求见组件包的 `peerDependencies`。首次发布的包默认私有，下游账号还须获得该包的读取权限；如需开放给外部项目，在 GitHub Packages 设置包可见性和访问权限。
+页面按需导入组件，并导入 `@weiran-tech/semi-components/style.css`；React 19、Semi UI 2 和 lucide-react 由下游安装。使用 `RichTextEditor` 时还需安装 Tiptap 3 的 core、extension-image、pm、react 和 starter-kit，版本要求见组件包的 `peerDependencies`。
 
 ## 发布组件包
 

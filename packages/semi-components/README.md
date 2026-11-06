@@ -2,7 +2,7 @@
 
 可供独立 React 项目复用的前端组件。提供单图与多文件上传、富文本编辑器、视频与 PDF 预览、文字头像、图标与选项选择器、文件类型图标、导航列表面板。包内不发后台请求。
 
-GitHub Packages 安装与版本发布步骤见仓库根的 `docs/releases.md`。下游在 `semi-components-v0.4.0` 发布后用固定版本安装：`pnpm add @weiran-tech/semi-components@0.4.0`。
+npmjs.org 安装与版本发布步骤见仓库根的 `docs/releases.md`。下游用固定版本安装：`pnpm add @weiran-tech/semi-components@0.4.0`。
 
 ```tsx
 import { ImageUpload } from '@weiran-tech/semi-components';
