@@ -62,6 +62,54 @@ describe('LoginPage', () => {
         expect(calls.find((c) => c.path === '/api-backend/n/system/auth/login')).toMatchObject({ method: 'POST', body: { username: 'admin', password: 'admin123' } });
     });
 
+    it('在密码框按回车提交登录表单', async () => {
+        const { calls } = mockFetch({
+            'POST /api-backend/n/system/auth/login': { tokenType: 'Bearer', expiresIn: 43200, userId: 1 },
+        });
+        renderLogin();
+        fill('admin', 'admin123');
+        fireEvent.keyDown(screen.getByPlaceholderText('请输入密码'), { key: 'Enter', code: 'Enter' });
+
+        await waitFor(() => expect(screen.getByText('已跳转')).toBeInTheDocument());
+        expect(calls.filter((call) => call.path === '/api-backend/n/system/auth/login')).toHaveLength(1);
+    });
+
+    it('在短信验证码框按回车提交手机号登录', async () => {
+        const { calls } = mockFetch({
+            'GET /api-backend/n/system/auth/listProviders': { passwordLoginEnabled: true, phoneLoginEnabled: true, providers: [] },
+            'POST /api-backend/n/system/auth/loginWithPhoneCode': { tokenType: 'Bearer', expiresIn: 43200, userId: 1 },
+        });
+        renderLogin();
+        fireEvent.click(await screen.findByRole('button', { name: '手机验证码登录' }));
+        fireEvent.change(screen.getByPlaceholderText('请输入手机号'), { target: { value: '13800000000' } });
+        const code = screen.getByPlaceholderText('请输入短信验证码');
+        fireEvent.change(code, { target: { value: '123456' } });
+        fireEvent.keyDown(code, { key: 'Enter', code: 'Enter' });
+
+        await waitFor(() => expect(screen.getByText('已跳转')).toBeInTheDocument());
+        expect(calls.find((call) => call.path === '/api-backend/n/system/auth/loginWithPhoneCode')).toMatchObject({
+            method: 'POST',
+            body: { phone: '13800000000', code: '123456' },
+        });
+        expect(calls.some((call) => call.path === '/api-backend/n/system/auth/sendPhoneCode')).toBe(false);
+    });
+
+    it('在二次验证框按回车完成登录', async () => {
+        const { calls } = mockFetch({
+            'POST /api-backend/n/system/auth/verifyMfa': { tokenType: 'Bearer', expiresIn: 43200, userId: 1 },
+        });
+        renderLogin('/login?mfa=1');
+        const code = screen.getByPlaceholderText('手机验证码');
+        fireEvent.change(code, { target: { value: '123456' } });
+        fireEvent.keyDown(code, { key: 'Enter', code: 'Enter' });
+
+        await waitFor(() => expect(screen.getByText('已跳转')).toBeInTheDocument());
+        expect(calls.find((call) => call.path === '/api-backend/n/system/auth/verifyMfa')).toMatchObject({
+            method: 'POST',
+            body: { code: '123456' },
+        });
+    });
+
     it('密码错误时展示后端 message，不建立会话', async () => {
         mockFetch({
             'POST /api-backend/n/system/auth/login': () =>

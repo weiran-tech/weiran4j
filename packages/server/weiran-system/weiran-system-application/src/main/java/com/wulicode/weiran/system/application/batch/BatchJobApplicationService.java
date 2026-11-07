@@ -134,6 +134,58 @@ public class BatchJobApplicationService implements BatchJobService {
     }
 
     @Override
+    @Transactional
+    public BatchJobView createQueuedExternalReference(
+            final String userType,
+            final long ownerId,
+            final String kind,
+            final String name,
+            final String reference,
+            final String fingerprint) {
+        if (ownerId <= 0
+                || userType == null
+                || !userType.matches("[a-z][a-z0-9_-]{0,31}")
+                || userType.equals("system")
+                || kind == null
+                || !kind.matches("[A-Za-z0-9._-]{1,64}")
+                || name == null
+                || name.isBlank()
+                || name.length() > 255
+                || reference == null
+                || reference.isBlank()
+                || reference.length() > 255
+                || fingerprint == null
+                || !fingerprint.matches("[a-fA-F0-9]{64}")) {
+            throw BizException.badRequest("批处理输入引用无效");
+        }
+        this.processors.stream()
+                .filter(candidate -> candidate.kind().equals(kind))
+                .findFirst()
+                .ifPresent(processor -> {
+                    if (processor.inputMode() != BatchInputMode.REFERENCE) {
+                        throw BizException.badRequest("该处理类型需要平台托管文件");
+                    }
+                    processor.authorizeExternal(userType, ownerId);
+                    final String actualFingerprint;
+                    try {
+                        actualFingerprint = processor.referenceFingerprint(reference);
+                    } catch (final Exception ex) {
+                        throw BizException.badRequest("批处理输入引用不可用");
+                    }
+                    if (!fingerprint.equalsIgnoreCase(actualFingerprint)) {
+                        throw BizException.badRequest("批处理输入指纹不一致");
+                    }
+                });
+        final long id = this.jobs.createQueuedExternalReference(
+                userType, ownerId, kind, name, reference, fingerprint.toLowerCase(Locale.ROOT));
+        final BatchJob job = this.jobs.getExternal(id, userType, ownerId);
+        if (job == null) {
+            throw BizException.notFound("批处理任务不存在");
+        }
+        return this.view(job);
+    }
+
+    @Override
     public BatchJobView get(final long id, final long userId) {
         final BatchJob job = this.jobs.get(id, userId);
         if (job == null) {

@@ -1,6 +1,6 @@
 import { Banner, Button, Divider, Form, Typography } from '@douyinfe/semi-ui';
 import { KeyRound, LogIn, Phone, UserRound } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type KeyboardEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLogo } from '@/components/AppLogo';
 import { config } from '@/config';
@@ -153,6 +153,12 @@ export default function LoginPage() {
         }
     };
 
+    const handleEnterSubmit = (event: KeyboardEvent<HTMLFormElement>) => {
+        if (event.key !== 'Enter' || event.nativeEvent.isComposing || event.repeat || !(event.target instanceof HTMLInputElement)) return;
+        event.preventDefault();
+        if (!submitting) event.currentTarget.requestSubmit();
+    };
+
     return (
         <div className="login-page">
             {!isMobile && <BrandPanel />}
@@ -175,7 +181,7 @@ export default function LoginPage() {
                     {error && <Banner type="danger" description={error} closeIcon={null} className="login-error" />}
                     {notice && <Banner type="success" description={notice} closeIcon={null} className="login-error" />}
                     {mfaPending ? (
-                        <Form<{ code: string }> onSubmit={(values) => void handleMfaSubmit(values)}>
+                        <Form<{ code: string }> onSubmit={(values) => void handleMfaSubmit(values)} onKeyDown={handleEnterSubmit}>
                             <p>请输入发送到{mfaPhone ? ` ${mfaPhone}` : '安全手机号'}的 6 位验证码。</p>
                             <Form.Input field="code" noLabel placeholder="手机验证码" autoComplete="one-time-code" size="large" rules={[{ required: true, message: '请输入验证码' }, { pattern: /^\d{6}$/, message: '请输入 6 位验证码' }]} />
                             <Button htmlType="submit" type="primary" theme="solid" block size="large" loading={submitting}>验证并登录</Button>
@@ -215,7 +221,7 @@ export default function LoginPage() {
                         </Button>
                     )}
                     {(showPasswordForm || (activeMethod === 'phone' && phoneLoginEnabled)) && (activeMethod === 'phone' && phoneLoginEnabled ? (
-                        <Form<LoginForm> initValues={{ username: '', password: '', phone, code: '' }} onSubmit={(v) => void handleSubmit(v)}>
+                        <Form<LoginForm> initValues={{ username: '', password: '', phone, code: '' }} onSubmit={(v) => void handleSubmit(v)} onKeyDown={handleEnterSubmit}>
                             <Form.Input
                                 field="phone"
                                 noLabel
@@ -245,7 +251,7 @@ export default function LoginPage() {
                             </Button>
                         </Form>
                     ) : (
-                        <Form<LoginForm> onSubmit={(v) => void handleSubmit(v)}>
+                        <Form<LoginForm> onSubmit={(v) => void handleSubmit(v)} onKeyDown={handleEnterSubmit}>
                             <Form.Input
                                 field="username"
                                 noLabel

@@ -11,6 +11,12 @@ public interface BatchJobRepository {
 
     long createQueuedReference(String kind, String name, String reference, String fingerprint, long userId);
 
+    long createQueuedExternalReference(
+            String userType, long ownerId, String kind, String name, String reference, String fingerprint);
+
+    @Nullable
+    BatchJob getExternal(long id, String userType, long ownerId);
+
     @Nullable
     BatchJob get(long id, long userId);
 

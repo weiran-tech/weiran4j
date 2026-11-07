@@ -15,7 +15,7 @@
 
 ## 2. 字段与表单
 
-`kind` 标识处理器；`source_key` 是私有文件键或业务引用，`input_mode` 区分两者，`input_fingerprint` 锁定输入内容。托管文件保留期后清空源键。`status` 与 `phase` 分别保存生命周期和五阶段位置；新阶段为 `uploading`、`validating`、`deciding`、`processing`、`summarizing`，历史阶段仍可查询。`total` 是预检识别项数，`selected_count` 与 `decided_at` 固定自动决策，`processed`、`succeeded`、`failed` 是明细投影；`error_message` 是任务级失败原因。`worker` 与 `heartbeat_at` 用于领取及过期恢复；`created_by` 用于查询隔离。
+`kind` 标识处理器；`source_key` 是私有文件键或业务引用，`input_mode` 区分两者，`input_fingerprint` 锁定输入内容。托管文件保留期后清空源键。`status` 与 `phase` 分别保存生命周期和五阶段位置；新阶段为 `uploading`、`validating`、`deciding`、`processing`、`summarizing`，历史阶段仍可查询。`total` 是预检识别项数，`selected_count` 与 `decided_at` 固定自动决策，`processed`、`succeeded`、`failed` 是明细投影；`error_message` 是任务级失败原因。`worker` 与 `heartbeat_at` 用于领取及过期恢复；`user_type` 默认为 `system`，与 `created_by` 共同标识身份；后台查询和取消只访问 system 命名空间。外部排队引用任务通过专用 API 创建，业务方负责身份及文件归属；外部账号不要求存在于 sys_user。外部身份收集任务不复用后台用户并发限额，也不新增锁表。
 
 ## 3. 动作
 
@@ -34,6 +34,10 @@
 无。
 
 ## 7. changelog
+
+**2026-11-07**
+
+- 增加外部身份排队引用任务 API、user_type 字段和查询隔离，防止学校等外部账号与后台用户同号时串号。
 
 **2026-10-31**
 

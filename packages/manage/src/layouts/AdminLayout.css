@@ -142,6 +142,11 @@
     color: var(--color-sidebar-text);
 }
 
+/* 目录 li 同时带有 item 类，内边距只应由子级标题承担，避免目录行比叶子项高 8px */
+.admin-sidebar__nav .semi-navigation-sub-wrap.semi-navigation-item {
+    padding: 0 !important;
+}
+
 .admin-sidebar__nav .semi-navigation-item-text,
 .admin-sidebar__nav .semi-navigation-sub-title-text {
     font-weight: 500;
@@ -153,7 +158,11 @@
     border-radius: 6px;
 }
 
-/* 紧凑布局：去掉 Semi 默认的子项 margin-top */
+/* 同级菜单保持 2px 间距，一级菜单与子菜单使用相同节奏 */
+.admin-sidebar__nav .semi-navigation-list > :is(.semi-navigation-item, .semi-navigation-sub-wrap):not(:first-child) {
+    margin-top: 2px !important;
+}
+
 .admin-sidebar__nav .semi-navigation-sub .semi-navigation-item,
 .admin-sidebar__nav .semi-navigation-sub .semi-navigation-sub-wrap {
     margin-top: 2px !important;

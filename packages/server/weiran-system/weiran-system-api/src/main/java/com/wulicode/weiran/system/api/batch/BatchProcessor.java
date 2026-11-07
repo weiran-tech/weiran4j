@@ -9,6 +9,11 @@ public interface BatchProcessor {
     /** 创建任务时校验该处理器的业务权限；拒绝时抛业务异常。 */
     void authorize(long userId);
 
+    /** 外部身份必须由处理器显式授权，默认拒绝，不能当作后台 userId。 */
+    default void authorizeExternal(final String userType, final long ownerId) {
+        throw com.wulicode.weiran.framework.error.BizException.badRequest("该处理器不支持外部身份");
+    }
+
     default long maxBytes() {
         return 100L * 1024 * 1024;
     }

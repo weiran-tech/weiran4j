@@ -41,6 +41,53 @@ class BatchLifecycleIT extends IntegrationTestSupport {
 
     @Test
     @Transactional
+    @DisplayName("外部任务不要求后台同号用户，且不能被同号后台账号读取或取消")
+    void externalOwnersAreIsolatedFromSystemUsers() {
+        final long missingUser = 900000001L;
+        assertThat(this.jdbc.queryForObject("select count(*) from sys_user where id = ?", Long.class, missingUser))
+                .isZero();
+        final long absent = this.service
+                .createQueuedExternalReference(
+                        "school", missingUser, "external_collection", "school.xlsx", "school/absent", FINGERPRINT)
+                .id();
+        assertThat(this.jobs.getExternal(absent, "school", missingUser)).isNotNull();
+        assertThat(this.jobs.get(absent, missingUser)).isNull();
+        final long overlap = this.service
+                .createQueuedExternalReference(
+                        "school", 1, "external_collection", "school.xlsx", "school/overlap", FINGERPRINT)
+                .id();
+        assertThat(this.jobs.get(overlap, 1)).isNull();
+        assertThat(this.service.recent(1, List.of("external_collection"))).isEmpty();
+        assertThatThrownBy(() -> this.service.get(overlap, 1)).isInstanceOf(BizException.class);
+        assertThatThrownBy(() -> this.service.cancel(overlap, 1)).isInstanceOf(BizException.class);
+        this.jobs.requestCancel(overlap, 1);
+        assertThat(Objects.requireNonNull(this.jobs.getExternal(overlap, "school", 1))
+                        .status())
+                .isEqualTo("queued");
+        assertThat(this.jobs.getExternal(overlap, "agent", 1)).isNull();
+        assertThat(this.jobs.getExternal(overlap, "school", 2)).isNull();
+        assertThatThrownBy(() -> this.service.createQueuedExternalReference(
+                        "system", 1, "external_collection", "school.xlsx", "school/invalid", FINGERPRINT))
+                .isInstanceOf(BizException.class);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("外部任务不占用后台用户限额且不额外限制收集数量")
+    void externalOwnersDoNotConsumeSystemUserQuota() {
+        for (int index = 0; index < 21; index++) {
+            this.service.createQueuedExternalReference(
+                    "school", 1, "external_quota", "school.xlsx", "school/" + index, FINGERPRINT);
+        }
+        this.service.createQueuedExternalReference(
+                "school", 2, "external_quota", "school.xlsx", "school/other", FINGERPRINT);
+        this.service.createQueuedExternalReference(
+                "agent", 1, "external_quota", "school.xlsx", "agent/other", FINGERPRINT);
+        this.service.createQueuedReference("external_quota", "backend.xlsx", "backend/other", FINGERPRINT, 1);
+    }
+
+    @Test
+    @Transactional
     @DisplayName("同账号允许 20 个待处理任务，第 21 个被拒绝，取消后释放名额")
     void activeTaskLimitIsTwenty() {
         final int existing = Objects.requireNonNull(this.jdbc.queryForObject(
