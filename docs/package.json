@@ -8,13 +8,13 @@
     "preview": "vitepress preview . --host 0.0.0.0 --port 4173"
   },
   "dependencies": {
-    "@weiran-tech/semi-components": "workspace:*",
     "@douyinfe/semi-ui": "^2.104.0",
     "@tiptap/core": "3.31.3",
     "@tiptap/extension-image": "3.31.3",
     "@tiptap/pm": "3.31.3",
     "@tiptap/react": "3.31.3",
     "@tiptap/starter-kit": "3.31.3",
+    "@weiran-tech/semi-components": "workspace:*",
     "lucide-react": "^1.61.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
@@ -22,6 +22,8 @@
   "devDependencies": {
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
-    "vitepress": "^1.6.4"
+    "mermaid": "^11.17.2",
+    "vitepress": "^1.6.4",
+    "vitepress-plugin-mermaid": "^2.0.17"
   }
 }

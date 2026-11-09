@@ -1,7 +1,8 @@
-import { defineConfig } from 'vitepress'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 
-export default defineConfig({
-  base: '/weiran4j/',
+export default withMermaid({
+  base: process.env.VITEPRESS_BASE || '/',
+  sitemap: { hostname: 'https://weiran4j.wulicode.com' },
   lang: 'zh-CN',
   title: 'weiran4j',
   description: '后台管理框架的使用指南与架构说明',

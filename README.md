@@ -4,7 +4,7 @@ Java 21 + Spring Boot 与 React 的模块化后台管理框架。
 
 ## 文档
 
-https://weiran-tech.github.io/weiran4j/
+https://weiran4j.wulicode.com/
 
 ## 开始使用
 
@@ -35,3 +35,6 @@ pnpm dev
 - [开发约定](AGENTS.md)
 
 文档站由 Turbo 管理：`pnpm dev:docs` 单独启动，`pnpm build:docs` 构建。
+
+文档站在 Vercel 使用仓库根目录构建，配置见 `vercel.json`，域名为 `weiran4j.wulicode.com`。
+Markdown 中的 `mermaid` 代码块会显示为图表；GitHub Pages 构建通过 `VITEPRESS_BASE=/weiran4j/` 保留子路径访问。
