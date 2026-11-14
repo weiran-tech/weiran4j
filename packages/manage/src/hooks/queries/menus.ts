@@ -22,11 +22,11 @@ export function useSaveMenu() {
     return useMutation({
         mutationFn: ({ id, body }: { id?: number | undefined; body: MenuSaveRequest }) =>
             id === undefined ? http.post<IdResult>('/api-backend/system/menu/create', body) : http.put<null>(`/api-backend/system/menu/update/${id}`, body),
-        onSuccess: async () => {
-            await qc.invalidateQueries({ queryKey: menuKeys.all });
-            // 侧边栏也来自菜单表，一并刷新
-            await qc.invalidateQueries({ queryKey: authKeys.menus });
-        },
+        onSuccess: () => Promise.all([
+            qc.invalidateQueries({ queryKey: menuKeys.all }),
+            qc.invalidateQueries({ queryKey: authKeys.me }),
+            qc.invalidateQueries({ queryKey: authKeys.menus }),
+        ]),
     });
 }
 
@@ -34,9 +34,10 @@ export function useDeleteMenu() {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: (id: number) => http.delete<null>(`/api-backend/system/menu/delete/${id}`),
-        onSuccess: async () => {
-            await qc.invalidateQueries({ queryKey: menuKeys.all });
-            await qc.invalidateQueries({ queryKey: authKeys.menus });
-        },
+        onSuccess: () => Promise.all([
+            qc.invalidateQueries({ queryKey: menuKeys.all }),
+            qc.invalidateQueries({ queryKey: authKeys.me }),
+            qc.invalidateQueries({ queryKey: authKeys.menus }),
+        ]),
     });
 }

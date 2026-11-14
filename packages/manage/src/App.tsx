@@ -1,27 +1,24 @@
 import { Button, Empty, Spin } from '@douyinfe/semi-ui';
-import { Suspense, createElement, useMemo, type ComponentType, type LazyExoticComponent } from 'react';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Suspense, useMemo } from 'react';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { PageErrorBoundary } from '@/components/PageErrorBoundary';
+import { RecoverablePage } from '@/components/RecoverablePage';
 import { HOME_PATH } from '@/config';
 import { useMyMenus } from '@/hooks/queries/auth';
 import { useAuth } from '@/hooks/useAuth';
 import { PermissionContext } from '@/hooks/usePermission';
 import { AdminLayout } from '@/layouts/AdminLayout';
 import { menusToRoutes, type MenuRoute } from '@/utils/menu';
-import { lazyPageComponent } from '@/utils/page-registry';
+import { resolvePageLoader } from '@/utils/page-registry';
 import { safeRedirect } from '@/utils/redirect';
 
-function mustLazy(component: string): LazyExoticComponent<ComponentType> {
-    const page = lazyPageComponent(component);
-    if (!page) throw new Error(`页面组件不存在：${component}`);
-    return page;
+/** 注册表提供稳定 loader，每个路由实例独立持有可重试的 lazy。 */
+function RegisteredPage({ component }: { component: string }) {
+    const navigate = useNavigate();
+    const loader = resolvePageLoader(component);
+    if (!loader) return <Empty title="页面不存在" />;
+    return <RecoverablePage key={component} loader={loader} onHome={() => void navigate(HOME_PATH)} />;
 }
-
-// 固定页面也走 page-registry，避免同一文件既被静态又被动态导入
-const LoginPage = mustLazy('login/LoginPage');
-const DashboardPage = mustLazy('dashboard/DashboardPage');
-const ProfilePage = mustLazy('profile/ProfilePage');
-const ForbiddenPage = mustLazy('forbidden/ForbiddenPage');
-const NotFoundPage = mustLazy('not-found/NotFoundPage');
 
 const fullPageLoading = (
     <div className="page-loading page-loading--full">
@@ -50,10 +47,9 @@ function MissingPage({ route }: { route: MenuRoute }) {
     );
 }
 
-/** 菜单路由的页面元素；lazy 组件由 page-registry 按路径缓存，引用稳定 */
+/** 菜单路由的页面元素；每个路由实例独立负责加载与错误恢复。 */
 function menuRouteElement(route: MenuRoute) {
-    const Page = route.resolved ? lazyPageComponent(route.component) : null;
-    return Page ? createElement(Page) : <MissingPage route={route} />;
+    return route.resolved && route.component ? <RegisteredPage component={route.component} /> : <MissingPage route={route} />;
 }
 
 /** 已登录：拉 me + 菜单，按菜单注册路由 */
@@ -97,10 +93,10 @@ function AuthedApp() {
                         <Route key={r.id} path={r.path} element={menuRouteElement(r)} />
                     ))}
                     {/* 首页是欢迎页，不需要权限；角色没勾首页菜单时也要能落地 */}
-                    {!hasDashboardRoute && <Route path={HOME_PATH} element={<DashboardPage />} />}
-                    <Route path="/profile" element={<ProfilePage />} />
-                    <Route path="/403" element={<ForbiddenPage />} />
-                    <Route path="*" element={<NotFoundPage />} />
+                    {!hasDashboardRoute && <Route path={HOME_PATH} element={<RegisteredPage component="dashboard/DashboardPage" />} />}
+                    <Route path="/profile" element={<RegisteredPage component="profile/ProfilePage" />} />
+                    <Route path="/403" element={<RegisteredPage component="forbidden/ForbiddenPage" />} />
+                    <Route path="*" element={<RegisteredPage component="not-found/NotFoundPage" />} />
                 </Route>
             </Routes>
         </PermissionContext.Provider>
@@ -109,12 +105,15 @@ function AuthedApp() {
 
 export function App() {
     const { isLoggedIn } = useAuth();
+    const location = useLocation();
     return (
-        <Suspense fallback={fullPageLoading}>
-            <Routes>
-                <Route path="/login" element={isLoggedIn ? <RedirectFromLogin /> : <LoginPage />} />
-                <Route path="*" element={isLoggedIn ? <AuthedApp /> : <RedirectToLogin />} />
-            </Routes>
-        </Suspense>
+        <PageErrorBoundary resetKey={location.pathname} onHome={() => window.location.assign(HOME_PATH)}>
+            <Suspense fallback={fullPageLoading}>
+                <Routes>
+                    <Route path="/login" element={isLoggedIn ? <RedirectFromLogin /> : <RegisteredPage component="login/LoginPage" />} />
+                    <Route path="*" element={isLoggedIn ? <AuthedApp /> : <RedirectToLogin />} />
+                </Routes>
+            </Suspense>
+        </PageErrorBoundary>
     );
 }

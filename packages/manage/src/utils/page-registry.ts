@@ -7,10 +7,9 @@
  * 组件路径约定（契约 §5）：相对 `src/pages`，不含前导 `/` 与 `.tsx`，
  * 例如 `system/users/UsersPage`。
  */
-import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
-
-type PageModule = { default: ComponentType };
-type PageModuleLoader = () => Promise<PageModule>;
+import type { ComponentType, LazyExoticComponent } from 'react';
+import { lazyPageFromLoader, type PageModule, type PageModuleLoader } from './page-loader';
+export type { PageModuleLoader } from './page-loader';
 
 // 必须排除 __tests__：glob 结果就是打包图，测试文件会被编译成独立 chunk 发到线上，
 // 连带把 vitest / @testing-library 拖进浏览器产物。
@@ -33,18 +32,8 @@ export function hasPageComponent(component: string | null | undefined): boolean 
     return resolvePageLoader(component) !== null;
 }
 
-// React.lazy 必须引用稳定，否则每次渲染都会重新挂载页面
-const lazyCache = new Map<string, LazyExoticComponent<ComponentType>>();
-
-/** 解析组件路径为 React.lazy 组件（按路径缓存）；不存在时返回 null */
+/** 解析组件路径为稳定的 React.lazy；正常重开不重复等待，失败恢复由公共 loader 缓存处理。 */
 export function lazyPageComponent(component: string | null | undefined): LazyExoticComponent<ComponentType> | null {
     const loader = resolvePageLoader(component);
-    if (!loader || !component) return null;
-    const key = normalizeComponentPath(component);
-    let cached = lazyCache.get(key);
-    if (!cached) {
-        cached = lazy(loader);
-        lazyCache.set(key, cached);
-    }
-    return cached;
+    return loader ? lazyPageFromLoader(loader) : null;
 }

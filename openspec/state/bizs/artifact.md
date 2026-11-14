@@ -101,10 +101,19 @@
   `check` 全绿,CP-2「只能用 `error/page/response/status/text/tree`」只靠评审守。
   可选做法:Checkstyle `ImportControl` 或 ArchUnit 规则,限制 `*.domain..` / `*.api..` 只能 import 上述六个包。
 
-- **#22 ⚠️ P2 前端缺少页面渲染与懒加载异常恢复边界**
-  症状：`main.tsx` 与 `App.tsx` 使用 Suspense 处理加载等待，但没有 React 错误边界。页面渲染抛错或懒加载模块拒绝时，用户缺少应用自己的重试/返回入口，且可能连导航一起不可用。应在管理内容区设置错误边界并保留外壳；本轮为静态审查，未做浏览器故障注入。
+- **#23 ⚠️ P2 表单关闭保护尚未覆盖角色、菜单和字典编辑**
+  症状：用户和地区表单已接入 `useFormCloseGuard`，但 `RoleFormModal`、`MenuFormModal`、`DictFormModal` 与字典项编辑仍直接 `onCancel={onClose}`。编辑后取消或按 Esc 会丢失草稿；保存中仍有关闭入口，关闭后请求可能继续生效。应统一接入已有保护及保存期关闭限制。本轮为静态审查，未进行浏览器故障注入。
+
+- **#24 ⚠️ P2 角色、菜单和字典读取失败缺少持续错误态**
+  症状：`RolesPage`、`MenusPage` 和 `DictsPage`（含字典项）主要使用 data/isFetching，未按 isError 呈现持续失败及就地恢复；首次失败时空数组回退可能显示成无记录，字典列表还会显示“暂无字典”。已有部分刷新入口，但无法持续区分失败、成功空结果和缓存数据刷新失败。应复用 `ListFeedback` / 成功空态模式；本轮未做浏览器故障注入。
 
 ## changelog
+
+**2026-11-14**
+
+- **#22 ✅ P2 前端缺少页面渲染与懒加载异常恢复边界**
+  由 `recover-pages-and-sync-menu-permissions` 解决。页面和根部加入错误边界；每个路由实例独立重试，重建lazy加载实例；缓存/非缓存页和实际路由故障测试覆盖隔离与恢复。
+  原症状：症状：`main.tsx` 与 `App.tsx` 使用 Suspense 处理加载等待，但没有 React 错误边界。页面渲染抛错或懒加载模块拒绝时，用户缺少应用自己的重试/返回入口，且可能连导航一起不可用。应在管理内容区设置错误边界并保留外壳；原审查时尚未做浏览器故障注入。
 
 **2026-10-07**(D-016,common 并入 framework)
 

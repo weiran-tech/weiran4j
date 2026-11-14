@@ -125,6 +125,33 @@ describe('UsersPage', () => {
         expect(localStorage.getItem('weiran_table_columns:system/users')).toContain('phone');
     });
 
+    it('高级关键字与快捷输入共享草稿，搜索昵称、移除和重置使用同一条件', async () => {
+        const { calls } = mockFetch(baseRoutes());
+        renderWithProviders(<UsersPage />);
+        await screen.findByText('alice');
+        const quick = screen.getByPlaceholderText('用户名 / 昵称 / 手机');
+        fireEvent.change(quick, { target: { value: '初始草稿' } });
+        fireEvent.click(screen.getByRole('button', { name: '高级筛选' }));
+        const panel = screen.getByRole('region', { name: '高级筛选' });
+        const advanced = within(panel).getByRole('textbox', { name: '关键字（用户名 / 昵称 / 手机）' });
+        expect(advanced).toHaveValue('初始草稿');
+        fireEvent.change(advanced, { target: { value: '爱丽丝' } });
+        expect(quick).toHaveValue('爱丽丝');
+        fireEvent.click(within(panel).getByRole('button', { name: '搜索' }));
+        await waitFor(() => expect(new URLSearchParams(calls.filter((call) => call.path.endsWith('/user/list')).at(-1)?.search).get('keyword')).toBe('爱丽丝'));
+        expect(new URLSearchParams(calls.filter((call) => call.path.endsWith('/user/list')).at(-1)?.search).get('page')).toBe('1');
+        fireEvent.click(screen.getByRole('button', { name: '移除条件 关键字：爱丽丝' }));
+        expect(quick).toHaveValue('');
+        expect(advanced).toHaveValue('');
+        // 移除后可直接命中初始查询缓存，显式刷新以检查当前实际请求参数。
+        fireEvent.click(screen.getByRole('button', { name: '刷新' }));
+        await waitFor(() => expect(new URLSearchParams(calls.filter((call) => call.path.endsWith('/user/list')).at(-1)?.search).has('keyword')).toBe(false));
+        fireEvent.change(advanced, { target: { value: '新草稿' } });
+        fireEvent.click(within(panel).getByRole('button', { name: '重置' }));
+        expect(quick).toHaveValue('');
+        expect(advanced).toHaveValue('');
+    });
+
     it('关键字查询带上 keyword 并回到第 1 页', async () => {
         const { calls } = mockFetch(baseRoutes());
         renderWithProviders(<UsersPage />);
@@ -274,7 +301,7 @@ describe('UsersPage', () => {
             fireEvent.click(await screen.findByRole('option', { name: option }));
         };
 
-        it('高级筛选默认收起；展开后放出 8 个单字段条件，状态与工具栏共用草稿（FR-006）', async () => {
+        it('高级筛选默认收起；展开后放出关键字与 8 个单字段条件，状态与工具栏共用草稿（FR-006）', async () => {
             mockFetch(routes());
             renderWithProviders(<UsersPage />);
             await screen.findByText('alice');
@@ -286,6 +313,7 @@ describe('UsersPage', () => {
             const panel = screen.getByRole('region', { name: '高级筛选' });
             expect(toggle).toHaveAttribute('aria-expanded', 'true');
             expect([...panel.querySelectorAll('.search-field__label')].map((e) => e.textContent)).toEqual([
+                '关键字（用户名 / 昵称 / 手机）',
                 '用户名',
                 '用户 ID',
                 '手机号',

@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react';
+import * as registry from '@/utils/page-registry';
+import { fireEvent, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '@/App';
 import { mockFetch, renderWithProviders } from '@/test/helpers';
@@ -48,7 +49,7 @@ const menus: MenuNode[] = [
 ];
 
 describe('App 路由', () => {
-    afterEach(() => vi.unstubAllGlobals());
+    afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
     it('未登录访问受保护路由跳到 /login?redirect=', async () => {
         mockFetch({});
@@ -95,5 +96,45 @@ describe('App 路由', () => {
         renderWithProviders(<App />, { route: '/dashboard' });
         expect(await screen.findByRole('button', { name: '登录' })).toBeInTheDocument();
         expect(getSession()).toBeNull();
+    });
+});
+
+describe('App 页面故障恢复接入', () => {
+    afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+
+    it.each(['render', 'lazy'])('%s 故障保留真实后台导航，可重试和返回首页', async (mode) => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        signIn();
+        let broken = true;
+        function FailingPage() { if (broken && mode === 'render') throw new Error('private-error'); return <p>路由页面已恢复</p>; }
+        const loader = vi.fn(() => broken && mode === 'lazy' ? Promise.reject(new Error('module failed')) : Promise.resolve({ default: FailingPage }));
+        const original = registry.resolvePageLoader;
+        vi.spyOn(registry, 'resolvePageLoader').mockImplementation((path) => path === 'system/roles/RolesPage' ? loader : original(path));
+        mockFetch({
+            'GET /api-backend/system/auth/getCurrentUser': me,
+            'GET /api-backend/system/auth/getPreferences': {},
+            'GET /api-backend/system/auth/listCurrentMenus': [menus[0], { ...menuBase, id: 21, title: '故障测试', type: 'menu', path: '/broken', component: 'system/roles/RolesPage', keepAlive: true }],
+            'GET /api-backend/system/dict/listItemsByCode/sys_user_gender': [],
+        });
+        renderWithProviders(<App />, { route: '/broken' });
+        await screen.findByRole('alert', { name: '页面加载失败' });
+        expect(document.querySelector('.admin-layout')).toBeInTheDocument();
+        expect(screen.queryByText('private-error')).not.toBeInTheDocument();
+        broken = false;
+        fireEvent.click(screen.getByRole('button', { name: '重试' }));
+        expect(await screen.findByText('路由页面已恢复')).toBeInTheDocument();
+        expect(loader).toHaveBeenCalledTimes(2);
+    });
+
+    it('未登录固定页面加载失败可在原地重试', async () => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        const original = registry.resolvePageLoader;
+        const loader = vi.fn().mockRejectedValueOnce(new Error('login module failed')).mockResolvedValue({ default: () => <p>登录页已恢复</p> });
+        vi.spyOn(registry, 'resolvePageLoader').mockImplementation((path) => path === 'login/LoginPage' ? loader : original(path));
+        mockFetch({});
+        renderWithProviders(<App />, { route: '/login' });
+        fireEvent.click(await screen.findByRole('button', { name: '重试' }));
+        expect(await screen.findByText('登录页已恢复')).toBeInTheDocument();
+        expect(loader).toHaveBeenCalledTimes(2);
     });
 });

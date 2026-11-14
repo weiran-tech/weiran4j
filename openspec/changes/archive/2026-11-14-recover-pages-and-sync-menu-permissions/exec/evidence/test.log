@@ -1,0 +1,146 @@
+COMMAND: (cd packages/server && JAVA_HOME=${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)} ./gradlew test --no-daemon) && pnpm --filter @weiran/manage test
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+> Task :weiran-region-application:processResources UP-TO-DATE
+> Task :weiran-region-domain:processResources NO-SOURCE
+> Task :weiran-region-api:processResources NO-SOURCE
+> Task :weiran-system-api:processResources NO-SOURCE
+> Task :weiran-region-adapter:processResources UP-TO-DATE
+> Task :weiran-app:processResources UP-TO-DATE
+> Task :weiran-system-adapter:processResources UP-TO-DATE
+> Task :weiran-region-infrastructure:processResources UP-TO-DATE
+> Task :weiran-region:processResources NO-SOURCE
+> Task :weiran-region-application:processTestResources NO-SOURCE
+> Task :weiran-system-domain:processResources NO-SOURCE
+> Task :weiran-region-adapter:processTestResources NO-SOURCE
+> Task :weiran-system-application:processResources UP-TO-DATE
+> Task :weiran-region:processTestResources NO-SOURCE
+> Task :weiran-region-api:processTestResources NO-SOURCE
+> Task :weiran-region-domain:processTestResources NO-SOURCE
+> Task :weiran-region-infrastructure:processTestResources NO-SOURCE
+> Task :weiran-system:processResources NO-SOURCE
+> Task :weiran-demo:processResources UP-TO-DATE
+> Task :weiran-system-adapter:processTestResources NO-SOURCE
+> Task :weiran-system-api:processTestResources NO-SOURCE
+> Task :weiran-app:processTestResources UP-TO-DATE
+> Task :weiran-system:processTestResources NO-SOURCE
+> Task :weiran-system-domain:processTestResources NO-SOURCE
+> Task :weiran-demo:processTestResources NO-SOURCE
+> Task :weiran-system-application:processTestResources NO-SOURCE
+> Task :weiran-system-infrastructure:processResources UP-TO-DATE
+> Task :weiran-system-infrastructure:processTestResources NO-SOURCE
+> Task :weiran-framework:compileJava UP-TO-DATE
+> Task :weiran-framework:processResources UP-TO-DATE
+> Task :weiran-framework:classes UP-TO-DATE
+> Task :weiran-framework:jar UP-TO-DATE
+> Task :weiran-region-api:compileJava UP-TO-DATE
+> Task :weiran-region-domain:compileJava UP-TO-DATE
+> Task :weiran-region-api:classes UP-TO-DATE
+> Task :weiran-region-domain:classes UP-TO-DATE
+> Task :weiran-region-api:jar UP-TO-DATE
+> Task :weiran-region:compileJava NO-SOURCE
+> Task :weiran-region:classes UP-TO-DATE
+> Task :weiran-region:compileTestJava NO-SOURCE
+> Task :weiran-region-api:compileTestJava NO-SOURCE
+> Task :weiran-region-api:testClasses UP-TO-DATE
+> Task :weiran-region:testClasses UP-TO-DATE
+> Task :weiran-region-domain:jar UP-TO-DATE
+> Task :weiran-region-api:test NO-SOURCE
+> Task :weiran-system-api:compileJava UP-TO-DATE
+> Task :weiran-region-application:compileJava UP-TO-DATE
+> Task :weiran-system-api:classes UP-TO-DATE
+> Task :weiran-region-application:classes UP-TO-DATE
+> Task :weiran-region-application:jar UP-TO-DATE
+> Task :weiran-system-api:jar UP-TO-DATE
+> Task :weiran-region-infrastructure:compileJava UP-TO-DATE
+> Task :weiran-system-domain:compileJava UP-TO-DATE
+> Task :weiran-system:compileJava NO-SOURCE
+> Task :weiran-region-infrastructure:classes UP-TO-DATE
+> Task :weiran-system-domain:classes UP-TO-DATE
+> Task :weiran-system-api:compileTestJava NO-SOURCE
+> Task :weiran-system:classes UP-TO-DATE
+> Task :weiran-region-infrastructure:jar UP-TO-DATE
+> Task :weiran-system-domain:jar UP-TO-DATE
+> Task :weiran-system-api:testClasses UP-TO-DATE
+> Task :weiran-system:compileTestJava NO-SOURCE
+> Task :weiran-system:testClasses UP-TO-DATE
+> Task :weiran-region-infrastructure:compileTestJava NO-SOURCE
+> Task :weiran-region-infrastructure:testClasses UP-TO-DATE
+> Task :weiran-system-api:test NO-SOURCE
+> Task :weiran-region-domain:compileTestJava UP-TO-DATE
+> Task :weiran-region-domain:testClasses UP-TO-DATE
+> Task :weiran-region-infrastructure:test NO-SOURCE
+> Task :weiran-region-adapter:compileJava UP-TO-DATE
+> Task :weiran-region-adapter:classes UP-TO-DATE
+> Task :weiran-region-application:compileTestJava UP-TO-DATE
+> Task :weiran-region-adapter:jar UP-TO-DATE
+> Task :weiran-region-application:testClasses UP-TO-DATE
+> Task :weiran-framework:compileTestJava UP-TO-DATE
+> Task :weiran-demo:compileJava UP-TO-DATE
+> Task :weiran-demo:classes UP-TO-DATE
+> Task :weiran-framework:processTestResources NO-SOURCE
+> Task :weiran-framework:testClasses UP-TO-DATE
+> Task :weiran-system-domain:compileTestJava UP-TO-DATE
+> Task :weiran-system-domain:testClasses UP-TO-DATE
+> Task :weiran-demo:jar UP-TO-DATE
+> Task :weiran-region:test NO-SOURCE
+> Task :weiran-demo:compileTestJava NO-SOURCE
+> Task :weiran-demo:testClasses UP-TO-DATE
+> Task :weiran-demo:test NO-SOURCE
+> Task :weiran-region-adapter:compileTestJava UP-TO-DATE
+> Task :weiran-system-application:compileJava UP-TO-DATE
+> Task :weiran-region-adapter:testClasses UP-TO-DATE
+> Task :weiran-system-application:classes UP-TO-DATE
+> Task :weiran-system-application:jar UP-TO-DATE
+> Task :weiran-region-application:test UP-TO-DATE
+> Task :weiran-region-domain:test UP-TO-DATE
+> Task :weiran-system-domain:test UP-TO-DATE
+> Task :weiran-framework:test UP-TO-DATE
+> Task :weiran-region-adapter:test UP-TO-DATE
+> Task :weiran-system-application:compileTestJava UP-TO-DATE
+> Task :weiran-system-application:testClasses UP-TO-DATE
+> Task :weiran-system-adapter:compileJava UP-TO-DATE
+> Task :weiran-system-adapter:classes UP-TO-DATE
+> Task :weiran-system-adapter:jar UP-TO-DATE
+> Task :weiran-system-adapter:compileTestJava NO-SOURCE
+> Task :weiran-system-adapter:testClasses UP-TO-DATE
+> Task :weiran-system-adapter:test NO-SOURCE
+> Task :weiran-system-infrastructure:compileJava UP-TO-DATE
+> Task :weiran-system-infrastructure:classes UP-TO-DATE
+> Task :weiran-system-application:test UP-TO-DATE
+> Task :weiran-system-infrastructure:jar UP-TO-DATE
+> Task :weiran-system:test NO-SOURCE
+> Task :weiran-system-infrastructure:compileTestJava UP-TO-DATE
+> Task :weiran-system-infrastructure:testClasses UP-TO-DATE
+> Task :weiran-app:compileJava UP-TO-DATE
+> Task :weiran-app:classes UP-TO-DATE
+> Task :weiran-system-infrastructure:test UP-TO-DATE
+> Task :weiran-app:compileTestJava UP-TO-DATE
+> Task :weiran-app:testClasses UP-TO-DATE
+> Task :weiran-app:test UP-TO-DATE
+
+BUILD SUCCESSFUL in 5s
+55 actionable tasks: 55 up-to-date
+$ vitest run
+
+ RUN  v5.0.5 /Users/duoli/Projects/duoli-weiran/mono4j/packages/manage
+
+
+ Test Files  50 passed (50)
+      Tests  379 passed (379)
+   Start at  15:37:47
+   Duration  43.99s (import 40%, tests 33%, environment 18%, setup 5%, transform 4%)
+
+     Import  978 modules were evaluated 28286 times · 33.99s total, 40% of tracked time
+             ~15.86s faster with isolate: false — shared modules are evaluated once per worker instead of once per file
+             learn more: https://vitest.dev/guide/improving-performance#test-isolation
+
+
+EXIT_CODE=0

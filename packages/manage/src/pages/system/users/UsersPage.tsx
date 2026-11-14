@@ -6,6 +6,7 @@ import { DictSelect } from '@/components/DictSelect';
 import { DictTag } from '@/components/DictTag';
 import { useColumnSettings } from '@/components/ColumnSettings';
 import { PageContainer } from '@/components/PageContainer';
+import { KeywordSearchInput } from '@/components/KeywordSearchInput';
 import { ListEmptyState, ListFeedback } from '@/components/ListFeedback';
 import { Permission } from '@/components/Permission';
 import { SearchField, SearchToolbar, type SearchCondition } from '@/components/SearchToolbar';
@@ -334,9 +335,12 @@ export default function UsersPage() {
                         </Button>
                     </Permission>
                 }
-                // 高级筛选是单字段查询（设计稿「用户列表」顺序）；状态与工具栏共用同一份草稿
+                // 高级筛选首部补齐关键字，其余为单字段查询；关键字和状态与工具栏共用草稿
                 advanced={
                     <>
+                        <SearchField label="关键字（用户名 / 昵称 / 手机）">
+                            <KeywordSearchInput value={draft.keyword} onChange={(keyword) => setDraft((d) => ({ ...d, keyword }))} onSearch={search} />
+                        </SearchField>
                         <SearchField label="用户名">
                             <Input
                                 placeholder="请输入用户名"
@@ -432,14 +436,7 @@ export default function UsersPage() {
                     </>
                 }
             >
-                <Input
-                    placeholder="用户名 / 昵称 / 手机"
-                    value={draft.keyword}
-                    onChange={(keyword) => setDraft((d) => ({ ...d, keyword }))}
-                    onEnterPress={search}
-                    showClear
-                    style={{ width: 240 }}
-                />
+                <KeywordSearchInput compact value={draft.keyword} onChange={(keyword) => setDraft((d) => ({ ...d, keyword }))} onSearch={search} />
                 <DictSelect
                     dictCode="sys_common_status"
                     placeholder="状态"

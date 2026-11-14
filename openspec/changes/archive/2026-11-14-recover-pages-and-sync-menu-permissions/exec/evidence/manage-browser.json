@@ -1,0 +1,11 @@
+{
+  "realManageSearch": true,
+  "mobileWidth": 390,
+  "desktopWidth": 1440,
+  "queries": [
+    "?page=1&pageSize=20",
+    "?page=1&pageSize=20&keyword=%E7%88%B1%E4%B8%BD%E4%B8%9D",
+    "?page=1&pageSize=20"
+  ],
+  "uncaughtErrors": []
+}

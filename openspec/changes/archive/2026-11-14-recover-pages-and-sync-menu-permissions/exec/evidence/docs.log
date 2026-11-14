@@ -1,0 +1,43 @@
+$ turbo run build --filter=@weiran/docs
+
+   • turbo 2.11.10
+   • Packages in scope: @weiran/docs
+   • Running build in 1 package
+   • Remote caching disabled
+
+@weiran-tech/semi-components:build: cache hit, replaying logs 74d5b19205f63439
+@weiran-tech/semi-components:build: $ vite build && tsc -p tsconfig.build.json
+@weiran-tech/semi-components:build: vite v8.3.6 building client environment for production...
+@weiran-tech/semi-components:build: transforming...
+@weiran-tech/semi-components:build: ✓ 22 modules transformed.
+@weiran-tech/semi-components:build: rendering chunks...
+@weiran-tech/semi-components:build: computing gzip size...
+@weiran-tech/semi-components:build: dist/style.css  10.32 kB │ gzip:  2.34 kB
+@weiran-tech/semi-components:build: dist/index.js   35.99 kB │ gzip: 10.46 kB
+@weiran-tech/semi-components:build: 
+@weiran-tech/semi-components:build: ✓ built in 230ms
+@weiran/docs:build: cache miss, executing 1bb4489eb75b3d20
+@weiran/docs:build: $ vitepress build .
+@weiran/docs:build: 
+@weiran/docs:build:   vitepress v1.6.4
+@weiran/docs:build: 
+@weiran/docs:build: - building client + server bundles...
+@weiran/docs:build: ../node_modules/.pnpm/@tiptap+react@3.31.3_@floating-ui+dom@1.8.0_@tiptap+core@3.31.3_@tiptap+pm@3.31.3__@tip_4422c810aa114cbf1fa93bb48dd44728/node_modules/@tiptap/react/dist/index.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tiptap+react@3.31.3_@floating-ui+dom@1.8.0_@tiptap+core@3.31.3_@tiptap+pm@3.31.3__@tip_4422c810aa114cbf1fa93bb48dd44728/node_modules/@tiptap/react/dist/index.js" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/Icon.mjs (2:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/Icon.mjs" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/context.mjs (2:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/context.mjs" was ignored.
+@weiran/docs:build: 
+@weiran/docs:build: (!) Some chunks are larger than 500 kB after minification. Consider:
+@weiran/docs:build: - Using dynamic import() to code-split the application
+@weiran/docs:build: - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+@weiran/docs:build: - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+@weiran/docs:build: [32m✓[0m building client + server bundles...
+@weiran/docs:build: - rendering pages...
+@weiran/docs:build: [32m✓[0m rendering pages...
+@weiran/docs:build: - generating sitemap...
+@weiran/docs:build: [32m✓[0m generating sitemap...
+@weiran/docs:build: build complete in 10.00s.
+
+ Tasks:    2 successful, 2 total
+Cached:    1 cached, 2 total
+  Time:    10.359s 
+

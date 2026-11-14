@@ -1,0 +1,8 @@
+{
+  "task": "@weiran/docs#build",
+  "verifiedInputs": [
+    "../packages/manage/src/components/RecoverablePage.tsx",
+    "../packages/manage/src/utils/page-loader.ts"
+  ],
+  "cacheMissBuild": true
+}
