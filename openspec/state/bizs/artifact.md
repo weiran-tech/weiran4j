@@ -20,10 +20,6 @@
   (`LocalIdentityResolver` 每次请求按主键查 `token_version` 与 `status`,不走缓存)。
   剩余:角色 / 菜单授权变更的 30s 窗口。单节点部署不受影响;上多节点且不能接受 30s 延迟时,改成分布式失效(如 Redis 广播)。
 
-- **#03 ⚠️ P2 客户端 IP 直接信任 `X-Forwarded-For`**
-  症状:登录日志与操作日志里的 IP 可被请求方任意伪造,安全回溯时拿到的是假地址。
-  `weiran-framework` 的 `ClientIpResolver` 取 `X-Forwarded-For` 首个值,不校验请求是否来自可信代理。
-  关闭条件:配置可信代理网段,只有来自可信代理的请求才读该头。
 
 - **#04 ⚠️ P3 OpenAPI 文档不体现统一响应包络**
   症状:按 `/v3/api-docs` 生成客户端的人拿到的返回类型是裸业务对象,实际响应外面还有 `{code, message, data}`。
@@ -101,9 +97,19 @@
   `check` 全绿,CP-2「只能用 `error/page/response/status/text/tree`」只靠评审守。
   可选做法:Checkstyle `ImportControl` 或 ArchUnit 规则,限制 `*.domain..` / `*.api..` 只能 import 上述六个包。
 
+- **#25 ⚠️ P2 短信登录、MFA 与手机号绑定挑战状态仅保存在单进程内**
+  症状：`PhoneLoginApplicationService`、`MfaLoginApplicationService` 和 `PhoneBindingApplicationService` 使用进程内 Map 保存挑战及节流状态；验证码在 A 实例创建后，请求被分配到 B 实例可能被判无效，实例重启也会丢失未过期挑战，发送频控无法跨节点累加。`AuthSnapshotCache` 的权限失效也只作用于本节点（另见本文件 #02）。建议先明确单实例运行约束；有多实例需求时，为挑战与频控定义共享存储端口、原子消费和过期语义，并单独处理权限失效传播。2026-11-14 静态复查，未进行双实例验证。
+
 ## changelog
 
 **2026-11-14**
+
+- **#03 ✅ P2 客户端 IP 直接信任 `X-Forwarded-For`**
+  原症状:登录日志与操作日志里的 IP 可被请求方任意伪造,安全回溯时拿到的是假地址。
+  原实现：`weiran-framework` 的 `ClientIpResolver` 取 `X-Forwarded-For` 首个值,不校验请求是否来自可信代理。
+  原关闭条件:配置可信代理网段,只有来自可信代理的请求才读该头。
+  2026-11-14 设计复查补充：该值已不仅用于日志。`AuthController.clientOf` 将其放入 ClientContext，手机号登录与绑定手机号的发送/尝试限制使用 `client.ip()`；随意改变转发头会改变 IP 限流桶。仓内 Nginx 以 `$proxy_add_x_forwarded_for` 追加来访值，后端取首项，单靠这一默认反代配置不能消除伪造。启用短信能力时应按 P1 处理可信代理边界；不能据此声称手机号维度的限制也全部失效。本轮为静态代码链路核对，未进行攻击验证。
+  由 `enforce-trusted-client-ip-boundary` 解决：可信代理默认空列表，按 socket peer 与显式 IP/CIDR 从右向左解析链；非法/重复/超限输入退回直接对端。日志和短信限流复用请求内缓存的规范化 IP，应用禁止标准先行改写，边缘 Nginx 覆盖访客声明。IPv4/IPv6、真实 HTTP 审计与变更伪造头的 IP 限流回归通过；部署前须显式配置实际代理范围，示例见 `docs/trusted-proxies.md`。
 
 - **#23 ✅ P2 表单关闭保护尚未覆盖角色、菜单和字典编辑**
   原症状：用户和地区表单已接入 `useFormCloseGuard`，但 `RoleFormModal`、`MenuFormModal`、`DictFormModal` 与字典项编辑仍直接 `onCancel={onClose}`。编辑后取消或按 Esc 会丢失草稿；保存中仍有关闭入口，关闭后请求可能继续生效。应统一接入已有保护及保存期关闭限制。原审查为静态检查，未进行浏览器故障注入。

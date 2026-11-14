@@ -22,15 +22,20 @@ import com.wulicode.weiran.framework.persistence.AuditorProvider;
 import com.wulicode.weiran.framework.persistence.CurrentUserAuditorProvider;
 import com.wulicode.weiran.framework.time.WeiranTime;
 import com.wulicode.weiran.framework.web.ApiResponseBodyAdvice;
+import com.wulicode.weiran.framework.web.ClientIpFilter;
 import com.wulicode.weiran.framework.web.GlobalExceptionHandler;
 import com.wulicode.weiran.framework.web.HealthController;
 import com.wulicode.weiran.framework.web.RequestIdFilter;
+import com.wulicode.weiran.framework.web.TrustedProxyPolicy;
+import com.wulicode.weiran.framework.web.TrustedProxyProperties;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.TimeZone;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -41,8 +46,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
+import org.springframework.core.env.Environment;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
+import org.springframework.web.filter.ForwardedHeaderFilter;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -104,7 +111,7 @@ public class WeiranFrameworkAutoConfiguration {
     /** Web：认证拦截器与认证 Cookie、请求参数时间格式、统一响应、全局异常、健康检查、操作日志切面。 */
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-    @EnableConfigurationProperties(AuthCookieProperties.class)
+    @EnableConfigurationProperties({AuthCookieProperties.class, TrustedProxyProperties.class})
     @Import({ApiResponseBodyAdvice.class, GlobalExceptionHandler.class, HealthController.class})
     static class WebConfiguration {
 
@@ -117,6 +124,36 @@ public class WeiranFrameworkAutoConfiguration {
             registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
             registration.addUrlPatterns("/*");
             return registration;
+        }
+
+        @Bean
+        @ConditionalOnMissingBean
+        TrustedProxyPolicy trustedProxyPolicy(final TrustedProxyProperties properties) {
+            return new TrustedProxyPolicy(properties);
+        }
+
+        @Bean
+        @ConditionalOnMissingBean(ClientIpFilter.class)
+        FilterRegistrationBean<ClientIpFilter> clientIpFilter(final TrustedProxyPolicy policy) {
+            final FilterRegistrationBean<ClientIpFilter> registration =
+                    new FilterRegistrationBean<>(new ClientIpFilter(policy));
+            registration.setOrder(Ordered.HIGHEST_PRECEDENCE + 1);
+            registration.addUrlPatterns("/*");
+            return registration;
+        }
+
+        @Bean
+        SmartInitializingSingleton trustedProxyBoundaryGuard(
+                final Environment environment, final ListableBeanFactory beans) {
+            return () -> {
+                if (!"none".equalsIgnoreCase(environment.getProperty("server.forward-headers-strategy", ""))
+                        || beans.getBeanNamesForType(ForwardedHeaderFilter.class).length > 0
+                        || beans.getBeansOfType(FilterRegistrationBean.class).values().stream()
+                                .anyMatch(registration -> registration.getFilter() instanceof ForwardedHeaderFilter)) {
+                    throw new IllegalStateException(
+                            "可信 IP 边界要求 server.forward-headers-strategy=none，禁止 ForwardedHeaderFilter 或原生代理地址改写");
+                }
+            };
         }
 
         /** 认证 Cookie 的生成与清除，由登录 / 登出接口调用。 */

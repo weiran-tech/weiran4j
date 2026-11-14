@@ -38,11 +38,15 @@ spring:
       port: 35730   # 默认 35729,换成任意空闲端口
 
 server:
+  # 客户端 IP 只由可信代理策略解析，容器不得先改写 socket peer。
+  forward-headers-strategy: none
   port: ${WEIRAN_PORT:5200}
   # Spring Boot 3.4 起默认就是 graceful；显式写出，不随框架默认值漂移。
   shutdown: graceful
 
 weiran:
+  web:
+    trusted-proxies: ${WEIRAN_TRUSTED_PROXIES:}
   system:
     bcrypt-strength: 10
   storage:

@@ -9,6 +9,8 @@ WEIRAN_DB_USERNAME=root
 WEIRAN_DB_PASSWORD=
 
 # 服务地址与端口
+# 可信代理 IP/CIDR，逗号分隔，默认空；配置示例见 /trusted-proxies
+WEIRAN_TRUSTED_PROXIES=
 WEIRAN_PORT=5200
 WEIRAN_WEB_PORT=5202
 WEIRAN_PUBLIC_BASE_URL=http://localhost:5202

@@ -1,0 +1,8 @@
+nginx version: nginx/1.30.6
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+PASS edge: changed spoofed headers yield same actual peer; Forwarded removed; requestId retained
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+PASS trusted upstream: recursive chain stops at last non-trusted address and forwards clean single IP
+PASS untrusted upstream: realip ignores forged chain from other network peer

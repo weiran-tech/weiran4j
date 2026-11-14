@@ -1,0 +1,121 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+> Task :weiran-system:spotlessJava UP-TO-DATE
+> Task :weiran-region:spotlessJava UP-TO-DATE
+> Task :weiran-region:spotlessJavaApply UP-TO-DATE
+> Task :weiran-system:spotlessJavaApply UP-TO-DATE
+> Task :weiran-system:spotlessApply UP-TO-DATE
+> Task :weiran-region:spotlessApply UP-TO-DATE
+> Task :weiran-region-api:spotlessJava UP-TO-DATE
+> Task :weiran-demo:spotlessJava UP-TO-DATE
+> Task :weiran-region-api:spotlessJavaApply UP-TO-DATE
+> Task :weiran-region-api:spotlessApply UP-TO-DATE
+> Task :weiran-demo:spotlessJavaApply UP-TO-DATE
+> Task :weiran-demo:spotlessApply UP-TO-DATE
+> Task :weiran-region-infrastructure:spotlessJava UP-TO-DATE
+> Task :weiran-region-application:spotlessJava UP-TO-DATE
+> Task :weiran-region-infrastructure:spotlessJavaApply UP-TO-DATE
+> Task :weiran-region-infrastructure:spotlessApply UP-TO-DATE
+> Task :weiran-region-application:spotlessJavaApply UP-TO-DATE
+> Task :weiran-region-domain:spotlessJava UP-TO-DATE
+> Task :weiran-region-application:spotlessApply UP-TO-DATE
+> Task :weiran-region-adapter:spotlessJava UP-TO-DATE
+> Task :weiran-region-domain:spotlessJavaApply UP-TO-DATE
+> Task :weiran-region-domain:spotlessApply UP-TO-DATE
+> Task :weiran-region-adapter:spotlessJavaApply UP-TO-DATE
+> Task :weiran-region-adapter:spotlessApply UP-TO-DATE
+> Task :weiran-region-api:processResources NO-SOURCE
+> Task :weiran-region-adapter:processResources UP-TO-DATE
+> Task :weiran-region-domain:processResources NO-SOURCE
+> Task :weiran-region-application:processResources UP-TO-DATE
+> Task :weiran-demo:processResources UP-TO-DATE
+> Task :weiran-region-infrastructure:processResources UP-TO-DATE
+> Task :weiran-framework:spotlessJava UP-TO-DATE
+> Task :weiran-system-adapter:spotlessJava UP-TO-DATE
+> Task :weiran-framework:spotlessJavaApply UP-TO-DATE
+> Task :weiran-framework:spotlessApply UP-TO-DATE
+> Task :weiran-system-adapter:spotlessJavaApply UP-TO-DATE
+> Task :weiran-system-adapter:spotlessApply UP-TO-DATE
+> Task :weiran-system-application:spotlessJava UP-TO-DATE
+> Task :weiran-system-adapter:processResources UP-TO-DATE
+> Task :weiran-system-application:spotlessJavaApply UP-TO-DATE
+> Task :weiran-system-application:spotlessApply UP-TO-DATE
+> Task :weiran-system-api:spotlessJava UP-TO-DATE
+> Task :weiran-system-application:processResources UP-TO-DATE
+> Task :weiran-system-api:spotlessJavaApply UP-TO-DATE
+> Task :weiran-system-api:spotlessApply UP-TO-DATE
+> Task :weiran-system-infrastructure:spotlessJava UP-TO-DATE
+> Task :weiran-system-api:processResources NO-SOURCE
+> Task :weiran-system-infrastructure:spotlessJavaApply UP-TO-DATE
+> Task :weiran-system-infrastructure:spotlessApply UP-TO-DATE
+> Task :weiran-system-domain:spotlessJava UP-TO-DATE
+> Task :weiran-system-domain:spotlessJavaApply UP-TO-DATE
+> Task :weiran-system-domain:spotlessApply UP-TO-DATE
+> Task :weiran-system-domain:processResources NO-SOURCE
+> Task :weiran-system-infrastructure:processResources UP-TO-DATE
+> Task :weiran-framework:compileJava UP-TO-DATE
+> Task :weiran-framework:processResources UP-TO-DATE
+> Task :weiran-framework:classes UP-TO-DATE
+> Task :weiran-framework:jar UP-TO-DATE
+> Task :weiran-region-domain:compileJava UP-TO-DATE
+> Task :weiran-system-api:compileJava UP-TO-DATE
+> Task :weiran-system-domain:compileJava UP-TO-DATE
+> Task :weiran-region-api:compileJava UP-TO-DATE
+> Task :weiran-region-domain:classes UP-TO-DATE
+> Task :weiran-region-api:classes UP-TO-DATE
+> Task :weiran-system-api:classes UP-TO-DATE
+> Task :weiran-system-domain:classes UP-TO-DATE
+> Task :weiran-region-domain:jar UP-TO-DATE
+> Task :weiran-region-api:jar UP-TO-DATE
+> Task :weiran-system-api:jar UP-TO-DATE
+> Task :weiran-system-domain:jar UP-TO-DATE
+> Task :weiran-region-application:compileJava UP-TO-DATE
+> Task :weiran-region-infrastructure:compileJava UP-TO-DATE
+> Task :weiran-region-application:classes UP-TO-DATE
+> Task :weiran-region-infrastructure:classes UP-TO-DATE
+> Task :weiran-region-application:jar UP-TO-DATE
+> Task :weiran-region-infrastructure:jar UP-TO-DATE
+> Task :weiran-region-adapter:compileJava UP-TO-DATE
+> Task :weiran-region-adapter:classes UP-TO-DATE
+> Task :weiran-system-application:compileJava UP-TO-DATE
+> Task :weiran-demo:compileJava UP-TO-DATE
+> Task :weiran-region-adapter:jar UP-TO-DATE
+> Task :weiran-system-application:classes UP-TO-DATE
+> Task :weiran-demo:classes UP-TO-DATE
+> Task :weiran-system-application:jar UP-TO-DATE
+> Task :weiran-demo:jar UP-TO-DATE
+> Task :weiran-system-adapter:compileJava UP-TO-DATE
+> Task :weiran-system-adapter:classes UP-TO-DATE
+> Task :weiran-system-infrastructure:compileJava UP-TO-DATE
+> Task :weiran-system-infrastructure:classes UP-TO-DATE
+> Task :weiran-system-adapter:jar UP-TO-DATE
+> Task :weiran-system-infrastructure:jar UP-TO-DATE
+> Task :weiran-app:spotlessJava
+> Task :weiran-app:spotlessJavaApply
+> Task :weiran-app:spotlessApply
+> Task :weiran-app:compileJava UP-TO-DATE
+> Task :weiran-app:processResources UP-TO-DATE
+> Task :weiran-app:classes UP-TO-DATE
+> Task :weiran-app:compileTestJava
+> Task :weiran-app:processTestResources UP-TO-DATE
+> Task :weiran-app:testClasses
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[2026-11-14 18:27:47.277] [weiran4j] [] [SpringApplicationShutdownHook] [INFO] [o.s.boot.web.embedded.tomcat.GracefulShutdown] --> Commencing graceful shutdown. Waiting for active requests to complete
+[2026-11-14 18:27:47.296] [weiran4j] [] [tomcat-shutdown] [INFO] [o.s.boot.web.embedded.tomcat.GracefulShutdown] --> Graceful shutdown complete
+[2026-11-14 18:27:47.697] [weiran4j] [] [SpringApplicationShutdownHook] [INFO] [com.zaxxer.hikari.HikariDataSource] --> HikariPool-1 - Shutdown initiated...
+[2026-11-14 18:27:47.699] [weiran4j] [] [SpringApplicationShutdownHook] [INFO] [com.zaxxer.hikari.HikariDataSource] --> HikariPool-1 - Shutdown completed.
+[2026-11-14 18:27:47.704] [weiran4j] [] [SpringApplicationShutdownHook] [INFO] [o.s.boot.web.embedded.tomcat.GracefulShutdown] --> Commencing graceful shutdown. Waiting for active requests to complete
+[2026-11-14 18:27:47.710] [weiran4j] [] [tomcat-shutdown] [INFO] [o.s.boot.web.embedded.tomcat.GracefulShutdown] --> Graceful shutdown complete
+[2026-11-14 18:27:47.713] [weiran4j] [] [SpringApplicationShutdownHook] [INFO] [com.zaxxer.hikari.HikariDataSource] --> HikariPool-2 - Shutdown initiated...
+[2026-11-14 18:27:47.715] [weiran4j] [] [SpringApplicationShutdownHook] [INFO] [com.zaxxer.hikari.HikariDataSource] --> HikariPool-2 - Shutdown completed.
+> Task :weiran-app:test
+
+BUILD SUCCESSFUL in 36s
+71 actionable tasks: 4 executed, 67 up-to-date

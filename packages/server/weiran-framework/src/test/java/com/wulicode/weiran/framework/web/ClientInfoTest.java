@@ -42,17 +42,17 @@ class ClientInfoTest {
     }
 
     @Test
-    @DisplayName("客户端 IP 优先取 X-Forwarded-For 第一个，其次 X-Real-IP，最后 remoteAddr")
+    @DisplayName("没有可信过滤器时始终只取直接对端")
     void resolvesClientIp() {
         final MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRemoteAddr("10.0.0.1");
         assertThat(ClientIpResolver.resolve(request)).isEqualTo("10.0.0.1");
 
         request.addHeader("X-Real-IP", "172.16.0.9");
-        assertThat(ClientIpResolver.resolve(request)).isEqualTo("172.16.0.9");
+        assertThat(ClientIpResolver.resolve(request)).isEqualTo("10.0.0.1");
 
         request.addHeader("X-Forwarded-For", " 203.0.113.7 , 10.0.0.2");
-        assertThat(ClientIpResolver.resolve(request)).isEqualTo("203.0.113.7");
+        assertThat(ClientIpResolver.resolve(request)).isEqualTo("10.0.0.1");
 
         final MockHttpServletRequest unknown = new MockHttpServletRequest();
         unknown.addHeader("X-Forwarded-For", "unknown");
