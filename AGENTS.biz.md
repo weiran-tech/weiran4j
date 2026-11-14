@@ -11,6 +11,10 @@
 - 后台接口由 `/api-backend/region/area` 提供；公开启用地区树由 `/api-backend/n/region/area/getEnabledTree` 提供。接口契约以 Springdoc OpenAPI 和 `openspec/specs/administrative-regions/spec.md` 为准。
 - 地区状态文档为 `openspec/state/bizs/region.md`，下游索引为 `openspec/state/bizs/README.biz.md`。
 
+## 下游前端规则索引
+
+- 写下游前端页面或组件前，读取 [`components.biz.md`](openspec/rules/advisory/components.biz.md)，与上游组件清单一起查找可复用能力。
+
 ## 上游同步
 
 框架和基座改动优先回上游处理；下游扩展入口见 `packages/server/docs/01-架构与接口契约.md` §2.2。同步上游使用 `git fetch upstream` 和 `git merge upstream/main`。

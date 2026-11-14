@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useColumnSettings } from '@/components/ColumnSettings';
 import { PageContainer } from '@/components/PageContainer';
+import { ListEmptyState, ListFeedback } from '@/components/ListFeedback';
 import { Permission } from '@/components/Permission';
 import { SearchToolbar, type SearchCondition } from '@/components/SearchToolbar';
 import { STATUS_OPTIONS, StatusTag } from '@/components/StatusTag';
@@ -57,9 +58,10 @@ export default function RegionsPage() {
     const [draft, setDraft] = useState<Filters>(EMPTY_FILTERS);
     const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
     const [target, setTarget] = useState<Target | null>(null);
-    const [expandedKeys, setExpandedKeys] = useState<number[]>([]);
+    // null 表示采用当前查询的默认展开；数组表示用户已手动选择，同条件刷新不覆盖。
+    const [manualExpandedKeys, setExpandedKeys] = useState<number[] | null>(null);
     const appliedQuery = toQuery(filters);
-    const { data, isFetching, refetch } = useRegionTree(appliedQuery);
+    const { data, isFetching, isError, refetch } = useRegionTree(appliedQuery);
     const saveRegion = useSaveRegion();
     const deleteRegion = useDeleteRegion();
     const tree = useMemo(() => sortRegionTree(data ?? []), [data]);
@@ -67,6 +69,8 @@ export default function RegionsPage() {
         () => flattenTree(tree).filter((node) => node.children.length > 0).map((node) => node.id),
         [tree],
     );
+    const filtered = Object.keys(appliedQuery).length > 0;
+    const expandedKeys = manualExpandedKeys ?? (filtered ? expandableKeys : []);
     const depthById = useMemo(() => {
         const depths = new Map<number, number>();
         const visit = (nodes: readonly RegionNode[], depth: number) => {
@@ -82,18 +86,18 @@ export default function RegionsPage() {
 
     const search = () => {
         setFilters(draft);
-        setExpandedKeys([]);
+        setExpandedKeys(null);
     };
     const reset = () => {
         setDraft(EMPTY_FILTERS);
         setFilters(EMPTY_FILTERS);
-        setExpandedKeys([]);
+        setExpandedKeys(null);
     };
     const removeFilter = (field: keyof Filters) => () => {
         const nextDraft = { ...draft, [field]: EMPTY_FILTERS[field] };
         setDraft(nextDraft);
         setFilters((current) => ({ ...current, [field]: EMPTY_FILTERS[field] }));
-        setExpandedKeys([]);
+        setExpandedKeys(null);
     };
     const conditions: SearchCondition[] = [
         ...(filters.keyword.trim()
@@ -136,9 +140,7 @@ export default function RegionsPage() {
                                 type="button"
                                 aria-label={`${expanded ? '收起' : '展开'}${record.name}`}
                                 onClick={() =>
-                                    setExpandedKeys((keys) =>
-                                        expanded ? keys.filter((id) => id !== record.id) : [...keys, record.id],
-                                    )
+                                    setExpandedKeys(expanded ? expandedKeys.filter((id) => id !== record.id) : [...expandedKeys, record.id])
                                 }
                                 style={{
                                     display: 'inline-flex',
@@ -278,12 +280,14 @@ export default function RegionsPage() {
                     />
                 </Space>
             </SearchToolbar>
+            {isError && <ListFeedback hasData={data !== undefined} retrying={isFetching} onRetry={() => void refetch()} />}
             <Table<RegionNode>
                 {...tableProps}
                 rowKey="id"
                 columns={tableColumns}
                 dataSource={tree}
                 loading={isFetching}
+                empty={isFetching || isError ? <span aria-hidden="true" /> : <ListEmptyState filtered={filtered} onReset={reset} />}
                 pagination={false}
                 hideExpandedColumn
                 expandedRowKeys={expandedKeys}

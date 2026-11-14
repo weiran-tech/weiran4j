@@ -5,6 +5,7 @@ import { STATUS_OPTIONS } from '@/components/StatusTag';
 import { useDictOptions } from '@/hooks/queries/dicts';
 import { useRoleOptions } from '@/hooks/queries/roles';
 import { useSaveUser } from '@/hooks/queries/users';
+import { useFormCloseGuard } from '@/hooks/useFormCloseGuard';
 import { PASSWORD_RULE, PASSWORD_RULE_MESSAGE } from '@/utils/password';
 import type { Gender, Status, UserView } from '@/types/api';
 
@@ -40,6 +41,7 @@ export function UserFormModal({ record, onClose }: Props) {
     const isEdit = record !== null;
     const api = useRef<FormApi<UserForm> | null>(null);
     const save = useSaveUser();
+    const guard = useFormCloseGuard(api, onClose);
     const genderOptions = useDictOptions('sys_user_gender');
     const { data: roles } = useRoleOptions();
 
@@ -66,9 +68,12 @@ export function UserFormModal({ record, onClose }: Props) {
             visible
             title={isEdit ? '编辑用户' : '新增用户'}
             width={600}
-            onCancel={onClose}
-            onOk={() => submit().catch(() => undefined)}
-            okButtonProps={{ loading: save.isPending }}
+            onCancel={guard.requestClose}
+            onOk={() => guard.submit(submit).catch(() => undefined)}
+            okButtonProps={{ loading: guard.saving, disabled: guard.saving }}
+            cancelButtonProps={{ disabled: guard.saving }}
+            closable={!guard.saving}
+            closeOnEsc={!guard.saving}
             maskClosable={false}
         >
             <Form<UserForm>

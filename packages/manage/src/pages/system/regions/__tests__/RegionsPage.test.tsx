@@ -47,6 +47,84 @@ const baseRoutes = () => ({
 describe('RegionsPage', () => {
     afterEach(() => vi.unstubAllGlobals());
 
+    it('首次失败显示持久错误，重试成功后显示地区', async () => {
+        let failing = true;
+        mockFetch({
+            ...baseRoutes(),
+            'GET /api-backend/region/area/listTree': () => failing
+                ? Response.json({ code: 100000, message: '读取失败' }, { status: 500 }) : [beijing],
+        });
+        renderWithProviders(<RegionsPage />);
+        const alert = await screen.findByRole('alert', { name: '列表加载失败' });
+        expect(alert).toHaveTextContent('加载失败');
+        expect(screen.queryByText('暂无记录')).not.toBeInTheDocument();
+        expect(screen.queryByText('暂无数据')).not.toBeInTheDocument();
+        failing = false;
+        fireEvent.click(within(alert).getByRole('button', { name: '重试' }));
+        expect(await screen.findByText('北京市')).toBeInTheDocument();
+        await waitFor(() => expect(screen.queryByRole('alert', { name: '列表加载失败' })).not.toBeInTheDocument());
+    });
+
+    it('地区刷新失败保留旧数据，空结果可以清空筛选', async () => {
+        let failing = false;
+        mockFetch({
+            ...baseRoutes(),
+            'GET /api-backend/region/area/listTree': (_init: unknown, url: URL) => failing
+                ? Response.json({ code: 100000, message: '读取失败' }, { status: 500 })
+                : url.searchParams.has('keyword') ? [] : [beijing],
+        });
+        renderWithProviders(<RegionsPage />);
+        await screen.findByText('北京市');
+        failing = true;
+        fireEvent.click(screen.getByRole('button', { name: '刷新' }));
+        const alert = await screen.findByRole('alert', { name: '列表加载失败' });
+        expect(alert).toHaveTextContent('更新失败');
+        expect(screen.getByText('北京市')).toBeInTheDocument();
+        failing = false;
+        fireEvent.click(within(alert).getByRole('button', { name: '重试' }));
+        await waitFor(() => expect(screen.queryByRole('alert', { name: '列表加载失败' })).not.toBeInTheDocument());
+        fireEvent.change(screen.getByPlaceholderText('地区名称 / 区划代码'), { target: { value: 'none' } });
+        fireEvent.click(screen.getByRole('button', { name: '搜索' }));
+        await screen.findByText('没有匹配结果');
+        fireEvent.click(screen.getByRole('button', { name: '清空条件' }));
+        expect(await screen.findByText('北京市')).toBeInTheDocument();
+    });
+
+    it('成功的未筛选空列表显示暂无记录', async () => {
+        mockFetch({ ...baseRoutes(), 'GET /api-backend/region/area/listTree': [] });
+        renderWithProviders(<RegionsPage />);
+        expect(await screen.findByText('暂无记录')).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: '清空条件' })).not.toBeInTheDocument();
+    });
+
+    it('筛选后自动展开三级路径，手动折叠后刷新保持，清空和重新筛选正确初始化', async () => {
+        const city = beijing.children[0]!;
+        const county: RegionNode = { ...city, id: 12, code: '110101', name: '东城区', level: 'county', parentCode: city.code };
+        const tree = [{ ...beijing, children: [{ ...city, children: [county] }] }];
+        const { calls } = mockFetch({ ...baseRoutes(), 'GET /api-backend/region/area/listTree': tree });
+        renderWithProviders(<RegionsPage />);
+        await screen.findByText('北京市');
+        expect(screen.queryByText('东城区')).not.toBeInTheDocument();
+        const input = screen.getByPlaceholderText('地区名称 / 区划代码');
+        fireEvent.change(input, { target: { value: '东城' } });
+        fireEvent.click(screen.getByRole('button', { name: '搜索' }));
+        expect(await screen.findByText('东城区')).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: '全部收起' }));
+        expect(screen.queryByText('东城区')).not.toBeInTheDocument();
+        const before = calls.length;
+        fireEvent.click(screen.getByRole('button', { name: '刷新' }));
+        await waitFor(() => expect(calls.length).toBeGreaterThan(before));
+        await waitFor(() => expect(document.querySelector('.semi-spin-spinning')).not.toBeInTheDocument());
+        expect(screen.queryByText('东城区')).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: '移除条件 关键字：东城' }));
+        expect(screen.queryByText('北京市辖区')).not.toBeInTheDocument();
+        fireEvent.change(input, { target: { value: '110101' } });
+        fireEvent.click(screen.getByRole('button', { name: '搜索' }));
+        expect(await screen.findByText('东城区')).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: '重置' }));
+        expect(screen.queryByText('北京市辖区')).not.toBeInTheDocument();
+    });
+
     it('把地区行展开按钮放在名称列，并支持全部展开/收起', async () => {
         mockFetch(baseRoutes());
         renderWithProviders(<RegionsPage />);

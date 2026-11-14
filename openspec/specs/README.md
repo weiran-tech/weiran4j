@@ -2,14 +2,14 @@
 
 # 能力索引
 
-16 个能力 / 88 条需求 —— active 11 · partial 0 · superseded 5。
+16 个能力 / 90 条需求 —— active 11 · partial 0 · superseded 5。
 
 状态口径见 `openspec/config.yaml` 的 `rules.specs`:
 `active` 现行有效 · `partial` 主体有效但有已知缺口(缺口写在 Purpose 里) · `superseded` 已被取代,内容仅供追溯、**不再具有约束力**。
 
 | 能力 | 需求 | 状态 | 一句话职责 |
 |---|---:|---|---|
-| [admin-foundation](admin-foundation/spec.md) | 13 | active | 本能力长期承担后台管理框架的底座职责：JWT 登录与令牌吊销、基于角色-菜单的权限模型（菜单驱动前端动态路由与按钮权… |
+| [admin-foundation](admin-foundation/spec.md) | 15 | active | 本能力长期承担后台管理框架的底座职责：JWT 登录与令牌吊销、基于角色-菜单的权限模型（菜单驱动前端动态路由与按钮权… |
 | [administrative-regions](administrative-regions/spec.md) | 8 | active | 行政区划能力为后台业务提供统一、可维护的中国省市县三级地区数据，并通过稳定的区划代码支持地区检索、管理和级联选择 |
 | [continuous-integration](continuous-integration/spec.md) | 2 | active | 本能力长期负责「代码合入主分支前,由机器而不是由人的自觉来跑完哪些门禁」:触发时机、必须执行的后端、前端与规格流水线… |
 | [deployment](deployment/spec.md) | 3 | active | 本能力长期负责「只依赖仓库里的产物就能部署一套可用环境」:环境变量清单与应用配置保持一致,容器镜像可构建、可运行, |

@@ -41,6 +41,65 @@ function baseRoutes() {
 describe('UsersPage', () => {
     afterEach(() => vi.unstubAllGlobals());
 
+    it('首次加载失败持续提示并可按当前条件重试，成功后移除错误', async () => {
+        let failing = true;
+        const { calls } = mockFetch({
+            ...baseRoutes(),
+            'GET /api-backend/system/user/list': () => failing
+                ? Response.json({ code: 100000, message: '读取失败' }, { status: 500 })
+                : page([alice]),
+        });
+        renderWithProviders(<UsersPage />);
+        const alert = await screen.findByRole('alert', { name: '列表加载失败' });
+        expect(alert).toHaveTextContent('加载失败，请重试');
+        expect(screen.queryByText('暂无记录')).not.toBeInTheDocument();
+        expect(screen.queryByText('暂无数据')).not.toBeInTheDocument();
+        failing = false;
+        fireEvent.click(within(alert).getByRole('button', { name: '重试' }));
+        expect(await screen.findByText('alice')).toBeInTheDocument();
+        await waitFor(() => expect(screen.queryByRole('alert', { name: '列表加载失败' })).not.toBeInTheDocument());
+        expect(calls.filter((c) => c.path === '/api-backend/system/user/list').map((c) => c.search)).toEqual([
+            '?page=1&pageSize=20', '?page=1&pageSize=20',
+        ]);
+    });
+
+    it('刷新失败保留用户行和筛选条件，重试仍使用当前查询', async () => {
+        let failing = false;
+        const { calls } = mockFetch({
+            ...baseRoutes(),
+            'GET /api-backend/system/user/list': () => failing
+                ? Response.json({ code: 100000, message: '读取失败' }, { status: 500 })
+                : page([alice]),
+        });
+        renderWithProviders(<UsersPage />);
+        await screen.findByText('alice');
+        fireEvent.change(screen.getByPlaceholderText('用户名 / 昵称 / 手机'), { target: { value: 'ali' } });
+        fireEvent.click(screen.getByRole('button', { name: '搜索' }));
+        await waitFor(() => expect(calls.at(-1)?.search).toContain('keyword=ali'));
+        await waitFor(() => expect(document.querySelector('.semi-spin-spinning')).not.toBeInTheDocument());
+        failing = true;
+        fireEvent.click(screen.getByRole('button', { name: '刷新' }));
+        const alert = await screen.findByRole('alert', { name: '列表加载失败' });
+        expect(alert).toHaveTextContent('更新失败');
+        expect(screen.getByText('alice')).toBeInTheDocument();
+        failing = false;
+        fireEvent.click(within(alert).getByRole('button', { name: '重试' }));
+        await waitFor(() => expect(screen.queryByRole('alert', { name: '列表加载失败' })).not.toBeInTheDocument());
+        expect(calls.filter((c) => c.path === '/api-backend/system/user/list').at(-1)?.search).toContain('keyword=ali');
+    });
+
+    it('区分无记录与筛选无结果，并支持清空条件', async () => {
+        mockFetch({ ...baseRoutes(), 'GET /api-backend/system/user/list': page([]) });
+        renderWithProviders(<UsersPage />);
+        await screen.findByText('暂无记录');
+        fireEvent.change(screen.getByPlaceholderText('用户名 / 昵称 / 手机'), { target: { value: 'none' } });
+        fireEvent.click(screen.getByRole('button', { name: '搜索' }));
+        await screen.findByText('没有匹配结果');
+        fireEvent.click(screen.getByRole('button', { name: '清空条件' }));
+        expect(await screen.findByText('暂无记录')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('用户名 / 昵称 / 手机')).toHaveValue('');
+    });
+
     it('拉取分页列表并渲染用户、字典标签', async () => {
         const { calls } = mockFetch(baseRoutes());
         renderWithProviders(<UsersPage />);

@@ -3,6 +3,7 @@ import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import { useMemo, useRef } from 'react';
 import { STATUS_OPTIONS } from '@/components/StatusTag';
 import { useSaveRegion } from '@/hooks/queries/regions';
+import { useFormCloseGuard } from '@/hooks/useFormCloseGuard';
 import type { RegionLevel, RegionNode, RegionSaveRequest, Status } from '@/types/api';
 import { flattenTree } from '@/utils/menu';
 
@@ -78,6 +79,7 @@ export function RegionFormModal({ target, tree, onClose }: Props) {
     const isEdit = target.mode === 'edit';
     const api = useRef<FormApi<RegionForm> | null>(null);
     const save = useSaveRegion();
+    const guard = useFormCloseGuard(api, onClose);
     const initial = initialValues(target);
     const disabledCodes = useMemo(
         () => (isEdit ? collectSubtreeCodes(tree, target.record.code) : new Set<string>()),
@@ -104,9 +106,12 @@ export function RegionFormModal({ target, tree, onClose }: Props) {
         <Modal
             visible
             title={isEdit ? '编辑地区' : '新增地区'}
-            onCancel={onClose}
-            onOk={() => submit().catch(() => undefined)}
-            okButtonProps={{ loading: save.isPending }}
+            onCancel={guard.requestClose}
+            onOk={() => guard.submit(submit).catch(() => undefined)}
+            okButtonProps={{ loading: guard.saving, disabled: guard.saving }}
+            cancelButtonProps={{ disabled: guard.saving }}
+            closable={!guard.saving}
+            closeOnEsc={!guard.saving}
             maskClosable={false}
         >
             <Form<RegionForm>

@@ -6,6 +6,7 @@ import { DictSelect } from '@/components/DictSelect';
 import { DictTag } from '@/components/DictTag';
 import { useColumnSettings } from '@/components/ColumnSettings';
 import { PageContainer } from '@/components/PageContainer';
+import { ListEmptyState, ListFeedback } from '@/components/ListFeedback';
 import { Permission } from '@/components/Permission';
 import { SearchField, SearchToolbar, type SearchCondition } from '@/components/SearchToolbar';
 import { useActionsColumn, type TableAction } from '@/components/TableActions';
@@ -106,7 +107,7 @@ export default function UsersPage() {
     const [identityOf, setIdentityOf] = useState<UserView | null>(null);
     const [settingAccountOf, setSettingAccountOf] = useState<UserView | null>(null);
 
-    const { data, isFetching, refetch } = useUserList(toQuery(filters, page, pageSize));
+    const { data, isFetching, isError, refetch } = useUserList(toQuery(filters, page, pageSize));
     const deleteUser = useDeleteUser();
 
     const search = () => {
@@ -446,12 +447,14 @@ export default function UsersPage() {
                     onChange={(v) => setDraft((d) => ({ ...d, status: v as Status | undefined }))}
                 />
             </SearchToolbar>
+            {isError && <ListFeedback hasData={data !== undefined} retrying={isFetching} onRetry={() => void refetch()} />}
             <Table<UserView>
                 {...tableProps}
                 rowKey="id"
                 columns={tableColumns}
                 dataSource={data?.list ?? []}
                 loading={isFetching}
+                empty={isFetching || isError ? <span aria-hidden="true" /> : <ListEmptyState filtered={conditions.length > 0} onReset={reset} />}
                 scroll={{ x: tableScrollX(tableColumns, ROLE_MIN_WIDTH) }}
                 pagination={{
                     currentPage: page,
