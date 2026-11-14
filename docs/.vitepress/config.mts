@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 
-export default withMermaid({
+const config = withMermaid({
   vite: { resolve: { alias: { '@': fileURLToPath(new URL('../../packages/manage/src', import.meta.url)) } } },
   base: process.env.VITEPRESS_BASE || '/',
   sitemap: { hostname: 'https://weiran4j.wulicode.com' },
@@ -61,3 +61,16 @@ export default withMermaid({
     },
   },
 })
+
+// 插件添加的是 Mermaid 的间接依赖；pnpm 隔离安装时需从 Mermaid 解析。
+const mermaidDeps = new Set(['@braintree/sanitize-url', 'dayjs', 'debug', 'cytoscape-cose-bilkent', 'cytoscape'])
+const optimizeDeps = config.vite?.optimizeDeps
+if (optimizeDeps?.include) {
+  optimizeDeps.include = [
+    // Mermaid 在插件的异步 Vue 组件中引入，显式预构建以转换 fastdom 等 CommonJS 依赖。
+    'mermaid',
+    ...optimizeDeps.include.map((dep) => mermaidDeps.has(dep) ? `mermaid > ${dep}` : dep),
+  ]
+}
+
+export default config
