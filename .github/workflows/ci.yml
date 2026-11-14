@@ -1,5 +1,5 @@
 # 门禁 ③：PR 与推送 main 时由机器跑一遍本地门禁（artifact.md#05，D-014 同批）。
-# 三个 job 并行；任一失败整次运行失败。不打开 Gradle 配置缓存（D-006）。
+# 四个 job 并行；任一失败整次运行失败。不打开 Gradle 配置缓存（D-006）。
 name: CI
 
 on:
@@ -65,3 +65,18 @@ jobs:
         with:
           node-version: 22
       - run: node openspec/check.mjs
+
+  test-flows:
+    name: 测试流程离线检查（Node 24）
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # 声明、类型、发现、Bruno 语法和离线回归；无需业务服务、账号或浏览器下载。
+      - run: pnpm test:flows:check

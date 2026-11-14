@@ -15,9 +15,25 @@
     "lint": "pnpm --filter @weiran/manage lint",
     "openspec:check": "node openspec/check.mjs",
     "openspec:validate": "openspec validate --strict --changes --no-interactive",
-    "hooks:install": "git config core.hooksPath .githooks"
+    "hooks:install": "git config core.hooksPath .githooks",
+    "test:flows": "node tests/framework/cli.mjs",
+    "test:flows:unit": "node --test tests/framework/unit/*.test.mjs tests/unit/*.test.mjs",
+    "test:flows:check": "node tests/framework/cli.mjs check --deep && pnpm test:flows:unit",
+    "test:flows:browser": "node --test tests/framework/browser/framework.integration.mjs",
+    "test:bruno": "node tests/framework/cli.mjs run --runner bruno --env local",
+    "test:integration": "node tests/framework/cli.mjs run --runner playwright --env local",
+    "test:api": "node tests/framework/cli.mjs run --runner playwright --project api --env local",
+    "test:e2e": "node tests/framework/cli.mjs run --runner playwright --project e2e --env local",
+    "test:integration:ui": "node tests/framework/cli.mjs run --runner playwright --project e2e --env local --ui",
+    "test:integration:list": "playwright test --config tests/playwright.config.ts --list",
+    "test:flows:smoke": "node tests/framework/cli.mjs run --tag smoke --env local",
+    "test:flows:doctor": "node tests/framework/cli.mjs doctor"
   },
   "devDependencies": {
-    "turbo": "^2.11.10"
+    "turbo": "^2.11.10",
+    "@playwright/test": "1.65.0",
+    "@usebruno/cli": "4.3.0",
+    "typescript": "6.0.3",
+    "@types/node": "24.19.0"
   }
 }

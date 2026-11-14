@@ -1,0 +1,14 @@
+info:
+  name: 替换为具体接口名称
+  type: http
+  seq: 1
+http:
+  method: GET
+  url: "{{baseUrl}}/replace-with-real-endpoint"
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("替换为业务通过标准", function () {
+          expect.fail("请填写真实接口与断言，模板不能直接算通过");
+        });

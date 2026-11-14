@@ -21,3 +21,7 @@ docs/.vitepress/cache/
 .env
 .env.*
 !.env.example
+
+# 测试凭据、会话、恢复材料与本地运行证据
+tests/.local/
+tests/.artifacts/

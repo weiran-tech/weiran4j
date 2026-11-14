@@ -32,6 +32,7 @@ pnpm dev
 - [架构、数据库与业务约束](packages/server/docs/01-架构与接口契约.md)
 - [部署手册](packages/server/docs/02-部署.md)
 - [版本发布](docs/releases.md)：GitHub Packages 组件包与 GHCR 完整 Demo 镜像
+- [测试工作流](docs/testing.md)：API/E2E/Bruno、离线检查与 Cookie 会话管理
 - [开发约定](AGENTS.md)
 
 文档站由 Turbo 管理：`pnpm dev:docs` 单独启动，`pnpm build:docs` 构建。

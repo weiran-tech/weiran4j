@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "id": "system/health",
+  "title": "后端公开健康检查",
+  "runner": "playwright",
+  "entry": "api/system/health/health.spec.ts",
+  "kind": "read-only",
+  "envs": [
+    "local"
+  ],
+  "tags": [
+    "smoke",
+    "system",
+    "api"
+  ],
+  "expectedCases": 1,
+  "params": [],
+  "preconditions": [
+    "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。"
+  ],
+  "verification": [
+    "HTTP 200、code 为数字 0、data.status 为 UP。"
+  ],
+  "limitations": [
+    "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。",
+    "此接口只检查存活，不代表数据库、缓存或第三方依赖健康。"
+  ],
+  "steps": [
+    "support/steps/system/health.ts"
+  ],
+  "inputs": [
+    "support/fixtures/test.ts",
+    "support/helpers/environment.ts",
+    "support/helpers/evidence.ts"
+  ],
+  "cleanup": "无业务数据变更；释放独立请求/浏览器上下文。",
+  "evidence": {
+    "requiredAttachments": [
+      "health-state"
+    ]
+  },
+  "project": "api",
+  "businessProject": "weiran4j"
+}

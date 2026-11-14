@@ -1,0 +1,330 @@
+[
+  {
+    "version": 1,
+    "id": "system/health",
+    "title": "后端公开健康检查",
+    "runner": "playwright",
+    "entry": "api/system/health/health.spec.ts",
+    "kind": "read-only",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "smoke",
+      "system",
+      "api"
+    ],
+    "expectedCases": 1,
+    "params": [],
+    "preconditions": [
+      "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。"
+    ],
+    "verification": [
+      "HTTP 200、code 为数字 0、data.status 为 UP。"
+    ],
+    "limitations": [
+      "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。",
+      "此接口只检查存活，不代表数据库、缓存或第三方依赖健康。"
+    ],
+    "steps": [
+      "support/steps/system/health.ts"
+    ],
+    "inputs": [
+      "support/fixtures/test.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "无业务数据变更；释放独立请求/浏览器上下文。",
+    "evidence": {
+      "requiredAttachments": [
+        "health-state"
+      ]
+    },
+    "project": "api",
+    "businessProject": "weiran4j",
+    "manifest": "api/system/health/flow.json",
+    "plan": "api/system/health/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/access-boundary",
+    "title": "未登录接口鉴权边界",
+    "runner": "playwright",
+    "entry": "api/system/access-boundary/access.spec.ts",
+    "kind": "read-only",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "smoke",
+      "system",
+      "auth",
+      "api"
+    ],
+    "expectedCases": 1,
+    "params": [],
+    "preconditions": [
+      "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。"
+    ],
+    "verification": [
+      "匿名读取本人、授权快照和登出请求均为 401/100101，data 为 null。"
+    ],
+    "limitations": [
+      "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。"
+    ],
+    "steps": [
+      "support/steps/system/access-boundary.ts"
+    ],
+    "inputs": [
+      "support/fixtures/test.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "无业务数据变更；释放独立请求/浏览器上下文。",
+    "evidence": {
+      "requiredAttachments": [
+        "access-state"
+      ]
+    },
+    "project": "api",
+    "businessProject": "weiran4j",
+    "manifest": "api/system/access-boundary/flow.json",
+    "plan": "api/system/access-boundary/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/login-entry",
+    "title": "后台登录入口与 API 代理",
+    "runner": "playwright",
+    "entry": "e2e/system/login-entry/login.spec.ts",
+    "kind": "read-only",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "smoke",
+      "system",
+      "ui"
+    ],
+    "expectedCases": 1,
+    "params": [],
+    "preconditions": [
+      "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。"
+    ],
+    "verification": [
+      "匿名访问 /profile 跳转登录，密码表单可用；同源代理保持 401/100101。"
+    ],
+    "limitations": [
+      "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。"
+    ],
+    "steps": [
+      "support/steps/system/login-entry.ts"
+    ],
+    "inputs": [
+      "support/fixtures/test.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "无业务数据变更；释放独立请求/浏览器上下文。",
+    "evidence": {
+      "requiredAttachments": [
+        "login-state",
+        "login-screenshot"
+      ]
+    },
+    "project": "e2e",
+    "businessProject": "weiran4j",
+    "manifest": "e2e/system/login-entry/flow.json",
+    "plan": "e2e/system/login-entry/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/health-manual",
+    "title": "手工健康检查与接口断言",
+    "runner": "bruno",
+    "entry": "bruno/system/health/health.yml",
+    "kind": "read-only",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "smoke",
+      "system",
+      "manual"
+    ],
+    "expectedCases": 1,
+    "params": [],
+    "preconditions": [
+      "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。"
+    ],
+    "verification": [
+      "HTTP 200、数字 code 0、data.status 为 UP。"
+    ],
+    "limitations": [
+      "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。",
+      "仅存活，不证明依赖健康。"
+    ],
+    "steps": [],
+    "inputs": [],
+    "cleanup": "无业务数据变更；释放独立请求/浏览器上下文。",
+    "evidence": {
+      "requiredAttachments": []
+    },
+    "businessProject": "weiran4j",
+    "manifest": "bruno/system/health/flow.json",
+    "plan": "bruno/system/health/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/access-manual",
+    "title": "手工未登录鉴权检查",
+    "runner": "bruno",
+    "entry": "bruno/system/access/profile-anonymous.yml",
+    "kind": "read-only",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "smoke",
+      "system",
+      "manual"
+    ],
+    "expectedCases": 1,
+    "params": [],
+    "preconditions": [
+      "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。"
+    ],
+    "verification": [
+      "匿名本人读取为 401/100101、data=null。"
+    ],
+    "limitations": [
+      "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。"
+    ],
+    "steps": [],
+    "inputs": [],
+    "cleanup": "无业务数据变更；释放独立请求/浏览器上下文。",
+    "evidence": {
+      "requiredAttachments": []
+    },
+    "businessProject": "weiran4j",
+    "manifest": "bruno/system/access/flow.json",
+    "plan": "bruno/system/access/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/admin-session",
+    "title": "API Cookie 会话、授权快照与 CSRF 清理",
+    "runner": "playwright",
+    "entry": "api/system/admin-session/admin-session.spec.ts",
+    "kind": "transition",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "authenticated",
+      "local",
+      "sts"
+    ],
+    "expectedCases": 1,
+    "params": [],
+    "preconditions": [
+      "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。",
+      "明确提供专用密码测试账号；环境不要求短信/MFA/SSO；凭据文件 tests/.local/admin.json 权限为 0600。",
+      "同角色会话缓存需先清理；本流程创建自己的认证上下文。"
+    ],
+    "verification": [
+      "登录主体和授权快照一致。",
+      "Cookie 缓存复用校验当前身份，写请求使用 CSRF；清理后 Cookie/缓存移除，匿名访问被拒。",
+      "已登录但缺 CSRF 的写请求为 403/100103。"
+    ],
+    "limitations": [
+      "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。",
+      "会写入真实登录/登出日志；不删除审计记录。",
+      "普通登出不吊销旧 JWT，测试不修改 token_version 或宣称旧 JWT 立即失效。",
+      "不证明全部受限角色矩阵，未覆盖短信/MFA/SSO、STS 或业务 CRUD。"
+    ],
+    "steps": [
+      "support/steps/system/admin-session.ts"
+    ],
+    "inputs": [
+      "support/fixtures/test.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "finally 清理本次 Cookie 会话和对应本地缓存；失败保留私有恢复材料并使流程失败；旧 JWT 按产品 TTL 到期。",
+    "evidence": {
+      "requiredAttachments": [
+        "before-state",
+        "after-state",
+        "cleanup-state"
+      ]
+    },
+    "project": "api",
+    "businessProject": "weiran4j",
+    "manifest": "api/system/admin-session/flow.json",
+    "plan": "api/system/admin-session/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/admin-browser",
+    "title": "浏览器登录、Cookie 隔离复用与清理",
+    "runner": "playwright",
+    "entry": "e2e/system/admin-browser/admin-browser.spec.ts",
+    "kind": "transition",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "authenticated",
+      "browser"
+    ],
+    "expectedCases": 1,
+    "params": [],
+    "preconditions": [
+      "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。",
+      "明确提供专用密码测试账号；环境不要求短信/MFA/SSO；凭据文件 tests/.local/admin.json 权限为 0600。",
+      "同角色会话缓存需先清理；本流程创建自己的认证上下文。"
+    ],
+    "verification": [
+      "登录主体和授权快照一致。",
+      "Cookie 缓存复用校验当前身份，写请求使用 CSRF；清理后 Cookie/缓存移除，匿名访问被拒。"
+    ],
+    "limitations": [
+      "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。",
+      "会写入真实登录/登出日志；不删除审计记录。",
+      "普通登出不吊销旧 JWT，测试不修改 token_version 或宣称旧 JWT 立即失效。",
+      "不证明全部受限角色矩阵，未覆盖短信/MFA/SSO、STS 或业务 CRUD。"
+    ],
+    "steps": [
+      "support/steps/system/admin-browser.ts",
+      "support/steps/auth/login.ts"
+    ],
+    "inputs": [
+      "support/fixtures/test.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "finally 清理本次 Cookie 会话和对应本地缓存；失败保留私有恢复材料并使流程失败；旧 JWT 按产品 TTL 到期。",
+    "evidence": {
+      "requiredAttachments": [
+        "before-state",
+        "after-state",
+        "cleanup-state",
+        "before-screenshot",
+        "after-screenshot"
+      ]
+    },
+    "project": "e2e",
+    "businessProject": "weiran4j",
+    "manifest": "e2e/system/admin-browser/flow.json",
+    "plan": "e2e/system/admin-browser/plan.md"
+  }
+]
+$ playwright test --config tests/playwright.config.ts --list
+Listing tests:
+  [api] › api/system/access-boundary/access.spec.ts:5:1 › 本人资料、授权快照和登出接口拒绝未认证请求
+  [api] › api/system/admin-session/admin-session.spec.ts:8:1 › 本地 admin 登录、身份授权、CSRF 与 Cookie 清理闭环
+  [api] › api/system/health/health.spec.ts:5:1 › 后端公开健康检查无需登录
+  [e2e] › e2e/system/admin-browser/admin-browser.spec.ts:9:1 › admin 页面登录、身份页面、隔离上下文复用及Cookie 清理
+  [e2e] › e2e/system/login-entry/login.spec.ts:5:1 › 未登录后台路由跳转登录页，前端代理保持后端鉴权响应
+Total: 5 tests in 5 files

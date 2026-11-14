@@ -1,0 +1,18 @@
+$ pnpm test:flows:browser
+$ node --test tests/framework/browser/framework.integration.mjs
+(node:67183) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/duoli/Projects/duoli-weiran/mono4j/tests/support/helpers/parallel-pages.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/duoli/Projects/duoli-weiran/mono4j/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+合成服务上的 7 条系统流程通过；不代表真实业务通过。
+✔ Chromium：人工/API登录、CLI复用、Cookie/CSRF、系统流程与失败清理 (12308.753416ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12565.313625
+
+EXIT_CODE=0

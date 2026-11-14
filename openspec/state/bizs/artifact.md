@@ -6,6 +6,10 @@
 
 ## 已知问题汇总
 
+- **#28 ⚠️ P3 七份既有主规格未通过 CLI 全量严格校验**
+  症状：执行 `openspec validate --specs --strict --no-interactive` 时，admin-foundation、deployment、observability、system-file-storage、system-site-config、system-sms-sender 的需求正文超过 500 字符，system-media-library 的 Purpose 过短；普通警告在 strict 模式使全量命令返回 1。2026-11-15 归档 import-test-workflow-framework 时，在未改动的 HEAD 基线隔离副本复现相同 7 项；本次涉及的 test-workflows 和 continuous-integration 均通过，仓库 `node openspec/check.mjs` 通过。后续应在保留需求语义和场景标题的前提下整理正文，不通过关闭 strict 掩盖。证据见该归档的 exec/evidence/baseline-spec-validation.log 与 archive-spec-validation.log。
+
+
 - **#01 ⚠️ P3 Gradle 配置缓存被迫关闭**
   症状:冷构建配置阶段慢几秒,所有开发者都受影响。
   Spotless 的 palantir-java-format 在配置缓存恢复的类加载器里拿不到 `--add-exports` 的模块开放,
@@ -91,6 +95,10 @@
 
 
 ## changelog
+
+**2026-11-15**
+
+- `import-test-workflow-framework` 引入根 `tests/` 工作流：Playwright API/E2E、Bruno 与统一 CLI/注册表/严格证据复核，保留原 Gradle/Vitest 测试；CI 新增独立 Node 24 离线门禁。Cookie/CSRF 会话材料仅写 gitignore 的私有目录，正常登出验证 Cookie/缓存清除和匿名拒绝，不声明旧 JWT 已吊销。7 条系统流程已适配，离线与合成 Chromium 服务验证独立于真实业务通过结论；真实环境需专用账号与已启动服务。本次未运行真实业务流程。入口见 `docs/testing.md` 与 `tests/docs/coverage.md`。
 
 **2026-11-14**
 

@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "id": "example/replace-me",
+  "title": "替换为具体业务验证标题",
+  "runner": "playwright",
+  "project": "e2e",
+  "entry": "e2e/replace-me/spec.ts",
+  "kind": "read-only",
+  "envs": [
+    "local"
+  ],
+  "tags": [
+    "example"
+  ],
+  "expectedCases": 1,
+  "params": [],
+  "preconditions": [
+    "填写目标服务、账号角色与需要存在的数据"
+  ],
+  "verification": [
+    "填写能够被明确断言的业务结果"
+  ],
+  "limitations": [
+    "填写这条流程未覆盖的行为，避免把局部通过理解成全链路通过"
+  ],
+  "steps": [
+    "support/steps/example/replace-me.ts"
+  ],
+  "inputs": [
+    "support/fixtures/test.ts",
+    "support/helpers/environment.ts",
+    "support/helpers/evidence.ts"
+  ],
+  "cleanup": "只读流程说明无业务写入；写流程说明 finally 中如何清理并确认结果。",
+  "evidence": {
+    "requiredAttachments": [
+      "observed-state"
+    ]
+  },
+  "businessProject": "weiran4j"
+}

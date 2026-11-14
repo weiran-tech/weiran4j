@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "id": "system/login-entry",
+  "title": "后台登录入口与 API 代理",
+  "runner": "playwright",
+  "entry": "e2e/system/login-entry/login.spec.ts",
+  "kind": "read-only",
+  "envs": [
+    "local"
+  ],
+  "tags": [
+    "smoke",
+    "system",
+    "ui"
+  ],
+  "expectedCases": 1,
+  "params": [],
+  "preconditions": [
+    "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。"
+  ],
+  "verification": [
+    "匿名访问 /profile 跳转登录，密码表单可用；同源代理保持 401/100101。"
+  ],
+  "limitations": [
+    "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。"
+  ],
+  "steps": [
+    "support/steps/system/login-entry.ts"
+  ],
+  "inputs": [
+    "support/fixtures/test.ts",
+    "support/helpers/environment.ts",
+    "support/helpers/evidence.ts"
+  ],
+  "cleanup": "无业务数据变更；释放独立请求/浏览器上下文。",
+  "evidence": {
+    "requiredAttachments": [
+      "login-state",
+      "login-screenshot"
+    ]
+  },
+  "project": "e2e",
+  "businessProject": "weiran4j"
+}

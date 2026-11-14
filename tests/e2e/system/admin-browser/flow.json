@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "id": "system/admin-browser",
+  "title": "浏览器登录、Cookie 隔离复用与清理",
+  "runner": "playwright",
+  "entry": "e2e/system/admin-browser/admin-browser.spec.ts",
+  "kind": "transition",
+  "envs": [
+    "local"
+  ],
+  "tags": [
+    "authenticated",
+    "browser"
+  ],
+  "expectedCases": 1,
+  "params": [],
+  "preconditions": [
+    "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。",
+    "明确提供专用密码测试账号；环境不要求短信/MFA/SSO；凭据文件 tests/.local/admin.json 权限为 0600。",
+    "同角色会话缓存需先清理；本流程创建自己的认证上下文。"
+  ],
+  "verification": [
+    "登录主体和授权快照一致。",
+    "Cookie 缓存复用校验当前身份，写请求使用 CSRF；清理后 Cookie/缓存移除，匿名访问被拒。"
+  ],
+  "limitations": [
+    "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。",
+    "会写入真实登录/登出日志；不删除审计记录。",
+    "普通登出不吊销旧 JWT，测试不修改 token_version 或宣称旧 JWT 立即失效。",
+    "不证明全部受限角色矩阵，未覆盖短信/MFA/SSO、STS 或业务 CRUD。"
+  ],
+  "steps": [
+    "support/steps/system/admin-browser.ts",
+    "support/steps/auth/login.ts"
+  ],
+  "inputs": [
+    "support/fixtures/test.ts",
+    "support/helpers/environment.ts",
+    "support/helpers/evidence.ts"
+  ],
+  "cleanup": "finally 清理本次 Cookie 会话和对应本地缓存；失败保留私有恢复材料并使流程失败；旧 JWT 按产品 TTL 到期。",
+  "evidence": {
+    "requiredAttachments": [
+      "before-state",
+      "after-state",
+      "cleanup-state",
+      "before-screenshot",
+      "after-screenshot"
+    ]
+  },
+  "project": "e2e",
+  "businessProject": "weiran4j"
+}

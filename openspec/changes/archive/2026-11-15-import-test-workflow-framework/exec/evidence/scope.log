@@ -1,0 +1,108 @@
+private paths ignored: PASS
+packages/ production files unchanged: PASS
+ M .github/workflows/ci.yml
+ M .gitignore
+ M AGENTS.md
+ M README.md
+ M docs/.vitepress/config.mts
+ M openspec/state/bizs/artifact.md
+ M package.json
+ M pnpm-lock.yaml
+ M pnpm-workspace.yaml
+?? docs/testing.md
+?? openspec/changes/import-test-workflow-framework/.openspec.yaml
+?? openspec/changes/import-test-workflow-framework/design.md
+?? openspec/changes/import-test-workflow-framework/exec/evidence/build.log
+?? openspec/changes/import-test-workflow-framework/exec/evidence/ci-yaml.log
+?? openspec/changes/import-test-workflow-framework/exec/evidence/discovery.log
+?? openspec/changes/import-test-workflow-framework/exec/evidence/docs-build.log
+?? openspec/changes/import-test-workflow-framework/exec/evidence/flows-browser.log
+?? openspec/changes/import-test-workflow-framework/exec/evidence/flows-check.log
+?? openspec/changes/import-test-workflow-framework/exec/evidence/frozen-install.log
+?? openspec/changes/import-test-workflow-framework/exec/evidence/lint.log
+?? openspec/changes/import-test-workflow-framework/exec/evidence/spotless.log
+?? openspec/changes/import-test-workflow-framework/exec/evidence/test.log
+?? openspec/changes/import-test-workflow-framework/exec/notes/E1-implementation.md
+?? openspec/changes/import-test-workflow-framework/exec/notes/E2-implementation.md
+?? openspec/changes/import-test-workflow-framework/exec/notes/E3-implementation.md
+?? openspec/changes/import-test-workflow-framework/exec/notes/E4-implementation.md
+?? openspec/changes/import-test-workflow-framework/exec/notes/E5-implementation.md
+?? openspec/changes/import-test-workflow-framework/exec/notes/E6-implementation.md
+?? openspec/changes/import-test-workflow-framework/exec/plan.md
+?? openspec/changes/import-test-workflow-framework/explore.md
+?? openspec/changes/import-test-workflow-framework/interview.md
+?? openspec/changes/import-test-workflow-framework/proposal.md
+?? openspec/changes/import-test-workflow-framework/specs/continuous-integration/spec.md
+?? openspec/changes/import-test-workflow-framework/specs/test-workflows/spec.md
+?? openspec/changes/import-test-workflow-framework/tasks.md
+?? tests/README.md
+?? tests/api/system/access-boundary/access.spec.ts
+?? tests/api/system/access-boundary/flow.json
+?? tests/api/system/access-boundary/plan.md
+?? tests/api/system/admin-session/admin-session.spec.ts
+?? tests/api/system/admin-session/flow.json
+?? tests/api/system/admin-session/plan.md
+?? tests/api/system/health/flow.json
+?? tests/api/system/health/health.spec.ts
+?? tests/api/system/health/plan.md
+?? tests/bruno/environments/local.yml
+?? tests/bruno/opencollection.yml
+?? tests/bruno/system/access/flow.json
+?? tests/bruno/system/access/plan.md
+?? tests/bruno/system/access/profile-anonymous.yml
+?? tests/bruno/system/health/flow.json
+?? tests/bruno/system/health/health.yml
+?? tests/bruno/system/health/plan.md
+?? tests/docs/coverage.md
+?? tests/docs/running.md
+?? tests/docs/writing-flows.md
+?? tests/e2e/system/admin-browser/admin-browser.spec.ts
+?? tests/e2e/system/admin-browser/flow.json
+?? tests/e2e/system/admin-browser/plan.md
+?? tests/e2e/system/login-entry/flow.json
+?? tests/e2e/system/login-entry/login.spec.ts
+?? tests/e2e/system/login-entry/plan.md
+?? tests/envs/local.json
+?? tests/framework/README.md
+?? tests/framework/batch.mjs
+?? tests/framework/browser.mjs
+?? tests/framework/browser/framework.integration.mjs
+?? tests/framework/bruno.mjs
+?? tests/framework/catalog.mjs
+?? tests/framework/cli.mjs
+?? tests/framework/core.mjs
+?? tests/framework/inspect.mjs
+?? tests/framework/maintenance.mjs
+?? tests/framework/process.mjs
+?? tests/framework/scaffold.mjs
+?? tests/framework/session.mjs
+?? tests/framework/templates/bruno/flow.json
+?? tests/framework/templates/bruno/plan.md
+?? tests/framework/templates/bruno/request.yml
+?? tests/framework/templates/playwright/flow.json
+?? tests/framework/templates/playwright/plan.md
+?? tests/framework/templates/playwright/spec.ts
+?? tests/framework/unit/cli.test.mjs
+?? tests/framework/unit/cookie-fixture.mjs
+?? tests/framework/unit/core.test.mjs
+?? tests/framework/unit/framework.test.mjs
+?? tests/framework/unit/inspect.test.mjs
+?? tests/framework/unit/session.test.mjs
+?? tests/framework/unit/utils.test.mjs
+?? tests/framework/utils.mjs
+?? tests/playwright.config.ts
+?? tests/registry.json
+?? tests/support/fixtures/authenticated.ts
+?? tests/support/fixtures/test.ts
+?? tests/support/helpers/environment.ts
+?? tests/support/helpers/evidence.ts
+?? tests/support/helpers/parallel-pages.ts
+?? tests/support/steps/INDEX.md
+?? tests/support/steps/auth/login.ts
+?? tests/support/steps/system/access-boundary.ts
+?? tests/support/steps/system/admin-browser.ts
+?? tests/support/steps/system/admin-session.ts
+?? tests/support/steps/system/health.ts
+?? tests/support/steps/system/login-entry.ts
+?? tests/tsconfig.json
+?? tests/unit/admin-session.test.mjs

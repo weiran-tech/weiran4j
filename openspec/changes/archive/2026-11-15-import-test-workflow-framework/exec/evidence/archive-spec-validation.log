@@ -1,0 +1,30 @@
+✓ spec/admin-console-shell
+✗ spec/admin-foundation
+  ⚠ [WARNING] requirements[9]: Requirement text is very long (>500 characters). Move examples and edge cases into scenarios, or split it into separate requirements that each state one behavior.
+  ⚠ [WARNING] requirements[12]: Requirement text is very long (>500 characters). Move examples and edge cases into scenarios, or split it into separate requirements that each state one behavior.
+✓ spec/administrative-regions
+✓ spec/continuous-integration
+✗ spec/deployment
+  ⚠ [WARNING] requirements[2]: Requirement text is very long (>500 characters). Move examples and edge cases into scenarios, or split it into separate requirements that each state one behavior.
+✓ spec/downstream-extension
+✓ spec/external-identity
+✗ spec/observability
+  ⚠ [WARNING] requirements[6]: Requirement text is very long (>500 characters). Move examples and edge cases into scenarios, or split it into separate requirements that each state one behavior.
+✓ spec/rbac-account-management
+✓ spec/rbac-ban-management
+✓ spec/rbac-role-management
+✗ spec/system-file-storage
+  ⚠ [WARNING] requirements[0]: Requirement text is very long (>500 characters). Move examples and edge cases into scenarios, or split it into separate requirements that each state one behavior.
+✗ spec/system-media-library
+  ⚠ [WARNING] overview: Purpose section is too brief (less than 50 characters)
+✗ spec/system-site-config
+  ⚠ [WARNING] requirements[0]: Requirement text is very long (>500 characters). Move examples and edge cases into scenarios, or split it into separate requirements that each state one behavior.
+✗ spec/system-sms-sender
+  ⚠ [WARNING] requirements[2]: Requirement text is very long (>500 characters). Move examples and edge cases into scenarios, or split it into separate requirements that each state one behavior.
+✓ spec/test-workflows
+✓ spec/user-list-search
+✓ spec/workflow-contracts
+Totals: 11 passed, 7 failed (18 items)
+Details: openspec validate admin-foundation --type spec
+
+EXIT_CODE=1

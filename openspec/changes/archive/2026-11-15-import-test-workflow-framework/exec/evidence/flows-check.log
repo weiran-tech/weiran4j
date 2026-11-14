@@ -1,0 +1,71 @@
+$ node tests/framework/cli.mjs check --deep && pnpm test:flows:unit
+深度检查通过：TypeScript、Playwright 用例发现、注册与 expectedCases 一致，Bruno 语法及配置有效
+OK: 7 个流程，注册表、文件、环境、参数与证据定义有效
+$ node --test tests/framework/unit/*.test.mjs tests/unit/*.test.mjs
+✔ 真实 CLI 成功执行、独立 verify、报告损坏、归属错误和旧摘要均正确判定 (2466.597625ms)
+✔ 真实 CLI 深度校验拒绝缺依赖、数量错误、TS 错误和未登记用例 (4635.557542ms)
+✔ 真实 CLI 总超时保存 timed_out，SIGTERM 保存 interrupted，均退出非零 (1520.746542ms)
+✔ Bruno YAML 深度校验不执行脚本，拒绝语法、协议、数量错误及未登记请求 (194.235375ms)
+✔ Bruno YAML 集合、父目录和环境均检查配置及继承脚本，不执行脚本 (16.57025ms)
+✔ 真实 CLI 缺少安装依赖时 doctor 仍可启动并报告缺失 (64.956209ms)
+✔ 总超时强制回收忽略 SIGTERM 的子进程组 (815.144292ms)
+✔ 真实 Bruno CLI 对本地测试服务器运行并按请求路径复核 (5448.450834ms)
+✔ init/step 脚手架：dry-run 不落盘、模板实际失败、冲突拒绝且索引不重复 (4438.535958ms)
+✔ 两个脚手架进程并发更新时注册表和索引均保留两次操作 (771.919792ms)
+✔ CLI 失败结果和运行记录提供稳定分类，保持非零退出码 (537.976208ms)
+✔ 注册表写入失败会回滚本次文件与索引，并释放锁 (157.458167ms)
+✔ 退出码为 0 但空跑、跳过、flaky、报告错误和数量不符均失败 (1.464959ms)
+✔ 证据必须存在、非空、格式正确且位于本次运行目录内 (1.736708ms)
+✔ 不能用一个用例的证据代替另一个用例，局部断言降级不能算完整通过 (0.416084ms)
+✔ Bruno 无断言、跳过请求或断言失败时，即使进程成功也不能通过 (0.968125ms)
+✔ 定义校验拒绝越界、链接越界、写入流程缺清理证据和未知字段 (2.262291ms)
+✔ 参数只允许声明项，必填参数不能空，地址覆盖顺序明确 (0.404167ms)
+✔ 共享步骤变动也改变流程指纹 (8.614708ms)
+✔ API 和后台地址按 CLI、环境变量、profile 的顺序覆盖，拒绝旧 Actuator 配置 (0.2095ms)
+✔ 报告必须匹配入口和 project，Bruno 必须匹配请求文件 (0.475667ms)
+✔ 附件改动、缺失摘要和旧版本证据不能复核通过 (1.893208ms)
+(node:66647) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/duoli/Projects/duoli-weiran/mono4j/tests/support/helpers/parallel-pages.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/duoli/Projects/duoli-weiran/mono4j/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ 原生维护支持删除预览、共享步骤保留及历史保留；无来源跟踪 (2007.42475ms)
+✔ 七条系统流程完整发现；显式阻塞仍写批次但不启动会话 (2249.471625ms)
+✔ 移除的命令与参数直接报错，无兼容分支 (637.845666ms)
+✔ 查询、原生执行、独立复核、历史与反馈共享严格判据 (2748.584875ms)
+✔ 真实批次继续执行可用项，记录阻塞/通过/失败，dry-run 不落盘 (2054.913584ms)
+✔ 准备失败或超时取消明确列出未执行项，不误算通过 (27.888584ms)
+✔ skipped、flaky、降级始终严格失败，不允许复核变成 partial 成功 (1493.831416ms)
+✔ portal 地址、入口和登录模式有界，拒绝秘密字段与跨源路径 (0.647083ms)
+✔ 多页面上限、证据归属、失败汇总与关闭失败均可观察 (22.079542ms)
+✔ 人工登录适配器保存 Cookie，失败后清理或保留私有恢复记录 (43.258708ms)
+✔ AST 解析重导出、动态引用、循环和 .js→.ts；注释不作为依赖 (110.465625ms)
+✔ 校验间接步骤声明、无引用步骤、索引缺失和失效 (7.143875ms)
+✔ 实际间接依赖即使未手写 inputs 也参与指纹 (9.925708ms)
+✔ 本地依赖不能通过符号链接逃逸仓库 (4.500583ms)
+✔ 深度发现核对 project、精确用例数量、未注册用例与加载错误 (0.30725ms)
+✔ doctor 探测区分正常、HTTP 健康失败、超时与不可连接，不透出响应秘密 (0.411417ms)
+✔ 读取测试 tsconfig 的路径映射，配置与本地映射文件均进入依赖 (7.028209ms)
+✔ 配置多级 extends、数组继承与父配置变动参与指纹，缺失配置拒绝 (16.18375ms)
+✔ Bruno 生效的 collection 和父目录 folder 配置参与指纹 (6.968125ms)
+✔ Cookie 会话保存、远端核验和本地清理；普通登出不宣称吊销旧 JWT (24.593291ms)
+✔ 环境/角色/地址/hostname 与过期缓存在请求前拒绝；远端失效或主体不符不能复用 (8.533541ms)
+✔ 其他角色不能使用 admin 凭据，权限过宽文件拒绝；路径链接不能逃逸 (1.516125ms)
+✔ 核验和清理同时失败保留私有恢复材料，服务恢复后可幂等清理且错误不含 Cookie (6.377208ms)
+✔ CSRF 取自同一 Cookie jar，缺少时拒绝；Cookie 属性/主体不合法拒绝 (1.530791ms)
+✔ 成功状态但没有清 Cookie 仍属清理失败，不删除恢复记录 (5.031625ms)
+✔ 锁占用或损坏时明确冲突，异常动作释放自己的锁 (29.070083ms)
+(node:66651) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/duoli/Projects/duoli-weiran/mono4j/tests/support/steps/system/admin-session.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/duoli/Projects/duoli-weiran/mono4j/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ API 系统步骤：主体、授权快照、CSRF 与 Cookie 清理，证据无凭据 (19.801125ms)
+✔ 授权快照失败仍执行清理；清理失败不可通过并保留恢复材料 (6.255458ms)
+✔ 登录响应 JSON 损坏时仍清理已经签发的 Cookie (3.774042ms)
+ℹ tests 51
+ℹ suites 0
+ℹ pass 51
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21130.993458

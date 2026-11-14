@@ -1,0 +1,16 @@
+info:
+  name: 公开健康检查
+  type: http
+  seq: 1
+http:
+  method: GET
+  url: "{{baseUrl}}/api-backend/n/health"
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("公开接口无需登录且服务正常", function () {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().code).to.equal(0);
+          expect(res.getBody().data.status).to.equal("UP");
+        });

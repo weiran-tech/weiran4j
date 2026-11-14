@@ -17,6 +17,7 @@ const config = withMermaid({
       { text: '公共组件', link: '/components/' },
       { text: '页面状态', link: '/page-states' },
       { text: 'OpenAPI', link: '/openapi' },
+      { text: '测试', link: '/testing' },
       { text: '部署与运维', link: '/deployment' },
     ],
     sidebar: [
@@ -43,6 +44,7 @@ const config = withMermaid({
           ] },
           { text: '页面状态演示', link: '/page-states' },
           { text: 'OpenAPI 与 Swagger UI', link: '/openapi' },
+          { text: '测试工作流', link: '/testing' },
           { text: '接口与数据约定', link: '/contracts' },
           { text: '资源库引用与删除', link: '/资源库引用与删除设计' },
           { text: '批处理任务', link: '/batch-processing' },

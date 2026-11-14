@@ -44,6 +44,9 @@ cd packages/server && export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 # ── 前端、文档站与 openspec（在仓库根）──
 pnpm install
 pnpm test / pnpm lint             # 前端
+pnpm test:flows:check             # tests/ 声明、类型、发现、Bruno 语法与离线回归（Node 24）
+pnpm test:flows:browser           # Chromium + 隔离合成服务回归，不能当作真实业务通过
+pnpm test:flows list              # 查看 API/E2E/Bruno 系统流程
 pnpm build                        # Turbo 构建前端与文档站
 pnpm build:docs                   # 只构建 VitePress 文档站
 pnpm docs:preview                 # 预览文档站构建结果
@@ -129,7 +132,7 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 | --- | --- | --- | --- |
 | ① | Claude Code hook：写/改后跑 `check.mjs --hook`，只查改动涉及的插件，20s 超时 | 即时 · 不阻断 | ✅ 在跑 |
 | ② | `.githooks/pre-commit`：改动命中 `openspec/` 或 `packages/` 才跑全量 `check.mjs` | 阻断（`--no-verify` 可应急绕过） | ✅ 需先 `pnpm hooks:install` |
-| ③ | GitHub Actions [`ci.yml`](.github/workflows/ci.yml)：PR 与推送 main 时并行跑后端 `check`（JDK 21 + Testcontainers）、前端 `lint/test/build`、`openspec/check.mjs` | 兜底 | ✅ 在跑（`artifact.md#05` 已关）。⚠️ 还**没有分支保护**（[`artifact.md#12`](openspec/state/bizs/artifact.md)）：CI 红了照样能合并，需要仓库管理员在 GitHub → Settings → Branches 给 `main` 设置「合并前必须通过以上三个检查」 |
+| ③ | GitHub Actions [`ci.yml`](.github/workflows/ci.yml)：PR 与推送 main 时并行跑后端 `check`（JDK 21 + Testcontainers）、前端 `lint/test/build`、`openspec/check.mjs` 与 Node 24 的 `test:flows:check` | 兜底 | ✅ 在跑（`artifact.md#05` 已关）。⚠️ 还**没有分支保护**（[`artifact.md#12`](openspec/state/bizs/artifact.md)）：CI 红了照样能合并，需要仓库管理员在 GitHub → Settings → Branches 给 `main` 设置「合并前必须通过以上四个检查」 |
 
 ### 用哪个 skill 开 / 推进 / 归档 change
 
@@ -298,3 +301,11 @@ vitest + jsdom + @testing-library/react。**断言 Semi `Form.*` 受控控件时
 ## 设计
 
 - 主色 #0064FA
+
+## API/E2E 测试工作流
+
+- 根 `tests/` 管 Playwright API/E2E、Bruno、共享步骤、流程注册及执行器；入口为 `pnpm test:flows`，使用 Node 24 和根唯一 pnpm 锁文件。原 Vitest 与 Gradle 测试保留。
+- 新增或修改测试流程前读 `tests/docs/writing-flows.md`，执行/账号/报告/恢复见 `tests/docs/running.md`，覆盖边界见 `tests/docs/coverage.md`；docs 入口为 `docs/testing.md`。
+- 不读取或复制其他项目 `.local/`、`.artifacts/`；专用测试凭据、Cookie storageState 和恢复材料只进被忽略的 `tests/.local/`，文件权限 0600，不进入日志/普通报告。流程证据在忽略的 `tests/.artifacts/`。
+- 按现有数字 code、HttpOnly Cookie、CSRF 和授权快照测试。普通登出只清 Cookie，不吊销旧 JWT；测试不能通过改密或递增 token_version 来伪造清理成功。
+- 测试不会自动启停已有业务服务；缺服务/凭据如实失败。离线或合成通过不能写成真实业务通过；认证过程禁用自动 trace、视频和截图，仅保存白名单状态或明确的非敏感页面证据。

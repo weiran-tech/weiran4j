@@ -1,0 +1,16 @@
+info:
+  name: 匿名访问后台资料被拒绝
+  type: http
+  seq: 1
+http:
+  method: GET
+  url: "{{baseUrl}}/api-backend/system/auth/getCurrentUser"
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("未登录不能读取后台资料", function () {
+          expect(res.getStatus()).to.equal(401);
+          expect(res.getBody().code).to.equal(100101);
+          expect(res.getBody().data).to.equal(null);
+        });

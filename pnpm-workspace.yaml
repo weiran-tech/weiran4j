@@ -11,3 +11,5 @@ allowBuilds:
   core-js: true
   core-js-pure: true
   esbuild: true
+  # Bruno 的 protobufjs postinstall 仅输出建议，不执行。
+  protobufjs: false
