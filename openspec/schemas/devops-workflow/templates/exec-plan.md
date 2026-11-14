@@ -200,7 +200,7 @@ flowchart TD
 
 - [ ] 每条 task 都已映射,或已在「未映射条目」声明并写明原因
 - [ ] `explore.md` 的共享层清单已逐项比对,命中项全部落在 Layer 0
-- [ ] 若涉及数据库结构变更,已按 `rules/enforced/constitution.md` CP-7 与 `weiran-v1` 核对
+- [ ] 若涉及数据库结构变更,已按 `rules/enforced/constitution.md` CP-7 核对仅追加 Flyway
 - [ ] 依赖图无环,且「前后端」这类隐性契约依赖已识别(不是并行,是契约依赖)
 - [ ] Layer 0 的契约冻结表已列出待填项
 - [ ] 无独立的测试执行单元(测试跟随实现)

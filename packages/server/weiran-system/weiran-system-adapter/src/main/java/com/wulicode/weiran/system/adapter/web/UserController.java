@@ -117,7 +117,9 @@ public class UserController {
     @PutMapping("/update/{id}")
     public ApiResponse<Void> update(@PathVariable final long id, @Valid @RequestBody final UpdateUserRequest request) {
         this.userService.update(
-                id, new UpdateUserCommand(request.nickname(), request.gender(), request.status(), request.roleIds()));
+                id,
+                new UpdateUserCommand(
+                        request.version(), request.nickname(), request.gender(), request.status(), request.roleIds()));
         return ApiResponse.ok();
     }
 

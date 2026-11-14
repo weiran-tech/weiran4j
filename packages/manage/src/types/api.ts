@@ -58,6 +58,7 @@ export interface LoginResult {
 }
 
 export interface CurrentUserView {
+    version: number;
     id: number;
     username: string;
     nickname: string;
@@ -71,6 +72,7 @@ export interface CurrentUserView {
 }
 
 export interface ProfileUpdateRequest {
+    version: number;
     nickname: string;
     avatar?: UserAvatar | null;
     gender?: Gender | null;
@@ -205,6 +207,7 @@ export interface MenuSaveRequest {
 /* ---------- 用户 ---------- */
 
 export interface UserView {
+    version: number;
     id: number;
     username: string;
     nickname: string;
@@ -251,12 +254,13 @@ export interface UserCreateRequest {
     roleIds: number[];
 }
 
-export type UserUpdateRequest = Omit<UserCreateRequest, 'username' | 'password' | 'phone'>;
+export type UserUpdateRequest = Omit<UserCreateRequest, 'username' | 'password' | 'phone'> & { version: number };
 
 /** PUT /api-backend/system/user/updateAccountField/{id}：管理员单字段设置账号标识 */
 export type UserAccountField = 'username' | 'phone';
 
 export interface UserAccountFieldUpdateRequest {
+    version: number;
     field: UserAccountField;
     value: string;
 }
@@ -270,6 +274,7 @@ export interface UserOption {
 /* ---------- 角色 ---------- */
 
 export interface RoleView {
+    version: number;
     id: number;
     name: string;
     code: string;
@@ -292,6 +297,7 @@ export interface RoleQuery extends PageQuery {
 }
 
 export interface RoleSaveRequest {
+    version?: number;
     name: string;
     code: string;
     description?: string | null;

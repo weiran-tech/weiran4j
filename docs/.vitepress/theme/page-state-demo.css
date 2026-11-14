@@ -6,3 +6,5 @@
 .page-state-demo__preview h3 { margin-top: 0; }
 .page-state-demo__preview nav { margin-bottom: 16px; }
 .page-state-demo .semi-button-primary.semi-button-solid { background-color: #0064fa; }
+
+.page-state-demo label.semi-checkbox { display: inline-flex; align-items: center; gap: 0; }

@@ -33,7 +33,7 @@ public interface UserRepository {
     boolean existsByPhone(String phone);
 
     /** 定向修改一个账号字段。 */
-    void updateAccountField(long id, UserAccountField field, @Nullable String value);
+    void updateAccountField(long id, UserAccountField field, @Nullable String value, @Nullable Integer version);
 
     /** 新增用户，返回 ID。 */
     long insert(User user);
@@ -45,13 +45,13 @@ public interface UserRepository {
      */
 
     /** 定向更新：本人修改昵称、文字头像和性别。 */
-    void updateProfile(User user);
+    void updateProfile(User user, int version);
 
     /** 定向更新：验证码通过后本人绑定手机号。 */
     void updateVerifiedPhone(long id, String phone);
 
     /** 定向更新：管理员修改用户（昵称、性别、状态）。 */
-    void updateAccount(User user);
+    void updateAccount(User user, int version);
 
     /** 定向更新：记录一次成功登录。 */
     void recordLogin(long id, String ip, LocalDateTime at);

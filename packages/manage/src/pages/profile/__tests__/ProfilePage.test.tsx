@@ -6,7 +6,7 @@ import { signIn } from '@/test/session';
 import type { CurrentUserView, ProvidersView, UserIdentityView } from '@/types/api';
 import ProfilePage from '../ProfilePage';
 
-const me: CurrentUserView = {
+const me: CurrentUserView = { version: 0,
     id: 2,
     username: 'alice',
     nickname: '爱丽丝',

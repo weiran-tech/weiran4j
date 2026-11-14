@@ -142,6 +142,7 @@ export function useSaveFavoriteMenus() {
 /** 锁屏解锁：校验当前用户密码。错误码 110101 不清会话（见 utils/request.ts），由锁屏自己提示 */
 export function useVerifyPassword() {
     return useMutation({
+        retry: false,
         mutationFn: (password: string) =>
             http.post<null>('/api-backend/system/auth/verifyPassword', { password } satisfies VerifyPasswordRequest, { silent: true }),
     });

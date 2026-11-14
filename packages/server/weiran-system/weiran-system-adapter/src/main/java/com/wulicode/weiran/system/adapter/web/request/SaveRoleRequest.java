@@ -14,6 +14,7 @@ import org.jspecify.annotations.Nullable;
  * @param status 状态
  */
 public record SaveRoleRequest(
+        @Nullable @jakarta.validation.constraints.Min(0) Integer version,
         @NotBlank @Size(max = 64) String name,
         @NotBlank @Size(max = 64) String code,
         @Nullable @Size(max = 256) String description,

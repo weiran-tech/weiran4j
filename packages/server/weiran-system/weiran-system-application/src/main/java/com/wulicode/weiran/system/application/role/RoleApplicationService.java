@@ -93,12 +93,18 @@ public class RoleApplicationService implements RoleService {
     public void update(final long id, final SaveRoleCommand command) {
         final Role role = this.requireRole(id);
         final String code = command.code().strip();
-        final Role updated = role.withDetails(
-                command.name().strip(),
-                code,
-                Texts.trimToNull(command.description()),
-                command.sort() == null ? role.getSort() : command.sort(),
-                EnableStatus.ofNullable(command.status(), role.getStatus()));
+        if (command.version() == null || command.version() < 0) {
+            throw BizException.badRequest("version: 必填非负版本");
+        }
+        final Role updated = role.toBuilder()
+                .version(command.version())
+                .build()
+                .withDetails(
+                        command.name().strip(),
+                        code,
+                        Texts.trimToNull(command.description()),
+                        command.sort() == null ? role.getSort() : command.sort(),
+                        EnableStatus.ofNullable(command.status(), role.getStatus()));
         if (!role.getCode().equals(code) && this.roleRepository.existsByCode(code)) {
             throw BizException.duplicate("角色编码已存在");
         }
@@ -116,7 +122,7 @@ public class RoleApplicationService implements RoleService {
 
     @Override
     @Transactional
-    public void assignMenus(final long id, final List<Long> menuIds) {
+    public void assignMenus(final long id, final List<Long> menuIds, final int version) {
         this.requireRole(id);
         final Set<Long> existing =
                 this.menuRepository.findAll().stream().map(Menu::requireId).collect(Collectors.toSet());
@@ -124,6 +130,7 @@ public class RoleApplicationService implements RoleService {
         if (!existing.containsAll(requested)) {
             throw BizException.badRequest("menuIds: 包含不存在的菜单");
         }
+        this.roleRepository.advanceVersion(id, version);
         this.roleRepository.replaceMenus(id, requested.stream().sorted().toList());
         this.cache.evictAll();
     }
@@ -134,6 +141,7 @@ public class RoleApplicationService implements RoleService {
 
     private static RoleView toView(final Role role, final long userCount) {
         return new RoleView(
+                role.getVersion(),
                 role.requireId(),
                 role.getName(),
                 role.getCode(),

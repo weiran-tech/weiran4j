@@ -103,6 +103,7 @@ const OPT = {
  * 缺条目就报错。**加检查必须同时加一行说明,忘不了。**
  */
 const CHECK_DOC = {
+  'REPO/workflow-contract-stale': '现行 config/schema/templates 注入已废止的肯定实施要求；只查有限已知模式，明确历史或禁止说明允许',
   'L0/ambiguity': '缺「未决歧义」节,或 proposal 已存在但歧义没清零 —— 歧义没落盘则换 session 即蒸发;带着歧义往下走,返工成本翻 10 倍',
   'L0/ac-numbered': '验收标准没有 AC-N 编号,L8 只能整体估,无法逐条回指(warn)',
 

@@ -15,7 +15,7 @@ import { getSession } from '@/utils/session';
  * 在真实 AdminLayout 里生效。列设置见 components/__tests__/ColumnSettings.test.tsx。
  */
 
-const me: CurrentUserView = {
+const me: CurrentUserView = { version: 0,
     id: 1,
     username: 'admin',
     nickname: '超级管理员',

@@ -5,7 +5,7 @@ import type { UserIdentityView, UserView } from '@/types/api';
 import UsersPage from '../UsersPage';
 import { UserIdentitiesModal } from '../UserIdentitiesModal';
 
-const alice: UserView = {
+const alice: UserView = { version: 0,
     id: 2,
     username: 'alice',
     nickname: '爱丽丝',

@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wulicode.weiran.framework.error.BizException;
+import com.wulicode.weiran.framework.error.CommonErrors;
 import com.wulicode.weiran.framework.page.PageQuery;
 import com.wulicode.weiran.framework.page.PageResult;
 import com.wulicode.weiran.framework.persistence.Likes;
@@ -94,15 +96,23 @@ public class MybatisUserRepository implements UserRepository {
     }
 
     @Override
-    public void updateAccountField(final long id, final UserAccountField field, final @Nullable String value) {
+    public void updateAccountField(
+            final long id,
+            final UserAccountField field,
+            final @Nullable String value,
+            final @Nullable Integer version) {
         final SysUserDO row = new SysUserDO();
         row.setId(id);
-        final var update = Wrappers.lambdaUpdate(SysUserDO.class).eq(SysUserDO::getId, id);
+        final var update = Wrappers.lambdaUpdate(SysUserDO.class)
+                .eq(SysUserDO::getId, id)
+                .eq(version != null, SysUserDO::getEditVersion, version)
+                .lt(SysUserDO::getEditVersion, Integer.MAX_VALUE)
+                .setSql("edit_version = edit_version + 1");
         switch (field) {
             case USERNAME -> update.set(SysUserDO::getUsername, value);
             case PHONE -> update.set(SysUserDO::getPhone, value);
         }
-        this.userMapper.update(row, update);
+        this.ensureEdited(id, this.userMapper.update(row, update));
     }
 
     @Override
@@ -113,37 +123,51 @@ public class MybatisUserRepository implements UserRepository {
     }
 
     @Override
-    public void updateProfile(final User user) {
+    public void updateProfile(final User user, final int version) {
         final SysUserDO row = new SysUserDO();
         row.setId(user.requireId());
-        this.userMapper.update(
-                row,
-                Wrappers.lambdaUpdate(SysUserDO.class)
-                        .set(SysUserDO::getNickname, user.getNickname())
-                        .set(SysUserDO::getAvatar, this.avatarJson(user.getAvatar()))
-                        .set(SysUserDO::getGender, user.getGender().value())
-                        .eq(SysUserDO::getId, user.requireId()));
+        this.ensureEdited(
+                user.requireId(),
+                this.userMapper.update(
+                        row,
+                        Wrappers.lambdaUpdate(SysUserDO.class)
+                                .set(SysUserDO::getNickname, user.getNickname())
+                                .set(SysUserDO::getAvatar, this.avatarJson(user.getAvatar()))
+                                .set(SysUserDO::getGender, user.getGender().value())
+                                .eq(SysUserDO::getId, user.requireId())
+                                .eq(SysUserDO::getEditVersion, version)
+                                .lt(SysUserDO::getEditVersion, Integer.MAX_VALUE)
+                                .setSql("edit_version = edit_version + 1")));
     }
 
     @Override
     public void updateVerifiedPhone(final long id, final String phone) {
-        this.userMapper.update(Wrappers.lambdaUpdate(SysUserDO.class)
-                .set(SysUserDO::getPhone, phone)
-                .eq(SysUserDO::getId, id));
+        this.ensureEdited(
+                id,
+                this.userMapper.update(Wrappers.lambdaUpdate(SysUserDO.class)
+                        .set(SysUserDO::getPhone, phone)
+                        .lt(SysUserDO::getEditVersion, Integer.MAX_VALUE)
+                        .setSql("edit_version = edit_version + 1")
+                        .eq(SysUserDO::getId, id)));
     }
 
     @Override
-    public void updateAccount(final User user) {
+    public void updateAccount(final User user, final int version) {
         // 传入只带 ID 的实体是为了触发审计字段填充（updated_at / updated_by）；实体其余字段为空不参与 SET。
         final SysUserDO row = new SysUserDO();
         row.setId(user.requireId());
-        this.userMapper.update(
-                row,
-                Wrappers.lambdaUpdate(SysUserDO.class)
-                        .set(SysUserDO::getNickname, user.getNickname())
-                        .set(SysUserDO::getGender, user.getGender().value())
-                        .set(SysUserDO::getStatus, user.getStatus().value())
-                        .eq(SysUserDO::getId, user.requireId()));
+        this.ensureEdited(
+                user.requireId(),
+                this.userMapper.update(
+                        row,
+                        Wrappers.lambdaUpdate(SysUserDO.class)
+                                .set(SysUserDO::getNickname, user.getNickname())
+                                .set(SysUserDO::getGender, user.getGender().value())
+                                .set(SysUserDO::getStatus, user.getStatus().value())
+                                .eq(SysUserDO::getId, user.requireId())
+                                .eq(SysUserDO::getEditVersion, version)
+                                .lt(SysUserDO::getEditVersion, Integer.MAX_VALUE)
+                                .setSql("edit_version = edit_version + 1")));
     }
 
     @Override
@@ -316,8 +340,18 @@ public class MybatisUserRepository implements UserRepository {
         }
     }
 
+    private void ensureEdited(final long id, final int rows) {
+        if (rows == 0) {
+            if (!this.userMapper.exists(Wrappers.lambdaQuery(SysUserDO.class).eq(SysUserDO::getId, id))) {
+                throw BizException.notFound("用户不存在");
+            }
+            throw new BizException(CommonErrors.EDIT_CONFLICT);
+        }
+    }
+
     private User toDomain(final SysUserDO row) {
         return User.builder()
+                .version(row.getEditVersion() == null ? 0 : row.getEditVersion())
                 .id(row.getId())
                 .username(row.getUsername())
                 .nickname(row.getNickname())
@@ -339,6 +373,7 @@ public class MybatisUserRepository implements UserRepository {
     private SysUserDO toDataObject(final User user) {
         final SysUserDO row = new SysUserDO();
         row.setId(user.getId());
+        row.setEditVersion(user.getVersion());
         row.setUsername(user.getUsername());
         row.setNickname(user.getNickname());
         row.setPassword(user.getPasswordHash());

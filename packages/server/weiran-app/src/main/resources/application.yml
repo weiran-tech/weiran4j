@@ -68,6 +68,13 @@ weiran:
       access-key-id: ${WEIRAN_SMS_ALIYUN_ACCESS_KEY_ID:}
       access-key-secret: ${WEIRAN_SMS_ALIYUN_ACCESS_KEY_SECRET:}
   auth:
+    throttle:
+      account-limit: ${WEIRAN_AUTH_THROTTLE_ACCOUNT_LIMIT:10}
+      ip-limit: ${WEIRAN_AUTH_THROTTLE_IP_LIMIT:100}
+      login-window: ${WEIRAN_AUTH_THROTTLE_LOGIN_WINDOW:15m}
+      lock-limit: ${WEIRAN_AUTH_THROTTLE_LOCK_LIMIT:5}
+      lock-window: ${WEIRAN_AUTH_THROTTLE_LOCK_WINDOW:5m}
+      max-keys: ${WEIRAN_AUTH_THROTTLE_MAX_KEYS:10000}
     jwt:
       # 生产环境必须由环境变量注入，至少 32 字节；缺失或过短时应用启动失败。仓库里不放真实密钥。
       secret: ${WEIRAN_JWT_SECRET:}

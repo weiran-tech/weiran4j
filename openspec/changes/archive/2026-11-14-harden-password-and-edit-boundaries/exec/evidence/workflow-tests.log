@@ -1,0 +1,11 @@
+✔ 已知错误肯定断言被拒，历史和禁止说明允许 (0.659167ms)
+✔ config、schema、template 的废止断言均定位来源 (2.93175ms)
+✔ 实际 CLI 全部 artifact 的组合输出保持当前事实 (1978.158ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2032.788292

@@ -110,8 +110,8 @@ updated_at: ""
 <!-- openspec:required-table mark=2 note=3 -->
 | 项 | 是否涉及 | 说明 |
 |---|---|---|
-| CC-1 权限点 (`pam_permission`) | ☐ |  |
-| CC-2 菜单(前端硬编码,无后端表) | ☐ |  |
+| CC-1 权限点 (`sys_menu` 的 button 行) | ☐ |  |
+| CC-2 菜单(sys_menu 动态路由与按钮权限) | ☐ |  |
 | CC-3 数据范围 (`data-scope`,尚未引入) | ☐ |  |
 | CC-4 多租户隔离 (`tenant`,不适用) | ☐ |  |
 | CC-5 审计日志(登录日志 + `@OperationLog` 操作日志) | ☐ |  |
@@ -127,7 +127,7 @@ updated_at: ""
 - 产品/设计:
 - 后端:
 - 前端:
-- 数据库变更(需按宪法 CP-7 去 `weiran-v1` 核对迁移文件):
+- 数据库变更(按宪法 CP-7 追加 Flyway 脚本):
 - 运维/配置:
 - 测试:
 

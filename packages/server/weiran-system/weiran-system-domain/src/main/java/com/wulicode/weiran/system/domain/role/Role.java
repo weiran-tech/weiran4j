@@ -23,6 +23,8 @@ public final class Role {
 
     private final @Nullable Long id;
 
+    private final int version;
+
     private final String name;
 
     private final String code;

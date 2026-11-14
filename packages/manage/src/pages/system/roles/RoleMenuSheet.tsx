@@ -1,6 +1,11 @@
+import { EditConflictFeedback } from '@/components/EditConflictFeedback';
+import { useEditConflict } from '@/hooks/useEditConflict';
+import { useFormCloseGuard } from '@/hooks/useFormCloseGuard';
+import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
+import type { RoleDetail } from '@/types/api';
 import { Button, SideSheet, Space, Spin, Tag, Toast, Tree } from '@douyinfe/semi-ui';
 import type { TreeNodeData } from '@douyinfe/semi-ui/lib/es/tree';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { queriesReady, QueryReadiness } from '@/components/QueryReadiness';
 import { useMenuTree } from '@/hooks/queries/menus';
 import { useAssignRoleMenus, useRoleDetail } from '@/hooks/queries/roles';
@@ -40,18 +45,29 @@ export function RoleMenuSheet({ role, onClose }: Props) {
     const menuTree = useMenuTree();
     const detail = useRoleDetail(role.id);
     const assign = useAssignRoleMenus();
+    const conflict = useEditConflict();
+    const [baseline, setBaseline] = useState<RoleDetail | null>(null);
+    const snapshot = baseline ?? detail.data;
     /** null 表示还没改动，沿用后端返回的 menuIds */
     const [checked, setChecked] = useState<number[] | null>(null);
 
     const menus = useMemo(() => menuTree.data ?? [], [menuTree.data]);
     const treeData = useMemo(() => toTreeData(menus), [menus]);
     const allIds = useMemo(() => flattenTree(menus).map((m) => m.id), [menus]);
-    const value = checked?.filter((id) => allIds.includes(id)) ?? detail.data?.menuIds ?? [];
-    const ready = queriesReady(menuTree, detail) && !assign.isPending;
+    const value = useMemo(() => checked?.filter((id) => allIds.includes(id)) ?? snapshot?.menuIds ?? [], [checked, allIds, snapshot]);
+    const ready = queriesReady(menuTree, detail) && !!snapshot && !assign.isPending && !conflict.conflict && !conflict.reloading;
 
+    const fakeApi = useRef<FormApi<{ menuIds: number[] }> | null>(null);
+    useEffect(() => { fakeApi.current = { getValues: () => ({ menuIds: value }), getInitValues: () => ({ menuIds: snapshot?.menuIds ?? [] }) } as FormApi<{ menuIds: number[] }>; }, [value, snapshot]);
+    const guard = useFormCloseGuard(fakeApi, onClose);
+    const reload = () => conflict.reload(async () => {
+        const result = await detail.refetch();
+        if (!result.isSuccess || result.isRefetchError) throw new Error('reload failed');
+        setBaseline(result.data); setChecked(null);
+    });
     const save = async () => {
-        if (!ready) return;
-        await assign.mutateAsync({ id: role.id, menuIds: value });
+        if (!ready || !snapshot) return;
+        await conflict.run(() => assign.mutateAsync({ id: role.id, menuIds: value, version: snapshot.version }));
         Toast.success('权限已保存');
         onClose();
     };
@@ -63,16 +79,18 @@ export function RoleMenuSheet({ role, onClose }: Props) {
             visible
             title={`分配权限：${role.name}`}
             width={520}
-            onCancel={onClose}
+            onCancel={guard.requestClose}
+            closable={!guard.saving} closeOnEsc={!guard.saving} maskClosable={false}
             footer={
                 <Space style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button onClick={onClose}>取消</Button>
-                    <Button type="primary" theme="solid" loading={assign.isPending} disabled={!ready} onClick={() => void save().catch(() => undefined)}>
+                    <Button disabled={guard.saving} onClick={guard.requestClose}>取消</Button>
+                    <Button type="primary" theme="solid" loading={assign.isPending} disabled={!ready} onClick={() => void guard.submit(save).catch(() => undefined)}>
                         保存
                     </Button>
                 </Space>
             }
         >
+            <EditConflictFeedback {...conflict} onReload={reload} />
             <QueryReadiness query={menuTree} label="菜单树" onRetry={() => void menuTree.refetch()} />
             <QueryReadiness query={detail} label="角色详情" onRetry={() => void detail.refetch()} />
             {loading ? (
@@ -80,10 +98,10 @@ export function RoleMenuSheet({ role, onClose }: Props) {
             ) : (
                 <>
                     <Space style={{ marginBottom: 8 }}>
-                        <Button size="small" disabled={!ready} onClick={() => setChecked(allIds)}>
+                        <Button size="small" disabled={!ready} onClick={() => { if (snapshot) setBaseline(snapshot); setChecked(allIds); }}>
                             全选
                         </Button>
-                        <Button size="small" disabled={!ready} onClick={() => setChecked([])}>
+                        <Button size="small" disabled={!ready} onClick={() => { if (snapshot) setBaseline(snapshot); setChecked([]); }}>
                             清空
                         </Button>
                         <span style={{ color: 'var(--semi-color-text-2)', fontSize: 12 }}>已选 {value.length} 项</span>
@@ -97,6 +115,7 @@ export function RoleMenuSheet({ role, onClose }: Props) {
                         onChange={(v) => {
                             if (!ready) return;
                             const next = (Array.isArray(v) ? v : []).filter((x): x is number => typeof x === 'number');
+                            if (snapshot) setBaseline(snapshot);
                             setChecked(applyMenuCheck(menus, value, next));
                         }}
                         defaultExpandAll

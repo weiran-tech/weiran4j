@@ -69,6 +69,8 @@
 | 公共 | —(跨模块业务定义) | [`cross-biz.md`](cross-biz.md) |
 | 公共 | —(架构与技术问题) | [`artifact.md`](artifact.md) |
 | 身份与权限(weiran-system) | `sys_user` 用户 | [`sys_user.md`](sys_user.md) |
+| 身份与权限(weiran-system) | `sys_auth_throttle` 密码尝试计数 | [`sys_auth_throttle.md`](sys_auth_throttle.md) |
+| 身份与权限(weiran-system) | `sys_auth_throttle_guard` 计数协调 | [`sys_auth_throttle_guard.md`](sys_auth_throttle_guard.md) |
 | 身份与权限(weiran-system) | `sys_role` 角色 | [`sys_role.md`](sys_role.md) |
 | 身份与权限(weiran-system) | `sys_menu` 菜单 / 权限点 | [`sys_menu.md`](sys_menu.md) |
 | 身份与权限(weiran-system) | `sys_login_log` 登录日志 | [`sys_login_log.md`](sys_login_log.md) |

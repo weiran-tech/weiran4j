@@ -15,6 +15,7 @@ import org.jspecify.annotations.Nullable;
  * @param roleIds 角色 ID（全量覆盖），必填（可为空数组）
  */
 public record UpdateUserRequest(
+        @NotNull @jakarta.validation.constraints.Min(0) Integer version,
         @NotBlank @Size(max = 32) String nickname,
         @Nullable String gender,
         @Nullable String status,

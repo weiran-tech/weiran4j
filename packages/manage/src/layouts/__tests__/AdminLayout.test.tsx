@@ -8,7 +8,7 @@ import type { CurrentUserView, MenuNode } from '@/types/api';
 import { signIn } from '@/test/session';
 import { collectDirAncestors, nextOpenKeys } from '../AdminLayout';
 
-const me: CurrentUserView = {
+const me: CurrentUserView = { version: 0,
     id: 1,
     username: 'admin',
     nickname: '超级管理员',

@@ -20,7 +20,7 @@ function Harness({ action }: { action: Action }) {
     const write = async () => {
         try {
             if (action === 'delete') await remove.mutateAsync(2);
-            else if (action === 'assign') await assign.mutateAsync({ id: 2, menuIds: [] });
+            else if (action === 'assign') await assign.mutateAsync({ id: 2, menuIds: [], version: 0 });
             else await save.mutateAsync({ ...(action === 'update' ? { id: 2 } : {}), body });
             setResult('写入成功');
         } catch { setResult('写入失败'); }

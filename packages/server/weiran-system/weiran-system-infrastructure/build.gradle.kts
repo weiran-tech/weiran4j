@@ -11,6 +11,7 @@ weiranConventions {
 
 dependencies {
     api(project(":weiran-system-domain"))
+    implementation(project(":weiran-system-api")) // 统一认证节流错误码，不依赖应用或适配层
     implementation(project(":weiran-framework"))
     // framework 不再传递框架库（D-016），持久化与 JSON 用到的自己声明。
     implementation("com.baomidou:mybatis-plus-spring-boot3-starter")

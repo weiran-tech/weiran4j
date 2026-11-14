@@ -1,3 +1,4 @@
+import '@douyinfe/semi-ui/lib/es/_base/base.css';
 import DefaultTheme from 'vitepress/theme';
 import type { Theme } from 'vitepress';
 import PageStateDemo from './PageStateDemo.vue';

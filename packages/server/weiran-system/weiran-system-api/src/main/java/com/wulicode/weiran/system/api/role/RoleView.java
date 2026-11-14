@@ -18,6 +18,7 @@ import org.jspecify.annotations.Nullable;
  * @param updatedAt 更新时间
  */
 public record RoleView(
+        int version,
         long id,
         String name,
         String code,

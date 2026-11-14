@@ -1,3 +1,4 @@
+import { AuthAttemptFeedback } from './AuthAttemptFeedback';
 import { Button, Input } from '@douyinfe/semi-ui';
 import { Lock } from 'lucide-react';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
@@ -171,9 +172,7 @@ export function LockScreen({ user, onUnlocked, onReLogin }: LockScreenProps) {
                             }}
                         />
                         {error && (
-                            <div className="lock-screen__error" role="alert">
-                                {error}
-                            </div>
+                            <div className="lock-screen__error"><AuthAttemptFeedback message={error} /></div>
                         )}
                         <Button type="primary" theme="solid" block loading={verify.isPending} disabled={!password} onClick={unlock} style={{ marginTop: 12 }}>
                             解锁

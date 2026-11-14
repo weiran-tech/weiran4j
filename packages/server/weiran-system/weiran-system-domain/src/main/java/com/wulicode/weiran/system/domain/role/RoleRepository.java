@@ -20,6 +20,9 @@ public interface RoleRepository {
     /** 新增或更新，返回 ID。 */
     long save(Role role);
 
+    /** 版本校验后推进角色编辑版本。 */
+    void advanceVersion(long id, int version);
+
     /** 删除角色及其菜单关联。 */
     void deleteById(long id);
 

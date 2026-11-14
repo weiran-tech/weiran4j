@@ -484,3 +484,7 @@ CI 里两步都跑。注意包名:npm 上的 `openspec` 是无关的 0.0.0 占�
 - [ ] **门禁 ③(CI)缺失。** 见 [`state/bizs/artifact.md#05`](../state/bizs/artifact.md)。
   流水线侧的影响:`openspec check` 只有 hook(不阻断)与 pre-commit(可 `--no-verify` 绕过)两道,
   没有一道「绕不过去」的关口。
+
+### 2026-11-14 · 提示词债务关闭
+
+harden-password-and-edit-boundaries 修订 config/schema/当前模板的项目事实，并加入 workflow-contracts.mjs 守卫、正反夹具及真实 CLI 组合输出验证。只关闭现行注入链债务，历史说明文档的 mono4ts 来源复核仍保留。

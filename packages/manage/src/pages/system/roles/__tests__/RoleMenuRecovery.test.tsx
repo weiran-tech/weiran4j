@@ -5,7 +5,7 @@ import { roleKeys } from '@/hooks/queries/roles';
 import type { RoleView } from '@/types/api';
 import { RoleMenuSheet } from '../RoleMenuSheet';
 
-const role: RoleView = { id: 2, code: 'editor', name: '编辑', description: '', sort: 1, status: 'enabled', isBuiltin: false, userCount: 0, createdAt: '', updatedAt: '' };
+const role: RoleView = { version: 0, id: 2, code: 'editor', name: '编辑', description: '', sort: 1, status: 'enabled', isBuiltin: false, userCount: 0, createdAt: '', updatedAt: '' };
 const menus = [{ id: 3, parentId: 0, title: '用户管理', type: 'menu', permission: null, children: [] }];
 const failure = () => Response.json({ code: 100002, message: '读取失败', data: null }, { status: 500 });
 afterEach(() => vi.unstubAllGlobals());
@@ -28,7 +28,7 @@ it.each(['菜单树', '角色详情'])('%s 失败禁止修改和保存，重试�
     await waitFor(() => expect(screen.getByRole('button', { name: '保存' })).toBeEnabled());
     expect(screen.getByText('已选 1 项')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '保存' }));
-    await waitFor(() => expect(calls.find((call) => call.method === 'PUT')?.body).toEqual({ menuIds: [3] }));
+    await waitFor(() => expect(calls.find((call) => call.method === 'PUT')?.body).toEqual({ version: 0, menuIds: [3] }));
 });
 
 it('成功加载的空权限可以明确保存', async () => {
@@ -36,7 +36,7 @@ it('成功加载的空权限可以明确保存', async () => {
     renderWithProviders(<RoleMenuSheet role={role} onClose={() => undefined} />);
     await waitFor(() => expect(screen.getByRole('button', { name: '保存' })).toBeEnabled());
     fireEvent.click(screen.getByRole('button', { name: '保存' }));
-    await waitFor(() => expect(calls.find((call) => call.method === 'PUT')?.body).toEqual({ menuIds: [] }));
+    await waitFor(() => expect(calls.find((call) => call.method === 'PUT')?.body).toEqual({ version: 0, menuIds: [] }));
 });
 
 it('延迟返回详情时不能把缺失详情当成空权限', async () => {
@@ -68,5 +68,5 @@ it('刷新失败保留用户的清空草稿，重试后仍可保存空权限', a
     fireEvent.click(screen.getByRole('button', { name: '重试' }));
     await waitFor(() => expect(screen.getByRole('button', { name: '保存' })).toBeEnabled());
     fireEvent.click(screen.getByRole('button', { name: '保存' }));
-    await waitFor(() => expect(calls.find((call) => call.method === 'PUT')?.body).toEqual({ menuIds: [] }));
+    await waitFor(() => expect(calls.find((call) => call.method === 'PUT')?.body).toEqual({ version: 0, menuIds: [] }));
 });

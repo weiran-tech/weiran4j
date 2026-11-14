@@ -112,3 +112,7 @@
 3. **行为接通后**才在 `layouts/PreferencesDrawer.tsx` 对应分组加控件(布尔用 `<SwitchRow field=… />`)。
 4. 至少一条测试证明它真的生效(布局类见 `layouts/__tests__/AdminLayout.test.tsx` 的 `renderAuthed(route, prefs)`)。
 5. 契约 `packages/server/docs/01-架构与接口契约.md` §6.1 的字段数若有写死,一并改。后端不需要改。
+
+- **EditConflictFeedback**（`components/EditConflictFeedback.tsx`）：编辑冲突的持续反馈和手动重载入口，复用于 docs；`useEditConflict` 统一阻止旧草稿重试并确认重载，失败保留输入。
+
+- **AuthAttemptFeedback**（`components/AuthAttemptFeedback.tsx`）：登录、锁屏和 docs 共用的持续认证错误提示；手动重试由页面提交动作控制。

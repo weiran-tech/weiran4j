@@ -4,7 +4,7 @@ import { mockFetch, page, renderWithProviders } from '@/test/helpers';
 import type { UserView } from '@/types/api';
 import UsersPage, { EMPTY_FILTERS, formatDayRange, toQuery } from '../UsersPage';
 
-const admin: UserView = {
+const admin: UserView = { version: 0,
     id: 1,
     username: 'admin',
     nickname: '超级管理员',

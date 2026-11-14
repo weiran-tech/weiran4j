@@ -14,6 +14,7 @@ import org.jspecify.annotations.NullUnmarked;
 @Setter
 @TableName("sys_role")
 public class SysRoleDO extends AuditableDO {
+    private Integer editVersion;
 
     private String name;
 

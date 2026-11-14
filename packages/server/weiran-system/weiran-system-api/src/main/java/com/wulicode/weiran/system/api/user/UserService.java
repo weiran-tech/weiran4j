@@ -22,6 +22,9 @@ public interface UserService {
     /** 单字段修改用户名或手机号；调用方负责校验管理员权限或限定为本人。 */
     void updateAccountField(long id, UpdateUserAccountFieldCommand command);
 
+    /** 本人定向更改用户名，推进版本但不覆盖其他字段。 */
+    void updateOwnUsername(long id, String username);
+
     /** 删除；内置用户与操作人自己不能删（100004）。 */
     void delete(long id, long operatorId);
 

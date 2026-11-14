@@ -33,7 +33,10 @@ public enum CommonErrors implements ErrorCode {
     INTERNAL_ERROR(100005, 500, "服务器内部错误"),
 
     /** 服务暂不可用（如外部存储未配置）。 */
-    SERVICE_UNAVAILABLE(100006, 503, "服务暂不可用");
+    SERVICE_UNAVAILABLE(100006, 503, "服务暂不可用"),
+
+    /** 草稿基准已过期。 */
+    EDIT_CONFLICT(100007, 409, "数据已更新，请重新加载后编辑");
 
     private final int code;
 

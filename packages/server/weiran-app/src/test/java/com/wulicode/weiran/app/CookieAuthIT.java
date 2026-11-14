@@ -191,7 +191,7 @@ class CookieAuthIT extends IntegrationTestSupport {
                 HttpMethod.PUT,
                 "/api-backend/system/auth/updateProfile",
                 session.cookiesWithCsrf(session.csrf()),
-                Map.of("nickname", "新昵称")));
+                Map.of("version", 0, "nickname", "新昵称")));
         assertThat(this.nickname(session)).isEqualTo("新昵称");
     }
 

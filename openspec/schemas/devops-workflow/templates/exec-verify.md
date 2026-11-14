@@ -91,7 +91,7 @@ updated_at: ""
 |  |  | ☐ 绿 | `evidence/<键名>.log` |
 
 > 证据必须是**代码全部改完之后**跑的:`L7/evidence-fresh` 按 `project.json` 的 `sourcePaths`
-> (`weiran-framework`、`weiran-system`、`weiran-app`、`web`)整目录 mtime 判定,
+> （以 project.json 的实际路径为准）整目录 mtime 判定,
 > 留完证据再补一行(哪怕只补测试)就全部失效,且各 log 独立判定,须全部重跑。
 >
 > ⚠️ **`git stash` / `git stash pop` 会刷新这些目录的 mtime,从而作废已留好的全部证据。**
@@ -104,9 +104,9 @@ updated_at: ""
 任一红灯 → **先归因,再决定**。归因只有一种做法,不接受口头判断:
 
 ```bash
-git stash push -u -- weiran-framework weiran-system weiran-app web openspec   # 把本次改动整体移走
-<那条红掉的命令>                          # 在基线上重跑
-git stash pop
+# 先确认并只移开本 change 的改动，保留其他既存 diff；路径从 project.json 的 sourcePaths 读取
+# 在已固定基线上重跑失败命令，恢复改动后重新生成全部 L7 证据
+<那条红掉的命令>
 ```
 
 | 基线上的结果 | 判定 | 去向 |

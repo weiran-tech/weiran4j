@@ -6,7 +6,8 @@ context: |
 
   项目形态:weiran4j 是 monorepo —— Java 后端(Gradle 多模块,JDK 21,Spring Boot 3.5 +
   MyBatis-Plus + Flyway + MySQL 8,DDD 五层)+ 前端 web(pnpm/Vite/React 19/Semi UI)。
-  2026-09-26 起不再兼容 PHP weiran-v1;前后端契约以 packages/server/docs/01-架构与接口契约.md 为准。
+  2026-09-26 起不再兼容 PHP weiran-v1;HTTP 接口定义以 Controller/DTO 生成的 OpenAPI 为准；packages/server/docs/01-架构与接口契约.md 仅记录架构、数据与跨接口约束。
+  统一响应为 {code, message, data}，成功 code 为数字 0；MySQL 8 只通过追加 Flyway 迁移演进；菜单由 sys_menu 动态驱动。
 
 # ─────────────────────────────────────────────────────────────────────────────
 # rules —— 逐 artifact 的硬约束

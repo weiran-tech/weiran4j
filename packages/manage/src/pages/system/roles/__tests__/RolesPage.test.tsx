@@ -4,7 +4,7 @@ import { mockFetch, page, renderWithProviders } from '@/test/helpers';
 import type { MenuNode, RoleView } from '@/types/api';
 import RolesPage from '../RolesPage';
 
-const editor: RoleView = {
+const editor: RoleView = { version: 0,
     id: 2,
     name: '编辑',
     code: 'editor',

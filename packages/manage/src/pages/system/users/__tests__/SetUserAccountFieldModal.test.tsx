@@ -4,7 +4,7 @@ import { renderWithProviders } from '@/test/helpers';
 import type { UserView } from '@/types/api';
 import { SetUserAccountFieldModal } from '../SetUserAccountFieldModal';
 
-const user: UserView = {
+const user: UserView = { version: 0,
     id: 2,
     username: 'alice',
     nickname: '爱丽丝',

@@ -2,6 +2,7 @@ package com.wulicode.weiran.system.adapter.web.request;
 
 import com.wulicode.weiran.system.api.user.UserAvatarView;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.jspecify.annotations.Nullable;
 
@@ -13,6 +14,7 @@ import org.jspecify.annotations.Nullable;
  * @param gender 性别
  */
 public record UpdateProfileRequest(
+        @NotNull @jakarta.validation.constraints.Min(0) Integer version,
         @NotBlank @Size(max = 32) String nickname,
         @Nullable UserAvatarView avatar,
         @Nullable String gender) {}

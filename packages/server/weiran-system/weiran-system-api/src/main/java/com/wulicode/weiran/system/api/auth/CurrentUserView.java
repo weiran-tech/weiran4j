@@ -18,6 +18,7 @@ import org.jspecify.annotations.Nullable;
  * @param hasPassword 是否有本地密码（外部身份自动开通的用户没有，D-015）
  */
 public record CurrentUserView(
+        int version,
         long id,
         String username,
         String nickname,

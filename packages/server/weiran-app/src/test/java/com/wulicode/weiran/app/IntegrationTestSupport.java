@@ -110,7 +110,36 @@ abstract class IntegrationTestSupport {
     }
 
     ResponseEntity<JsonNode> put(final String path, final @Nullable String token, final Object body) {
-        return this.call(HttpMethod.PUT, path, token, body);
+        return this.call(HttpMethod.PUT, path, token, this.editBody(path, token, body));
+    }
+
+    /** 既有集成用例的编辑请求工厂；协议缺字段测试直接用 call，避免自动补齐。 */
+    private Object editBody(final String path, final @Nullable String token, final Object body) {
+        if (!(body instanceof final Map<?, ?> fields) || fields.containsKey("version")) {
+            return body;
+        }
+        final String table;
+        final long id;
+        if (path.matches("/api-backend/system/user/(update|updateAccountField)/[0-9]+")) {
+            table = "sys_user";
+            id = Long.parseLong(path.substring(path.lastIndexOf('/') + 1));
+        } else if (path.matches("/api-backend/system/role/(update|assignMenus)/[0-9]+")) {
+            table = "sys_role";
+            id = Long.parseLong(path.substring(path.lastIndexOf('/') + 1));
+        } else if (path.equals("/api-backend/system/auth/updateProfile")) {
+            table = "sys_user";
+            id = IntegrationTestSupport.data(this.get("/api-backend/system/auth/getCurrentUser", token))
+                    .path("id")
+                    .asLong();
+        } else {
+            return body;
+        }
+        final java.util.List<Integer> versions =
+                this.jdbc.query("SELECT edit_version FROM " + table + " WHERE id = ?", (rs, index) -> rs.getInt(1), id);
+        final java.util.Map<String, Object> copy = new java.util.HashMap<>();
+        fields.forEach((key, value) -> copy.put(key.toString(), value));
+        copy.put("version", versions.isEmpty() ? 0 : versions.getFirst());
+        return copy;
     }
 
     ResponseEntity<JsonNode> delete(final String path, final @Nullable String token) {

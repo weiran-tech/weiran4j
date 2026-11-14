@@ -1,5 +1,9 @@
 # 流程本身的修改记录
 
+## 2026-11-14 · 现行提示词契约纠偏
+
+修正 config/schema/templates 的 Java/Flyway/数字成功码/动态菜单事实，保留规则 ID；新增 workflow-contracts 插件及正反样本、真实 CLI 注入测试，不改历史归档。
+
 ## 2026-11-14 · CI 归档重放保留完整历史
 
 - OpenSpec CI job 的 checkout 改为 `fetch-depth: 0`，确保同日归档按真实首次提交时间重放。

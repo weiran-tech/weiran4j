@@ -30,7 +30,6 @@ import com.wulicode.weiran.system.api.auth.ProvidersView;
 import com.wulicode.weiran.system.api.auth.UpdateProfileCommand;
 import com.wulicode.weiran.system.api.auth.UserIdentityView;
 import com.wulicode.weiran.system.api.menu.MenuNode;
-import com.wulicode.weiran.system.api.user.UpdateUserAccountFieldCommand;
 import com.wulicode.weiran.system.api.user.UserService;
 import com.wulicode.weiran.system.application.auth.MfaLoginApplicationService;
 import com.wulicode.weiran.system.application.auth.PhoneLoginSettings;
@@ -202,7 +201,7 @@ public class AuthController {
     public ApiResponse<Void> updateProfile(@Valid @RequestBody final UpdateProfileRequest request) {
         this.authService.updateProfile(
                 CurrentUser.require().id(),
-                new UpdateProfileCommand(request.nickname(), request.avatar(), request.gender()));
+                new UpdateProfileCommand(request.version(), request.nickname(), request.avatar(), request.gender()));
         return ApiResponse.ok();
     }
 
@@ -210,8 +209,7 @@ public class AuthController {
     @OperationLog(module = "个人中心", description = "修改用户名")
     @PutMapping("/api-backend/system/auth/updateUsername")
     public ApiResponse<Void> updateUsername(@Valid @RequestBody final UpdateOwnUsernameRequest request) {
-        this.userService.updateAccountField(
-                CurrentUser.require().id(), new UpdateUserAccountFieldCommand("username", request.username()));
+        this.userService.updateOwnUsername(CurrentUser.require().id(), request.username());
         return ApiResponse.ok();
     }
 

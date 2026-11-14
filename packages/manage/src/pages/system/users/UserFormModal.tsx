@@ -1,6 +1,9 @@
+import { EditConflictFeedback } from '@/components/EditConflictFeedback';
+import { useEditConflict } from '@/hooks/useEditConflict';
+import { http } from '@/utils/request';
 import { Form, Modal, Toast } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { STATUS_OPTIONS } from '@/components/StatusTag';
 import { useDictOptions } from '@/hooks/queries/dicts';
 import { useRoleOptions } from '@/hooks/queries/roles';
@@ -37,7 +40,15 @@ interface Props {
     onClose: () => void;
 }
 
-export function UserFormModal({ record, onClose }: Props) {
+export function UserFormModal({ record: initialRecord, onClose }: Props) {
+    const [record, setRecord] = useState(initialRecord);
+    const [formKey, setFormKey] = useState(0);
+    const conflict = useEditConflict();
+    const reload = () => conflict.reload(async () => {
+        if (!record) return;
+        const latest = await http.get<UserView>(`/api-backend/system/user/get/${record.id}`);
+        setRecord(latest); setFormKey((key) => key + 1);
+    });
     const isEdit = record !== null;
     const api = useRef<FormApi<UserForm> | null>(null);
     const save = useSaveUser();
@@ -47,18 +58,18 @@ export function UserFormModal({ record, onClose }: Props) {
 
     const submit = async () => {
         const v = await api.current?.validate();
-        if (!v) return;
+        if (!v || conflict.conflict) return;
         const common = {
             nickname: v.nickname,
             gender: v.gender ?? null,
             status: v.status,
             roleIds: v.roleIds ?? [],
         };
-        await save.mutateAsync(
+        await conflict.run(() => save.mutateAsync(
             isEdit
-                ? { id: record.id, body: common }
+                ? { id: record.id, body: { ...common, version: record.version } }
                 : { body: { ...common, username: v.username.trim(), password: v.password, phone: v.phone || null } },
-        );
+        ));
         Toast.success(isEdit ? '已保存' : '已创建');
         onClose();
     };
@@ -70,13 +81,15 @@ export function UserFormModal({ record, onClose }: Props) {
             width={600}
             onCancel={guard.requestClose}
             onOk={() => guard.submit(submit).catch(() => undefined)}
-            okButtonProps={{ loading: guard.saving, disabled: guard.saving }}
+            okButtonProps={{ loading: guard.saving, disabled: guard.saving || conflict.conflict || conflict.reloading }}
             cancelButtonProps={{ disabled: guard.saving }}
             closable={!guard.saving}
             closeOnEsc={!guard.saving}
             maskClosable={false}
         >
+            <EditConflictFeedback {...conflict} onReload={reload} />
             <Form<UserForm>
+                key={formKey}
                 getFormApi={(a) => {
                     api.current = a;
                 }}

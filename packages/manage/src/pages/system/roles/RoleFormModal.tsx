@@ -1,6 +1,9 @@
+import { EditConflictFeedback } from '@/components/EditConflictFeedback';
+import { useEditConflict } from '@/hooks/useEditConflict';
+import { http } from '@/utils/request';
 import { Form, Modal, Toast } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { STATUS_OPTIONS } from '@/components/StatusTag';
 import { useSaveRole } from '@/hooks/queries/roles';
 import { useFormCloseGuard } from '@/hooks/useFormCloseGuard';
@@ -22,7 +25,15 @@ interface Props {
     onClose: () => void;
 }
 
-export function RoleFormModal({ record, onClose }: Props) {
+export function RoleFormModal({ record: initialRecord, onClose }: Props) {
+    const [record, setRecord] = useState(initialRecord);
+    const [formKey, setFormKey] = useState(0);
+    const conflict = useEditConflict();
+    const reload = () => conflict.reload(async () => {
+        if (!record) return;
+        const latest = await http.get<RoleView>(`/api-backend/system/role/get/${record.id}`);
+        setRecord(latest); setFormKey((key) => key + 1);
+    });
     const isEdit = record !== null;
     const api = useRef<FormApi<RoleForm> | null>(null);
     const save = useSaveRole();
@@ -30,11 +41,11 @@ export function RoleFormModal({ record, onClose }: Props) {
 
     const submit = async () => {
         const v = await api.current?.validate();
-        if (!v) return;
-        await save.mutateAsync({
+        if (!v || conflict.conflict) return;
+        await conflict.run(() => save.mutateAsync({
             id: record?.id,
-            body: { name: v.name, code: v.code, description: v.description || null, sort: v.sort ?? 0, status: v.status },
-        });
+            body: { ...(record ? { version: record.version } : {}), name: v.name, code: v.code, description: v.description || null, sort: v.sort ?? 0, status: v.status },
+        }));
         Toast.success(isEdit ? '已保存' : '已创建');
         onClose();
     };
@@ -45,13 +56,15 @@ export function RoleFormModal({ record, onClose }: Props) {
             title={isEdit ? '编辑角色' : '新增角色'}
             onCancel={guard.requestClose}
             onOk={() => guard.submit(submit).catch(() => undefined)}
-            okButtonProps={{ loading: guard.saving, disabled: guard.saving }}
+            okButtonProps={{ loading: guard.saving, disabled: guard.saving || conflict.conflict || conflict.reloading }}
             cancelButtonProps={{ disabled: guard.saving }}
             closable={!guard.saving}
             closeOnEsc={!guard.saving}
             maskClosable={false}
         >
+            <EditConflictFeedback {...conflict} onReload={reload} />
             <Form<RoleForm>
+                key={formKey}
                 getFormApi={(a) => {
                     api.current = a;
                 }}

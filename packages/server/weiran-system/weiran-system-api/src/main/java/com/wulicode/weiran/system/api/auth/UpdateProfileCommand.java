@@ -11,6 +11,7 @@ import org.jspecify.annotations.Nullable;
  * @param gender 性别，空表示 unknown
  */
 public record UpdateProfileCommand(
+        int version,
         String nickname,
         @Nullable UserAvatarView avatar,
         @Nullable String gender) {}

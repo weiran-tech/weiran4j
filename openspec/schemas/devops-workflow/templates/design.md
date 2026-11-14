@@ -72,7 +72,7 @@ flowchart LR
   为什么问:design.md 是 L3 人闸唯一的审阅对象,也是 L4 契约冻结的来源。
            章节缺一块,那块就不会被审,也不会进契约表。
   答案要求:按本项目的技术栈列出必填章节,每节给出「填什么 + 本项目的既定做法/踩过的坑」。
-  下面这套是 Java 21 / Gradle 多模块(DDD 五层 + MyBatis-Plus + JWT + wuli3 底座)的版本;
+  下面这套是 Java 21 / Gradle 多模块(DDD 五层 + MyBatis-Plus + JWT + weiran-framework)的版本;
   换栈时整体替换,但有两节任何项目都要保留:
     · 跨模块契约变更(它会成为 exec/plan.md 的 Layer 0 与契约冻结项)
     · Rollout / Rollback(Rollback 必须写 revert 锚点)
@@ -98,9 +98,7 @@ flowchart LR
 |---|---|---|---|---|---|
 |  | GET/POST | `weiran-system-adapter/.../packages/manage/` |  |  |  |
 
-- 统一响应包络由 wuli3 底座的 `ApiResponseBodyAdvice` 产生,**不在本仓库自行定义**——
-  design 里只需声明业务字段,不需要重新设计包络本身(`{code, message, timestamp, requestId, data}`,
-  **code 是字符串 `"0"`**)
+- 统一响应由 weiran-framework 的 `ApiResponseBodyAdvice` 产生，形状 `{code, message, data}`，**code 是数字，0 为成功**。接口定义由 Controller / DTO 的 Springdoc OpenAPI 生成。
 - 分页:复用 `weiran-framework` 的 `PageQuery`/`PageResult`,不自定义分页协议
 - 端口签名不得出现框架类型(`*DO`/`BaseMapper`/`IPage`/`Wrappers` 只允许出现在 infrastructure 层)
 
@@ -110,17 +108,15 @@ flowchart LR
 |---|---|---|---|---|
 |  | 新增/改造 |  |  |  |
 
-- **本仓库没有 migration 工具**(无 Flyway/Liquibase),数据库结构变更依赖手写 SQL
-- 迁移期两套系统并行读写同一套 `pam_*` 表:改这些表结构前**必须**去 `weiran-v1` 核对
-  迁移文件与 Model,并说明对 PHP 侧是否破坏性(宪法 CP-7)
+- MySQL 8 结构只通过新增 Flyway 脚本演进，路径为模块 infrastructure 的 `db/migration/<module>/V<yyyyMMddHHmm>__<module>_<desc>.sql`；已发布脚本永不修改。
 - 兼容性:只加不删,灰度期保持向前兼容;删列拆成后续 change
 
 ## 权限与已知缺口(DS-4)
 
 | 项 | 设计 |
 |---|---|
-| 权限点(`pam_permission`) |  |
-| 菜单挂载(前端硬编码,`packages/manage/src/layouts/AdminLayout.tsx`,无后端表) |  |
+| 权限点(`sys_menu` 的 button 行) |  |
+| 菜单挂载(sys_menu 提供，页面注册表匹配 component) |  |
 | 是否新增写接口却漏标 `@OperationLog`(操作日志,见 `rules/enforced/project.md` CC-5) |  |
 
 > 数据范围 / 多租户 / 幂等 / 导出任务中心 / 工作流绑定当前均**尚未引入或不适用**
@@ -139,8 +135,8 @@ flowchart LR
 
 | 项 | 内容 |
 |---|---|
-| 页面/路由 | `packages/manage/src/App.tsx` |
-| 菜单挂载 | `packages/manage/src/layouts/AdminLayout.tsx`(含权限点字符串) |
+| 页面/路由 | `packages/manage/src/pages/` 与菜单 component 配对，无需改 App.tsx |
+| 菜单挂载 | sys_menu 动态菜单；按钮使用 Permission |
 | 数据请求方式 |  |
 | 复用组件 |  |
 | 权限控制点 |  |
@@ -164,7 +160,7 @@ flowchart LR
 
 ## Rollout Plan
 
-1. 数据库变更(若有,按宪法 CP-7 与 `weiran-v1` 核对后手工执行)
+1. 数据库变更(若有,按宪法 CP-7 由 Flyway 执行追加脚本)
 2. 
 3. 
 

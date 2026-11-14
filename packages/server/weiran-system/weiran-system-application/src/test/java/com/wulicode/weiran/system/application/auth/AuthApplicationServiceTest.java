@@ -59,6 +59,8 @@ class AuthApplicationServiceTest {
 
     private ExternalIdentityProviders providers;
 
+    private com.wulicode.weiran.system.domain.auth.PasswordAttempts attempts;
+
     private AuthApplicationService service;
 
     private static User user(final EnableStatus status) {
@@ -86,6 +88,7 @@ class AuthApplicationServiceTest {
         final com.wulicode.weiran.system.domain.user.SecuritySettingsRepository securitySettings =
                 mock(com.wulicode.weiran.system.domain.user.SecuritySettingsRepository.class);
         when(securitySettings.load()).thenReturn(com.wulicode.weiran.system.domain.user.SecuritySettings.defaults());
+        this.attempts = mock(com.wulicode.weiran.system.domain.auth.PasswordAttempts.class);
         this.service = new AuthApplicationService(
                 this.users,
                 mock(MenuRepository.class),
@@ -96,7 +99,8 @@ class AuthApplicationServiceTest {
                 this.authorizationResolver,
                 new AuthSnapshotCache(),
                 Clock.systemUTC(),
-                this.providers);
+                this.providers,
+                this.attempts);
     }
 
     private String loggedStatus() {
@@ -273,5 +277,23 @@ class AuthApplicationServiceTest {
                 .status(EnableStatus.ENABLED)
                 .builtin(true)
                 .build();
+    }
+
+    @Test
+    @DisplayName("额度拒绝先于密码比较且锁屏拒绝不会验证密码")
+    void deniedBeforePasswordComparison() {
+        org.mockito.Mockito.doThrow(new BizException(SystemAuthErrors.AUTH_RATE_LIMITED))
+                .when(this.attempts)
+                .reserveLogin("admin", "127.0.0.1");
+        assertThatThrownBy(() ->
+                        this.service.login(new LoginCommand("admin", "secret"), AuthApplicationServiceTest.CLIENT))
+                .isInstanceOf(BizException.class);
+        verify(this.hasher, never()).matches(anyString(), anyString());
+        verify(this.users, never()).findByUsername(anyString());
+        org.mockito.Mockito.doThrow(new BizException(SystemAuthErrors.AUTH_RATE_LIMITED))
+                .when(this.attempts)
+                .reserveUnlock(7L);
+        assertThatThrownBy(() -> this.service.verifyPassword(7L, "secret")).isInstanceOf(BizException.class);
+        verify(this.hasher, never()).matches(anyString(), anyString());
     }
 }

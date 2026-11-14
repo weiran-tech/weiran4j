@@ -1,0 +1,6 @@
+{
+  "conflictRecovery": true,
+  "throttleRecovery": true,
+  "apiRequests": [],
+  "errors": []
+}

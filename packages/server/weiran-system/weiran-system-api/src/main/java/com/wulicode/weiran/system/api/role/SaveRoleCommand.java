@@ -12,6 +12,7 @@ import org.jspecify.annotations.Nullable;
  * @param status 状态，空为 enabled
  */
 public record SaveRoleCommand(
+        @Nullable Integer version,
         String name,
         String code,
         @Nullable String description,

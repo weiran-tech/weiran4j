@@ -18,7 +18,8 @@
     "./guards/state-waitlist.mjs",
     "./guards/spec-xref.mjs",
     "./guards/worktree-orphan.mjs",
-    "./guards/ratchet.mjs"
+    "./guards/ratchet.mjs",
+    "./guards/workflow-contracts.mjs"
   ],
   "apiRouteConvention": {
     "exceptions": {

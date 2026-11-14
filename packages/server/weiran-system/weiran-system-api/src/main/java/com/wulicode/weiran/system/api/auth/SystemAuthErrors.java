@@ -4,6 +4,8 @@ import com.wulicode.weiran.framework.error.ErrorCode;
 
 /** system 服务（11）的认证资源（01）错误码。 */
 public enum SystemAuthErrors implements ErrorCode {
+    /** 密码尝试超限。 */
+    AUTH_RATE_LIMITED(110108, 429, "请求过于频繁，请稍后重试"),
     /** 用户名不存在与密码错误使用相同码，防止枚举账号。 */
     BAD_CREDENTIALS(110101, 401, "用户名或密码错误"),
     EXTERNAL_AUTH_FAILED(110102, 401, "外部身份校验失败，请重新登录"),

@@ -64,7 +64,7 @@ export function useDeleteRole() {
 export function useAssignRoleMenus() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, menuIds }: { id: number; menuIds: number[] }) => http.put<null>(`/api-backend/system/role/assignMenus/${id}`, { menuIds }),
+        mutationFn: ({ id, menuIds, version }: { id: number; menuIds: number[]; version: number }) => http.put<null>(`/api-backend/system/role/assignMenus/${id}`, { menuIds, version }),
         onSuccess: (_d, v) => Promise.all([
             qc.invalidateQueries({ queryKey: roleKeys.detail(v.id) }),
             qc.invalidateQueries({ queryKey: authKeys.me }),

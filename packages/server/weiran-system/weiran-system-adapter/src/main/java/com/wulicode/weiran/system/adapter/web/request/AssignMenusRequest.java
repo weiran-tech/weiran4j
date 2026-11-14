@@ -8,4 +8,6 @@ import java.util.List;
  *
  * @param menuIds 菜单 ID
  */
-public record AssignMenusRequest(@NotNull List<Long> menuIds) {}
+public record AssignMenusRequest(
+        @NotNull @jakarta.validation.constraints.Min(0) Integer version,
+        @NotNull List<Long> menuIds) {}

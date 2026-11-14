@@ -455,3 +455,7 @@ ROOT project join existsSync statSync read rel err warn git lastCommitTs dirtyFi
 ```bash
 node openspec/check.mjs && node openspec/check.mjs --explain
 ```
+
+## 现行工作流提示词事实
+
+`workflow-contracts.mjs` 插件只扫描 config.yaml、devops-workflow schema 与当前模板，按有限已知肯定断言报告来源和行号。历史档案不扫描；明确历史/禁止说明允许。它不证明任意自然语言正确性；Node 正反夹具与真实 CLI instructions 组合输出验证在 openspec/tests/workflow-contracts.test.mjs，回归命令 `node --test openspec/tests/*.test.mjs`。

@@ -64,6 +64,8 @@
 
 列宽合计 1316(弹性列「角色」按 78 计，含「设置账号信息」操作；配置外部身份提供方时为 1388),1440 宽下部分布局可横向滚动、操作列固定在右侧;手机 116、时间 158 按最坏数据算,不折行(见 `rules/advisory/list-view.md` 二.4)。
 
+`UserView` 返回独立 `version`（数据库 edit_version）；更新必传非负版本，冲突 409/100007 且字段/角色/吊销同事务；本人用户名和验证手机号也推进版本，登录/偏好/收藏/改密不推进。
+
 `UserView` 还返回 `avatar`、`lastLoginIp`、`isBuiltin`、`roleIds`、`updatedAt`，列表未展示；**绝不返回** `password` / `token_version`。
 
 **搜索栏**（按设计稿 `wuli-design/testing.pen`「用户列表」）：最左「新增用户」→ 常用筛选（下表三项）→ 图标「查询」→「高级筛选」开关
@@ -139,7 +141,7 @@ PUT 偏好与 PUT 收藏只定向更新 `sys_user` 对应 JSON 列，并保持 `
 | —（本人，界面偏好写） | `PUT /api/auth/preferences` | 仅登录 | ❌ 刻意不记（前端 500ms 防抖高频写） | 见 §2「本人数据列」；定向 `UPDATE preferences`（`updatePreferences`），不刷新 `updated_at`、不填 `updated_by` |
 | —（本人，收藏菜单读） | `GET /api/auth/favorite-menus` | 仅登录 | — | `number[]`，按收藏顺序；已删除 / 已禁用 / 已无权访问的 ID 过滤掉；从未保存返回 `[]` |
 | —（本人，收藏菜单写） | `PUT /api/auth/favorite-menus` | 仅登录 | ❌ 不记 | `{menuIds}`（`@NotNull`）；规则见 §2；定向 `UPDATE favorite_menus`（`updateFavoriteMenuIds`），不刷新 `updated_at` |
-| —（本人，锁屏解锁） | `POST /api/auth/verify-password` | 仅登录 | ❌ 不记 | `{password}`（`@NotBlank` ≤ 64）；BCrypt 比对当前用户密码，正确返回 `null`，错误 110101「密码错误」；**不签发令牌、不改 `token_version`、不写登录日志**；无失败次数限制 |
+| —（本人，锁屏解锁） | `POST /api/auth/verify-password` | 仅登录 | ❌ 不记 | `{password}`（`@NotBlank` ≤ 64）；BCrypt 比对当前用户密码，正确返回 `null`，错误 110101「密码错误」；**不签发令牌、不改 `token_version`、不写登录日志**；密码校验前按当前用户独立预占额度，超限 429/110108、存储或容量不可用 503/100006 |
 | —（登录页，短信验证码） | `POST /api-backend/n/system/auth/sendPhoneCode`、`POST /api-backend/n/system/auth/loginWithPhoneCode` | 免登录 | 登录写 `sys_login_log`；`local` 发码成功另写 `sms_code` 事件 | 仅在手机号登录开关、短信发送器及模板均就绪时开放；6 位验证码 5 分钟有效、一次使用，按手机号/IP 限流；手机号不存在返回 110106，账号已禁用返回 110107，发送失败也返回错误；错误登录统一返回 110101，失败日志手机号脱敏；`local` 发码日志保留验证码明文 |
 
 按钮显隐：无对应权限时 `Permission` 不渲染（非 disabled）；「删除」对内置用户为 disabled。
@@ -155,19 +157,15 @@ PUT 偏好与 PUT 收藏只定向更新 `sys_user` 对应 JSON 列，并保持 `
 - **写入方式**：仓储对 `sys_user` 一律「定向更新」，每个用例只 `SET` 自己负责的列（`updateProfile` / `updateAccount` /
   `recordLogin` / `changePassword` / `revokeTokens` / `updatePreferences` / `updateFavoriteMenuIds`），`SysUserDO` 上密码、令牌版本、登录信息、
   偏好与收藏标 `updateStrategy = NEVER`。
-  因此登录、改密、禁用之间不会互相覆盖；但管理员编辑昵称/性别/状态之间仍是后写覆盖（见 #01）。
+  因此登录、改密、禁用之间不会互相覆盖；但管理员编辑、本人的资料与账号原子变更通过独立 edit_version 防止旧草稿覆盖（见 #01）。
 - **令牌吊销**：改密 / 管理员重置 / 启用→禁用三处让 `token_version` 原子加一。编辑用户若未改变启用状态，令牌不受影响。
   认证时 `token_version` 与 `status` 每次请求按主键查库（`findAuthState`），不经过下面的快照缓存，所以多实例下吊销同样立即生效（宪法 CP-8）。
 - **授权快照缓存**（用户名 / 昵称 / 角色 / 权限码，30s）：编辑、删除、重置密码都会 `cache.evict(userId)`，只作用于本进程；前端当前登录人自己的 `me` / 菜单查询
   `staleTime=Infinity`，改自己的角色后侧边栏与按钮不刷新（同一机制见 `sys_role.md#01`）。
-- **`last_login_ip`**：与登录日志同源于 `ClientIpResolver`（`X-Forwarded-For` 优先），可被伪造的问题登记在 `artifact.md#03`。
+- **`last_login_ip`**：与登录日志同源于 `ClientIpResolver`（只对可信代理连接解析转发链，从右向左剥离可信代理），不直接信任任意 X-Forwarded-For。
 
 ## 6. 已知问题汇总
 
-- **#01 ⚠️ P3 管理员编辑用户无乐观锁，两人同时编辑同一用户时后写覆盖先写**
-  `sys_user` 无版本列；`MybatisUserRepository.updateAccount` 按 `id` 直接 `SET` 昵称/性别/状态，
-  `replaceRoles` 先删后插角色关联。两个管理员基于同一份旧数据先后提交，后提交者整组覆盖先提交者的修改，不报错。
-  敏感列（密码、令牌版本、登录信息）走独立定向更新，不受此影响。已由后端声明为知情接受。
 - **#04 ❓ P3 编辑绑定了禁用角色的用户时，角色下拉没有该角色的选项**
   角色选项来自 `GET /api/roles/options`（只含启用角色），而 `initValues.roleIds` 含用户的全部角色 ID。
   禁用角色的 ID 在下拉里找不到对应选项，实际显示形态取决于 Semi `Select` 对未匹配值的处理（未实测）；
@@ -184,6 +182,9 @@ PUT 偏好与 PUT 收藏只定向更新 `sys_user` 对应 JSON 列，并保持 `
 ## 7. changelog
 
 **2026-11-14**
+
+- **#01 ✅ P3 用户编辑旧草稿覆盖已保护**
+  harden-password-and-edit-boundaries：独立 edit_version 与必填 version CAS 覆盖管理员完整编辑、行内字段和本人资料，用户名/验证手机号也推进版本。冲突返回 409/100007，角色关系和令牌吊销在同一事务回滚；前端保留草稿并确认重载。
 
 - **#11 ✅ P2 窄屏用户列表缺少昵称模糊查询入口**
   由 `recover-pages-and-sync-menu-permissions` 解决。高级面板首部补齐共享keyword输入，与快捷框共用草稿和查询、重置、条件移除逻辑；390px昵称查询与跨屏状态经浏览器验证。

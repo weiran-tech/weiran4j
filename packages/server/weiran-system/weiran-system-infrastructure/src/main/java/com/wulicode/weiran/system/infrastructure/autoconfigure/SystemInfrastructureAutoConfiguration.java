@@ -58,6 +58,7 @@ import org.springframework.context.annotation.Import;
 @AutoConfiguration
 @MapperScan("com.wulicode.weiran.system.infrastructure.persistence.mapper")
 @EnableConfigurationProperties({
+    com.wulicode.weiran.system.infrastructure.security.AuthThrottleProperties.class,
     SystemSecurityProperties.class,
     AuthJwtProperties.class,
     AuthProvidersProperties.class,
@@ -65,6 +66,7 @@ import org.springframework.context.annotation.Import;
     SystemSmsProperties.class
 })
 @Import({
+    com.wulicode.weiran.system.infrastructure.persistence.JdbcPasswordAttempts.class,
     MybatisUserRepository.class,
     MybatisRoleRepository.class,
     MybatisMenuRepository.class,

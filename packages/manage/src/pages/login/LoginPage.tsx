@@ -1,3 +1,4 @@
+import { AuthAttemptFeedback } from '@/components/AuthAttemptFeedback';
 import { Banner, Button, Divider, Form, Typography } from '@douyinfe/semi-ui';
 import { KeyRound, LogIn, Phone, UserRound } from 'lucide-react';
 import { useEffect, useState, type KeyboardEvent } from 'react';
@@ -178,7 +179,7 @@ export default function LoginPage() {
                             {providers.length || phoneLoginEnabled ? '选择登录方式进入管理后台' : '使用账号密码进入管理后台'}
                         </Typography.Text>
                     </div>
-                    {error && <Banner type="danger" description={error} closeIcon={null} className="login-error" />}
+                    {error && <Banner type="danger" description={<AuthAttemptFeedback message={error} />} closeIcon={null} className="login-error" />}
                     {notice && <Banner type="success" description={notice} closeIcon={null} className="login-error" />}
                     {mfaPending ? (
                         <Form<{ code: string }> onSubmit={(values) => void handleMfaSubmit(values)} onKeyDown={handleEnterSubmit}>

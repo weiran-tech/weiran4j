@@ -158,7 +158,7 @@ public class UserApplicationService implements UserService {
                         command.gender() == null ? user.getGender() : Gender.of(command.gender()))
                 .withAssignment(EnableStatus.ofNullable(command.status(), user.getStatus()));
         try {
-            this.userRepository.updateAccount(updated);
+            this.userRepository.updateAccount(updated, command.version());
         } catch (final DuplicateKeyException ex) {
             throw UserDuplicateErrors.from(ex, "用户账号信息已存在");
         }
@@ -173,10 +173,21 @@ public class UserApplicationService implements UserService {
     @Override
     @Transactional
     public void updateAccountField(final long id, final UpdateUserAccountFieldCommand command) {
+        this.updateAccountField(id, command.field(), command.value(), command.version());
+    }
+
+    @Override
+    @Transactional
+    public void updateOwnUsername(final long id, final String username) {
+        this.updateAccountField(id, "username", username, null);
+    }
+
+    private void updateAccountField(
+            final long id, final String requestedField, final String requestedValue, final @Nullable Integer version) {
         this.requireUser(id);
-        final String field = command.field().strip().toLowerCase(java.util.Locale.ROOT);
+        final String field = requestedField.strip().toLowerCase(java.util.Locale.ROOT);
         final UserAccountField accountField;
-        final String value = command.value().strip();
+        final String value = requestedValue.strip();
         switch (field) {
             case "username" -> {
                 accountField = UserAccountField.USERNAME;
@@ -200,7 +211,7 @@ public class UserApplicationService implements UserService {
             default -> throw BizException.badRequest("field: 仅支持 username 或 phone");
         }
         try {
-            this.userRepository.updateAccountField(id, accountField, Texts.trimToNull(value));
+            this.userRepository.updateAccountField(id, accountField, Texts.trimToNull(value), version);
         } catch (final DuplicateKeyException ex) {
             throw UserDuplicateErrors.from(ex, "账号信息已存在");
         }
@@ -290,6 +301,7 @@ public class UserApplicationService implements UserService {
                             .filter(Objects::nonNull)
                             .toList();
                     return new UserView(
+                            user.getVersion(),
                             user.requireId(),
                             user.getUsername(),
                             user.getNickname(),

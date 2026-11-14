@@ -22,6 +22,7 @@ import org.jspecify.annotations.NullUnmarked;
 @Setter
 @TableName("sys_user")
 public class SysUserDO extends AuditableDO {
+    private Integer editVersion;
 
     private String username;
 

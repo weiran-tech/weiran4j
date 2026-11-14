@@ -33,7 +33,8 @@ public class UserAccountFieldController {
     @PutMapping("/updateAccountField/{id}")
     public ApiResponse<Void> updateAccountField(
             @PathVariable final long id, @Valid @RequestBody final UpdateUserAccountFieldRequest request) {
-        this.userService.updateAccountField(id, new UpdateUserAccountFieldCommand(request.field(), request.value()));
+        this.userService.updateAccountField(
+                id, new UpdateUserAccountFieldCommand(request.version(), request.field(), request.value()));
         return ApiResponse.ok();
     }
 }

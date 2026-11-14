@@ -77,8 +77,18 @@ public class RoleController {
     @RequiresPermission("system:role:update")
     @OperationLog(module = RoleController.MODULE, description = "修改角色")
     @PutMapping("/update/{id}")
-    public ApiResponse<Void> update(@PathVariable final long id, @Valid @RequestBody final SaveRoleRequest request) {
-        this.roleService.update(id, RoleController.toCommand(request));
+    public ApiResponse<Void> update(
+            @PathVariable final long id,
+            @Valid @RequestBody final com.wulicode.weiran.system.adapter.web.request.UpdateRoleRequest request) {
+        this.roleService.update(
+                id,
+                new SaveRoleCommand(
+                        request.version(),
+                        request.name(),
+                        request.code(),
+                        request.description(),
+                        request.sort(),
+                        request.status()));
         return ApiResponse.ok();
     }
 
@@ -97,12 +107,17 @@ public class RoleController {
     @PutMapping("/assignMenus/{id}")
     public ApiResponse<Void> assignMenus(
             @PathVariable final long id, @Valid @RequestBody final AssignMenusRequest request) {
-        this.roleService.assignMenus(id, request.menuIds());
+        this.roleService.assignMenus(id, request.menuIds(), request.version());
         return ApiResponse.ok();
     }
 
     private static SaveRoleCommand toCommand(final SaveRoleRequest request) {
         return new SaveRoleCommand(
-                request.name(), request.code(), request.description(), request.sort(), request.status());
+                request.version(),
+                request.name(),
+                request.code(),
+                request.description(),
+                request.sort(),
+                request.status());
     }
 }

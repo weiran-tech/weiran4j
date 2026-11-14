@@ -1,3 +1,8 @@
+import { EditConflictFeedback } from '@/components/EditConflictFeedback';
+import { useEditConflict } from '@/hooks/useEditConflict';
+import { useMe } from '@/hooks/queries/auth';
+import { useFormCloseGuard } from '@/hooks/useFormCloseGuard';
+import type { CurrentUserView } from '@/types/api';
 import { Button, Form, Input, Modal, Toast } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import { useRef, useState } from 'react';
@@ -54,6 +59,9 @@ function maskedPhone(phone: string | null) {
 export default function ProfilePage() {
     const { user, clearSession } = useAuth();
     const updateProfile = useUpdateProfile();
+    const me = useMe();
+    const conflict = useEditConflict();
+    const [baseline, setBaseline] = useState<CurrentUserView | null>(null);
     const updateOwnUsername = useUpdateOwnUsername();
     const changePassword = useChangePassword();
     const sendBindCode = useSendBindPhoneCode();
@@ -69,10 +77,29 @@ export default function ProfilePage() {
     const profileApi = useRef<FormApi<ProfileForm> | null>(null);
     const passwordApi = useRef<FormApi<PasswordForm> | null>(null);
 
+    const profileGuard = useFormCloseGuard(profileApi, () => setDialog(null));
     if (!user) return null;
+    const snapshot = baseline ?? user;
+    const openProfile = () => { conflict.reset(); setBaseline(user); setDialog('profile'); };
+    const reload = () => conflict.reload(async () => {
+        const result = await me.refetch();
+        if (!result.isSuccess || result.isRefetchError) throw new Error('reload failed');
+        setBaseline(result.data);
+        setAvatarText(result.data.avatar?.text ?? Array.from(result.data.nickname)[0] ?? '');
+        setAvatarBackground(result.data.avatar?.background ?? '#0064FA');
+    });
 
-    const closeDialog = () => setDialog(null);
+    const closeDialog = () => {
+        if (updateProfile.isPending) return;
+        if (dialog === 'profile') { profileGuard.requestClose(); return; }
+        if (dialog === 'avatar') {
+            Modal.confirm({ title: '放弃头像修改？', content: '尚未保存的内容将丢失。', onOk: () => setDialog(null) });
+            return;
+        }
+        setDialog(null);
+    };
     const openAvatar = () => {
+        conflict.reset(); setBaseline(user);
         setAvatarText(user.avatar?.text ?? Array.from(user.nickname)[0] ?? '');
         setAvatarBackground(user.avatar?.background ?? '#0064FA');
         setDialog('avatar');
@@ -98,9 +125,10 @@ export default function ProfilePage() {
         closeDialog();
     };
     const saveProfile = async (nickname: string, gender: Gender | null, avatar: UserAvatar | null, message: string) => {
-        await updateProfile.mutateAsync({ nickname, gender, avatar });
+        if (conflict.conflict) return;
+        await conflict.run(() => updateProfile.mutateAsync({ version: snapshot.version, nickname, gender, avatar }));
         Toast.success(message);
-        closeDialog();
+        setDialog(null);
     };
     const saveAvatar = async () => {
         const text = avatarText.trim();
@@ -108,12 +136,12 @@ export default function ProfilePage() {
             Toast.error('头像文字需为 1–4 个字符');
             return;
         }
-        await saveProfile(user.nickname, user.gender, { text, background: avatarBackground }, '头像已更新');
+        await saveProfile(snapshot.nickname, snapshot.gender, { text, background: avatarBackground }, '头像已更新');
     };
     const savePersonalInfo = async () => {
         const values = await profileApi.current?.validate();
         if (!values) return;
-        await saveProfile(values.nickname.trim(), values.gender ?? null, user.avatar, '个人信息已保存');
+        await saveProfile(values.nickname.trim(), values.gender ?? null, snapshot.avatar, '个人信息已保存');
     };
     const sendCode = async () => {
         if (!/^1[3-9]\d{9}$/.test(phone.trim())) {
@@ -148,8 +176,8 @@ export default function ProfilePage() {
                 <div className="profile-settings">
                     <SettingsRow title="头像" description="选择文字与背景色作为头像" value={<button type="button" className="profile-avatar-trigger" aria-label="设置头像" onClick={openAvatar}><TextAvatar avatar={user.avatar} fallback={user.nickname} size="extra-small" /></button>} onAction={openAvatar} />
                     <SettingsRow title="用户名" description="登录时使用的账号名称" value={user.username} onAction={openUsername} />
-                    <SettingsRow title="昵称" description="用于页面中的个人展示" value={user.nickname} onAction={() => setDialog('profile')} />
-                    <SettingsRow title="性别" description="个人资料中的性别" value={genderOptions.find((item) => item.value === user.gender)?.label ?? '未设置'} onAction={() => setDialog('profile')} />
+                    <SettingsRow title="昵称" description="用于页面中的个人展示" value={user.nickname} onAction={openProfile} />
+                    <SettingsRow title="性别" description="个人资料中的性别" value={genderOptions.find((item) => item.value === user.gender)?.label ?? '未设置'} onAction={openProfile} />
                 </div>
             </PageContainer>
 
@@ -162,7 +190,8 @@ export default function ProfilePage() {
 
             <ExternalAccountsCard />
 
-            <Modal visible={dialog === 'avatar'} title="设置头像" onCancel={closeDialog} onOk={() => void saveAvatar().catch(() => undefined)} okButtonProps={{ loading: updateProfile.isPending }} maskClosable={false}>
+            <Modal visible={dialog === 'avatar'} title="设置头像" onCancel={closeDialog} onOk={() => void profileGuard.submit(saveAvatar).catch(() => undefined)} okButtonProps={{ loading: updateProfile.isPending, disabled: updateProfile.isPending || conflict.conflict || conflict.reloading }} closable={!updateProfile.isPending} closeOnEsc={!updateProfile.isPending} maskClosable={false}>
+                <EditConflictFeedback {...conflict} onReload={reload} />
                 <div className="profile-avatar-editor">
                     <TextAvatar avatar={{ text: avatarText.trim() || Array.from(user.nickname)[0] || '?', background: avatarBackground }} fallback={user.nickname} size="large" />
                     <p className="profile-avatar-editor__hint">预览头像</p>
@@ -178,7 +207,7 @@ export default function ProfilePage() {
                             <input type="color" aria-label="自定义背景色" value={avatarBackground} onChange={(event) => setAvatarBackground(event.target.value)} />
                         </label>
                     </div>
-                    <Button theme="borderless" onClick={() => void saveProfile(user.nickname, user.gender, null, '已恢复默认头像').catch(() => undefined)}>恢复默认头像</Button>
+                    <Button theme="borderless" disabled={conflict.conflict || updateProfile.isPending} onClick={() => void profileGuard.submit(() => saveProfile(snapshot.nickname, snapshot.gender, null, '已恢复默认头像')).catch(() => undefined)}>恢复默认头像</Button>
                 </div>
             </Modal>
 
@@ -188,8 +217,9 @@ export default function ProfilePage() {
                 <p>仅支持小写英文字母、数字和下划线</p>
             </Modal>
 
-            <Modal visible={dialog === 'profile'} title="修改个人信息" onCancel={closeDialog} onOk={() => void savePersonalInfo().catch(() => undefined)} okButtonProps={{ loading: updateProfile.isPending }} maskClosable={false}>
-                {dialog === 'profile' && <Form<ProfileForm> initValues={{ nickname: user.nickname, ...(user.gender ? { gender: user.gender } : {}) }} getFormApi={(api) => { profileApi.current = api; }} labelPosition="left" labelWidth={72}>
+            <Modal visible={dialog === 'profile'} title="修改个人信息" onCancel={closeDialog} onOk={() => void profileGuard.submit(savePersonalInfo).catch(() => undefined)} okButtonProps={{ loading: updateProfile.isPending, disabled: updateProfile.isPending || conflict.conflict || conflict.reloading }} closable={!updateProfile.isPending} closeOnEsc={!updateProfile.isPending} maskClosable={false}>
+                <EditConflictFeedback {...conflict} onReload={reload} />
+                {dialog === 'profile' && <Form<ProfileForm> key={snapshot.version} initValues={{ nickname: snapshot.nickname, ...(snapshot.gender ? { gender: snapshot.gender } : {}) }} getFormApi={(api) => { profileApi.current = api; }} labelPosition="left" labelWidth={72}>
                     <Form.Input field="nickname" label="昵称" maxLength={32} rules={[{ required: true, message: '请输入昵称' }]} />
                     <Form.Select field="gender" label="性别" optionList={genderOptions} showClear style={{ width: '100%' }} />
                 </Form>}

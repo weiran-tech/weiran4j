@@ -68,6 +68,8 @@ public class AuthApplicationService implements AuthService {
 
     private static final int MAX_BROWSER_LENGTH = 64;
 
+    private final com.wulicode.weiran.system.domain.auth.PasswordAttempts passwordAttempts;
+
     private final UserRepository userRepository;
 
     private final MenuRepository menuRepository;
@@ -99,7 +101,9 @@ public class AuthApplicationService implements AuthService {
             final AuthorizationResolver authorizationResolver,
             final AuthSnapshotCache cache,
             final Clock clock,
-            final ExternalIdentityProviders providers) {
+            final ExternalIdentityProviders providers,
+            final com.wulicode.weiran.system.domain.auth.PasswordAttempts passwordAttempts) {
+        this.passwordAttempts = passwordAttempts;
         this.userRepository = userRepository;
         this.menuRepository = menuRepository;
         this.loginLogRepository = loginLogRepository;
@@ -120,6 +124,7 @@ public class AuthApplicationService implements AuthService {
 
     /** 密码登录入口共用的开关与凭据检查，成功时仍不签发令牌。 */
     AuthenticatedUser authenticatePasswordLogin(final LoginCommand command, final ClientContext client) {
+        this.passwordAttempts.reserveLogin(command.username(), client.ip());
         if (!this.providers.passwordLoginEnabled()) {
             this.ensurePasswordLoginAllowed(command.username().strip(), client);
         }
@@ -245,6 +250,7 @@ public class AuthApplicationService implements AuthService {
         final User user = this.requireUser(userId);
         final Authorization authorization = this.authorizationResolver.resolve(userId);
         return new CurrentUserView(
+                user.getVersion(),
                 userId,
                 user.getUsername(),
                 user.getNickname(),
@@ -275,10 +281,12 @@ public class AuthApplicationService implements AuthService {
         final UserAvatar avatar = command.avatar() == null
                 ? null
                 : new UserAvatar(command.avatar().text(), command.avatar().background());
-        this.userRepository.updateProfile(user.withProfile(
-                command.nickname().strip(),
-                avatar,
-                command.gender() == null ? user.getGender() : Gender.of(command.gender())));
+        this.userRepository.updateProfile(
+                user.withProfile(
+                        command.nickname().strip(),
+                        avatar,
+                        command.gender() == null ? user.getGender() : Gender.of(command.gender())),
+                command.version());
         this.cache.evict(userId);
     }
 
@@ -328,6 +336,7 @@ public class AuthApplicationService implements AuthService {
 
     @Override
     public void verifyPassword(final long userId, final String password) {
+        this.passwordAttempts.reserveUnlock(userId);
         final User user = this.requireUser(userId);
         if (!user.hasPassword() || !this.passwordHasher.matches(password, user.getPasswordHash())) {
             throw new BizException(SystemAuthErrors.BAD_CREDENTIALS, "密码错误");

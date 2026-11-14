@@ -23,6 +23,7 @@ import org.jspecify.annotations.Nullable;
  * @param updatedAt 更新时间
  */
 public record UserView(
+        int version,
         long id,
         String username,
         String nickname,

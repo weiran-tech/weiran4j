@@ -40,10 +40,10 @@ artifacts:
       - **可复用点**:避免后续 subagent 重复造轮子
       - **真实约束**:代码里客观存在、设计必须绕开的东西
       - **影响面**,尤其是 **共享层命中** —— 这张表直接决定后面能不能并行:
-        · `packages/shared/src/{index,types,validation,constants}.ts`
+        · `packages/server/weiran-framework` 与各模块 api/domain 共享契约
         · `packages/server/src/db/schema.ts` 与 `db/schema/*.ts`
-        · `packages/server/drizzle/*.sql` 与 `drizzle/meta/_journal.json`(序号型资源)
-        · `packages/server/src/index.ts`(路由注册)
+        · 模块 infrastructure 下的 Flyway 时间版本脚本及 sys_menu ID（序号型资源）
+        · 各模块 @AutoConfiguration / .imports（自动装配）
         · `packages/manage/src/mocks/handlers/index.ts`、`packages/manage/src/App.tsx`
         **完整判定清单已内嵌在本层模板的「共享层命中」三张表里 —— 逐行过,不要跳。**
         判定流程:命中三张表任意一项 → Layer 0;否则若被 2 个以上执行单元读取 → 也进 Layer 0
@@ -67,7 +67,7 @@ artifacts:
       - **Why / What Changes / Scope**:Out of Scope 必须与 interview.md 的「明确不做」一致
       - **Capabilities**:列出将新建或修改的能力,每个对应一个 `specs/<kebab-case>/spec.md`。
         填表前先读 `openspec/specs/README.md`(能力索引)—— 这一节是 proposal 与 specs 之间的契约,必须先调研再填。
-      - **影响的包**:`packages/shared` / `packages/server` / `packages/web`
+      - **影响的包**:`packages/server` / `packages/manage` / `packages/semi-components` / `docs`
       - **共享层影响**:逐项勾选,来源是 explore.md 的共享层命中表
       - **横切关注点**:权限点、数据范围、多租户、审计日志、字段脱敏、幂等、
         导出/任务中心、工作流绑定 —— **逐项过一遍**
@@ -112,18 +112,14 @@ artifacts:
       不在每个 change 里重新推导。标记三选一:☑ 符合 / ☐ 不涉及 / ⚠ 偏离,
       三者都要写说明,⚠ 还要写清代价与是否连带修订宪法。`L2c/constitution-check` 会逐条校验。
 
-      本仓库必填章节:
-      - **Shared 契约变更**:`packages/shared` 的类型/Zod schema/常量改动。
-        这一节会直接成为 exec/plan.md 的 Layer 0 与契约冻结项
-      - **API Design**:Hono 路由;复用 shared 的 Zod schema 不另写一套;
-        分页走 `lib/pagination.ts`;同步 `lib/openapi-schemas.ts`
-      - **Database Design**:Drizzle schema 放 `db/schema/<域>.ts` 并在 `db/schema.ts` 导出;
-        改完跑 `pnpm db:generate`,**不要手写迁移文件名**;只加不删,保持向前兼容
-      - **权限 / 数据范围 / 租户**:permissions、`lib/data-scope.ts`、`lib/tenant.ts`
-      - **定时任务 / 队列 / 实时推送**:pg-boss、WebSocket,含幂等键与重试
-      - **缓存与幂等**:Redis key 与 TTL、`middleware/idempotency.ts`
-      - **前端设计**:页面/hook/组件/权限点
-      - **Observability / Test Plan / Rollout / Rollback**:Rollback 要写 revert 锚点
+      本仓库必填章节（DS-1～DS-6，含义见 rules/enforced/project.md）:
+      - **跨模块契约变更**:framework 纯 Java 错误/分页及 system-api，先串行冻结。
+      - **API Design**:Spring Controller / DTO 生成的 OpenAPI；统一响应 {code, message, data}，成功 code 为数字 0。
+      - **Database Design**:MySQL 8，只追加模块 infrastructure 下的 Flyway V<yyyyMMddHHmm>__<module>_<desc>.sql，已发布脚本永不修改。
+      - **权限与已知缺口**:sys_menu 的 button 权限行、动态菜单及 @RequiresPermission / @OperationLog。
+      - **分层与装配**:DDD 五层，端口在 domain，实现于 infrastructure，模块自动配置登记。
+      - **前端设计**:packages/manage 的 React 19 / Semi UI / Query hooks，手动同步 types/api.ts，docs 提供实际组件交互演示。
+      - **Observability / Test Plan / Rollout / Rollback**:按 project.json 命令验证，回滚写 revert 锚点。
 
       ⚠️ 完成后需要**人类审阅**(L3 闸门)。审阅通过后在 frontmatter 补 `approved_by` 与 `approved_at`。
       这是全流程唯一一次「改起来还便宜」的审阅点,后面每一层的返工成本都是它的 10 倍。
@@ -170,8 +166,8 @@ artifacts:
       2. **依赖图**:画成 DAG,有环说明拆分错了。注意「前端页面」和「后端接口」看似平行,
          实际是契约依赖 —— 解法不是串行,而是把接口签名提到 Layer 0 冻结。
       3. **Layer 0**:所有共享层改动集中在这一层,**串行先做**。migration 必须一次性生成完 ——
-         `drizzle/*.sql` 序号和 `meta/_journal.json` 是不可并行的序号资源,
-         两个 worktree 各自生成会撞号,而且 git 不报冲突(文件名不同),journal 才报。
+         Flyway 时间版本号与菜单 ID 是不可并行的全局资源,
+         两项改动各自取号会撞号,而且 git 不报冲突(文件名不同),Flyway 启动才报。
       4. **契约冻结**:Layer 0 完成后填满契约表并锁定。并行单元照签名实现,不得自行修改;
          需要改则暂停所有消费方,走变更记录。没有契约冻结的并行,本质是让 N 个 agent
          各自猜同一个接口长什么样,猜测互不兼容是必然的。
@@ -257,11 +253,11 @@ apply:
   instruction: |
     按 exec/plan.md 执行,不是按 tasks.md 自行拆解。
 
-    - **Layer 0 串行先做**:共享层类型、Drizzle schema、migration、各类 barrel/注册表。
-      完成后跑 `pnpm --filter @zenith/shared build`,并回填 exec/plan.md 的契约冻结表。
-    - **后续层并行**:每个执行单元只写自己「拥有」的文件;需要改别人的文件时,
+    - **Layer 0 串行先做**:framework/api/domain 契约、Flyway 脚本与模块自动配置注册。
+      完成后用 JDK 21 跑对应模块 check,并回填 exec/plan.md 的契约冻结表。
+    - **后续层按仓库 WT 规则推进**:每个执行单元只写自己「拥有」的文件;需要改别人的文件时,
       判断是必要连带还是越界扩大,必要连带要在收尾笔记里**申报**(申报是允许的,隐瞒不是)。
-    - **每层结束即 merge 回主干**,worktree 不长挂 —— 冲突成本随挂起时间大致平方增长。
+    - **本仓库单 checkout 串行执行**，不创建 worktree 或逐层自动合并；提交/push 按用户授权。
     - **契约不得私自修改**:需要改签名就停下,回 orchestrator 更新契约表并通知所有消费方。
     - **测试跟随实现**:同一单元、同一 agent 写,不要留到最后补。
     - **收尾笔记是硬要求**:每个执行单元结束前必须写 `exec/notes/<单元ID>-<简述>.md`,

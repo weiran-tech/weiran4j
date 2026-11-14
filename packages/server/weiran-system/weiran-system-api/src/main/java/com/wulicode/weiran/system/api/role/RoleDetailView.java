@@ -20,6 +20,7 @@ import org.jspecify.annotations.Nullable;
  * @param menuIds 已授予的菜单 ID
  */
 public record RoleDetailView(
+        int version,
         long id,
         String name,
         String code,
@@ -35,6 +36,7 @@ public record RoleDetailView(
     /** 由列表视图与菜单 ID 组合。 */
     public static RoleDetailView of(final RoleView view, final List<Long> menuIds) {
         return new RoleDetailView(
+                view.version(),
                 view.id(),
                 view.name(),
                 view.code(),

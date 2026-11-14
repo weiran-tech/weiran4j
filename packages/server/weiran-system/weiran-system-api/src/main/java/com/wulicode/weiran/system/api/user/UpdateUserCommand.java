@@ -12,4 +12,8 @@ import org.jspecify.annotations.Nullable;
  * @param roleIds 角色 ID（全量覆盖）
  */
 public record UpdateUserCommand(
-        String nickname, @Nullable String gender, @Nullable String status, List<Long> roleIds) {}
+        int version,
+        String nickname,
+        @Nullable String gender,
+        @Nullable String status,
+        List<Long> roleIds) {}

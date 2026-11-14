@@ -97,14 +97,11 @@ updated_at: ""
 | ID | 文件 | 冲突原因 | 是否命中 · 预计改动 |
 |---|---|---|---|
 | SL-6 | `weiran-framework/.../error/CommonErrors.java` | 跨模块错误码基座,**刻意冻结**——新增前先确认真的是跨模块概念,不是某个模块自己的错误码 |  |
-| SL-7 | `weiran-framework/.../page/{PageQuery,PageResult}.java` | 跨模块分页契约,前端 `packages/manage/src/lib/role.ts` 的 TS 接口需要手动同步,无自动机制 |  |
+| SL-7 | `weiran-framework/.../page/{PageQuery,PageResult}.java` | 跨模块分页契约,前端 `packages/manage/src/types/api.ts` 的 TS 接口需要手动同步,无自动机制 |  |
 
-#### 序号型资源(本仓库暂无)
+#### 序号型资源
 
-本仓库没有 Flyway/Liquibase 或带序号的 migration 文件,数据库结构变更依赖手写 SQL
-并与 PHP 侧 `weiran-v1` 的迁移文件人工核对(宪法 CP-7)。**不存在**「文件名序号递增,
-两个并行改动会撞同一个号」这类冲突点。若本次改动确实要引入某种迁移工具,
-在 `rules/enforced/project.md` 补一条 SL-N 再回填这里,不要假设已有序号台账。
+Flyway 脚本的时间版本号与 sys_menu ID 是全局资源。取号前检查全部模块，按 CP-7 只追加脚本；菜单与模块号段按 CP-15/SL-4 登记，不能因单工作区而跳过唯一性核对。
 
 <!-- /openspec:slot shared-layers -->
 

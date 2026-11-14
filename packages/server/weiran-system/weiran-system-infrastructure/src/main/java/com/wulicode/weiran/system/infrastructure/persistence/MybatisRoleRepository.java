@@ -3,6 +3,8 @@ package com.wulicode.weiran.system.infrastructure.persistence;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.wulicode.weiran.framework.error.BizException;
+import com.wulicode.weiran.framework.error.CommonErrors;
 import com.wulicode.weiran.framework.page.PageQuery;
 import com.wulicode.weiran.framework.page.PageResult;
 import com.wulicode.weiran.framework.persistence.Likes;
@@ -61,9 +63,29 @@ public class MybatisRoleRepository implements RoleRepository {
         if (row.getId() == null) {
             this.roleMapper.insert(row);
         } else {
+            this.advanceVersion(role.requireId(), role.getVersion());
+            row.setEditVersion(null);
             this.roleMapper.updateById(row);
         }
         return row.getId();
+    }
+
+    @Override
+    public void advanceVersion(final long id, final int version) {
+        if (version < 0) {
+            throw BizException.badRequest("version: 必须非负");
+        }
+        final int rows = this.roleMapper.update(Wrappers.lambdaUpdate(SysRoleDO.class)
+                .eq(SysRoleDO::getId, id)
+                .eq(SysRoleDO::getEditVersion, version)
+                .lt(SysRoleDO::getEditVersion, Integer.MAX_VALUE)
+                .setSql("edit_version = edit_version + 1"));
+        if (rows == 0) {
+            if (this.findById(id).isEmpty()) {
+                throw BizException.notFound("角色不存在");
+            }
+            throw new BizException(CommonErrors.EDIT_CONFLICT);
+        }
     }
 
     @Override
@@ -175,6 +197,7 @@ public class MybatisRoleRepository implements RoleRepository {
 
     private static Role toDomain(final SysRoleDO row) {
         return Role.builder()
+                .version(row.getEditVersion() == null ? 0 : row.getEditVersion())
                 .id(row.getId())
                 .name(row.getName())
                 .code(row.getCode())
@@ -190,6 +213,7 @@ public class MybatisRoleRepository implements RoleRepository {
     private static SysRoleDO toDataObject(final Role role) {
         final SysRoleDO row = new SysRoleDO();
         row.setId(role.getId());
+        row.setEditVersion(role.getVersion());
         row.setName(role.getName());
         row.setCode(role.getCode());
         row.setDescription(role.getDescription());

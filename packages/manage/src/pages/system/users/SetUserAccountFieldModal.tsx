@@ -1,3 +1,7 @@
+import { EditConflictFeedback } from '@/components/EditConflictFeedback';
+import { useEditConflict } from '@/hooks/useEditConflict';
+import { useFormCloseGuard } from '@/hooks/useFormCloseGuard';
+import { http } from '@/utils/request';
 import { Form, Modal, Toast } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import { useRef, useState } from 'react';
@@ -20,15 +24,23 @@ const CURRENT_VALUE: Record<UserAccountField, (user: UserView) => string> = {
 };
 
 /** 管理员每次只设置一个账号标识；唯一性由后端校验并由数据库约束兜底。 */
-export function SetUserAccountFieldModal({ user, onClose }: Props) {
+export function SetUserAccountFieldModal({ user: initialUser, onClose }: Props) {
+    const [user, setUser] = useState(initialUser);
+    const [formKey, setFormKey] = useState(0);
+    const conflict = useEditConflict();
+    const reload = () => conflict.reload(async () => {
+        const latest = await http.get<UserView>(`/api-backend/system/user/get/${user.id}`);
+        setUser(latest); setFormKey((key) => key + 1);
+    });
     const api = useRef<FormApi<{ field: UserAccountField; value: string }> | null>(null);
     const [field, setField] = useState<UserAccountField>('username');
     const save = useSetUserAccountField();
+    const guard = useFormCloseGuard(api, onClose);
 
     const submit = async () => {
         const values = await api.current?.validate();
-        if (!values) return;
-        await save.mutateAsync({ id: user.id, body: { field, value: values.value.trim() } });
+        if (!values || conflict.conflict) return;
+        await conflict.run(() => save.mutateAsync({ id: user.id, body: { version: user.version, field, value: values.value.trim() } }));
         Toast.success(`${FIELD_OPTIONS.find((option) => option.value === field)?.label}已更新`);
         onClose();
     };
@@ -48,13 +60,15 @@ export function SetUserAccountFieldModal({ user, onClose }: Props) {
         <Modal
             visible
             title={`设置账号信息：${user.username}`}
-            onCancel={onClose}
-            onOk={() => submit().catch(() => undefined)}
-            okButtonProps={{ loading: save.isPending }}
+            onCancel={guard.requestClose}
+            onOk={() => guard.submit(submit).catch(() => undefined)}
+            okButtonProps={{ loading: guard.saving, disabled: guard.saving || conflict.conflict || conflict.reloading }}
+            cancelButtonProps={{ disabled: guard.saving }} closable={!guard.saving} closeOnEsc={!guard.saving}
             maskClosable={false}
         >
+            <EditConflictFeedback {...conflict} onReload={reload} />
             <Form<{ field: UserAccountField; value: string }>
-                key={field}
+                key={`${field}:${formKey}`}
                 initValues={{ field, value: CURRENT_VALUE[field](user) }}
                 getFormApi={(formApi) => {
                     api.current = formApi;

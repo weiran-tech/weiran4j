@@ -1,0 +1,29 @@
+---
+status: "active"
+updated_at: "2026-11-14"
+---
+
+# workflow-contracts Specification
+
+## Purpose
+工作流契约保证提供给开发者与自动化助手的现行工程提示与项目实际约束一致，使需求、设计和执行计划持续遵守当前技术栈、响应协议、迁移机制及模块边界，减少过期模板将错误事实带入实现与验收的风险。
+
+## Requirements
+
+### Requirement: [FR-001] 现行提示词的项目事实一致性
+
+工作流提示词 **MUST** 在 config、schema 指令与模板组成的实际注入链中采用当前项目事实：Java 21、MySQL 8、Flyway、DDD 五层、框架统一响应及数字成功码 0、sys_menu 动态菜单与当前仓库协作规则。现行输入 **MUST NOT** 将已废止的旧底座、PHP 共库、无迁移工具、字符串成功码、前端硬编码菜单或其他项目技术栈作为执行要求；历史归档保持历史语境。
+
+#### Scenario: 实际指令输出一致
+- **WHEN** 原生 CLI 为现行工作流各 artifact 生成 instructions JSON
+- **THEN** context、instruction、rules 与 template 的组合保留规则 ID 和项目当前约束，不注入废止实施要求。
+- **判据**: 真实 CLI 输出验证覆盖各 artifact，并对关键 DS/CP/SL 槽及响应、迁移、菜单事实作断言；历史归档不参与改写。
+
+### Requirement: [FR-002] 提示词事实的回退检测
+
+提示词校验 **MUST** 检测现行注入源中已知废止事实的肯定断言，并提供可定位的失败结果；校验 **MUST** 允许明确标为禁止照搬或历史说明的内容，不将有限模式检查描述为通用语义证明。
+
+#### Scenario: 废止断言回归与历史说明
+- **WHEN** 在现行 config、schema 或模板中分别注入字符串成功码、无 Flyway 等废止要求，或加入明确的历史和禁止说明
+- **THEN** 肯定废止断言使检查失败并指出来源；明确历史和禁止说明通过。
+- **判据**: Node 内置测试逐源运行正反样本，真实 instructions 输出验证发现实际注入的错误，错误消除后检查恢复。

@@ -26,5 +26,5 @@ public interface RoleService {
     void delete(long id);
 
     /** 全量覆盖角色的菜单。 */
-    void assignMenus(long id, List<Long> menuIds);
+    void assignMenus(long id, List<Long> menuIds, int version);
 }

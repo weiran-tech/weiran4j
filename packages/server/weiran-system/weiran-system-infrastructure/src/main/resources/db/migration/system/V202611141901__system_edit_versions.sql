@@ -1,0 +1,2 @@
+ALTER TABLE sys_user ADD COLUMN edit_version INT NOT NULL DEFAULT 0;
+ALTER TABLE sys_role ADD COLUMN edit_version INT NOT NULL DEFAULT 0;

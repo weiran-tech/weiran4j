@@ -283,7 +283,7 @@ Flyway 以 `out-of-order: true` 运行（D-012）：版本号早于已执行最�
 
 路由 / 方法 / 所属模块 / 请求关键字段 / 返回关键字段 / 权限点 / 是否 `@OperationLog`。统一响应包络
 `{code, message, data}`（**code 是数字，0 为成功**）由 `weiran-framework` 的 `ApiResponseBodyAdvice` 产生，
-design 里只声明业务字段；新接口同步写进 `docs/01-架构与接口契约.md`。
+design 里只声明业务字段；HTTP 接口以 Controller/DTO 生成的 OpenAPI 为准，`packages/server/docs/01-架构与接口契约.md` 仅同步架构、数据与跨接口约束。
 
 ### DS-3 · Database Design
 

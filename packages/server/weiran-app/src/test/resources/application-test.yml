@@ -14,6 +14,9 @@ weiran:
     # 测试用低强度，只为让每次建用户 / 改密不至于花掉上百毫秒；种子数据的 cost 10 哈希照样能校验。
     bcrypt-strength: 4
   auth:
+    throttle:
+      account-limit: 10000
+      ip-limit: 100000
     jwt:
       secret: integration-test-secret-key-at-least-32-bytes
       ttl: 1h
