@@ -58,6 +58,9 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
+        with:
+          # 同日归档按首次提交时间重放，浅克隆会丢失先后顺序并误报需求不存在。
+          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version: 22

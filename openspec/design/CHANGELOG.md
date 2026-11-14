@@ -1,5 +1,11 @@
 # 流程本身的修改记录
 
+## 2026-11-14 · CI 归档重放保留完整历史
+
+- OpenSpec CI job 的 checkout 改为 `fetch-depth: 0`，确保同日归档按真实首次提交时间重放。
+- 深度 1 克隆可复现三个 `L10/delta-target-missing` 误报；补齐历史后原规格检查通过，不修改历史 delta 或放宽检查。
+- 在 `check.md` 记录完整 Git 历史的前置要求与浅克隆恢复方法。
+
 ## 2026-11-03 · 前后端迁入 packages
 
 - 管理端迁至 `packages/manage/`，工作区包名改为 `@weiran/manage`；后端迁至 `packages/server/`。

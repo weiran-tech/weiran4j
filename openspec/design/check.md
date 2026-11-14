@@ -110,6 +110,12 @@ runProjectChecks()        project.json 声明的插件(见 §6)
 **两处 `--change` 时跳过**是有意的:归档保真度与能力索引都是**全局账**,
 只看某一个 change 看不出来 —— 单查一个 change 时报它们只会制造噪音。
 
+**归档重放需要完整 Git 历史**：同日归档按各目录首次进入版本库的时间排序，时间来自
+`git log --diff-filter=A`。浅克隆会把历史归档看作同一提交新增，退化为目录名字典序，
+从而让后续 `MODIFIED` 先于对应 `ADDED` 重放，误报 `L10/delta-target-missing`。
+CI 的 OpenSpec job 必须使用 `actions/checkout` 的 `fetch-depth: 0`；本地浅克隆应先
+`git fetch --unshallow` 再执行全局检查，不能通过改写历史 delta 或跳过归档检查消除误报。
+
 ### 分阶段生效
 
 判定逻辑刻意做成**按下游 artifact 是否存在来升降级**,写到一半的中间态不会误报:
