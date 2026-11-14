@@ -109,6 +109,8 @@ User-Agent、时间、错误信息（有才显示）；请求体是 JSON 时格�
 
 ## 5. 说明与建议
 
+- 列表区分失败与成功空结果并支持原地重试；详情使用 `OperationLogDetails` 和 `QueryReadiness`，首次失败结束加载并提供重试，缓存刷新失败保留详情字段，重试沿用当前日志 ID。
+
 - **IP 可被伪造**：与登录日志同一 `ClientIpResolver`，优先信任 `X-Forwarded-For`；该跨表问题登记在 `artifact.md#03`。
 - **成功与否以「是否抛异常」为准**：Controller 正常返回即记成功，`response_code=0`。
 - 详情接口与列表接口共用 `system:operation-log:list`，能看列表就能看请求体（已脱敏）。
@@ -131,6 +133,13 @@ User-Agent、时间、错误信息（有才显示）；请求体是 JSON 时格�
   不影响运行，只是注释与可空性口径不准。
 
 ## 7. changelog
+
+**2026-11-14**
+
+- **#07 ✅ P2 列表读取失败缺少持续提示，详情首次失败后持续转圈**
+  原症状：`OperationLogsPage` 列表只消费 `data/isFetching`，首次请求失败后以空数组展示，不能持续区分失败与成功空结果；`OperationLogDetail` 以 `isPending || !data` 显示 Spin，首次请求失败且无缓存时仍显示加载动画，没有失败说明及就地重试入口。建议分别复用列表错误反馈和详情查询恢复模式。原审查于 2026-11-14 静态确认分支，未进行浏览器故障注入。
+  由 `complete-admin-form-and-read-recovery` 解决；操作日志列表和详情已提供失败反馈与重试，详情首次失败结束加载，缓存刷新失败保留可读字段。
+
 
 新条目插在本节最上方（按日期倒序，新在上）。
 

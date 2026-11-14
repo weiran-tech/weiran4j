@@ -1,0 +1,9 @@
+{
+  "scenarios": 3,
+  "listExamples": 6,
+  "formDraftAndSaveProtection": true,
+  "detailRecovery": true,
+  "businessRequests": [],
+  "uncaughtErrors": [],
+  "mobileOverflow": false
+}

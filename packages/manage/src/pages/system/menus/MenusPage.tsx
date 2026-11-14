@@ -2,6 +2,7 @@ import { Button, Table, Tag, Toast, Typography } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { useMemo, useState } from 'react';
 import { useColumnSettings } from '@/components/ColumnSettings';
+import { ListEmptyState, ListFeedback } from '@/components/ListFeedback';
 import { PageContainer } from '@/components/PageContainer';
 import { Permission } from '@/components/Permission';
 import { SearchToolbar } from '@/components/SearchToolbar';
@@ -38,7 +39,7 @@ function codeText(v: string | null) {
 export default function MenusPage() {
     const { tableProps } = useTableDefaults();
     const { hasAnyPermission } = usePermission();
-    const { data, isFetching, refetch } = useMenuTree();
+    const { data, isFetching, isError, refetch } = useMenuTree();
     const deleteMenu = useDeleteMenu();
     const [target, setTarget] = useState<MenuFormTarget | null>(null);
     const [expandedKeys, setExpandedKeys] = useState<(string | number)[] | null>(null);
@@ -148,6 +149,7 @@ export default function MenusPage() {
                     </Permission>
                 }
             />
+            {isError && <ListFeedback hasData={data !== undefined} retrying={isFetching} onRetry={() => void refetch()} />}
             <Table<MenuNode>
                 {...tableProps}
                 rowKey="id"
@@ -155,6 +157,7 @@ export default function MenusPage() {
                 scroll={{ x: tableScrollX(tableColumns, COMPONENT_MIN_WIDTH) }}
                 dataSource={tree}
                 loading={isFetching}
+                empty={isFetching || isError ? <span aria-hidden="true" /> : <ListEmptyState filtered={false} onReset={() => undefined} />}
                 pagination={false}
                 expandedRowKeys={expandedKeys ?? defaultExpanded}
                 onExpandedRowsChange={(rows) => setExpandedKeys((rows ?? []).map((r) => (r as MenuNode).id))}

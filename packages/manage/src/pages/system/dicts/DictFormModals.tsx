@@ -4,6 +4,7 @@ import type { TagProps } from '@douyinfe/semi-ui/lib/es/tag';
 import { useRef } from 'react';
 import { STATUS_OPTIONS } from '@/components/StatusTag';
 import { useSaveDict, useSaveDictItem } from '@/hooks/queries/dicts';
+import { useFormCloseGuard } from '@/hooks/useFormCloseGuard';
 import type { DictItemView, DictView, Status } from '@/types/api';
 
 /** Semi Tag 预置色，DictTag 按此渲染 */
@@ -29,6 +30,7 @@ export function DictFormModal({ record, onClose }: { record: DictView | null; on
     const isEdit = record !== null;
     const api = useRef<FormApi<DictForm> | null>(null);
     const save = useSaveDict();
+    const guard = useFormCloseGuard(api, onClose);
 
     const submit = async () => {
         const v = await api.current?.validate();
@@ -45,9 +47,12 @@ export function DictFormModal({ record, onClose }: { record: DictView | null; on
         <Modal
             visible
             title={isEdit ? '编辑字典' : '新增字典'}
-            onCancel={onClose}
-            onOk={() => submit().catch(() => undefined)}
-            okButtonProps={{ loading: save.isPending }}
+            onCancel={guard.requestClose}
+            onOk={() => guard.submit(submit).catch(() => undefined)}
+            okButtonProps={{ loading: guard.saving, disabled: guard.saving }}
+            cancelButtonProps={{ disabled: guard.saving }}
+            closable={!guard.saving}
+            closeOnEsc={!guard.saving}
             maskClosable={false}
         >
             <Form<DictForm>
@@ -92,6 +97,7 @@ export function DictItemFormModal({ dictId, record, onClose }: { dictId: number;
     const isEdit = record !== null;
     const api = useRef<FormApi<DictItemForm> | null>(null);
     const save = useSaveDictItem();
+    const guard = useFormCloseGuard(api, onClose);
 
     const submit = async () => {
         const v = await api.current?.validate();
@@ -109,9 +115,12 @@ export function DictItemFormModal({ dictId, record, onClose }: { dictId: number;
         <Modal
             visible
             title={isEdit ? '编辑字典项' : '新增字典项'}
-            onCancel={onClose}
-            onOk={() => submit().catch(() => undefined)}
-            okButtonProps={{ loading: save.isPending }}
+            onCancel={guard.requestClose}
+            onOk={() => guard.submit(submit).catch(() => undefined)}
+            okButtonProps={{ loading: guard.saving, disabled: guard.saving }}
+            cancelButtonProps={{ disabled: guard.saving }}
+            closable={!guard.saving}
+            closeOnEsc={!guard.saving}
             maskClosable={false}
         >
             <Form<DictItemForm>

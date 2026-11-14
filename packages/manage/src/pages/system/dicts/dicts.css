@@ -1,0 +1,19 @@
+/* 字典双栏收为单栏时，内容必须可收缩，避免工具按钮被页面裁切。 */
+.dicts-layout > * {
+    min-width: 0;
+}
+
+.dicts-layout .page-container__header {
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.dicts-layout .page-container__title {
+    overflow-wrap: anywhere;
+}
+
+.dicts-layout .page-container__header > div:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}

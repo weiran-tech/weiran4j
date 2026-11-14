@@ -3,6 +3,7 @@ import type { TagProps } from '@douyinfe/semi-ui/lib/es/tag';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { MoreHorizontal, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { ListEmptyState, ListFeedback } from '@/components/ListFeedback';
 import { NavListItem, NavListPanel } from '@/components/NavListPanel';
 import { useActionsColumn, type TableAction } from '@/components/TableActions';
 import { PageContainer } from '@/components/PageContainer';
@@ -12,12 +13,13 @@ import { usePermission } from '@/hooks/usePermission';
 import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
 import type { DictItemView, DictView, Status } from '@/types/api';
 import { DictFormModal, DictItemFormModal } from './DictFormModals';
+import './dicts.css';
 
 /** 右侧：选中字典的字典项 */
 function DictItemsPanel({ dict }: { dict: DictView }) {
     const { tableProps } = useTableDefaults();
     const { hasPermission } = usePermission();
-    const { data, isFetching } = useDictItems(dict.id);
+    const { data, isFetching, isError, refetch } = useDictItems(dict.id);
     const deleteItem = useDeleteDictItem();
     const [editing, setEditing] = useState<DictItemView | null | undefined>(undefined);
     const canEdit = hasPermission('system:dict:update');
@@ -57,14 +59,16 @@ function DictItemsPanel({ dict }: { dict: DictView }) {
     return (
         <PageContainer
             title={`字典项：${dict.name}（${dict.code}）`}
-            extra={
-                canEdit && (
+            extra={<>
+                <Button aria-label="刷新字典项" loading={isFetching} onClick={() => void refetch()}>刷新</Button>
+                {canEdit && (
                     <Button type="primary" theme="solid" icon={<Plus size={14} />} onClick={() => setEditing(null)}>
                         新增字典项
                     </Button>
-                )
-            }
+                )}
+            </>}
         >
+            {isError && <ListFeedback label="字典项加载失败" hasData={data !== undefined} retrying={isFetching} onRetry={() => void refetch()} />}
             <Table<DictItemView>
                 {...tableProps}
                 rowKey="id"
@@ -73,6 +77,7 @@ function DictItemsPanel({ dict }: { dict: DictView }) {
                 scroll={{ x: tableScrollX(tableColumns) }}
                 dataSource={data ?? []}
                 loading={isFetching}
+                empty={isFetching || isError ? <span aria-hidden="true" /> : <ListEmptyState filtered={false} onReset={() => undefined} />}
                 pagination={false}
             />
             {editing !== undefined && <DictItemFormModal dictId={dict.id} record={editing} onClose={() => setEditing(undefined)} />}
@@ -89,7 +94,7 @@ export default function DictsPage() {
     const [pageSize, setPageSize] = useState(defaultPageSize);
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [editing, setEditing] = useState<DictView | null | undefined>(undefined);
-    const { data, isFetching, refetch } = useDictList({ page, pageSize, ...(keyword ? { keyword } : {}) });
+    const { data, isFetching, isError, refetch } = useDictList({ page, pageSize, ...(keyword ? { keyword } : {}) });
     const deleteDict = useDeleteDict();
     const canUpdate = hasPermission('system:dict:update');
     const canDelete = hasPermission('system:dict:delete');
@@ -97,6 +102,12 @@ export default function DictsPage() {
     const dicts = data?.list ?? [];
     // 选中项跟随列表：删掉 / 翻页 / 搜索后原选中不在当前页时回落到第一项（同 mono4ts，渲染期推导，不另存副本）
     const selected = dicts.find((d) => d.id === selectedId) ?? dicts[0] ?? null;
+
+    const reset = () => {
+        setDraft('');
+        setKeyword('');
+        setPage(1);
+    };
 
     const search = () => {
         setKeyword(draft.trim());
@@ -173,6 +184,7 @@ export default function DictsPage() {
     return (
         <div className="dicts-layout">
             <div className="dicts-layout__master">
+                {isError && <ListFeedback label="字典列表加载失败" hasData={data !== undefined} retrying={isFetching} onRetry={() => void refetch()} />}
                 <NavListPanel
                     title="字典列表"
                     headerExtra={
@@ -202,8 +214,9 @@ export default function DictsPage() {
                     }
                     search={{ value: draft, onChange: setDraft, placeholder: '名称 / 编码', onEnterPress: search }}
                     loading={isFetching}
-                    emptyText={keyword ? '没有匹配的字典' : '暂无字典'}
-                    footer={
+                    emptyText={isFetching || isError ? '' : keyword ? '没有匹配结果' : '暂无记录'}
+                    footer={<>
+                        {!isFetching && !isError && data && dicts.length === 0 && keyword && <Button onClick={reset}>清空条件</Button>}
                         <Pagination
                             size="small"
                             total={data?.total ?? 0}
@@ -217,13 +230,15 @@ export default function DictsPage() {
                                 setPageSize(s);
                             }}
                         />
-                    }
+                    </>}
                     dataSource={dicts}
                     renderItem={renderDict}
                 />
             </div>
             {selected ? (
                 <DictItemsPanel key={selected.id} dict={selected} />
+            ) : !data && (isFetching || isError) ? (
+                <PageContainer><p role="status">{isError ? '字典列表加载失败，请在左侧重试。' : '正在读取字典列表…'}</p></PageContainer>
             ) : (
                 <PageContainer>
                     <Empty title="请选择字典" description="点击左侧字典查看和维护字典项" style={{ padding: 48 }} />

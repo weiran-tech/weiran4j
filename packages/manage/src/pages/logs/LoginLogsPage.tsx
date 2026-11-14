@@ -2,6 +2,7 @@ import { DatePicker, Input, Select, Table, Tag, Typography } from '@douyinfe/sem
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { useState } from 'react';
 import { useColumnSettings } from '@/components/ColumnSettings';
+import { ListEmptyState, ListFeedback } from '@/components/ListFeedback';
 import { PageContainer } from '@/components/PageContainer';
 import { SearchToolbar, type SearchCondition } from '@/components/SearchToolbar';
 import { StatusTag } from '@/components/StatusTag';
@@ -44,7 +45,7 @@ export default function LoginLogsPage() {
         ...(filters.eventType ? { eventType: filters.eventType } : {}),
         ...toTimeRange(filters.range),
     };
-    const { data, isFetching, refetch } = useLoginLogs(query);
+    const { data, isFetching, isError, refetch } = useLoginLogs(query);
 
     const search = () => {
         setFilters(draft);
@@ -149,12 +150,14 @@ export default function LoginLogsPage() {
                     style={{ width: 360 }}
                 />
             </SearchToolbar>
+            {isError && <ListFeedback hasData={data !== undefined} retrying={isFetching} onRetry={() => void refetch()} />}
             <Table<LoginLogView>
                 {...tableProps}
                 rowKey="id"
                 columns={tableColumns}
                 dataSource={data?.list ?? []}
                 loading={isFetching}
+                empty={isFetching || isError ? <span aria-hidden="true" /> : <ListEmptyState filtered={conditions.length > 0} onReset={reset} />}
                 scroll={{ x: tableScrollX(tableColumns) }}
                 pagination={{
                     currentPage: page,

@@ -42,6 +42,6 @@ describe('useTableDefaults', () => {
         renderWithProviders(<RolesPage />);
         await waitFor(() => expect(calls.some((c) => c.path === '/api-backend/system/role/list')).toBe(true));
         expect(calls.find((c) => c.path === '/api-backend/system/role/list')?.search).toContain('pageSize=50');
-        expect(await screen.findByText('暂无数据')).toBeInTheDocument();
+        expect(await screen.findByText('暂无记录')).toBeInTheDocument();
     });
 });

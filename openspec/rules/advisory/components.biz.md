@@ -8,3 +8,5 @@
 
 | PageErrorBoundary / RecoverablePage | `packages/manage/src/components/PageErrorBoundary.tsx`、`RecoverablePage.tsx` | 渲染/懒加载失败提供持续错误与重试/返回首页/主动刷新；每个路由实例独立持有lazy，重试建立新实例；App 根部另兜底，恢复组件不处理事件或业务请求错误；docs本地示例复用 |
 | KeywordSearchInput | `packages/manage/src/components/KeywordSearchInput.tsx` | 用户列表快捷与高级关键字共用输入；调用方传同一草稿和search，组件不发请求；docs复用，compact仅设快捷框宽度 |
+
+- **OperationLogDetails**（`components/OperationLogDetails.tsx`）：操作日志详情纯呈现，接收实际查询状态、详情数据及重试回调，供业务页面与 docs 本地演示复用；不发请求。

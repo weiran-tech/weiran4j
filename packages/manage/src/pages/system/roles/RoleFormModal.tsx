@@ -3,6 +3,7 @@ import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import { useRef } from 'react';
 import { STATUS_OPTIONS } from '@/components/StatusTag';
 import { useSaveRole } from '@/hooks/queries/roles';
+import { useFormCloseGuard } from '@/hooks/useFormCloseGuard';
 import type { RoleView, Status } from '@/types/api';
 
 interface RoleForm {
@@ -25,6 +26,7 @@ export function RoleFormModal({ record, onClose }: Props) {
     const isEdit = record !== null;
     const api = useRef<FormApi<RoleForm> | null>(null);
     const save = useSaveRole();
+    const guard = useFormCloseGuard(api, onClose);
 
     const submit = async () => {
         const v = await api.current?.validate();
@@ -41,9 +43,12 @@ export function RoleFormModal({ record, onClose }: Props) {
         <Modal
             visible
             title={isEdit ? '编辑角色' : '新增角色'}
-            onCancel={onClose}
-            onOk={() => submit().catch(() => undefined)}
-            okButtonProps={{ loading: save.isPending }}
+            onCancel={guard.requestClose}
+            onOk={() => guard.submit(submit).catch(() => undefined)}
+            okButtonProps={{ loading: guard.saving, disabled: guard.saving }}
+            cancelButtonProps={{ disabled: guard.saving }}
+            closable={!guard.saving}
+            closeOnEsc={!guard.saving}
             maskClosable={false}
         >
             <Form<RoleForm>

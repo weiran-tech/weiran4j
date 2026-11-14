@@ -5,6 +5,7 @@ import { useMemo, useRef } from 'react';
 import { IconPicker } from '@/components/IconPicker';
 import { STATUS_OPTIONS } from '@/components/StatusTag';
 import { useSaveMenu } from '@/hooks/queries/menus';
+import { useFormCloseGuard } from '@/hooks/useFormCloseGuard';
 import type { MenuNode, MenuSaveRequest, MenuType, Status } from '@/types/api';
 import { collectSubtreeIds } from '@/utils/menu';
 
@@ -118,6 +119,7 @@ export function MenuFormModal({ target, tree, onClose }: Props) {
     const isEdit = target.mode === 'edit';
     const api = useRef<FormApi<MenuForm> | null>(null);
     const save = useSaveMenu();
+    const guard = useFormCloseGuard(api, onClose);
 
     const parentTree = useMemo(() => {
         const disabled = isEdit ? collectSubtreeIds(tree, target.record.id) : new Set<number>();
@@ -137,9 +139,12 @@ export function MenuFormModal({ target, tree, onClose }: Props) {
             visible
             title={isEdit ? '编辑菜单' : '新增菜单'}
             width={640}
-            onCancel={onClose}
-            onOk={() => submit().catch(() => undefined)}
-            okButtonProps={{ loading: save.isPending }}
+            onCancel={guard.requestClose}
+            onOk={() => guard.submit(submit).catch(() => undefined)}
+            okButtonProps={{ loading: guard.saving, disabled: guard.saving }}
+            cancelButtonProps={{ disabled: guard.saving }}
+            closable={!guard.saving}
+            closeOnEsc={!guard.saving}
             maskClosable={false}
         >
             <Form<MenuForm>

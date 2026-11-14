@@ -1,7 +1,9 @@
-import { Button, DatePicker, Descriptions, Input, Select, SideSheet, Spin, Table, Tag, Typography } from '@douyinfe/semi-ui';
+import { Button, DatePicker, Input, Select, SideSheet, Table, Tag } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { useState } from 'react';
 import { useColumnSettings } from '@/components/ColumnSettings';
+import { ListEmptyState, ListFeedback } from '@/components/ListFeedback';
+import { OperationLogDetails } from '@/components/OperationLogDetails';
 import { PageContainer } from '@/components/PageContainer';
 import { SearchToolbar, type SearchCondition } from '@/components/SearchToolbar';
 import { StatusTag } from '@/components/StatusTag';
@@ -10,46 +12,13 @@ import { tableScrollX, useTableDefaults } from '@/hooks/useTableDefaults';
 import type { OperationLogQuery, OperationLogView } from '@/types/api';
 import { formatTimeRange, toTimeRange } from '@/utils/date';
 
-/** 请求体是 JSON 就格式化，否则原样展示 */
-export function prettyBody(body: string | null | undefined): string {
-    if (!body) return '（无）';
-    try {
-        return JSON.stringify(JSON.parse(body), null, 2);
-    } catch {
-        return body;
-    }
-}
+export { prettyBody } from '@/components/OperationLogDetails';
 
 function OperationLogDetail({ id, onClose }: { id: number; onClose: () => void }) {
-    const { data, isPending } = useOperationLogDetail(id);
+    const query = useOperationLogDetail(id);
     return (
         <SideSheet visible title="操作详情" width={640} onCancel={onClose}>
-            {isPending || !data ? (
-                <Spin />
-            ) : (
-                <>
-                    <Descriptions
-                        align="left"
-                        data={[
-                            { key: '操作人', value: data.username || '—' },
-                            { key: '模块', value: data.module },
-                            { key: '描述', value: data.description },
-                            { key: '请求', value: `${data.method} ${data.path}` },
-                            { key: '结果', value: <StatusTag value={data.success} /> },
-                            { key: '响应码', value: String(data.responseCode) },
-                            { key: '耗时', value: `${data.durationMs} ms` },
-                            { key: 'IP', value: data.ip || '—' },
-                            { key: 'User-Agent', value: data.userAgent || '—' },
-                            { key: '时间', value: data.createdAt },
-                            ...(data.errorMessage ? [{ key: '错误信息', value: data.errorMessage }] : []),
-                        ]}
-                    />
-                    <Typography.Title heading={6} style={{ margin: '16px 0 8px' }}>
-                        请求体
-                    </Typography.Title>
-                    <pre className="code-block">{prettyBody(data.requestBody)}</pre>
-                </>
-            )}
+            <OperationLogDetails query={query} onRetry={() => void query.refetch()} />
         </SideSheet>
     );
 }
@@ -79,7 +48,7 @@ export default function OperationLogsPage() {
         ...(filters.success !== undefined ? { success: filters.success } : {}),
         ...toTimeRange(filters.range),
     };
-    const { data, isFetching, refetch } = useOperationLogs(query);
+    const { data, isFetching, isError, refetch } = useOperationLogs(query);
 
     const search = () => {
         setFilters(draft);
@@ -190,12 +159,14 @@ export default function OperationLogsPage() {
                     style={{ width: 360 }}
                 />
             </SearchToolbar>
+            {isError && <ListFeedback hasData={data !== undefined} retrying={isFetching} onRetry={() => void refetch()} />}
             <Table<OperationLogView>
                 {...tableProps}
                 rowKey="id"
                 columns={tableColumns}
                 dataSource={data?.list ?? []}
                 loading={isFetching}
+                empty={isFetching || isError ? <span aria-hidden="true" /> : <ListEmptyState filtered={conditions.length > 0} onReset={reset} />}
                 scroll={{ x: tableScrollX(tableColumns) }}
                 pagination={{
                     currentPage: page,

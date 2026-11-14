@@ -3,6 +3,7 @@ import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { useState } from 'react';
 import { DictSelect } from '@/components/DictSelect';
 import { useColumnSettings } from '@/components/ColumnSettings';
+import { ListEmptyState, ListFeedback } from '@/components/ListFeedback';
 import { PageContainer } from '@/components/PageContainer';
 import { Permission } from '@/components/Permission';
 import { SearchToolbar, type SearchCondition } from '@/components/SearchToolbar';
@@ -42,7 +43,7 @@ export default function RolesPage() {
     const [editing, setEditing] = useState<RoleView | null | undefined>(undefined);
     const [assigning, setAssigning] = useState<RoleView | null>(null);
 
-    const { data, isFetching, refetch } = useRoleList(toQuery(filters, page, pageSize));
+    const { data, isFetching, isError, refetch } = useRoleList(toQuery(filters, page, pageSize));
     const deleteRole = useDeleteRole();
 
     const search = () => {
@@ -158,12 +159,14 @@ export default function RolesPage() {
                     onChange={(v) => setDraft((d) => ({ ...d, status: v as Status | undefined }))}
                 />
             </SearchToolbar>
+            {isError && <ListFeedback hasData={data !== undefined} retrying={isFetching} onRetry={() => void refetch()} />}
             <Table<RoleView>
                 {...tableProps}
                 rowKey="id"
                 columns={tableColumns}
                 dataSource={data?.list ?? []}
                 loading={isFetching}
+                empty={isFetching || isError ? <span aria-hidden="true" /> : <ListEmptyState filtered={conditions.length > 0} onReset={reset} />}
                 scroll={{ x: tableScrollX(tableColumns) }}
                 pagination={{
                     currentPage: page,
