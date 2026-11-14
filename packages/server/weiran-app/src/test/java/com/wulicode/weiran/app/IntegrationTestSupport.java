@@ -126,6 +126,9 @@ abstract class IntegrationTestSupport {
         } else if (path.matches("/api-backend/system/role/(update|assignMenus)/[0-9]+")) {
             table = "sys_role";
             id = Long.parseLong(path.substring(path.lastIndexOf('/') + 1));
+        } else if (path.matches("/api-backend/system/menu/update/[0-9]+")) {
+            table = "sys_menu";
+            id = Long.parseLong(path.substring(path.lastIndexOf('/') + 1));
         } else if (path.equals("/api-backend/system/auth/updateProfile")) {
             table = "sys_user";
             id = IntegrationTestSupport.data(this.get("/api-backend/system/auth/getCurrentUser", token))

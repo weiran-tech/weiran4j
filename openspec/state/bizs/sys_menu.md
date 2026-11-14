@@ -4,8 +4,8 @@
 > 契约文档 `packages/server/docs/01-架构与接口契约.md` 只作索引；它与代码不一致的地方以代码为准写在下文，并在 §6 登记。
 >
 > 事实源：
-> [`MenuController.java`](../../../packages/server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/system/adapter/packages/manage/MenuController.java)、
-> [`SaveMenuRequest.java`](../../../packages/server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/system/adapter/packages/manage/request/SaveMenuRequest.java)、
+> [`MenuController.java`](../../../packages/server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/system/adapter/web/MenuController.java)、
+> [`SaveMenuRequest.java`](../../../packages/server/weiran-system/weiran-system-adapter/src/main/java/com/wulicode/weiran/system/adapter/web/request/SaveMenuRequest.java)、
 > [`MenuApplicationService.java`](../../../packages/server/weiran-system/weiran-system-application/src/main/java/com/wulicode/weiran/system/application/menu/MenuApplicationService.java) /
 > [`MenuAssembler.java`](../../../packages/server/weiran-system/weiran-system-application/src/main/java/com/wulicode/weiran/system/application/menu/MenuAssembler.java)、
 > [`Menu.java`](../../../packages/server/weiran-system/weiran-system-domain/src/main/java/com/wulicode/weiran/system/domain/menu/Menu.java) /
@@ -59,6 +59,7 @@
 
 | 字段 | 前端控件 | 显示条件 | 前端校验 | 后端校验 | DB 列 / 类型 |
 | --- | --- | --- | --- | --- | --- |
+| 编辑版本 | 随草稿冻结，不单独展示 | 编辑 | 必须沿用草稿 version | 必填非负整数；CAS 冲突 100007 | `edit_version int not null default 0` |
 | 上级 | `Form.TreeSelect`（「顶级」+ 非按钮节点；编辑时禁选自己与后代） | 恒显示 | 无 | `@NotNull` `@PositiveOrZero`；非 0 时须存在（100001）；不能是自己或后代（100004）；父节点为按钮 100001 | `parent_id bigint` 默认 0 |
 | 类型 | `Form.RadioGroup` 按钮式 | 恒显示 | 无 | `@NotBlank`；只能 `directory/menu/button`（100001）；有子节点的菜单改为按钮 100001 | `type varchar(16)` |
 | 名称 | `Form.Input` | 恒显示 | 必填；`maxLength=64` | `@NotBlank` `@Size(max=64)` | `title varchar(64)` |
@@ -85,7 +86,7 @@
 | 删除（行「操作」列，确认后执行；窄屏（< 992px）收在「…」菜单里） | `DELETE /api/menus/{id}` | `system:menu:delete` | ✅ 删除菜单 | 有子节点 100004「请先删除子菜单」；同时删 `sys_role_menu` 里该菜单的授权 |
 | —（详情） | `GET /api/menus/{id}` | `system:menu:list` | — | 单节点、`children` 为空；前端页面未调用 |
 
-保存 / 删除成功后前端让 `menuKeys.all` 与 `authKeys.menus`（侧边栏）失效，但不让 `authKeys.me` 失效（见 #02）。
+保存 / 删除成功后失效菜单资源及统一授权快照，导航与按钮同批更新；普通失败保留快照，权限拒绝 100102 触发去重校准。
 
 **菜单驱动路由**（`App.tsx` + `utils/menu.ts` 的 `menusToRoutes`）：取 `/api/auth/menus`，只为 `type=menu`、启用、非外链、
 有 `path` 的节点注册路由；`visible=false` 的也注册，只是侧边栏不显示；同路径重复时保留第一个；`component` 在
@@ -102,6 +103,8 @@
 
 ## 5. 说明与建议
 
+- 菜单写事务先取得共享结构守卫，再读层级校验，覆盖互挂、父删子增和转按钮竞争；普通编辑同时比较独立版本。冲突保留草稿，确认并成功重载后才替换字段、版本和父节点选项。
+
 - 菜单新增/编辑已接入 `useFormCloseGuard`；列表失败提供持续提示与重试，缓存数据和用户控制的树展开状态保留，成功空树才显示无记录。
 
 - 菜单创建/编辑/删除成功后同步刷新当前资料与菜单，导航和按钮权限采用新结果；失败保留身份快照。
@@ -113,6 +116,7 @@
 
 ## 6. 已知问题汇总
 
+
 - **#03 ❓ P3 契约 §6.1 / §6.4 未记载的后端规则（与代码不符，以代码为准）**
   契约 §6.4 只写了「type=menu 时 path 必填；type=button 时 permission 必填」「parentId 不能是自己或后代（100004）」
   「有子节点 100004」。代码另有：父节点是按钮时 100001「按钮下不能再添加子节点」；有子节点的菜单改为按钮 100001；
@@ -123,6 +127,10 @@
 新条目插在本节最上方（按日期倒序，新在上）。
 
 **2026-11-14**
+
+- **#06 ✅ P2 菜单结构写入已有共享并发边界**
+  由 harden-menu-and-authorization-contracts 解决：数据库单行结构守卫覆盖新增、移动、类型修改及删除，先锁后读，防止不同节点互挂及父删子增；普通编辑比较独立版本，冲突 100007 保留草稿并确认重载。MySQL 独立事务、跨连接锁超时和前端草稿恢复回归通过。
+
 
 - **#02 ✅ P3 改菜单的权限码或状态后，当前登录人的按钮权限不刷新**
   由 `recover-pages-and-sync-menu-permissions` 解决。菜单新增/编辑/删除成功并行失效菜单资源、当前用户资料和菜单查询；失败不失效，活动查询及Permission/导航回归覆盖。

@@ -9,6 +9,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * 新增 / 修改菜单请求。
  *
+ * @param version 编辑版本，创建时可空
  * @param parentId 父 ID，0 为根
  * @param title 标题
  * @param type 类型
@@ -23,6 +24,7 @@ import org.jspecify.annotations.Nullable;
  * @param status 状态
  */
 public record SaveMenuRequest(
+        @Nullable @PositiveOrZero Integer version,
         @NotNull @PositiveOrZero Long parentId,
         @NotBlank @Size(max = 64) String title,
         @NotBlank String type,

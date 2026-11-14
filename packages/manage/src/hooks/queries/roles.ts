@@ -43,8 +43,7 @@ export function useSaveRole() {
             id === undefined ? http.post<IdResult>('/api-backend/system/role/create', body) : http.put<null>(`/api-backend/system/role/update/${id}`, body),
         onSuccess: () => Promise.all([
             qc.invalidateQueries({ queryKey: roleKeys.all }),
-            qc.invalidateQueries({ queryKey: authKeys.me }),
-            qc.invalidateQueries({ queryKey: authKeys.menus }),
+            qc.invalidateQueries({ queryKey: authKeys.snapshot }),
         ]),
     });
 }
@@ -55,8 +54,7 @@ export function useDeleteRole() {
         mutationFn: (id: number) => http.delete<null>(`/api-backend/system/role/delete/${id}`),
         onSuccess: () => Promise.all([
             qc.invalidateQueries({ queryKey: roleKeys.all }),
-            qc.invalidateQueries({ queryKey: authKeys.me }),
-            qc.invalidateQueries({ queryKey: authKeys.menus }),
+            qc.invalidateQueries({ queryKey: authKeys.snapshot }),
         ]),
     });
 }
@@ -67,8 +65,7 @@ export function useAssignRoleMenus() {
         mutationFn: ({ id, menuIds, version }: { id: number; menuIds: number[]; version: number }) => http.put<null>(`/api-backend/system/role/assignMenus/${id}`, { menuIds, version }),
         onSuccess: (_d, v) => Promise.all([
             qc.invalidateQueries({ queryKey: roleKeys.detail(v.id) }),
-            qc.invalidateQueries({ queryKey: authKeys.me }),
-            qc.invalidateQueries({ queryKey: authKeys.menus }),
+            qc.invalidateQueries({ queryKey: authKeys.snapshot }),
         ]),
     });
 }

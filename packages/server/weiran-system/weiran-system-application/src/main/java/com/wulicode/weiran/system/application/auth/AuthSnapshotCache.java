@@ -2,61 +2,45 @@ package com.wulicode.weiran.system.application.auth;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.wulicode.weiran.system.domain.auth.AuthorizationRevision;
 import com.wulicode.weiran.system.domain.auth.PrincipalSnapshot;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Function;
 import org.jspecify.annotations.Nullable;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-/**
- * 按用户缓存身份与授权快照（30 秒），避免每个请求都查三张表。
- *
- * <p><b>只缓存权限，不缓存吊销状态</b>：令牌版本与账号状态由 {@link LocalIdentityResolver} 每次请求查库
- * （宪法 CP-8），所以这里的失效只影响「改权限多久生效」，不影响「吊销是否立即生效」。
- * 失效只作用于本进程，多实例下权限变更最多晚 30 秒生效（artifact.md#02 的剩余部分）。
- *
- * <p>失效时机：用户资料 / 状态 / 密码 / 角色变化时失效该用户；角色或菜单变化时全部失效。
- * 失效在事务提交后<b>再做一次</b>：只在提交前失效的话，并发请求可能在提交前把旧数据重新装回缓存，
- * 让变更晚 30 秒才生效。
- */
+/** 修订号隔离的本地权限缓存；每次鉴权先读取共享修订号，吊销状态仍逐请求查库。 */
 public class AuthSnapshotCache {
-
-    /** 缓存有效期。 */
+    /** 回收不再使用的版本，时限不作为权限生效边界。 */
     public static final Duration TTL = Duration.ofSeconds(30);
 
-    private final Cache<Long, PrincipalSnapshot> cache = Caffeine.newBuilder()
+    private record Key(long userId, long revision) {}
+
+    private final AuthorizationRevision revision;
+    private final Cache<Key, PrincipalSnapshot> cache = Caffeine.newBuilder()
             .expireAfterWrite(AuthSnapshotCache.TTL)
             .maximumSize(10_000)
             .build();
-
-    /** 读取快照，未命中时用 loader 加载（loader 返回 null 表示用户不存在，不缓存）。 */
+    /** 使用共享修订号端口。 */
+    public AuthSnapshotCache(final AuthorizationRevision revision) {
+        this.revision = revision;
+    }
+    /** 读取当前事务视图的修订号。 */
+    public long revision() {
+        return this.revision.current();
+    }
+    /** 调用方须用同一只读事务读取修订号和装载快照。 */
     public Optional<PrincipalSnapshot> get(
             final long userId, final Function<Long, @Nullable PrincipalSnapshot> loader) {
-        return Optional.ofNullable(this.cache.get(userId, loader));
+        final Function<Key, @Nullable PrincipalSnapshot> mapping = key -> loader.apply(key.userId());
+        return Optional.ofNullable(this.cache.get(new Key(userId, this.revision()), mapping));
     }
-
-    /** 失效单个用户（立即 + 事务提交后）。 */
+    /** 在当前业务写事务中发布变更；全局修订号也使其它实例失效。 */
     public void evict(final long userId) {
-        this.cache.invalidate(userId);
-        AuthSnapshotCache.afterCommit(() -> this.cache.invalidate(userId));
+        this.revision.advance();
     }
-
-    /** 失效全部用户（立即 + 事务提交后）。 */
+    /** 在当前业务写事务中发布授权变更。 */
     public void evictAll() {
-        this.cache.invalidateAll();
-        AuthSnapshotCache.afterCommit(this.cache::invalidateAll);
-    }
-
-    private static void afterCommit(final Runnable action) {
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    action.run();
-                }
-            });
-        }
+        this.revision.advance();
     }
 }

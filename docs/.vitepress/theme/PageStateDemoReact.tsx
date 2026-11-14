@@ -11,16 +11,17 @@ import { mediaDown } from '../../../packages/manage/src/lib/breakpoints';
 import { FormProtectionDemo, ReadRecoveryDemo } from './AdminRecoveryDemos';
 import './page-state-demo.css';
 import { EditBoundaryDemo, PasswordAttemptDemo } from './EditBoundaryDemos';
+import { AuthorizationCalibrationDemo } from './AuthorizationCalibrationDemo';
 
 type Mode = 'success' | 'loading' | 'error' | 'cached-error' | 'retrying';
-type Scene = 'conflict' | 'throttle' | 'permissions' | 'security' | 'upload' | 'sync' | 'recovery' | 'search' | 'forms' | 'lists' | 'detail';
-const SCENES: Record<Scene, string> = { conflict: '编辑冲突', throttle: '认证限流', permissions: '权限分配', security: '安全设置', upload: '上传设置', sync: '权限同步', recovery: '异常恢复', search: '窄屏搜索', forms: '编辑保护', lists: '列表反馈', detail: '日志详情' };
+type Scene = 'authorization' | 'menu-conflict' | 'conflict' | 'throttle' | 'permissions' | 'security' | 'upload' | 'sync' | 'recovery' | 'search' | 'forms' | 'lists' | 'detail';
+const SCENES: Record<Scene, string> = { authorization: '授权校准', 'menu-conflict': '菜单编辑冲突', conflict: '编辑冲突', throttle: '认证限流', permissions: '权限分配', security: '安全设置', upload: '上传设置', sync: '权限同步', recovery: '异常恢复', search: '窄屏搜索', forms: '编辑保护', lists: '列表反馈', detail: '日志详情' };
 const MODES: Record<Mode, string> = { success: '读取成功', loading: '首次加载中', error: '首次读取失败', 'cached-error': '缓存刷新失败', retrying: '正在重试' };
 function query(mode: Mode): ReadableQuery {
     return { data: mode === 'success' || mode === 'cached-error' ? {} : undefined, isSuccess: mode === 'success', isError: mode === 'error' || mode === 'cached-error', isFetching: mode === 'loading' || mode === 'retrying' };
 }
 
-function ReadDemo({ scene }: { scene: Exclude<Scene, 'conflict' | 'throttle' | 'sync' | 'recovery' | 'search' | 'forms' | 'lists' | 'detail'> }) {
+function ReadDemo({ scene }: { scene: Exclude<Scene, 'authorization' | 'menu-conflict' | 'conflict' | 'throttle' | 'sync' | 'recovery' | 'search' | 'forms' | 'lists' | 'detail'> }) {
     const labels = scene === 'permissions' ? ['菜单树', '角色详情'] : scene === 'upload' ? ['上传规则', '配置列表'] : ['安全设置'];
     const [modes, setModes] = useState<Mode[]>(labels.map(() => 'success'));
     const [selected, setSelected] = useState(true);
@@ -136,6 +137,6 @@ export function PageStateDemo() {
     const [scene, setScene] = useState<Scene>('permissions');
     return <div className="page-state-demo">
         <label>选择场景<select aria-label="选择场景" value={scene} onChange={(event) => setScene(event.target.value as Scene)}>{Object.entries(SCENES).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-        {scene === 'conflict' ? <EditBoundaryDemo /> : scene === 'throttle' ? <PasswordAttemptDemo /> : scene === 'forms' ? <FormProtectionDemo /> : scene === 'lists' ? <ReadRecoveryDemo /> : scene === 'detail' ? <ReadRecoveryDemo detail /> : scene === 'sync' ? <SyncDemo /> : scene === 'recovery' ? <RecoveryDemo /> : scene === 'search' ? <SearchDemo /> : <ReadDemo key={scene} scene={scene} />}
+        {scene === 'authorization' ? <AuthorizationCalibrationDemo /> : scene === 'menu-conflict' ? <EditBoundaryDemo kind="menu" /> : scene === 'conflict' ? <EditBoundaryDemo /> : scene === 'throttle' ? <PasswordAttemptDemo /> : scene === 'forms' ? <FormProtectionDemo /> : scene === 'lists' ? <ReadRecoveryDemo /> : scene === 'detail' ? <ReadRecoveryDemo detail /> : scene === 'sync' ? <SyncDemo /> : scene === 'recovery' ? <RecoveryDemo /> : scene === 'search' ? <SearchDemo /> : <ReadDemo key={scene} scene={scene} />}
     </div>;
 }

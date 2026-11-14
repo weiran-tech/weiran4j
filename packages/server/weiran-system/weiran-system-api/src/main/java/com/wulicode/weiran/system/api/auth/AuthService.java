@@ -29,6 +29,9 @@ public interface AuthService {
      */
     LogoutResult logout(long userId, ClientContext client, @Nullable String idp);
 
+    /** 同一视图中的身份和菜单快照。 */
+    AuthorizationSnapshotView authorizationSnapshot(long userId);
+
     /** 当前用户信息。 */
     CurrentUserView me(long userId);
 

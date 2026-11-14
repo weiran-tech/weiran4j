@@ -5,6 +5,7 @@ import com.wulicode.weiran.framework.log.OperationLog;
 import com.wulicode.weiran.framework.response.ApiResponse;
 import com.wulicode.weiran.framework.response.IdResult;
 import com.wulicode.weiran.system.adapter.web.request.SaveMenuRequest;
+import com.wulicode.weiran.system.adapter.web.request.UpdateMenuRequest;
 import com.wulicode.weiran.system.api.menu.MenuNode;
 import com.wulicode.weiran.system.api.menu.MenuService;
 import com.wulicode.weiran.system.api.menu.SaveMenuCommand;
@@ -59,7 +60,7 @@ public class MenuController {
     @RequiresPermission("system:menu:update")
     @OperationLog(module = MenuController.MODULE, description = "修改菜单")
     @PutMapping("/update/{id}")
-    public ApiResponse<Void> update(@PathVariable final long id, @Valid @RequestBody final SaveMenuRequest request) {
+    public ApiResponse<Void> update(@PathVariable final long id, @Valid @RequestBody final UpdateMenuRequest request) {
         this.menuService.update(id, MenuController.toCommand(request));
         return ApiResponse.ok();
     }
@@ -75,6 +76,24 @@ public class MenuController {
 
     private static SaveMenuCommand toCommand(final SaveMenuRequest request) {
         return new SaveMenuCommand(
+                request.version(),
+                request.parentId(),
+                request.title(),
+                request.type(),
+                request.path(),
+                request.component(),
+                request.icon(),
+                request.permission(),
+                request.sort(),
+                request.visible(),
+                request.keepAlive(),
+                request.isExternal(),
+                request.status());
+    }
+
+    private static SaveMenuCommand toCommand(final UpdateMenuRequest request) {
+        return new SaveMenuCommand(
+                request.version(),
                 request.parentId(),
                 request.title(),
                 request.type(),

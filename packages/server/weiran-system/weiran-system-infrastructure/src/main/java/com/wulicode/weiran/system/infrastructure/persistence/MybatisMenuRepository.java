@@ -1,6 +1,8 @@
 package com.wulicode.weiran.system.infrastructure.persistence;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.wulicode.weiran.framework.error.BizException;
+import com.wulicode.weiran.framework.error.CommonErrors;
 import com.wulicode.weiran.framework.status.EnableStatus;
 import com.wulicode.weiran.system.domain.menu.Menu;
 import com.wulicode.weiran.system.domain.menu.MenuRepository;
@@ -47,7 +49,18 @@ public class MybatisMenuRepository implements MenuRepository {
         if (row.getId() == null) {
             this.menuMapper.insert(row);
         } else {
-            this.menuMapper.updateById(row);
+            if (menu.getVersion() == Integer.MAX_VALUE) {
+                throw new BizException(CommonErrors.EDIT_CONFLICT);
+            }
+            row.setEditVersion(menu.getVersion() + 1);
+            if (this.menuMapper.update(
+                            row,
+                            Wrappers.lambdaUpdate(SysMenuDO.class)
+                                    .eq(SysMenuDO::getId, row.getId())
+                                    .eq(SysMenuDO::getEditVersion, menu.getVersion()))
+                    != 1) {
+                throw new BizException(CommonErrors.EDIT_CONFLICT);
+            }
         }
         return row.getId();
     }
@@ -61,6 +74,7 @@ public class MybatisMenuRepository implements MenuRepository {
     private static Menu toDomain(final SysMenuDO row) {
         return Menu.builder()
                 .id(row.getId())
+                .version(row.getEditVersion() == null ? 0 : row.getEditVersion())
                 .parentId(row.getParentId() == null ? 0L : row.getParentId())
                 .title(row.getTitle())
                 .type(MenuType.of(row.getType()))
@@ -81,6 +95,7 @@ public class MybatisMenuRepository implements MenuRepository {
     private static SysMenuDO toDataObject(final Menu menu) {
         final SysMenuDO row = new SysMenuDO();
         row.setId(menu.getId());
+        row.setEditVersion(menu.getVersion());
         row.setParentId(menu.getParentId());
         row.setTitle(menu.getTitle());
         row.setType(menu.getType().value());

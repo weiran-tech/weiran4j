@@ -116,3 +116,5 @@
 - **EditConflictFeedback**（`components/EditConflictFeedback.tsx`）：编辑冲突的持续反馈和手动重载入口，复用于 docs；`useEditConflict` 统一阻止旧草稿重试并确认重载，失败保留输入。
 
 - **AuthAttemptFeedback**（`components/AuthAttemptFeedback.tsx`）：登录、锁屏和 docs 共用的持续认证错误提示；手动重试由页面提交动作控制。
+
+- **AuthorizationFeedback**（`components/AuthorizationFeedback.tsx`）：授权快照刷新失败的持续反馈和手动重试；后台外壳和 docs 共用，失败不移除旧导航。

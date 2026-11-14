@@ -24,31 +24,31 @@ const base = { permission: null, sort: 0, visible: true, keepAlive: false, isExt
 
 /** 首页 + 两个目录；目录下的页面组件不存在，渲染「页面不存在」占位（不发额外请求） */
 const menus: MenuNode[] = [
-    { ...base, id: 1, parentId: 0, title: '首页', type: 'menu', path: '/dashboard', component: 'dashboard/DashboardPage', icon: 'LayoutDashboard' },
+    { ...base, id: 1, version: 0, parentId: 0, title: '首页', type: 'menu', path: '/dashboard', component: 'dashboard/DashboardPage', icon: 'LayoutDashboard' },
     {
         ...base,
         id: 2,
-        parentId: 0,
+        version: 0, parentId: 0,
         title: '系统管理',
         type: 'directory',
         path: null,
         component: null,
         icon: 'Settings',
         children: [
-            { ...base, id: 3, parentId: 2, title: '用户管理', type: 'menu', path: '/system/a', component: 'nope/A', icon: 'Shield' },
-            { ...base, id: 4, parentId: 2, title: '角色管理', type: 'menu', path: '/system/b', component: 'nope/B', icon: 'KeyRound' },
+            { version: 0,  ...base, id: 3, parentId: 2, title: '用户管理', type: 'menu', path: '/system/a', component: 'nope/A', icon: 'Shield' },
+            { version: 0,  ...base, id: 4, parentId: 2, title: '角色管理', type: 'menu', path: '/system/b', component: 'nope/B', icon: 'KeyRound' },
         ],
     },
     {
         ...base,
         id: 5,
-        parentId: 0,
+        version: 0, parentId: 0,
         title: '日志管理',
         type: 'directory',
         path: null,
         component: null,
         icon: 'ScrollText',
-        children: [{ ...base, id: 6, parentId: 5, title: '登录日志', type: 'menu', path: '/logs/a', component: 'nope/C', icon: 'LogIn' }],
+        children: [{ version: 0,  ...base, id: 6, parentId: 5, title: '登录日志', type: 'menu', path: '/logs/a', component: 'nope/C', icon: 'LogIn' }],
     },
 ];
 
@@ -67,8 +67,8 @@ function renderAuthed(route = '/dashboard', prefs: Partial<UserPreferences> = {}
     signIn(1);
     savePreferences({ ...defaultPreferences, ...prefs }, 1);
     const fetch = mockFetch({
-        'GET /api-backend/system/auth/getCurrentUser': me,
-        'GET /api-backend/system/auth/listCurrentMenus': menuNodes,
+        'GET /api-backend/system/auth/getAuthorizationSnapshot': () => { const user = me; if (Object(user) instanceof Response) return user; return { user, menus: menuNodes, revision: '0' }; },
+
         'GET /api-backend/system/auth/getPreferences': null,
         'PUT /api-backend/system/auth/updatePreferences': null,
         'GET /api-backend/system/dict/listItemsByCode/sys_user_gender': [],
@@ -132,7 +132,7 @@ describe('AdminLayout', () => {
 
     it('安全设置在用户菜单的个人中心与偏好设置之间，隐藏菜单仍可打开页面', async () => {
         const hiddenSecurity: MenuNode = {
-            ...base, id: 23, parentId: 0, title: '安全设置', type: 'menu',
+            ...base, id: 23, version: 0, parentId: 0, title: '安全设置', type: 'menu',
             path: '/system/security', component: 'system/security/SecuritySettingsPage',
             icon: 'ShieldCheck', permission: 'system:security:list', visible: false,
         };
@@ -364,13 +364,13 @@ describe('侧边栏手风琴', () => {
         {
             ...base,
             id: 7,
-            parentId: 0,
+            version: 0, parentId: 0,
             title: '外层',
             type: 'directory',
             path: null,
             component: null,
             icon: null,
-            children: [{ ...base, id: 8, parentId: 7, title: '内层', type: 'directory', path: null, component: null, icon: null }],
+            children: [{ version: 0,  ...base, id: 8, parentId: 7, title: '内层', type: 'directory', path: null, component: null, icon: null }],
         },
     ]);
 

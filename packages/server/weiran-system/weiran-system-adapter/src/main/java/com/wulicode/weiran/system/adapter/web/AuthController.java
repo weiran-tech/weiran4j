@@ -19,6 +19,7 @@ import com.wulicode.weiran.system.adapter.web.request.UpdateProfileRequest;
 import com.wulicode.weiran.system.adapter.web.request.VerifyPasswordRequest;
 import com.wulicode.weiran.system.adapter.web.response.LoginResponse;
 import com.wulicode.weiran.system.api.auth.AuthService;
+import com.wulicode.weiran.system.api.auth.AuthorizationSnapshotView;
 import com.wulicode.weiran.system.api.auth.ChangePasswordCommand;
 import com.wulicode.weiran.system.api.auth.ClientContext;
 import com.wulicode.weiran.system.api.auth.CurrentUserView;
@@ -184,6 +185,11 @@ public class AuthController {
     }
 
     /** 当前用户。 */
+    @GetMapping("/api-backend/system/auth/getAuthorizationSnapshot")
+    public AuthorizationSnapshotView authorizationSnapshot() {
+        return this.authService.authorizationSnapshot(CurrentUser.require().id());
+    }
+
     @GetMapping("/api-backend/system/auth/getCurrentUser")
     public CurrentUserView me() {
         return this.authService.me(CurrentUser.require().id());

@@ -1,0 +1,11 @@
+{
+  "authorizationRefresh": true,
+  "periodicRefresh": true,
+  "permissionRejectNoReplay": true,
+  "failureRecovery": true,
+  "emptyAndDisabled": true,
+  "menuConflictRecovery": true,
+  "desktopAndNarrowDark": true,
+  "apiRequests": [],
+  "errors": []
+}

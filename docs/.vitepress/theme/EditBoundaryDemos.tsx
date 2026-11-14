@@ -4,8 +4,8 @@ import { EditConflictFeedback } from '../../../packages/manage/src/components/Ed
 import { AuthAttemptFeedback } from '../../../packages/manage/src/components/AuthAttemptFeedback';
 import { useEditConflict } from '../../../packages/manage/src/hooks/useEditConflict';
 
-export function EditBoundaryDemo() {
-    const [draft, setDraft] = useState('待保存的昵称');
+export function EditBoundaryDemo({ kind = 'profile' }: { kind?: 'profile' | 'menu' }) {
+    const [draft, setDraft] = useState(kind === 'menu' ? '待保存的菜单名称' : '待保存的昵称');
     const [version, setVersion] = useState(1);
     const [remoteVersion, setRemoteVersion] = useState(1);
     const [loading, setLoading] = useState(false);
@@ -16,7 +16,7 @@ export function EditBoundaryDemo() {
     const reload = () => conflict.reload(async () => {
         await new Promise((resolve) => setTimeout(resolve, 500));
         if (failReload) throw new Error('本地模拟加载失败');
-        setDraft('服务器最新昵称'); setVersion(remoteVersion); setMessage('已重载，可继续编辑');
+        setDraft(kind === 'menu' ? '服务器最新菜单名称' : '服务器最新昵称'); setVersion(remoteVersion); setMessage('已重载，可继续编辑');
     });
     const save = async () => {
         setLoading(true); setMessage('');
@@ -33,7 +33,7 @@ export function EditBoundaryDemo() {
         <p>输入与草稿版本一起保留；模拟其他人保存后，本次提交会冲突。后台版本更新不会替换输入。</p>
         <Checkbox checked={allowed} onChange={(event) => setAllowed(!!event.target.checked)}>拥有编辑权限</Checkbox>
         <Checkbox checked={failReload} onChange={(event) => setFailReload(!!event.target.checked)}>模拟重载失败</Checkbox>
-        <Input aria-label="冲突演示昵称" value={draft} onChange={setDraft} disabled={loading || !allowed} />
+        <Input aria-label={kind === 'menu' ? '菜单冲突演示名称' : '冲突演示昵称'} value={draft} onChange={setDraft} disabled={loading || !allowed} />
         <p>草稿版本 {version}；服务器版本 {remoteVersion}</p>
         <Space><Button onClick={() => setRemoteVersion((v) => v + 1)}>模拟其他人保存</Button>
             <Button onClick={() => void save()} loading={loading} disabled={loading || !allowed || conflict.conflict || conflict.reloading}>保存草稿</Button></Space>

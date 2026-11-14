@@ -1,7 +1,10 @@
+import { EditConflictFeedback } from '@/components/EditConflictFeedback';
+import { useEditConflict } from '@/hooks/useEditConflict';
+import { http } from '@/utils/request';
 import { Form, Modal, Toast, withField } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import type { TreeNodeData } from '@douyinfe/semi-ui/lib/es/tree';
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { IconPicker } from '@/components/IconPicker';
 import { STATUS_OPTIONS } from '@/components/StatusTag';
 import { useSaveMenu } from '@/hooks/queries/menus';
@@ -115,7 +118,23 @@ interface Props {
     onClose: () => void;
 }
 
-export function MenuFormModal({ target, tree, onClose }: Props) {
+export function MenuFormModal({ target: initialTarget, tree: initialTree, onClose }: Props) {
+    const [target, setTarget] = useState(initialTarget);
+    const [reloadedTree, setReloadedTree] = useState<MenuNode[] | null>(null);
+    const tree = reloadedTree ?? initialTree;
+    const [formKey, setFormKey] = useState(0);
+    const conflict = useEditConflict();
+    const reload = () => conflict.reload(async () => {
+        if (target.mode !== 'edit') return;
+        const latestTree = await http.get<MenuNode[]>('/api-backend/system/menu/list');
+        const find = (nodes: MenuNode[]): MenuNode | undefined => {
+            for (const node of nodes) { if (node.id === target.record.id) return node; const child = find(node.children); if (child) return child; }
+            return undefined;
+        };
+        const record = find(latestTree);
+        if (!record) throw new Error('菜单已删除');
+        setTarget({ mode: 'edit', record }); setReloadedTree(latestTree); setFormKey((key) => key + 1);
+    });
     const isEdit = target.mode === 'edit';
     const api = useRef<FormApi<MenuForm> | null>(null);
     const save = useSaveMenu();
@@ -128,8 +147,8 @@ export function MenuFormModal({ target, tree, onClose }: Props) {
 
     const submit = async () => {
         const v = await api.current?.validate();
-        if (!v) return;
-        await save.mutateAsync({ id: isEdit ? target.record.id : undefined, body: toRequest(v) });
+        if (!v || conflict.conflict) return;
+        if (!await conflict.run(() => save.mutateAsync({ id: isEdit ? target.record.id : undefined, body: { ...toRequest(v), ...(isEdit ? { version: target.record.version } : {}) } }))) return;
         Toast.success(isEdit ? '已保存' : '已创建');
         onClose();
     };
@@ -141,13 +160,15 @@ export function MenuFormModal({ target, tree, onClose }: Props) {
             width={640}
             onCancel={guard.requestClose}
             onOk={() => guard.submit(submit).catch(() => undefined)}
-            okButtonProps={{ loading: guard.saving, disabled: guard.saving }}
+            okButtonProps={{ loading: guard.saving, disabled: guard.saving || conflict.reloading || conflict.conflict }}
             cancelButtonProps={{ disabled: guard.saving }}
             closable={!guard.saving}
             closeOnEsc={!guard.saving}
             maskClosable={false}
         >
+            <EditConflictFeedback {...conflict} onReload={reload} />
             <Form<MenuForm>
+                key={formKey}
                 getFormApi={(a) => {
                     api.current = a;
                 }}

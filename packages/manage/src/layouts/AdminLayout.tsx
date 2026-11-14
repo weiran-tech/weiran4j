@@ -141,6 +141,7 @@ interface Crumb {
 }
 
 interface AdminLayoutProps {
+    authorizationFeedback?: import('react').ReactNode;
     menus: MenuNode[];
     routes: MenuRoute[];
 }
@@ -161,7 +162,7 @@ function isLockShortcut(e: KeyboardEvent) {
  * 外观与行为大多由偏好（hooks/usePreferences）控制，用户下拉菜单里的「偏好设置」打开偏好设置抽屉；
  * 顶栏「全局搜索」（Ctrl/⌘+K）搜索菜单（同 zenith-admin）。
  */
-export function AdminLayout({ menus, routes }: AdminLayoutProps) {
+export function AdminLayout({ menus, routes, authorizationFeedback }: AdminLayoutProps) {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
@@ -658,6 +659,7 @@ export function AdminLayout({ menus, routes }: AdminLayoutProps) {
                             />
                         )}
                         <main className="admin-content">
+                            {authorizationFeedback}
                             <Suspense
                                 fallback={
                                     <div className="page-loading">

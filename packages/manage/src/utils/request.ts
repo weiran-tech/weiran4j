@@ -1,5 +1,6 @@
 import { Toast } from '@douyinfe/semi-ui';
 import { config } from '@/config';
+import { notifyPermissionRejected } from './authorization-events';
 import type { ApiResponse } from '@/types/api';
 import { clearSession, getSession } from './session';
 
@@ -32,6 +33,8 @@ export class ApiError extends Error {
 }
 
 export interface RequestOptions {
+    /** 校准自身失败不递归触发刷新。 */
+    authorizationCalibration?: boolean;
     method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
     body?: unknown;
     /** 静默：不自动 Toast 错误，由调用方处理 */
@@ -135,9 +138,13 @@ export async function request<T>(url: string, options: RequestOptions = {}): Pro
 
     if (sessionExpired) {
         // 登录页上本就没有会话，不必再清
-        if (session) clearSession();
+        if (session && session === getSession()) clearSession();
         const message = isApiResponse(payload) && payload.message ? payload.message : '登录已失效，请重新登录';
         return fail(new ApiError(CODE_UNAUTHORIZED, message, res.status, requestId), silent);
+    }
+
+    if (res.status === 403 && code === 100102 && session && session === getSession() && !options.authorizationCalibration) {
+        notifyPermissionRejected(session);
     }
 
     if (!isApiResponse(payload)) {

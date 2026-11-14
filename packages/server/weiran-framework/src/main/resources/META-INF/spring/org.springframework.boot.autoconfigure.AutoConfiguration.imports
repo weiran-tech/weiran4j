@@ -1,1 +1,2 @@
 com.wulicode.weiran.framework.autoconfigure.WeiranFrameworkAutoConfiguration
+com.wulicode.weiran.framework.autoconfigure.WeiranOpenApiAutoConfiguration

@@ -4,7 +4,7 @@ import { applyMenuCheck, collectSubtreeIds, findMenuTrail, flattenMenuPages, men
 
 function node(partial: Partial<MenuNode> & Pick<MenuNode, 'id' | 'title' | 'type'>): MenuNode {
     return {
-        parentId: 0,
+        version: 0, parentId: 0,
         path: null,
         component: null,
         icon: null,
@@ -27,19 +27,19 @@ const tree: MenuNode[] = [
         type: 'directory',
         path: '/system',
         children: [
-            node({
+            node({ version: 0,
                 id: 3,
                 parentId: 2,
                 title: '用户管理',
                 type: 'menu',
                 path: '/system/users',
                 component: 'system/users/UsersPage',
-                children: [node({ id: 100, parentId: 3, title: '新增用户', type: 'button', permission: 'system:user:create' })],
+                children: [node({ version: 0,  id: 100, parentId: 3, title: '新增用户', type: 'button', permission: 'system:user:create' })],
             }),
-            node({ id: 4, parentId: 2, title: '隐藏页', type: 'menu', path: 'system/hidden/', component: 'system/roles/RolesPage', visible: false }),
-            node({ id: 5, parentId: 2, title: '未实现', type: 'menu', path: '/system/todo', component: 'system/todo/TodoPage' }),
-            node({ id: 6, parentId: 2, title: '已禁用', type: 'menu', path: '/system/off', component: 'system/menus/MenusPage', status: 'disabled' }),
-            node({ id: 7, parentId: 2, title: '外链', type: 'menu', path: 'https://example.com', isExternal: true }),
+            node({ version: 0,  id: 4, parentId: 2, title: '隐藏页', type: 'menu', path: 'system/hidden/', component: 'system/roles/RolesPage', visible: false }),
+            node({ version: 0,  id: 5, parentId: 2, title: '未实现', type: 'menu', path: '/system/todo', component: 'system/todo/TodoPage' }),
+            node({ version: 0,  id: 6, parentId: 2, title: '已禁用', type: 'menu', path: '/system/off', component: 'system/menus/MenusPage', status: 'disabled' }),
+            node({ version: 0,  id: 7, parentId: 2, title: '外链', type: 'menu', path: 'https://example.com', isExternal: true }),
         ],
     }),
 ];

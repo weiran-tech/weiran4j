@@ -173,6 +173,7 @@ export interface BindIdentityRequest {
 export type MenuType = 'directory' | 'menu' | 'button';
 
 export interface MenuNode {
+    version: number;
     id: number;
     parentId: number;
     title: string;
@@ -190,6 +191,7 @@ export interface MenuNode {
 }
 
 export interface MenuSaveRequest {
+    version?: number;
     parentId: number;
     title: string;
     type: MenuType;
@@ -577,3 +579,6 @@ export interface BatchTaskDetailView {
     resultId: string | null;
     createdAt: string;
 }
+
+/** 同一授权视图；revision 为十进制字符串。 */
+export interface AuthorizationSnapshotView { user: CurrentUserView; menus: MenuNode[]; revision: string; }

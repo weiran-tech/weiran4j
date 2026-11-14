@@ -15,6 +15,8 @@ import org.jspecify.annotations.NullUnmarked;
 @TableName("sys_menu")
 public class SysMenuDO extends AuditableDO {
 
+    private Integer editVersion;
+
     private Long parentId;
 
     private String title;

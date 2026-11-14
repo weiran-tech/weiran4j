@@ -41,7 +41,7 @@ function SearchProbe() {
 
 function routes(overrides: Record<string, unknown> = {}) {
     return {
-        'GET /api-backend/system/auth/getCurrentUser': me,
+        'GET /api-backend/system/auth/getAuthorizationSnapshot': () => { const user = me; if (Object(user) instanceof Response) return user; return { user, menus: [], revision: '0' }; },
         'GET /api-backend/system/dict/listItemsByCode/sys_user_gender': [],
         'GET /api-backend/n/system/auth/listProviders': providers,
         'GET /api-backend/system/auth/listCurrentIdentities': [keycloakIdentity],
@@ -122,7 +122,7 @@ describe('ProfilePage 外部账号', () => {
     });
 
     it('hasPassword=false：密码行显示未设置且没有修改入口', async () => {
-        mockFetch(routes({ 'GET /api-backend/system/auth/getCurrentUser': { ...me, hasPassword: false } }));
+        mockFetch(routes({ 'GET /api-backend/system/auth/getAuthorizationSnapshot': () => { const user = { ...me, hasPassword: false }; if (Object(user) instanceof Response) return user; return { user, menus: [], revision: '0' }; } }));
         renderProfile();
         expect(await screen.findByText('登录密码')).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: '修改登录密码' })).not.toBeInTheDocument();
@@ -139,7 +139,7 @@ describe('ProfilePage 外部账号', () => {
     it('本人修改用户名后刷新个人信息', async () => {
         let currentUser = me;
         const { calls } = mockFetch(routes({
-            'GET /api-backend/system/auth/getCurrentUser': () => currentUser,
+            'GET /api-backend/system/auth/getAuthorizationSnapshot': () => { const user = (() => currentUser)(); if (Object(user) instanceof Response) return user; return { user, menus: [], revision: '0' }; },
             'PUT /api-backend/system/auth/updateUsername': () => {
                 currentUser = { ...me, username: '9_alice' };
                 return null;

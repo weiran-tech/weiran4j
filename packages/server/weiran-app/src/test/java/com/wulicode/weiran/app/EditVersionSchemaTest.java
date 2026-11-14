@@ -3,6 +3,7 @@ package com.wulicode.weiran.app;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.wulicode.weiran.system.adapter.web.request.AssignMenusRequest;
+import com.wulicode.weiran.system.adapter.web.request.UpdateMenuRequest;
 import com.wulicode.weiran.system.adapter.web.request.UpdateProfileRequest;
 import com.wulicode.weiran.system.adapter.web.request.UpdateRoleRequest;
 import com.wulicode.weiran.system.adapter.web.request.UpdateUserAccountFieldRequest;
@@ -21,6 +22,7 @@ class EditVersionSchemaTest {
                 UpdateUserRequest.class,
                 UpdateUserAccountFieldRequest.class,
                 UpdateRoleRequest.class,
+                UpdateMenuRequest.class,
                 AssignMenusRequest.class,
                 UpdateProfileRequest.class)) {
             final var schema = Objects.requireNonNull(

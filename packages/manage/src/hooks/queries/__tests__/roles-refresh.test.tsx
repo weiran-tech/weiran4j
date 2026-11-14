@@ -40,8 +40,8 @@ it.each<Action>(['create', 'update', 'delete', 'assign'])('%s 成功后重取活
     let changed = false;
     const { calls } = mockFetch({
         'GET /api-backend/system/auth/getPreferences': {},
-        'GET /api-backend/system/auth/getCurrentUser': () => ({ id: 1, username: 'demo', permissions: changed ? [] : ['system:user:create'] }),
-        'GET /api-backend/system/auth/listCurrentMenus': () => changed ? [] : [{ id: 3, title: '用户管理' }],
+        'GET /api-backend/system/auth/getAuthorizationSnapshot': () => { const user = (() => ({ id: 1, username: 'demo', permissions: changed ? [] : ['system:user:create'] }))(); if (Object(user) instanceof Response) return user; return { user, menus: (() => changed ? [] : [{ id: 3, title: '用户管理' }])(), revision: '0' }; },
+
         [endpoints[action]]: () => { changed = true; return action === 'create' ? { id: 2 } : null; },
     });
     renderWithProviders(<Harness action={action} />);
@@ -51,15 +51,14 @@ it.each<Action>(['create', 'update', 'delete', 'assign'])('%s 成功后重取活
     await screen.findByText('写入成功');
     expect(screen.queryByText('新增用户按钮')).not.toBeInTheDocument();
     expect(screen.queryByText('用户管理')).not.toBeInTheDocument();
-    expect(calls.filter((call) => call.path.endsWith('/getCurrentUser'))).toHaveLength(2);
-    expect(calls.filter((call) => call.path.endsWith('/listCurrentMenus'))).toHaveLength(2);
+    expect(calls.filter((call) => call.path.endsWith('/getAuthorizationSnapshot'))).toHaveLength(2);
 });
 it.each<Action>(['create', 'update', 'delete', 'assign'])('%s 失败不使身份失效或额外读取', async (action) => {
     signIn();
     const { calls } = mockFetch({
         'GET /api-backend/system/auth/getPreferences': {},
-        'GET /api-backend/system/auth/getCurrentUser': { id: 1, permissions: ['system:user:create'] },
-        'GET /api-backend/system/auth/listCurrentMenus': [{ id: 3, title: '用户管理' }],
+        'GET /api-backend/system/auth/getAuthorizationSnapshot': () => { const user = { id: 1, permissions: ['system:user:create'] }; if (Object(user) instanceof Response) return user; return { user, menus: [{ id: 3, title: '用户管理' }], revision: '0' }; },
+
         [endpoints[action]]: () => Response.json({ code: 100002, message: '写入失败', data: null }, { status: 500 }),
     });
     const { client } = renderWithProviders(<Harness action={action} />);
@@ -71,5 +70,5 @@ it.each<Action>(['create', 'update', 'delete', 'assign'])('%s 失败不使身份
     expect(invalidate).not.toHaveBeenCalled();
     expect(screen.getByText('新增用户按钮')).toBeInTheDocument();
     expect(screen.getByText('用户管理')).toBeInTheDocument();
-    expect(calls.filter((call) => call.path.endsWith('/getCurrentUser') || call.path.endsWith('/listCurrentMenus')).map((call) => call.path)).toEqual(['/api-backend/system/auth/getCurrentUser', '/api-backend/system/auth/listCurrentMenus']);
+    expect(calls.filter((call) => call.path.endsWith('/getAuthorizationSnapshot')).map((call) => call.path)).toEqual(['/api-backend/system/auth/getAuthorizationSnapshot']);
 });

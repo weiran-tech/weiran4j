@@ -42,7 +42,9 @@ dependencies {
         api("io.jsonwebtoken:jjwt-jackson:0.13.0")
 
         // OpenAPI 文档：2.8.x 对应 Spring Boot 3.5。
-        api("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17")
+        val springdocVersion = "2.8.17"
+        api("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
+        api("org.springdoc:springdoc-openapi-starter-common:$springdocVersion")
 
         // OSS 存储适配器由通用 system 文件存储提供。
         api("com.aliyun.oss:aliyun-sdk-oss:3.18.5")

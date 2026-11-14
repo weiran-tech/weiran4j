@@ -5,6 +5,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * 新增或修改菜单。
  *
+ * @param version 编辑版本（创建时为空）
  * @param parentId 父 ID，0 为根
  * @param title 标题
  * @param type {@code directory / menu / button}
@@ -19,6 +20,7 @@ import org.jspecify.annotations.Nullable;
  * @param status 状态，空为 enabled
  */
 public record SaveMenuCommand(
+        @Nullable Integer version,
         long parentId,
         String title,
         String type,

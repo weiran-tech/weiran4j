@@ -8,6 +8,9 @@ import com.wulicode.weiran.system.domain.user.User;
 import com.wulicode.weiran.system.domain.user.UserRepository;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /** 本地 RBAC 权限来源：用户的启用角色 → 角色授予的菜单 → 权限码；结果走 30 秒快照缓存。 */
 public class LocalRbacPermissionSource implements PermissionSource {
@@ -33,6 +36,7 @@ public class LocalRbacPermissionSource implements PermissionSource {
     }
 
     @Override
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
     public Optional<PrincipalSnapshot> load(final long userId) {
         return this.cache.get(userId, this::loadUncached);
     }

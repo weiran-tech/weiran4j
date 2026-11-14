@@ -1,6 +1,7 @@
 package com.wulicode.weiran.system.application.menu;
 
 import com.wulicode.weiran.framework.error.BizException;
+import com.wulicode.weiran.framework.error.CommonErrors;
 import com.wulicode.weiran.framework.status.EnableStatus;
 import com.wulicode.weiran.framework.text.Texts;
 import com.wulicode.weiran.system.api.menu.MenuNode;
@@ -10,6 +11,7 @@ import com.wulicode.weiran.system.application.auth.AuthSnapshotCache;
 import com.wulicode.weiran.system.domain.hierarchy.Hierarchy;
 import com.wulicode.weiran.system.domain.menu.Menu;
 import com.wulicode.weiran.system.domain.menu.MenuRepository;
+import com.wulicode.weiran.system.domain.menu.MenuStructureGuard;
 import com.wulicode.weiran.system.domain.menu.MenuType;
 import java.util.HashMap;
 import java.util.List;
@@ -24,10 +26,14 @@ public class MenuApplicationService implements MenuService {
 
     private final AuthSnapshotCache cache;
 
+    private final MenuStructureGuard guard;
+
     /** 构造服务。 */
-    public MenuApplicationService(final MenuRepository menuRepository, final AuthSnapshotCache cache) {
+    public MenuApplicationService(
+            final MenuRepository menuRepository, final AuthSnapshotCache cache, final MenuStructureGuard guard) {
         this.menuRepository = menuRepository;
         this.cache = cache;
+        this.guard = guard;
     }
 
     @Override
@@ -43,8 +49,9 @@ public class MenuApplicationService implements MenuService {
     }
 
     @Override
-    @Transactional
+    @Transactional(timeout = 3)
     public long create(final SaveMenuCommand command) {
+        this.guard.acquire();
         final Menu parent = this.parentOf(command.parentId());
         final Menu menu =
                 MenuApplicationService.apply(Menu.builder(), command, null).build();
@@ -55,9 +62,16 @@ public class MenuApplicationService implements MenuService {
     }
 
     @Override
-    @Transactional
+    @Transactional(timeout = 3)
     public void update(final long id, final SaveMenuCommand command) {
+        this.guard.acquire();
         final Menu existing = this.requireMenu(id);
+        if (command.version() == null || command.version() < 0) {
+            throw BizException.badRequest("version: 编辑版本不能为空或负数");
+        }
+        if (command.version() != existing.getVersion()) {
+            throw new BizException(CommonErrors.EDIT_CONFLICT);
+        }
         final Hierarchy hierarchy = this.hierarchy();
         hierarchy.ensureValidParent(id, command.parentId(), "菜单");
         if (MenuType.of(command.type()) == MenuType.BUTTON && hierarchy.hasChildren(id)) {
@@ -72,8 +86,9 @@ public class MenuApplicationService implements MenuService {
     }
 
     @Override
-    @Transactional
+    @Transactional(timeout = 3)
     public void delete(final long id) {
+        this.guard.acquire();
         this.requireMenu(id);
         if (this.hierarchy().hasChildren(id)) {
             throw BizException.conflict("请先删除子菜单");

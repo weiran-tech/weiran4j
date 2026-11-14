@@ -13,17 +13,7 @@
   (实测记录见 `packages/server/gradle.properties`)。
   关闭条件:Spotless 修复配置缓存兼容性,或改用不依赖 javac 内部 API 的格式化器。(原全局编号待办的第 1 条,随全局编号废止改为本编号)
 
-- **#02 🟡 P2 权限缓存只在单节点内生效**
-  症状:多节点部署时,在 A 节点改了某用户的角色/菜单,B 节点在最长 30 秒内仍按旧权限放行(该给的权限晚 30 秒才有、该收的权限晚 30 秒才收)。
-  `LocalRbacPermissionSource` 用进程内 Caffeine 快照缓存(`AuthSnapshotCache`,30s),失效只作用于本进程。
-  **吊销部分已由 `auth-seams-cookie-ci` 解决**:改密 / 重置 / 禁用后令牌立即失效在所有实例上成立
-  (`LocalIdentityResolver` 每次请求按主键查 `token_version` 与 `status`,不走缓存)。
-  剩余:角色 / 菜单授权变更的 30s 窗口。单节点部署不受影响;上多节点且不能接受 30s 延迟时,改成分布式失效(如 Redis 广播)。
 
-
-- **#04 ⚠️ P3 OpenAPI 文档不体现统一响应包络**
-  症状:按 `/v3/api-docs` 生成客户端的人拿到的返回类型是裸业务对象,实际响应外面还有 `{code, message, data}`。
-  包装发生在 `ApiResponseBodyAdvice`(运行期),springdoc 只看 Controller 的声明返回类型。
 
 - **#06 ⚠️ P3 前端产物未分包**
   症状:首屏需加载约 2.2 MB 静态资源(Semi UI 全量),弱网下登录页白屏时间长。
@@ -99,12 +89,20 @@
 - **#25 ⚠️ P2 短信登录、MFA 与手机号绑定挑战状态仅保存在单进程内**
   症状：`PhoneLoginApplicationService`、`MfaLoginApplicationService` 和 `PhoneBindingApplicationService` 使用进程内 Map 保存挑战及节流状态；验证码在 A 实例创建后，请求被分配到 B 实例可能被判无效，实例重启也会丢失未过期挑战，发送频控无法跨节点累加。`AuthSnapshotCache` 的权限失效也只作用于本节点（另见本文件 #02）。建议先明确单实例运行约束；有多实例需求时，为挑战与频控定义共享存储端口、原子消费和过期语义，并单独处理权限失效传播。2026-11-14 静态复查，未进行双实例验证。
 
-- **#26 ⚠️ P2 其他管理员更改授权后，已打开页面的菜单与按钮快照缺少重新校准机制**
-  症状：`hooks/queries/auth.ts` 的 useMe/useMyMenus 均使用 `staleTime: Infinity`，QueryClient 又关闭窗口聚焦刷新；本浏览器发起角色/菜单写操作会失效身份查询，但其他会话的授权变化不会通知当前页面，菜单与按钮可能持续显示旧状态。后端仍会独立鉴权，不能将界面陈旧等同于后端越权。建议确定界面授权刷新时限，采用有界刷新/窗口回前台校准，或返回权限版本后定向失效；403 时可重新获取身份但不自动重放写请求。2026-11-14 静态复查，未进行双会话验证。
 
 ## changelog
 
 **2026-11-14**
+
+- **#02 ✅ P2 权限缓存已有跨实例修订号边界**
+  由 harden-menu-and-authorization-contracts 解决：每次本地鉴权从 MySQL 读取共享 revision，以 userId/revision 为缓存键；权限加载与版本同视图。应用授权写与修订号同事务，回滚不发布；读失败拒绝旧权限。双缓存的用户角色、角色/菜单状态与授权变更回归通过；token_version 仍逐请求查库。
+
+- **#04 ✅ P2 OpenAPI 已描述实际统一响应包络**
+  由 harden-menu-and-authorization-contracts 解决：运行时与文档共用包装判定，成功只包一层，保留列表、分页、String、ApiResponse<Void> 和原始响应；失败 schema 含 requestId。真实 Springdoc/HTTP 及可选类路径测试通过，仍仅 local 默认开放文档。
+
+- **#26 ✅ P2 其它会话改权已有前端校准与恢复**
+  由 harden-menu-and-authorization-contracts 解决：单一身份/菜单快照，前台在线每 30 秒及恢复前台/联网校准；403/100102 去重校准不重放，100103 排除。失败保留旧快照并持续提示重试；旧会话响应不能清理或覆盖新会话。单测与 docs 浏览器通过，网络故障不承诺界面完成时限。
+
 
 - **#27 ✅ P1 密码认证与锁屏已有共享尝试边界**
   harden-password-and-edit-boundaries：MySQL 双桶原子预占及用户锁屏额度，成功/失败均计数，可信来源、固定窗口、硬容量与有界清理，存储/锁等待失败拒绝 BCrypt。双适配器并发、重启、过期、容量、故障与真实 HTTP 429 会话保留已回归；不代表 #25 的短信/MFA 内存状态已解决。

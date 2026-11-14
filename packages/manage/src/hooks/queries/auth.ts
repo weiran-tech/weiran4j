@@ -3,10 +3,9 @@ import { http } from '@/utils/request';
 import { refreshSession, useSession } from '@/utils/session';
 import { unlockScreen } from '@/hooks/useLockScreen';
 import type {
-    CurrentUserView,
+    AuthorizationSnapshotView,
     BindPhoneRequest,
     FavoriteMenusSaveRequest,
-    MenuNode,
     PasswordChangeRequest,
     LoginResult,
     PhoneLoginCodeRequest,
@@ -17,8 +16,9 @@ import type {
 } from '@/types/api';
 
 export const authKeys = {
-    me: ['auth', 'me'] as const,
-    menus: ['auth', 'menus'] as const,
+    snapshot: ['auth', 'snapshot'] as const,
+    me: ['auth', 'snapshot'] as const,
+    menus: ['auth', 'snapshot'] as const,
     favoriteMenus: ['auth', 'favorite-menus'] as const,
 };
 
@@ -42,25 +42,26 @@ export function usePhoneLogin() {
     });
 }
 
-export function useMe() {
+const snapshotEndpoint = '/api-backend/system/auth/getAuthorizationSnapshot';
+function useAuthorizationQuery<T>(select: (snapshot: AuthorizationSnapshotView) => T) {
     const session = useSession();
-    return useQuery({
-        queryKey: [...authKeys.me, session],
-        queryFn: () => http.get<CurrentUserView>('/api-backend/system/auth/getCurrentUser', { silent: true }),
+    return useQuery<AuthorizationSnapshotView, Error, T>({
+        queryKey: [...authKeys.snapshot, session],
+        queryFn: ({ signal }) => http.get<AuthorizationSnapshotView>(snapshotEndpoint, {
+            silent: true, authorizationCalibration: true,
+            signal: AbortSignal.any([signal, AbortSignal.timeout(15_000)]),
+        }),
+        select,
         enabled: !!session,
         staleTime: Infinity,
     });
 }
-
-export function useMyMenus() {
-    const session = useSession();
-    return useQuery({
-        queryKey: [...authKeys.menus, session],
-        queryFn: () => http.get<MenuNode[]>('/api-backend/system/auth/listCurrentMenus', { silent: true }),
-        enabled: !!session,
-        staleTime: Infinity,
-    });
-}
+const selectSnapshot = (snapshot: AuthorizationSnapshotView) => snapshot;
+const selectUser = (snapshot: AuthorizationSnapshotView) => snapshot.user;
+const selectMenus = (snapshot: AuthorizationSnapshotView) => snapshot.menus;
+export function useAuthorizationSnapshot() { return useAuthorizationQuery(selectSnapshot); }
+export function useMe() { return useAuthorizationQuery(selectUser); }
+export function useMyMenus() { return useAuthorizationQuery(selectMenus); }
 
 export function useUpdateProfile() {
     const qc = useQueryClient();

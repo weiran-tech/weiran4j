@@ -7,6 +7,7 @@ import com.wulicode.weiran.framework.web.UserAgentInfo;
 import com.wulicode.weiran.framework.web.UserAgentParser;
 import com.wulicode.weiran.system.api.auth.AuthService;
 import com.wulicode.weiran.system.api.auth.AuthenticatedUser;
+import com.wulicode.weiran.system.api.auth.AuthorizationSnapshotView;
 import com.wulicode.weiran.system.api.auth.ChangePasswordCommand;
 import com.wulicode.weiran.system.api.auth.ClientContext;
 import com.wulicode.weiran.system.api.auth.CurrentUserView;
@@ -242,6 +243,13 @@ public class AuthApplicationService implements AuthService {
                 .find(idp)
                 .flatMap(provider -> provider.logoutUrl(postLogout))
                 .orElse(null));
+    }
+
+    @Override
+    @Transactional(readOnly = true, isolation = org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
+    public AuthorizationSnapshotView authorizationSnapshot(final long userId) {
+        final String revision = Long.toString(this.cache.revision());
+        return new AuthorizationSnapshotView(this.me(userId), this.menus(userId), revision);
     }
 
     @Override

@@ -7,6 +7,7 @@ import org.jspecify.annotations.Nullable;
  * 菜单树节点。
  *
  * @param id ID
+ * @param version 编辑版本（创建时为空）
  * @param parentId 父 ID，0 为根
  * @param title 标题
  * @param type {@code directory / menu / button}
@@ -23,6 +24,7 @@ import org.jspecify.annotations.Nullable;
  */
 public record MenuNode(
         long id,
+        int version,
         long parentId,
         String title,
         String type,

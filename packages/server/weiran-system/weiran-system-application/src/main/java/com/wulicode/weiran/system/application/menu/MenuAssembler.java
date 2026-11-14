@@ -28,6 +28,7 @@ public final class MenuAssembler {
     private static MenuNode toNode(final Menu menu, final List<MenuNode> children) {
         return new MenuNode(
                 menu.requireId(),
+                menu.getVersion(),
                 menu.getParentId(),
                 menu.getTitle(),
                 menu.getType().value(),

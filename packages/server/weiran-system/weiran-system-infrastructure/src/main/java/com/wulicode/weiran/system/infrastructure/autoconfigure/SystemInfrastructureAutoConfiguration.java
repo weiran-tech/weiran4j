@@ -66,6 +66,8 @@ import org.springframework.context.annotation.Import;
     SystemSmsProperties.class
 })
 @Import({
+    com.wulicode.weiran.system.infrastructure.persistence.JdbcMenuStructureGuard.class,
+    com.wulicode.weiran.system.infrastructure.persistence.JdbcAuthorizationRevision.class,
     com.wulicode.weiran.system.infrastructure.persistence.JdbcPasswordAttempts.class,
     MybatisUserRepository.class,
     MybatisRoleRepository.class,

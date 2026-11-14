@@ -6,7 +6,6 @@ import com.wulicode.weiran.framework.response.ApiResponse;
 import java.lang.reflect.Method;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
-import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -45,9 +44,7 @@ public class ApiResponseBodyAdvice implements ResponseBodyAdvice<Object> {
     public boolean supports(
             final MethodParameter returnType, final Class<? extends HttpMessageConverter<?>> converterType) {
         final Method method = returnType.getMethod();
-        final boolean skipped = (method != null && AnnotatedElementUtils.hasAnnotation(method, SkipApiResponse.class))
-                || AnnotatedElementUtils.hasAnnotation(returnType.getContainingClass(), SkipApiResponse.class);
-        return !skipped;
+        return method != null && ApiResponsePolicy.applies(returnType.getContainingClass(), method);
     }
 
     @Override

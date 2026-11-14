@@ -97,7 +97,8 @@ class AuthApplicationServiceTest {
                 securitySettings,
                 this.tokenCodec,
                 this.authorizationResolver,
-                new AuthSnapshotCache(),
+                new AuthSnapshotCache(
+                        org.mockito.Mockito.mock(com.wulicode.weiran.system.domain.auth.AuthorizationRevision.class)),
                 Clock.systemUTC(),
                 this.providers,
                 this.attempts);

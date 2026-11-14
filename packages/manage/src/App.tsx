@@ -4,7 +4,10 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 import { PageErrorBoundary } from '@/components/PageErrorBoundary';
 import { RecoverablePage } from '@/components/RecoverablePage';
 import { HOME_PATH } from '@/config';
-import { useMyMenus } from '@/hooks/queries/auth';
+import { useMyMenus, useAuthorizationSnapshot } from '@/hooks/queries/auth';
+import { useAuthorizationCalibration } from '@/hooks/useAuthorizationCalibration';
+import { AuthorizationFeedback } from '@/components/AuthorizationFeedback';
+import { useSession } from '@/utils/session';
 import { useAuth } from '@/hooks/useAuth';
 import { PermissionContext } from '@/hooks/usePermission';
 import { AdminLayout } from '@/layouts/AdminLayout';
@@ -56,12 +59,15 @@ function menuRouteElement(route: MenuRoute) {
 function AuthedApp() {
     const { meQuery, clearSession } = useAuth();
     const menusQuery = useMyMenus();
+    const snapshot = useAuthorizationSnapshot();
+    const session = useSession();
+    useAuthorizationCalibration(session, () => snapshot.refetch({ cancelRefetch: false }));
     const menus = useMemo(() => menusQuery.data ?? [], [menusQuery.data]);
     const routes = useMemo(() => menusToRoutes(menus), [menus]);
     const hasDashboardRoute = routes.some((r) => r.path === HOME_PATH);
 
     if (meQuery.isPending || menusQuery.isPending) return fullPageLoading;
-    if (meQuery.isError || menusQuery.isError) {
+    if ((meQuery.isError || menusQuery.isError) && !meQuery.data) {
         return (
             <div className="page-loading page-loading--full">
                 <Empty
@@ -71,7 +77,6 @@ function AuthedApp() {
                     <Button
                         onClick={() => {
                             void meQuery.refetch();
-                            void menusQuery.refetch();
                         }}
                     >
                         重试
@@ -85,9 +90,9 @@ function AuthedApp() {
     }
 
     return (
-        <PermissionContext.Provider value={meQuery.data.permissions}>
+        <PermissionContext.Provider value={meQuery.data?.permissions ?? []}>
             <Routes>
-                <Route element={<AdminLayout menus={menus} routes={routes} />}>
+                <Route element={<AdminLayout menus={menus} routes={routes} authorizationFeedback={<AuthorizationFeedback failed={snapshot.isError} loading={snapshot.isFetching} onRetry={() => void snapshot.refetch({ cancelRefetch: false })} />} />}>
                     <Route index element={<Navigate to={HOME_PATH} replace />} />
                     {routes.map((r) => (
                         <Route key={r.id} path={r.path} element={menuRouteElement(r)} />

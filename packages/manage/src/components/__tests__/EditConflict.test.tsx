@@ -76,7 +76,7 @@ it('个人资料草稿不使用后台刷新的新版本，冲突保留输入', a
     const me = { version: 7, id: 2, username: 'alice', nickname: '原昵称', phone: null, avatar: null, gender: 'unknown', roles: [], permissions: [], hasPassword: true };
     let latest = me;
     const { calls } = mockFetch({
-        'GET /api-backend/system/auth/getCurrentUser': () => latest,
+        'GET /api-backend/system/auth/getAuthorizationSnapshot': () => { const user = (() => latest)(); if (Object(user) instanceof Response) return user; return { user, menus: [], revision: '0' }; },
         'GET /api-backend/system/dict/listItemsByCode/sys_user_gender': [],
         'GET /api-backend/n/system/auth/listProviders': { passwordLoginEnabled: true, providers: [] },
         'GET /api-backend/system/auth/listIdentities': [],
@@ -85,7 +85,7 @@ it('个人资料草稿不使用后台刷新的新版本，冲突保留输入', a
     const { client } = renderWithProviders(<ProfilePage />);
     fireEvent.click(await screen.findByRole('button', { name: '修改昵称' }));
     fireEvent.change(screen.getByLabelText('昵称'), { target: { value: '未保存输入' } });
-    await act(async () => { client.setQueryData([...authKeys.me, '2.csrf'], { ...me, version: 8, nickname: '远端修改' }); await Promise.resolve(); });
+    await act(async () => { client.setQueryData([...authKeys.snapshot, '2.csrf'], { user: { ...me, version: 8, nickname: '远端修改' }, menus: [], revision: '1' }); await Promise.resolve(); });
     const dialog = screen.getByRole('dialog', { name: '修改个人信息' });
     fireEvent.click(within(dialog).getByText('确定', { selector: '.semi-button-content' }).closest('button')!);
     await screen.findByText(/当前输入已保留/);

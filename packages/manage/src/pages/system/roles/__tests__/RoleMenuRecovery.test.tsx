@@ -6,7 +6,7 @@ import type { RoleView } from '@/types/api';
 import { RoleMenuSheet } from '../RoleMenuSheet';
 
 const role: RoleView = { version: 0, id: 2, code: 'editor', name: '编辑', description: '', sort: 1, status: 'enabled', isBuiltin: false, userCount: 0, createdAt: '', updatedAt: '' };
-const menus = [{ id: 3, parentId: 0, title: '用户管理', type: 'menu', permission: null, children: [] }];
+const menus = [{ version: 0,  id: 3, parentId: 0, title: '用户管理', type: 'menu', permission: null, children: [] }];
 const failure = () => Response.json({ code: 100002, message: '读取失败', data: null }, { status: 500 });
 afterEach(() => vi.unstubAllGlobals());
 

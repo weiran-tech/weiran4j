@@ -24,8 +24,7 @@ export function useSaveMenu() {
             id === undefined ? http.post<IdResult>('/api-backend/system/menu/create', body) : http.put<null>(`/api-backend/system/menu/update/${id}`, body),
         onSuccess: () => Promise.all([
             qc.invalidateQueries({ queryKey: menuKeys.all }),
-            qc.invalidateQueries({ queryKey: authKeys.me }),
-            qc.invalidateQueries({ queryKey: authKeys.menus }),
+            qc.invalidateQueries({ queryKey: authKeys.snapshot }),
         ]),
     });
 }
@@ -36,8 +35,7 @@ export function useDeleteMenu() {
         mutationFn: (id: number) => http.delete<null>(`/api-backend/system/menu/delete/${id}`),
         onSuccess: () => Promise.all([
             qc.invalidateQueries({ queryKey: menuKeys.all }),
-            qc.invalidateQueries({ queryKey: authKeys.me }),
-            qc.invalidateQueries({ queryKey: authKeys.menus }),
+            qc.invalidateQueries({ queryKey: authKeys.snapshot }),
         ]),
     });
 }

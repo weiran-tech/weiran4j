@@ -14,6 +14,8 @@ public final class Menu {
 
     private final @Nullable Long id;
 
+    private final int version;
+
     private final long parentId;
 
     private final String title;

@@ -9,7 +9,7 @@ import LoginLogsPage from '../LoginLogsPage';
 import OperationLogsPage from '../OperationLogsPage';
 
 const role = { id: 2, name: '演示角色', code: 'editor', description: '测试角色', sort: 0, status: 'enabled', isBuiltin: false, userCount: 0, createdAt: '', updatedAt: '' };
-const menu = { id: 2, parentId: 0, title: '演示菜单', type: 'directory', path: null, component: null, permission: null, icon: null, visible: true, keepAlive: false, isExternal: false, status: 'enabled', sort: 0, children: [] };
+const menu = { version: 0,  id: 2, parentId: 0, title: '演示菜单', type: 'directory', path: null, component: null, permission: null, icon: null, visible: true, keepAlive: false, isExternal: false, status: 'enabled', sort: 0, children: [] };
 const dict = { id: 1, name: '演示字典', code: 'demo_dict', description: null, status: 'enabled', isBuiltin: false, createdAt: '', updatedAt: '' };
 const item = { id: 11, dictId: 1, label: '演示字典项', value: 'demo', color: null, sort: 0, status: 'enabled', remark: null };
 const login = { id: 10, userId: 1, username: '演示登录人', ip: '127.0.0.1', browser: 'Chrome', os: 'Mac', userAgent: 'Test', eventType: 'login', status: 'success', message: '', createdAt: '' };

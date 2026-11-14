@@ -34,18 +34,18 @@ const menus: MenuNode[] = [
     {
         ...menuBase,
         id: 2,
-        parentId: 0,
+        version: 0, parentId: 0,
         title: '系统管理',
         type: 'directory',
         children: [
-            {
+            { version: 0,
                 ...menuBase,
                 id: 3,
                 parentId: 2,
                 title: '用户管理',
                 type: 'menu',
                 path: '/system/users',
-                children: [{ ...menuBase, id: 100, parentId: 3, title: '新增用户', type: 'button', permission: 'system:user:create' }],
+                children: [{ version: 0,  ...menuBase, id: 100, parentId: 3, title: '新增用户', type: 'button', permission: 'system:user:create' }],
             },
         ],
     },

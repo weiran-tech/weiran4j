@@ -20,7 +20,7 @@ const me: CurrentUserView = { version: 0,
 };
 
 const menuBase = {
-    parentId: 0,
+    version: 0, parentId: 0,
     path: null,
     component: null,
     icon: null,
@@ -59,7 +59,7 @@ describe('App 路由', () => {
 
     it('已登录：按菜单渲染侧边栏与首页', async () => {
         signIn();
-        mockFetch({ 'GET /api-backend/system/auth/getCurrentUser': me, 'GET /api-backend/system/auth/listCurrentMenus': menus, 'GET /api-backend/system/dict/listItemsByCode/sys_user_gender': [] });
+        mockFetch({ 'GET /api-backend/system/auth/getAuthorizationSnapshot': () => { const user = me; if (Object(user) instanceof Response) return user; return { user, menus: menus, revision: '0' }; },  'GET /api-backend/system/dict/listItemsByCode/sys_user_gender': [] });
         renderWithProviders(<App />, { route: '/' });
         expect(await screen.findByText(/欢迎使用/)).toBeInTheDocument();
         expect(screen.getAllByText('系统管理').length).toBeGreaterThan(0);
@@ -67,7 +67,7 @@ describe('App 路由', () => {
 
     it('菜单组件在前端不存在时渲染占位而不崩溃', async () => {
         signIn();
-        mockFetch({ 'GET /api-backend/system/auth/getCurrentUser': me, 'GET /api-backend/system/auth/listCurrentMenus': menus });
+        mockFetch({ 'GET /api-backend/system/auth/getAuthorizationSnapshot': () => { const user = me; if (Object(user) instanceof Response) return user; return { user, menus: menus, revision: '0' }; },  });
         renderWithProviders(<App />, { route: '/system/todo' });
         expect(await screen.findByText('页面不存在')).toBeInTheDocument();
         expect(screen.getByText(/system\/todo\/TodoPage/)).toBeInTheDocument();
@@ -75,14 +75,14 @@ describe('App 路由', () => {
 
     it('未知路径渲染 404', async () => {
         signIn();
-        mockFetch({ 'GET /api-backend/system/auth/getCurrentUser': me, 'GET /api-backend/system/auth/listCurrentMenus': menus });
+        mockFetch({ 'GET /api-backend/system/auth/getAuthorizationSnapshot': () => { const user = me; if (Object(user) instanceof Response) return user; return { user, menus: menus, revision: '0' }; },  });
         renderWithProviders(<App />, { route: '/no/such/page' });
         expect(await screen.findByText('404 页面不存在')).toBeInTheDocument();
     });
 
     it('已移除的演示地址保持 404', async () => {
         signIn();
-        mockFetch({ 'GET /api-backend/system/auth/getCurrentUser': me, 'GET /api-backend/system/auth/listCurrentMenus': menus });
+        mockFetch({ 'GET /api-backend/system/auth/getAuthorizationSnapshot': () => { const user = me; if (Object(user) instanceof Response) return user; return { user, menus: menus, revision: '0' }; },  });
         renderWithProviders(<App />, { route: '/system/components-demo' });
         expect(await screen.findByText('404 页面不存在')).toBeInTheDocument();
     });
@@ -90,8 +90,8 @@ describe('App 路由', () => {
     it('/api-backend/system/auth/getCurrentUser 返回 100101 时清会话回登录页', async () => {
         signIn();
         mockFetch({
-            'GET /api-backend/system/auth/getCurrentUser': () => Response.json({ code: 100101, message: '登录已失效', data: null }, { status: 401 }),
-            'GET /api-backend/system/auth/listCurrentMenus': menus,
+            'GET /api-backend/system/auth/getAuthorizationSnapshot': () => { const user = (() => Response.json({ code: 100101, message: '登录已失效', data: null }, { status: 401 }))(); if (Object(user) instanceof Response) return user; return { user, menus: menus, revision: '0' }; },
+
         });
         renderWithProviders(<App />, { route: '/dashboard' });
         expect(await screen.findByRole('button', { name: '登录' })).toBeInTheDocument();
@@ -111,9 +111,9 @@ describe('App 页面故障恢复接入', () => {
         const original = registry.resolvePageLoader;
         vi.spyOn(registry, 'resolvePageLoader').mockImplementation((path) => path === 'system/roles/RolesPage' ? loader : original(path));
         mockFetch({
-            'GET /api-backend/system/auth/getCurrentUser': me,
+            'GET /api-backend/system/auth/getAuthorizationSnapshot': () => { const user = me; if (Object(user) instanceof Response) return user; return { user, menus: [menus[0], { ...menuBase, id: 21, title: '故障测试', type: 'menu', path: '/broken', component: 'system/roles/RolesPage', keepAlive: true }], revision: '0' }; },
             'GET /api-backend/system/auth/getPreferences': {},
-            'GET /api-backend/system/auth/listCurrentMenus': [menus[0], { ...menuBase, id: 21, title: '故障测试', type: 'menu', path: '/broken', component: 'system/roles/RolesPage', keepAlive: true }],
+
             'GET /api-backend/system/dict/listItemsByCode/sys_user_gender': [],
         });
         renderWithProviders(<App />, { route: '/broken' });
