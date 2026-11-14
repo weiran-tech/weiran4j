@@ -101,6 +101,9 @@
   `check` 全绿,CP-2「只能用 `error/page/response/status/text/tree`」只靠评审守。
   可选做法:Checkstyle `ImportControl` 或 ArchUnit 规则,限制 `*.domain..` / `*.api..` 只能 import 上述六个包。
 
+- **#22 ⚠️ P2 前端缺少页面渲染与懒加载异常恢复边界**
+  症状：`main.tsx` 与 `App.tsx` 使用 Suspense 处理加载等待，但没有 React 错误边界。页面渲染抛错或懒加载模块拒绝时，用户缺少应用自己的重试/返回入口，且可能连导航一起不可用。应在管理内容区设置错误边界并保留外壳；本轮为静态审查，未做浏览器故障注入。
+
 ## changelog
 
 **2026-10-07**(D-016,common 并入 framework)

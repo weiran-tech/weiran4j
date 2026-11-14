@@ -1,6 +1,8 @@
+import { fileURLToPath } from 'node:url'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 
 export default withMermaid({
+  vite: { resolve: { alias: { '@': fileURLToPath(new URL('../../packages/manage/src', import.meta.url)) } } },
   base: process.env.VITEPRESS_BASE || '/',
   sitemap: { hostname: 'https://weiran4j.wulicode.com' },
   lang: 'zh-CN',
@@ -13,6 +15,7 @@ export default withMermaid({
       { text: '架构说明', link: '/architecture' },
       { text: '系统配置', link: '/configuration' },
       { text: '公共组件', link: '/components/' },
+      { text: '页面状态', link: '/page-states' },
       { text: 'OpenAPI', link: '/openapi' },
       { text: '部署与运维', link: '/deployment' },
     ],
@@ -38,6 +41,7 @@ export default withMermaid({
             { text: 'NavListPanel', link: '/components/nav-list-panel' },
             { text: 'NavListItem', link: '/components/nav-list-item' },
           ] },
+          { text: '页面状态演示', link: '/page-states' },
           { text: 'OpenAPI 与 Swagger UI', link: '/openapi' },
           { text: '接口与数据约定', link: '/contracts' },
           { text: '资源库引用与删除', link: '/资源库引用与删除设计' },

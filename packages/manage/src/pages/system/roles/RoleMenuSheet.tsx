@@ -1,6 +1,7 @@
 import { Button, SideSheet, Space, Spin, Tag, Toast, Tree } from '@douyinfe/semi-ui';
 import type { TreeNodeData } from '@douyinfe/semi-ui/lib/es/tree';
 import { useMemo, useState } from 'react';
+import { queriesReady, QueryReadiness } from '@/components/QueryReadiness';
 import { useMenuTree } from '@/hooks/queries/menus';
 import { useAssignRoleMenus, useRoleDetail } from '@/hooks/queries/roles';
 import type { MenuNode, MenuType, RoleView } from '@/types/api';
@@ -45,9 +46,11 @@ export function RoleMenuSheet({ role, onClose }: Props) {
     const menus = useMemo(() => menuTree.data ?? [], [menuTree.data]);
     const treeData = useMemo(() => toTreeData(menus), [menus]);
     const allIds = useMemo(() => flattenTree(menus).map((m) => m.id), [menus]);
-    const value = checked ?? detail.data?.menuIds ?? [];
+    const value = checked?.filter((id) => allIds.includes(id)) ?? detail.data?.menuIds ?? [];
+    const ready = queriesReady(menuTree, detail) && !assign.isPending;
 
     const save = async () => {
+        if (!ready) return;
         await assign.mutateAsync({ id: role.id, menuIds: value });
         Toast.success('权限已保存');
         onClose();
@@ -64,31 +67,35 @@ export function RoleMenuSheet({ role, onClose }: Props) {
             footer={
                 <Space style={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <Button onClick={onClose}>取消</Button>
-                    <Button type="primary" theme="solid" loading={assign.isPending} disabled={loading} onClick={() => void save().catch(() => undefined)}>
+                    <Button type="primary" theme="solid" loading={assign.isPending} disabled={!ready} onClick={() => void save().catch(() => undefined)}>
                         保存
                     </Button>
                 </Space>
             }
         >
+            <QueryReadiness query={menuTree} label="菜单树" onRetry={() => void menuTree.refetch()} />
+            <QueryReadiness query={detail} label="角色详情" onRetry={() => void detail.refetch()} />
             {loading ? (
                 <Spin />
             ) : (
                 <>
                     <Space style={{ marginBottom: 8 }}>
-                        <Button size="small" onClick={() => setChecked(allIds)}>
+                        <Button size="small" disabled={!ready} onClick={() => setChecked(allIds)}>
                             全选
                         </Button>
-                        <Button size="small" onClick={() => setChecked([])}>
+                        <Button size="small" disabled={!ready} onClick={() => setChecked([])}>
                             清空
                         </Button>
                         <span style={{ color: 'var(--semi-color-text-2)', fontSize: 12 }}>已选 {value.length} 项</span>
                     </Space>
                     <Tree
+                        disabled={!ready}
                         treeData={treeData}
                         multiple
                         checkRelation="unRelated"
                         value={value}
                         onChange={(v) => {
+                            if (!ready) return;
                             const next = (Array.isArray(v) ? v : []).filter((x): x is number => typeof x === 'number');
                             setChecked(applyMenuCheck(menus, value, next));
                         }}

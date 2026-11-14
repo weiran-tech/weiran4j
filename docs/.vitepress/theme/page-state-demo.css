@@ -1,0 +1,8 @@
+.page-state-demo { margin: 24px 0; padding: 20px; border: 1px solid var(--vp-c-divider); border-radius: 8px; color: var(--vp-c-text-1); }
+.page-state-demo label { display: grid; gap: 8px; font-size: 14px; }
+.page-state-demo select { padding: 8px 28px 8px 10px; border: 1px solid var(--vp-c-divider); border-radius: 6px; background: var(--vp-c-bg); color: inherit; appearance: auto; }
+.page-state-demo__controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
+.page-state-demo__preview { padding: 16px; margin-top: 16px; border-radius: 6px; background: var(--vp-c-bg-soft); }
+.page-state-demo__preview h3 { margin-top: 0; }
+.page-state-demo__preview nav { margin-bottom: 16px; }
+.page-state-demo .semi-button-primary.semi-button-solid { background-color: #0064fa; }

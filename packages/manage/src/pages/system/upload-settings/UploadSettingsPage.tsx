@@ -1,5 +1,6 @@
 import { Button, Divider, Input, Select, Toast } from '@douyinfe/semi-ui';
 import { Fragment, useState } from 'react';
+import { queriesReady, QueryReadiness } from '@/components/QueryReadiness';
 import { useConfigAll, useSaveConfig } from '@/hooks/queries/configs';
 import { useUploadSettings } from '@/hooks/queries/system-media';
 import { usePermission } from '@/hooks/usePermission';
@@ -30,9 +31,12 @@ function configKey(group: GroupKey, field: 'formats' | 'maxSizeMb'): string {
 export default function UploadSettingsTab() {
     const { hasPermission } = usePermission();
     const canEdit = hasPermission('system:config:update');
-    const { data: settings, isLoading } = useUploadSettings();
-    const { data: configs } = useConfigAll();
+    const settingsQuery = useUploadSettings();
+    const configsQuery = useConfigAll();
+    const { data: settings } = settingsQuery;
+    const { data: configs } = configsQuery;
     const save = useSaveConfig();
+    const ready = queriesReady(settingsQuery, configsQuery) && !save.isPending;
     const [draftOverride, setDraftOverride] = useState<Draft | null>(null);
     const draft = draftOverride ?? (settings ? fromSettings(settings) : null);
 
@@ -58,7 +62,7 @@ export default function UploadSettingsTab() {
     };
 
     const submit = async () => {
-        if (!draft || !configs) return;
+        if (!ready || !canEdit || !draft || !configs) return;
         for (const group of GROUPS) {
             const value = draft[group.key];
             const size = Number(value.maxSizeMb);
@@ -105,7 +109,9 @@ export default function UploadSettingsTab() {
 
     return <div className="upload-settings">
             <p className="upload-settings__intro">上传时按扩展名匹配分组，并采用该分组的大小限制。配置对资源管理、文件上传组件和富文本编辑器生效。</p>
-            {isLoading || !draft ? <p>正在加载上传配置…</p> : GROUPS.map((group, index) => {
+            <QueryReadiness query={settingsQuery} label="上传规则" onRetry={() => void settingsQuery.refetch()} />
+            <QueryReadiness query={configsQuery} label="配置列表" onRetry={() => void configsQuery.refetch()} />
+            {!draft ? null : GROUPS.map((group, index) => {
                 const value = draft[group.key];
                 return <Fragment key={group.key}>
                     {index > 0 && <Divider />}
@@ -115,7 +121,7 @@ export default function UploadSettingsTab() {
                     <label className="upload-settings__label">支持的格式</label>
                     {group.choices ? <Select
                         multiple
-                        disabled={!canEdit}
+                        disabled={!canEdit || !ready}
                         value={value.formats}
                         optionList={group.choices.map((format) => ({ label: format, value: format }))}
                         onChange={(formats) => setGroup(group.key, { ...value, formats: formats as string[] })}
@@ -124,7 +130,7 @@ export default function UploadSettingsTab() {
                         filter
                         allowCreate
                         multiple
-                        disabled={!canEdit}
+                        disabled={!canEdit || !ready}
                         value={value.formats}
                         optionList={value.formats.map((format) => ({ label: format, value: format }))}
                         onChange={(formats) => setFileFormats(formats as string[])}
@@ -132,12 +138,12 @@ export default function UploadSettingsTab() {
                         style={{ width: '100%' }}
                     />}
                     <label className="upload-settings__label" htmlFor={`${group.key}-size`}>单文件大小上限（MB）</label>
-                    <Input id={`${group.key}-size`} type="number" min={1} max={group.maximum} value={value.maxSizeMb} disabled={!canEdit}
+                    <Input id={`${group.key}-size`} type="number" min={1} max={group.maximum} value={value.maxSizeMb} disabled={!canEdit || !ready}
                         onChange={(maxSizeMb) => setGroup(group.key, { ...value, maxSizeMb })} />
                     <small>范围：1～{group.maximum} MB</small>
                     </section>
                 </Fragment>;
             })}
-            {canEdit && <Button type="primary" theme="solid" loading={save.isPending} disabled={!draft || !configs} onClick={() => void submit()}>保存上传配置</Button>}
+            {canEdit && <Button type="primary" theme="solid" loading={save.isPending} disabled={!ready || !draft || !configs} onClick={() => void submit()}>保存上传配置</Button>}
         </div>;
 }

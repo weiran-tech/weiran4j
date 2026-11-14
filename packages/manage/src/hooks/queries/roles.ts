@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { LOOKUP_STALE_TIME, toQueryString } from '@/lib/query';
+import { authKeys } from './auth';
 import { http } from '@/utils/request';
 import type { IdResult, PageResult, RoleDetail, RoleOption, RoleQuery, RoleSaveRequest, RoleView } from '@/types/api';
 
@@ -40,7 +41,11 @@ export function useSaveRole() {
     return useMutation({
         mutationFn: ({ id, body }: { id?: number | undefined; body: RoleSaveRequest }) =>
             id === undefined ? http.post<IdResult>('/api-backend/system/role/create', body) : http.put<null>(`/api-backend/system/role/update/${id}`, body),
-        onSuccess: () => qc.invalidateQueries({ queryKey: roleKeys.all }),
+        onSuccess: () => Promise.all([
+            qc.invalidateQueries({ queryKey: roleKeys.all }),
+            qc.invalidateQueries({ queryKey: authKeys.me }),
+            qc.invalidateQueries({ queryKey: authKeys.menus }),
+        ]),
     });
 }
 
@@ -48,7 +53,11 @@ export function useDeleteRole() {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: (id: number) => http.delete<null>(`/api-backend/system/role/delete/${id}`),
-        onSuccess: () => qc.invalidateQueries({ queryKey: roleKeys.all }),
+        onSuccess: () => Promise.all([
+            qc.invalidateQueries({ queryKey: roleKeys.all }),
+            qc.invalidateQueries({ queryKey: authKeys.me }),
+            qc.invalidateQueries({ queryKey: authKeys.menus }),
+        ]),
     });
 }
 
@@ -56,6 +65,10 @@ export function useAssignRoleMenus() {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: ({ id, menuIds }: { id: number; menuIds: number[] }) => http.put<null>(`/api-backend/system/role/assignMenus/${id}`, { menuIds }),
-        onSuccess: (_d, v) => qc.invalidateQueries({ queryKey: roleKeys.detail(v.id) }),
+        onSuccess: (_d, v) => Promise.all([
+            qc.invalidateQueries({ queryKey: roleKeys.detail(v.id) }),
+            qc.invalidateQueries({ queryKey: authKeys.me }),
+            qc.invalidateQueries({ queryKey: authKeys.menus }),
+        ]),
     });
 }

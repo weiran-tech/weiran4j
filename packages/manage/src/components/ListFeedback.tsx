@@ -1,15 +1,16 @@
 import { Banner, Button, Empty } from '@douyinfe/semi-ui';
 
 interface ListFeedbackProps {
+    label?: string;
     hasData: boolean;
     retrying: boolean;
     onRetry: () => void;
 }
 
 /** 查询失败后的持久提示；放在表格上方，缓存数据继续显示。 */
-export function ListFeedback({ hasData, retrying, onRetry }: ListFeedbackProps) {
+export function ListFeedback({ hasData, retrying, onRetry, label = '列表加载失败' }: ListFeedbackProps) {
     return (
-        <div role="alert" aria-label="列表加载失败" style={{ marginBottom: 12 }}>
+        <div role="alert" aria-label={label} style={{ marginBottom: 12 }}>
             <Banner
                 type="danger"
                 closeIcon={null}
