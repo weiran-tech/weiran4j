@@ -91,8 +91,8 @@ export function RoleMenuSheet({ role, onClose }: Props) {
             }
         >
             <EditConflictFeedback {...conflict} onReload={reload} />
-            <QueryReadiness query={menuTree} label="菜单树" onRetry={() => void menuTree.refetch()} />
-            <QueryReadiness query={detail} label="角色详情" onRetry={() => void detail.refetch()} />
+            <QueryReadiness query={menuTree} label="菜单树" onRetry={() => menuTree.refetch()} />
+            <QueryReadiness query={detail} label="角色详情" onRetry={() => detail.refetch()} />
             {loading ? (
                 <Spin />
             ) : (

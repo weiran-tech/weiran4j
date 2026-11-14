@@ -1,3 +1,4 @@
+import { useSingleFlightCallback } from '@/hooks/useActionGuard';
 import { Button, Checkbox, InputNumber, SideSheet, Toast } from '@douyinfe/semi-ui';
 import { useState } from 'react';
 import { queriesReady, QueryReadiness } from '@/components/QueryReadiness';
@@ -34,7 +35,7 @@ export default function SecuritySettingsPage() {
 
     const ready = queriesReady(query) && !savePassword.isPending && !saveMfa.isPending;
 
-    const submit = async () => {
+    const submit = useSingleFlightCallback(async () => {
         if (!ready || !data || panel === null) return;
         if (panel === 'password') {
             if (password.minLength > password.maxLength) {
@@ -51,9 +52,9 @@ export default function SecuritySettingsPage() {
         }
         Toast.success('安全设置已保存');
         setPanel(null);
-    };
+    });
 
-    if (!data) return <PageContainer title="安全设置"><QueryReadiness query={query} label="安全设置" onRetry={() => void query.refetch()} /></PageContainer>;
+    if (!data) return <PageContainer title="安全设置"><QueryReadiness query={query} label="安全设置" onRetry={() => query.refetch()} /></PageContainer>;
 
     const openPassword = () => {
         if (!ready) return;
@@ -77,7 +78,7 @@ export default function SecuritySettingsPage() {
     const types = CHARACTER_TYPES.filter(([key]) => data[key]).map(([, label]) => label).join('、') || '未设置';
     return <>
         <PageContainer title="安全设置">
-            <QueryReadiness query={query} label="安全设置" onRetry={() => void query.refetch()} />
+            <QueryReadiness query={query} label="安全设置" onRetry={() => query.refetch()} />
             <div className="security-settings">
                 <section className="security-settings__section">
                     <header><h3>密码策略</h3><Permission code="system:security:update"><Button theme="borderless" type="primary" disabled={!ready} onClick={openPassword}>修改</Button></Permission></header>
@@ -95,7 +96,7 @@ export default function SecuritySettingsPage() {
         </PageContainer>
 
         <SideSheet visible={panel !== null} title={panel === 'password' ? '修改密码策略' : '修改多因素认证'} width={560} onCancel={() => setPanel(null)} footer={<div className="security-settings__footer"><Button onClick={() => setPanel(null)}>取消</Button><Button type="primary" theme="solid" disabled={!ready} loading={savePassword.isPending || saveMfa.isPending} onClick={() => void submit().catch(() => undefined)}>保存</Button></div>}>
-            <QueryReadiness query={query} label="安全设置" onRetry={() => void query.refetch()} />
+            <QueryReadiness query={query} label="安全设置" onRetry={() => query.refetch()} />
             {panel === 'password' && <div className="security-settings__form">
                 <label>密码长度</label>
                 <div className="security-settings__length">

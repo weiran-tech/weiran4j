@@ -1,3 +1,4 @@
+import { useSingleFlightCallback } from '@/hooks/useActionGuard';
 import { Button, Divider, Input, Select, Toast } from '@douyinfe/semi-ui';
 import { Fragment, useState } from 'react';
 import { queriesReady, QueryReadiness } from '@/components/QueryReadiness';
@@ -61,7 +62,7 @@ export default function UploadSettingsTab() {
         setGroup('file', { ...draft.file, formats: [...new Set(normalized)] });
     };
 
-    const submit = async () => {
+    const submit = useSingleFlightCallback(async () => {
         if (!ready || !canEdit || !draft || !configs) return;
         for (const group of GROUPS) {
             const value = draft[group.key];
@@ -105,12 +106,12 @@ export default function UploadSettingsTab() {
         } catch (error) {
             Toast.error(error instanceof Error ? error.message : '保存失败');
         }
-    };
+    });
 
     return <div className="upload-settings">
             <p className="upload-settings__intro">上传时按扩展名匹配分组，并采用该分组的大小限制。配置对资源管理、文件上传组件和富文本编辑器生效。</p>
-            <QueryReadiness query={settingsQuery} label="上传规则" onRetry={() => void settingsQuery.refetch()} />
-            <QueryReadiness query={configsQuery} label="配置列表" onRetry={() => void configsQuery.refetch()} />
+            <QueryReadiness query={settingsQuery} label="上传规则" onRetry={() => settingsQuery.refetch()} />
+            <QueryReadiness query={configsQuery} label="配置列表" onRetry={() => configsQuery.refetch()} />
             {!draft ? null : GROUPS.map((group, index) => {
                 const value = draft[group.key];
                 return <Fragment key={group.key}>

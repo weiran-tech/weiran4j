@@ -1,3 +1,5 @@
+import { useDebouncedCallback } from '@/hooks/useActionGuard';
+import { formatPaginationTotal } from '@/utils/pagination';
 import { Button, DatePicker, Input, InputNumber, Select, Space, Table, Tag, Toast } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import dayjs from 'dayjs';
@@ -111,11 +113,12 @@ export default function UsersPage() {
     const { data, isFetching, isError, refetch } = useUserList(toQuery(filters, page, pageSize));
     const deleteUser = useDeleteUser();
 
-    const search = () => {
+    const { schedule: search, cancel: cancelSearch } = useDebouncedCallback(() => {
         setFilters(draft);
         setPage(1);
-    };
+    });
     const reset = () => {
+        cancelSearch();
         setDraft(EMPTY_FILTERS);
         setFilters(EMPTY_FILTERS);
         setPage(1);
@@ -127,6 +130,7 @@ export default function UsersPage() {
     const { data: roleOptions } = useRoleOptions();
     const conditions = ((): SearchCondition[] => {
         const remove = (field: keyof Filters) => () => {
+            cancelSearch();
             setFilters((f) => ({ ...f, [field]: EMPTY_FILTERS[field] }));
             setDraft((d) => ({ ...d, [field]: EMPTY_FILTERS[field] }));
             setPage(1);
@@ -325,7 +329,7 @@ export default function UsersPage() {
                 tools={columnSettings}
                 onSearch={search}
                 onReset={reset}
-                onRefresh={() => void refetch()}
+                onRefresh={() => refetch()}
                 refreshing={isFetching}
                 conditions={conditions}
                 leading={
@@ -459,7 +463,7 @@ export default function UsersPage() {
                     pageSizeOpts,
                     total: data?.total ?? 0,
                     showSizeChanger: true,
-                    showTotal: true,
+                    showTotal: true, formatPageText: formatPaginationTotal,
                     onChange: (p, s) => {
                         setPage(p);
                         setPageSize(s);

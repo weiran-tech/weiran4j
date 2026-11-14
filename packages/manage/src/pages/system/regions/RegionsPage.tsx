@@ -1,3 +1,4 @@
+import { useDebouncedCallback } from '@/hooks/useActionGuard';
 import { Button, Input, Select, Space, Table, Toast } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { ChevronDown, ChevronRight, Download } from 'lucide-react';
@@ -84,16 +85,18 @@ export default function RegionsPage() {
     }, [tree]);
     const allExpanded = expandableKeys.length > 0 && expandableKeys.every((id) => expandedKeys.includes(id));
 
-    const search = () => {
+    const { schedule: search, cancel: cancelSearch } = useDebouncedCallback(() => {
         setFilters(draft);
         setExpandedKeys(null);
-    };
+    });
     const reset = () => {
+        cancelSearch();
         setDraft(EMPTY_FILTERS);
         setFilters(EMPTY_FILTERS);
         setExpandedKeys(null);
     };
     const removeFilter = (field: keyof Filters) => () => {
+        cancelSearch();
         const nextDraft = { ...draft, [field]: EMPTY_FILTERS[field] };
         setDraft(nextDraft);
         setFilters((current) => ({ ...current, [field]: EMPTY_FILTERS[field] }));
@@ -238,7 +241,7 @@ export default function RegionsPage() {
                 }
                 onSearch={search}
                 onReset={reset}
-                onRefresh={() => void refetch()}
+                onRefresh={() => refetch()}
                 refreshing={isFetching}
                 treeExpand={{
                     expanded: allExpanded,

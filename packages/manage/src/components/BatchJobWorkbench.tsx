@@ -1,3 +1,4 @@
+import { formatPaginationTotal } from '@/utils/pagination';
 import { Button, Progress, Select, Spin, Steps, Table, Toast, Typography } from '@douyinfe/semi-ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState, type ComponentType } from 'react';
@@ -63,7 +64,7 @@ function BatchDetailTable({ data, loading, page, onPageChange }: {
     ];
     return <Table<BatchTaskDetailView> {...tableProps} rowKey="id" dataSource={data?.list ?? []} loading={loading}
         columns={columns} scroll={{ x: `max(100%, ${tableScrollX(columns)}px)` }} pagination={{ currentPage: page, pageSize: 20, total: data?.total ?? 0,
-        showTotal: true, onChange: (nextPage) => onPageChange(nextPage) }} />;
+        showTotal: true, formatPageText: formatPaginationTotal, onChange: (nextPage) => onPageChange(nextPage) }} />;
 }
 
 export function BatchJobWorkbench({ title, description, kinds, samples = [], sampleHint, uploadHint, ResultPanel }: BatchJobWorkbenchProps) {

@@ -1,3 +1,4 @@
+import { useSingleFlightCallback } from '@/hooks/useActionGuard';
 import { BackTop, Breadcrumb, Button, Dropdown, Nav, SideSheet, Spin, Tooltip } from '@douyinfe/semi-ui';
 import type { NavItemPropsWithItems, OnSelectedData, SubNavProps } from '@douyinfe/semi-ui/lib/es/navigation';
 import { ChevronDown, Expand, Lock, LogOut, Menu as MenuIcon, PanelLeftClose, PanelLeftOpen, Settings, ShieldCheck, Shrink, UserRound } from 'lucide-react';
@@ -247,10 +248,10 @@ export function AdminLayout({ menus, routes, authorizationFeedback }: AdminLayou
     };
 
     // 刷新页签：给该路径的内容换一个 key，让页面整个重新挂载
-    const refreshTab = (key: string) => {
+    const refreshTab = useSingleFlightCallback((key: string) => {
         if (key !== pathname) void navigate(key);
         setRefreshSeq((prev) => ({ ...prev, [key]: (prev[key] ?? 0) + 1 }));
-    };
+    });
 
     // 动态标题
     useEffect(() => {

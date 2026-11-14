@@ -138,7 +138,7 @@ export default function MenusPage() {
         <PageContainer>
             <SearchToolbar
                 tools={columnSettings}
-                onRefresh={() => void refetch()}
+                onRefresh={() => refetch()}
                 refreshing={isFetching}
                 treeExpand={{ expanded: allExpanded, onToggle: () => setExpandedKeys(allExpanded ? [] : allKeys) }}
                 leading={

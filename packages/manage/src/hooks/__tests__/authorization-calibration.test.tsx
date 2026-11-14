@@ -48,7 +48,7 @@ function QueryHarness() {
     useAuthorizationCalibration(useSession(), () => snapshot.refetch({ cancelRefetch: false }));
     return <>
         <span>{me.data?.permissions.join(',')}</span><nav>{menus.data?.map(m => <span key={m.id}>{m.title}</span>)}</nav>
-        <AuthorizationFeedback failed={snapshot.isError} loading={snapshot.isFetching} onRetry={() => void snapshot.refetch()} />
+        <AuthorizationFeedback failed={snapshot.isError} loading={snapshot.isFetching} onRetry={() => snapshot.refetch()} />
         <button onClick={() => void snapshot.refetch()}>校准</button>
         <button onClick={() => { void http.put('/write', {}, { silent: true }).catch(() => {}); }}>写入</button>
     </>;

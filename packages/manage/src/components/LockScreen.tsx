@@ -1,3 +1,4 @@
+import { useSingleFlightCallback } from '@/hooks/useActionGuard';
 import { AuthAttemptFeedback } from './AuthAttemptFeedback';
 import { Button, Input } from '@douyinfe/semi-ui';
 import { Lock } from 'lucide-react';
@@ -87,9 +88,9 @@ export function LockScreen({ user, onUnlocked, onReLogin }: LockScreenProps) {
     }, []);
 
 
-    const unlock = () => {
+    const unlock = useSingleFlightCallback(() => {
         if (!password || verify.isPending || leaving) return;
-        verify.mutate(password, {
+        return verify.mutateAsync(password, {
             onSuccess: () => {
                 setLeaving(true);
                 later(onUnlocked, LEAVE_MS);
@@ -100,8 +101,8 @@ export function LockScreen({ user, onUnlocked, onReLogin }: LockScreenProps) {
                 setPassword('');
                 later(() => setShaking(false), 500);
             },
-        });
-    };
+        }).catch(() => undefined);
+    });
 
     const name = user?.nickname || user?.username || '用户';
     const noPassword = user?.hasPassword === false;
@@ -168,7 +169,7 @@ export function LockScreen({ user, onUnlocked, onReLogin }: LockScreenProps) {
                             // 真实浏览器由 CDP 注入按键或输入法组字时不一定派发；keydown 总会到
                             onKeyDown={(e) => {
                                 // 注入的按键可能只带 keyCode 不带 key，两者都认
-                                if ((e.key === 'Enter' || e.keyCode === 13) && !e.nativeEvent.isComposing) unlock();
+                                if ((e.key === 'Enter' || e.keyCode === 13) && !e.nativeEvent.isComposing) void unlock();
                             }}
                         />
                         {error && (

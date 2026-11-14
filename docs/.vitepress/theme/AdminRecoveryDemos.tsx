@@ -4,6 +4,7 @@ import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import { useFormCloseGuard } from '../../../packages/manage/src/hooks/useFormCloseGuard';
 import { ListEmptyState, ListFeedback } from '../../../packages/manage/src/components/ListFeedback';
 import { OperationLogDetails } from '../../../packages/manage/src/components/OperationLogDetails';
+import { formatPaginationTotal } from '../../../packages/manage/src/utils/pagination';
 import type { OperationLogView } from '../../../packages/manage/src/types/api';
 
 type Mode = 'success' | 'loading' | 'empty' | 'error' | 'cached-error' | 'retrying';
@@ -34,7 +35,7 @@ export function ReadRecoveryDemo({ detail = false }: { detail?: boolean }) {
                 <Space wrap><Button onClick={() => { setFiltered(true); setKeyword('示例条件'); setMode('empty'); }}>模拟筛选无结果</Button><Button loading={isFetching} onClick={() => setMode('retrying')}>刷新</Button></Space>
                 <p>已生效条件：{keyword || '无'} · 第 1 页</p>
                 {isError && <ListFeedback hasData={hasData} retrying={isFetching} onRetry={() => setMode('retrying')} />}
-                <Table rowKey="id" size="small" columns={[{ title: 'ID', dataIndex: 'id', width: 80 }, { title: '名称', dataIndex: 'name' }]} dataSource={hasData ? [{ id: 42, name: `${kind}示例记录` }] : []} loading={isFetching} pagination={false}
+                <Table rowKey="id" size="small" columns={[{ title: 'ID', dataIndex: 'id', width: 80 }, { title: '名称', dataIndex: 'name' }]} dataSource={hasData ? [{ id: 42, name: `${kind}示例记录` }] : []} loading={isFetching} pagination={{ pageSize: 10, total: hasData ? 1 : 0, showTotal: true, formatPageText: formatPaginationTotal }}
                     empty={isFetching || isError ? <span aria-hidden="true" /> : <ListEmptyState filtered={filtered} onReset={() => { setFiltered(false); setKeyword(''); setMode('success'); }} />} />
             </>}
         </section>

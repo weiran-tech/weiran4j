@@ -1,14 +1,16 @@
+import { useSingleFlightCallback } from '@/hooks/useActionGuard';
 import { Banner, Button, Empty } from '@douyinfe/semi-ui';
 
 interface ListFeedbackProps {
     label?: string;
     hasData: boolean;
     retrying: boolean;
-    onRetry: () => void;
+    onRetry: () => unknown;
 }
 
 /** 查询失败后的持久提示；放在表格上方，缓存数据继续显示。 */
 export function ListFeedback({ hasData, retrying, onRetry, label = '列表加载失败' }: ListFeedbackProps) {
+    const retry = useSingleFlightCallback(() => retrying ? undefined : onRetry());
     return (
         <div role="alert" aria-label={label} style={{ marginBottom: 12 }}>
             <Banner
@@ -17,7 +19,7 @@ export function ListFeedback({ hasData, retrying, onRetry, label = '列表加载
                 description={hasData ? '更新失败，当前显示上次加载的数据。' : '加载失败，请重试。'}
                 fullMode={false}
             >
-                <Button theme="borderless" loading={retrying} disabled={retrying} onClick={onRetry}>
+                <Button theme="borderless" loading={retrying} disabled={retrying} onClick={() => { void retry().catch(() => undefined); }}>
                     重试
                 </Button>
             </Banner>

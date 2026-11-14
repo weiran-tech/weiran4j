@@ -1,3 +1,4 @@
+import { useSingleFlightCallback } from '@/hooks/useActionGuard';
 import { Button, Form, Space, Tag, Toast } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import { Settings } from 'lucide-react';
@@ -169,7 +170,7 @@ export function SystemConfigGroupForm({
         [records],
     );
 
-    const submit = async () => {
+    const submit = useSingleFlightCallback(async () => {
         if (uploadingFields.current.size > 0) return;
         const values = await api.current?.validate();
         if (!values) return;
@@ -205,7 +206,7 @@ export function SystemConfigGroupForm({
         } finally {
             setSaving(false);
         }
-    };
+    });
 
     return (
         <Form<Record<string, unknown>>

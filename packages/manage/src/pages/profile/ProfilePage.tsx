@@ -1,3 +1,4 @@
+import { useSingleFlightCallback } from '@/hooks/useActionGuard';
 import { EditConflictFeedback } from '@/components/EditConflictFeedback';
 import { useEditConflict } from '@/hooks/useEditConflict';
 import { useMe } from '@/hooks/queries/auth';
@@ -77,6 +78,7 @@ export default function ProfilePage() {
     const profileApi = useRef<FormApi<ProfileForm> | null>(null);
     const passwordApi = useRef<FormApi<PasswordForm> | null>(null);
 
+    const submitOnce = useSingleFlightCallback((action: () => Promise<void>) => action());
     const profileGuard = useFormCloseGuard(profileApi, () => setDialog(null));
     if (!user) return null;
     const snapshot = baseline ?? user;
@@ -211,7 +213,7 @@ export default function ProfilePage() {
                 </div>
             </Modal>
 
-            <Modal visible={dialog === 'username'} title="修改用户名" onCancel={closeDialog} onOk={() => void saveUsername().catch(() => undefined)} okButtonProps={{ loading: updateOwnUsername.isPending }} maskClosable={false}>
+            <Modal visible={dialog === 'username'} title="修改用户名" onCancel={closeDialog} onOk={() => void submitOnce(saveUsername).catch(() => undefined)} okButtonProps={{ loading: updateOwnUsername.isPending }} maskClosable={false}>
                 <label htmlFor="profile-username">新用户名</label>
                 <Input id="profile-username" value={username} onChange={setUsername} maxLength={32} placeholder="2–32 位，小写字母、数字或下划线" />
                 <p>仅支持小写英文字母、数字和下划线</p>
@@ -225,16 +227,16 @@ export default function ProfilePage() {
                 </Form>}
             </Modal>
 
-            <Modal visible={dialog === 'phone'} title="设置安全手机号" onCancel={closeDialog} onOk={() => void confirmPhone().catch(() => undefined)} okText="验证并设置" okButtonProps={{ disabled: !codeSent, loading: bindPhone.isPending }} maskClosable={false}>
+            <Modal visible={dialog === 'phone'} title="设置安全手机号" onCancel={closeDialog} onOk={() => void submitOnce(confirmPhone).catch(() => undefined)} okText="验证并设置" okButtonProps={{ disabled: !codeSent, loading: bindPhone.isPending }} maskClosable={false}>
                 <div className="profile-phone-editor">
                     <p>当前手机号：{maskedPhone(user.phone)}</p>
                     <Input aria-label="新手机号" value={phone} onChange={(value) => { setPhone(value); setCodeSent(false); setCode(''); }} placeholder="请输入新手机号" maxLength={11} />
-                    <Button onClick={() => void sendCode().catch(() => undefined)} loading={sendBindCode.isPending}>发送验证码</Button>
+                    <Button onClick={() => void submitOnce(sendCode).catch(() => undefined)} loading={sendBindCode.isPending}>发送验证码</Button>
                     {codeSent && <Input aria-label="短信验证码" value={code} onChange={setCode} placeholder="请输入短信验证码" maxLength={6} />}
                 </div>
             </Modal>
 
-            <Modal visible={dialog === 'password'} title="修改登录密码" onCancel={closeDialog} onOk={() => void submitPassword().catch(() => undefined)} okText="确认修改" okButtonProps={{ loading: changePassword.isPending }} maskClosable={false}>
+            <Modal visible={dialog === 'password'} title="修改登录密码" onCancel={closeDialog} onOk={() => void submitOnce(submitPassword).catch(() => undefined)} okText="确认修改" okButtonProps={{ loading: changePassword.isPending }} maskClosable={false}>
                 {dialog === 'password' && <Form<PasswordForm> getFormApi={(api) => { passwordApi.current = api; }} labelPosition="left" labelWidth={90}>
                     <Form.Input field="oldPassword" label="原密码" mode="password" rules={[{ required: true, message: '请输入原密码' }]} />
                     <Form.Input field="newPassword" label="新密码" mode="password" extraText="8–64 位，须同时包含字母与数字" rules={[{ required: true, message: '请输入新密码' }, { pattern: PASSWORD_RULE, message: PASSWORD_RULE_MESSAGE }]} />

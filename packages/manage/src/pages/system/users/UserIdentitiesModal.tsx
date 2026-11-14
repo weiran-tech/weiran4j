@@ -1,3 +1,4 @@
+import { useSingleFlightCallback } from '@/hooks/useActionGuard';
 import { Button, Form, Modal, Popconfirm, Table, Toast, Typography } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
@@ -29,12 +30,12 @@ export function UserIdentitiesModal({ user, onClose }: Props) {
     const list = identities ?? [];
 
     // onSubmit 只在表单校验通过后调用
-    const submit = async (v: BindForm) => {
+    const submit = useSingleFlightCallback(async (v: BindForm) => {
         const displayName = v.displayName?.trim();
         await bind.mutateAsync({ provider: v.provider, externalId: v.externalId.trim(), ...(displayName ? { displayName } : {}) });
         Toast.success('已绑定');
         api.current?.reset();
-    };
+    });
 
     const columns: ColumnProps<UserIdentityView>[] = [
         { title: 'ID', dataIndex: 'id', width: 180 },

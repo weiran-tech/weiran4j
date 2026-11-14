@@ -1,3 +1,4 @@
+import { useSingleFlightCallback, useDebouncedCallback } from '@/hooks/useActionGuard';
 import { Button, Dropdown, Empty, Form, Modal, Pagination, Space, Tag, Toast, Tooltip } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import { Eye, EyeOff, MoreHorizontal, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
@@ -73,7 +74,7 @@ function ConfigMetadataModal({
     const save = useSaveConfig();
     const isEdit = record !== null;
 
-    const submit = async () => {
+    const submit = useSingleFlightCallback(async () => {
         const value = await api.current?.validate();
         if (!value) return;
         const type = configType(value.fieldType);
@@ -90,7 +91,7 @@ function ConfigMetadataModal({
         await save.mutateAsync({ id: record?.id, body });
         Toast.success(isEdit ? '配置项已更新' : '配置项已创建');
         onClose();
-    };
+    });
 
     return (
         <Modal
@@ -220,7 +221,7 @@ function ConfigGroupModal({
     const updateGroup = useUpdateConfigGroup();
     const isEdit = record !== null;
 
-    const submit = async () => {
+    const submit = useSingleFlightCallback(async () => {
         const value = await api.current?.validate();
         if (!value) return;
         const key = record?.key ?? value.key.trim();
@@ -233,7 +234,7 @@ function ConfigGroupModal({
         }
         onCreated(key);
         onClose();
-    };
+    });
 
     return (
         <Modal
@@ -298,10 +299,10 @@ export default function ConfigsPage({ domain = 'config_system' }: { domain?: Con
         ? (data ?? []).filter((record) => record.groupKey === selectedGroup.key && record.configKey.startsWith(domain === 'config_sms' ? 'sms.' : 'system.'))
         : [];
 
-    const searchGroups = () => {
+    const { schedule: searchGroups } = useDebouncedCallback(() => {
         setGroupKeyword(groupDraft.trim());
         setPage(1);
-    };
+    });
 
     const removeConfig = (record: ConfigView) => {
         Modal.confirm({
@@ -374,7 +375,8 @@ export default function ConfigsPage({ domain = 'config_system' }: { domain?: Con
                     }}
                     loading={isFetchingGroups && domainGroups.length === 0}
                     emptyText={groupKeyword ? '没有匹配的配置分组' : '暂无配置分组'}
-                    footer={
+                    footer={<>
+                        <span>共 {filteredGroups.length} 条</span>
                         <Pagination
                             size="small"
                             total={filteredGroups.length}
@@ -388,7 +390,7 @@ export default function ConfigsPage({ domain = 'config_system' }: { domain?: Con
                                 setPageSize(size);
                             }}
                         />
-                    }
+                    </>}
                     dataSource={pageGroups}
                     renderItem={(group) => (
                         <NavListItem

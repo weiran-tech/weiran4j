@@ -70,6 +70,9 @@
     flex-shrink: 0;
     display: flex;
     justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
     padding: 8px 10px;
     border-top: 1px solid var(--semi-color-border);
     overflow-x: auto;

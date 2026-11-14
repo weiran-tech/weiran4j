@@ -1,3 +1,4 @@
+import { useSingleFlightCallback } from '@/hooks/useActionGuard';
 import { Form, Modal, Toast } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import { useRef } from 'react';
@@ -15,13 +16,13 @@ export function ResetPasswordModal({ user, onClose }: Props) {
     const api = useRef<FormApi<{ password: string }> | null>(null);
     const reset = useResetUserPassword();
 
-    const submit = async () => {
+    const submit = useSingleFlightCallback(async () => {
         const v = await api.current?.validate();
         if (!v) return;
         await reset.mutateAsync({ id: user.id, password: v.password });
         Toast.success('密码已重置');
         onClose();
-    };
+    });
 
     return (
         <Modal

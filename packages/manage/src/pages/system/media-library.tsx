@@ -1,3 +1,5 @@
+import { useDebouncedCallback } from '@/hooks/useActionGuard';
+import { formatPaginationTotal } from '@/utils/pagination';
 import { Button, Input, Modal, Progress, Select, Table, Tabs, Tag, Toast, Typography } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { Copy, Download, Eye, FilePlus2, Play, RefreshCw, Trash2 } from 'lucide-react';
@@ -60,8 +62,9 @@ function MediaLibraryTab() {
     const settings = settingsQuery.data ?? DEFAULT_UPLOAD_SETTINGS;
     const remove = useDeleteSystemMediaFile();
 
-    const search = () => { setKeyword(draftKeyword.trim()); setCategory(draftCategory); setPage(1); };
-    const reset = () => { setDraftKeyword(''); setDraftCategory(undefined); setKeyword(''); setCategory(undefined); setPage(1); };
+    const { schedule: search, cancel: cancelSearch } = useDebouncedCallback(() => { setKeyword(draftKeyword.trim()); setCategory(draftCategory); setPage(1); });
+    const reset = () => {
+        cancelSearch(); setDraftKeyword(''); setDraftCategory(undefined); setKeyword(''); setCategory(undefined); setPage(1); };
     const conditions: SearchCondition[] = [
         ...(keyword ? [{ key: 'keyword', label: '文件名', value: keyword, onRemove: () => { setKeyword(''); setDraftKeyword(''); setPage(1); } }] : []),
         ...(category ? [{ key: 'category', label: '文件类型', value: CATEGORY_OPTIONS.find((option) => option.value === category)?.label ?? category, onRemove: () => { setCategory(undefined); setDraftCategory(undefined); setPage(1); } }] : []),
@@ -132,7 +135,7 @@ function MediaLibraryTab() {
             tools={columnSettings}
             onSearch={search}
             onReset={reset}
-            onRefresh={() => void query.refetch()}
+            onRefresh={() => query.refetch()}
             refreshing={query.isFetching}
             conditions={conditions}
             actions={<Button type="primary" theme="solid" icon={<FilePlus2 size={16} />} disabled={!settingsQuery.data} onClick={() => inputRef.current?.click()}>上传文件</Button>}
@@ -160,7 +163,7 @@ function MediaLibraryTab() {
             dataSource={query.data?.list ?? []}
             loading={query.isFetching}
             scroll={{ x: tableScrollX(tableColumns) }}
-            pagination={{ currentPage: page, pageSize, pageSizeOpts, total: query.data?.total ?? 0, showSizeChanger: true, showTotal: true, onChange: (nextPage, nextSize) => { setPage(nextPage); setPageSize(nextSize); } }}
+            pagination={{ currentPage: page, pageSize, pageSizeOpts, total: query.data?.total ?? 0, showSizeChanger: true, showTotal: true, formatPageText: formatPaginationTotal, onChange: (nextPage, nextSize) => { setPage(nextPage); setPageSize(nextSize); } }}
         />
         {query.isError && <Button onClick={() => void query.refetch()}>加载失败，点击重试</Button>}
         <Modal visible={preview !== null} title={preview?.originalName ?? '图片预览'} footer={null} onCancel={() => setPreview(null)}>

@@ -87,6 +87,7 @@
 - `lib/theme-color.ts`:`applyThemeColor()` 把 `--semi-color-primary*` 与 `--color-primary` / `--color-sidebar-*` **同时写到 html 和 body 的内联样式**——只写 html 会被 Semi 挂在 body 上的默认值盖住。**页面里要用主色就用 `var(--semi-color-primary)`,不要写死 `#0064FA`**,否则切主题色时不跟随。
 - `styles/global.css` 的设计变量(`--color-bg` / `--color-surface` / `--color-border` / `--color-text*` / `--header-height` 等)在 `body[theme-mode='dark']` 下有深色值;新样式优先用它们或 Semi 变量,别写死颜色。
 - `hooks/useTableDefaults.ts` 的 `tableScrollX(columns, flexMin = 120)`:表格 `scroll.x` **用它算,不要手写估值**——数字 width 列按 width、弹性列按 `flexMin` 求和。Semi 在内容区更宽时把表格拉满(多出的宽度主要给弹性列),更窄才横向滚动。手写值写小了弹性列被挤到几十像素(用户页「角色」标签溢出到「手机」列),写大了 double 布局下无谓滚动、固定操作列压住内容(2026-09-27 实测)。传列设置之后的列。8 个列表页的列宽已按「1440 宽下四种导航布局都不滚动」收紧,改列宽后在 double 布局下看一眼。
+- `utils/pagination.ts` 的 `formatPaginationTotal`：分页统一显示「共 N 条」，包含空结果的 0 条；传给 Semi Table 的 `pagination.formatPageText`。
 - `hooks/useTableDefaults.ts`:`useTableDefaults()` 返回 `tableProps`(展开到 Semi `<Table>`:尺寸、边框、斑马纹 class)、`pageSize`(分页表格 `useState` 的**初值**)、`pageSizeOpts`。**新列表页的 `<Table>` 都要 `{...tableProps}`**,否则偏好里的表格设置对它不生效。
 - `hooks/useMediaQuery.ts`:`useMediaQuery(query)` / `useIsMobile()`(< 768px)/ `usePrefersDark()`。断点常量在 `lib/breakpoints.ts`,CSS 侧写 `@media (--md-down)`(`styles/breakpoints.css` 经 postcss-custom-media 注入所有 CSS,**不要硬编码 px 断点**,两边改一处必须同步另一处)。jsdom 的 `matchMedia` 恒为 false,测试里默认是桌面布局;测窄屏用 `vi.stubGlobal('matchMedia', …)`。
 - `utils/request.ts`:请求封装。**`code === 0`(数字)才算成功**;`100101` 清令牌跳登录,`110101` 不清。不要在页面里再写 `fetch`。
@@ -118,3 +119,5 @@
 - **AuthAttemptFeedback**（`components/AuthAttemptFeedback.tsx`）：登录、锁屏和 docs 共用的持续认证错误提示；手动重试由页面提交动作控制。
 
 - **AuthorizationFeedback**（`components/AuthorizationFeedback.tsx`）：授权快照刷新失败的持续反馈和手动重试；后台外壳和 docs 共用，失败不移除旧导航。
+
+- **useActionGuard**（`hooks/useActionGuard.ts`）：`useSingleFlightCallback` 首次立即执行，锁住进行中的操作并抑制 300ms 内连点，异常继续向调用方传播；`useDebouncedCallback` 在最后一次操作 300ms 后采用最新回调执行，返回 `schedule` 与 `cancel`，重置调用 `cancel()`，卸载自动取消。搜索按钮与回车必须共用同一实例；刷新回调必须返回请求 Promise，供 SearchToolbar 持续锁定。

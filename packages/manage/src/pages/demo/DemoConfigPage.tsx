@@ -1,3 +1,4 @@
+import { useSingleFlightCallback } from '@/hooks/useActionGuard';
 import { Spin, Switch, Typography } from '@douyinfe/semi-ui';
 import { useState } from 'react';
 import { NavListItem, NavListPanel } from '@/components/NavListPanel';
@@ -143,7 +144,7 @@ export default function DemoConfigPage() {
         key: record.configKey,
         value: currentValues[record.configKey],
     }));
-    const saveVariants = async (values: ConfigSaveRequest[]) => {
+    const saveVariants = useSingleFlightCallback(async (values: ConfigSaveRequest[]) => {
         const next = { ...currentValues, ...Object.fromEntries(values.map((value) => [value.configKey, value.configValue])) };
         await save.mutateAsync({
             ...(sampleConfig ? { id: sampleConfig.id } : {}),
@@ -160,7 +161,7 @@ export default function DemoConfigPage() {
         });
         setSaved(next);
         await query.refetch();
-    };
+    });
 
     return (
         <div className="config-groups-layout">

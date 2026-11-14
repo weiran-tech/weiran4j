@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mockFetch, renderWithProviders } from '@/test/helpers';
 import { LockScreen } from '../LockScreen';
@@ -41,6 +41,7 @@ it('429 保留会话和锁屏，主动重试成功才解锁', async () => {
     expect(getSession()).toBe('2.csrf');
     expect(unlocked).not.toHaveBeenCalled();
     expect(calls.filter((call) => call.method === 'POST')).toHaveLength(1);
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 320)); });
     limited = false;
     fireEvent.change(screen.getByLabelText('登录密码'), { target: { value: 'secret' } });
     fireEvent.click(screen.getByRole('button', { name: '解锁' }));

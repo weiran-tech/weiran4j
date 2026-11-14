@@ -1,3 +1,4 @@
+import { useDebouncedCallback, useSingleFlightCallback } from '@/hooks/useActionGuard';
 import { Button, Dropdown, Empty, Modal, Pagination, Table, Tag, Toast, Tooltip } from '@douyinfe/semi-ui';
 import type { TagProps } from '@douyinfe/semi-ui/lib/es/tag';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
@@ -20,6 +21,7 @@ function DictItemsPanel({ dict }: { dict: DictView }) {
     const { tableProps } = useTableDefaults();
     const { hasPermission } = usePermission();
     const { data, isFetching, isError, refetch } = useDictItems(dict.id);
+    const refresh = useSingleFlightCallback(() => isFetching ? undefined : refetch());
     const deleteItem = useDeleteDictItem();
     const [editing, setEditing] = useState<DictItemView | null | undefined>(undefined);
     const canEdit = hasPermission('system:dict:update');
@@ -60,7 +62,7 @@ function DictItemsPanel({ dict }: { dict: DictView }) {
         <PageContainer
             title={`字典项：${dict.name}（${dict.code}）`}
             extra={<>
-                <Button aria-label="刷新字典项" loading={isFetching} onClick={() => void refetch()}>刷新</Button>
+                <Button aria-label="刷新字典项" loading={isFetching} onClick={() => { void refresh().catch(() => undefined); }}>刷新</Button>
                 {canEdit && (
                     <Button type="primary" theme="solid" icon={<Plus size={14} />} onClick={() => setEditing(null)}>
                         新增字典项
@@ -95,6 +97,7 @@ export default function DictsPage() {
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [editing, setEditing] = useState<DictView | null | undefined>(undefined);
     const { data, isFetching, isError, refetch } = useDictList({ page, pageSize, ...(keyword ? { keyword } : {}) });
+    const refresh = useSingleFlightCallback(() => isFetching ? undefined : refetch());
     const deleteDict = useDeleteDict();
     const canUpdate = hasPermission('system:dict:update');
     const canDelete = hasPermission('system:dict:delete');
@@ -104,15 +107,16 @@ export default function DictsPage() {
     const selected = dicts.find((d) => d.id === selectedId) ?? dicts[0] ?? null;
 
     const reset = () => {
+        cancelSearch();
         setDraft('');
         setKeyword('');
         setPage(1);
     };
 
-    const search = () => {
+    const { schedule: search, cancel: cancelSearch } = useDebouncedCallback(() => {
         setKeyword(draft.trim());
         setPage(1);
-    };
+    });
 
     const confirmDelete = (dict: DictView) => {
         Modal.confirm({
@@ -196,7 +200,7 @@ export default function DictsPage() {
                                     aria-label="刷新字典列表"
                                     icon={<RefreshCw size={14} />}
                                     loading={isFetching}
-                                    onClick={() => void refetch()}
+                                    onClick={() => { void refresh().catch(() => undefined); }}
                                 />
                             </Tooltip>
                             {hasPermission('system:dict:create') && (
@@ -217,6 +221,7 @@ export default function DictsPage() {
                     emptyText={isFetching || isError ? '' : keyword ? '没有匹配结果' : '暂无记录'}
                     footer={<>
                         {!isFetching && !isError && data && dicts.length === 0 && keyword && <Button onClick={reset}>清空条件</Button>}
+                        <span>共 {data?.total ?? 0} 条</span>
                         <Pagination
                             size="small"
                             total={data?.total ?? 0}

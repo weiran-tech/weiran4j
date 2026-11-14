@@ -164,14 +164,20 @@ body {
     background: var(--semi-color-fill-0);
 }
 
-/* 窄屏分页：隐藏「显示第 x 条…」与「总页数」文案，只留页码，避免被挤成多行 */
+/* 窄屏分页：总条目数独占一行，页码在下方换行，避免挤出视口。 */
 @media (--md-down) {
-    .semi-table-pagination-info,
+    .semi-table-pagination-info {
+        width: 100%;
+        text-align: center;
+    }
+
     .semi-page-total {
         display: none;
     }
 
     .semi-table-pagination-outer {
+        flex-wrap: wrap;
+        gap: 8px;
         justify-content: center;
     }
 }

@@ -1,3 +1,4 @@
+import { useDebouncedCallback } from '@/hooks/useActionGuard';
 import { Input, Table, Toast } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { useState } from 'react';
@@ -39,12 +40,14 @@ export default function DemoListPage() {
     const statusOptions = useDictOptions('sys_common_status');
     const { tableProps } = useTableDefaults();
 
-    const search = () => setFilters({ keyword: draft.keyword.trim(), status: draft.status });
+    const { schedule: search, cancel: cancelSearch } = useDebouncedCallback(() => setFilters({ keyword: draft.keyword.trim(), status: draft.status }));
     const reset = () => {
+        cancelSearch();
         setDraft(EMPTY_FILTERS);
         setFilters(EMPTY_FILTERS);
     };
     const remove = (field: keyof Filters) => () => {
+        cancelSearch();
         setDraft((value) => ({ ...value, [field]: EMPTY_FILTERS[field] }));
         setFilters((value) => ({ ...value, [field]: EMPTY_FILTERS[field] }));
     };

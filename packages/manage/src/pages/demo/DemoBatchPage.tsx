@@ -1,3 +1,4 @@
+import { formatPaginationTotal } from '@/utils/pagination';
 import { Table, Typography } from '@douyinfe/semi-ui';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -35,7 +36,7 @@ function DemoResultPanel({ job }: { job: BatchJob }) {
         <strong>已写入的演示数据（{items.data?.total ?? 0} 条）</strong>
         <Table<DemoItem> {...tableProps} rowKey="id" dataSource={items.data?.list ?? []} loading={items.isPending}
             columns={columns} scroll={{ x: `max(100%, ${tableScrollX(columns)}px)` }} pagination={{ currentPage: page, pageSize: 20, total: items.data?.total ?? 0,
-                showTotal: true, onChange: (nextPage) => setPage(nextPage) }} />
+                showTotal: true, formatPageText: formatPaginationTotal, onChange: (nextPage) => setPage(nextPage) }} />
         {items.isError && <Typography.Text type="danger">导入数据读取失败，请刷新页面重试。</Typography.Text>}
     </>;
 }

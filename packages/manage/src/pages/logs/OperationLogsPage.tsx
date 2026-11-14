@@ -1,3 +1,5 @@
+import { useDebouncedCallback } from '@/hooks/useActionGuard';
+import { formatPaginationTotal } from '@/utils/pagination';
 import { Button, DatePicker, Input, Select, SideSheet, Table, Tag } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
 import { useState } from 'react';
@@ -18,7 +20,7 @@ function OperationLogDetail({ id, onClose }: { id: number; onClose: () => void }
     const query = useOperationLogDetail(id);
     return (
         <SideSheet visible title="操作详情" width={640} onCancel={onClose}>
-            <OperationLogDetails query={query} onRetry={() => void query.refetch()} />
+            <OperationLogDetails query={query} onRetry={() => query.refetch()} />
         </SideSheet>
     );
 }
@@ -50,11 +52,12 @@ export default function OperationLogsPage() {
     };
     const { data, isFetching, isError, refetch } = useOperationLogs(query);
 
-    const search = () => {
+    const { schedule: search, cancel: cancelSearch } = useDebouncedCallback(() => {
         setFilters(draft);
         setPage(1);
-    };
+    });
     const reset = () => {
+        cancelSearch();
         setDraft(EMPTY_FILTERS);
         setFilters(EMPTY_FILTERS);
         setPage(1);
@@ -62,6 +65,7 @@ export default function OperationLogsPage() {
 
     // 已选条件只反映已生效的查询；删掉一个即清空该字段（草稿一并清）并回第 1 页
     const remove = (field: keyof Filters) => () => {
+        cancelSearch();
         setFilters((f) => ({ ...f, [field]: EMPTY_FILTERS[field] }));
         setDraft((d) => ({ ...d, [field]: EMPTY_FILTERS[field] }));
         setPage(1);
@@ -121,7 +125,7 @@ export default function OperationLogsPage() {
                 tools={columnSettings}
                 onSearch={search}
                 onReset={reset}
-                onRefresh={() => void refetch()}
+                onRefresh={() => refetch()}
                 refreshing={isFetching}
                 conditions={conditions}
             >
@@ -174,7 +178,7 @@ export default function OperationLogsPage() {
                     pageSizeOpts,
                     total: data?.total ?? 0,
                     showSizeChanger: true,
-                    showTotal: true,
+                    showTotal: true, formatPageText: formatPaginationTotal,
                     onChange: (p, s) => {
                         setPage(p);
                         setPageSize(s);

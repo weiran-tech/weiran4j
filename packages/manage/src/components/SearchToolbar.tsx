@@ -1,3 +1,4 @@
+import { useSingleFlightCallback } from '@/hooks/useActionGuard';
 import { Button, Space, Tooltip } from '@douyinfe/semi-ui';
 import { ChevronDown, ChevronUp, ListCollapse, ListTree, RefreshCw, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useId, useState, type ReactNode } from 'react';
@@ -25,7 +26,7 @@ interface SearchToolbarProps {
     onSearch?: () => void;
     onReset?: () => void;
     /** 提供时在工具区最末出现「刷新」（重新拉取当前查询，不改条件） */
-    onRefresh?: () => void;
+    onRefresh?: () => unknown;
     refreshing?: boolean;
     /** 树形表格：在工具区最前出现「展开树状」开关（全部展开 ↔ 全部收起）；`expanded` 为当前是否全部展开 */
     treeExpand?: { expanded: boolean; onToggle: () => void };
@@ -74,6 +75,7 @@ export function SearchToolbar({
     const fieldsId = useId();
     const panelId = useId();
     const hasAdvanced = advanced !== undefined;
+    const refresh = useSingleFlightCallback(() => refreshing ? undefined : onRefresh?.());
 
     return (
         <div className="search-toolbar-wrap">
@@ -127,7 +129,8 @@ export function SearchToolbar({
                                     type="tertiary"
                                     icon={<RefreshCw size={14} {...(refreshing ? { className: 'search-toolbar__spin' } : {})} />}
                                     aria-label="刷新"
-                                    onClick={onRefresh}
+                                    disabled={refreshing}
+                                    onClick={() => { void refresh().catch(() => undefined); }}
                                 />
                             </Tooltip>
                         )}

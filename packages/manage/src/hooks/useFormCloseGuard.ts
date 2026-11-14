@@ -1,3 +1,4 @@
+import { useSingleFlightCallback } from './useActionGuard';
 import { Modal } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import { useEffect, useRef, useState, type RefObject } from 'react';
@@ -51,7 +52,7 @@ export function useFormCloseGuard<T extends object>(api: RefObject<FormApi<T> | 
         });
     };
 
-    const submit = async (save: () => Promise<void>) => {
+    const submit = useSingleFlightCallback(async (save: () => Promise<void>) => {
         if (busy.current || confirmation.current) return;
         busy.current = true;
         setSaving(true);
@@ -61,7 +62,7 @@ export function useFormCloseGuard<T extends object>(api: RefObject<FormApi<T> | 
             busy.current = false;
             setSaving(false);
         }
-    };
+    });
 
     return { saving, requestClose, submit };
 }

@@ -36,7 +36,7 @@ it('菜单草稿冻结版本，冲突保留输入，取消/失败重载不替换
     const reloadedDialog = screen.getByRole('dialog', { name: '编辑菜单' });
     expect(within(reloadedDialog).getByText('确定', { selector: '.semi-button-content' }).closest('button')).toBeEnabled();
     // Semi Modal 对同一确定按钮设有 100ms leading 防抖。
-    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 110)); });
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 320)); });
     fireEvent.click(within(reloadedDialog).getByText('确定', { selector: '.semi-button-content' }).closest('button')!);
     await waitFor(() => expect(calls.filter(c => c.method === 'PUT')).toHaveLength(2));
     expect(calls.filter(c => c.method === 'PUT')[1]?.body).toMatchObject({ version: 9, title: '远端目录' });

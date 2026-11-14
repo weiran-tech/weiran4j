@@ -52,6 +52,10 @@
    - 改列宽后在真浏览器里量（`scrollWidth > clientWidth` 判溢出，`Range.getClientRects()` 判折行），不要只看单测。
 7. **列设置**（`ColumnSettings`，偏好 `showTableColumnSettings`）：齿轮按钮 → 弹层勾选显隐、**拖放**调整顺序（每行左侧的把手；把手可聚焦，↑ / ↓ 同样移动），固定列与操作列不参与。不提供上移 / 下移按钮。
 
+8. **分页显示总条目数**：使用查询结果的 `total`（本地分页使用筛选后总数），空结果显示 0 条；窄屏保留总数并允许分页区域换行。Semi `Pagination.showTotal` 显示的是总页数，紧凑分页需在旁边单独显示「共 N 条」。
+
+9. **防重复操作**：提交与刷新首次立即执行，进行中不重复触发，并抑制 300ms 内连点；刷新回调返回请求 Promise。按钮搜索与回车共用 `useDebouncedCallback` 的 `schedule`，最后一次操作后 300ms 生效；重置、删除条件时调用同一实例的 `cancel`，卸载自动取消。
+
 ## 三、为什么集中写在这里
 
 这些约定横跨 `SearchToolbar`、`TableActions`、`ColumnSettings`、全局样式和各列表页，单看任何一个组件的条目都拼不出全貌；

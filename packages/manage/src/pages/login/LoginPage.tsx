@@ -1,3 +1,4 @@
+import { useSingleFlightCallback } from '@/hooks/useActionGuard';
 import { AuthAttemptFeedback } from '@/components/AuthAttemptFeedback';
 import { Banner, Button, Divider, Form, Typography } from '@douyinfe/semi-ui';
 import { KeyRound, LogIn, Phone, UserRound } from 'lucide-react';
@@ -100,7 +101,7 @@ export default function LoginPage() {
         setSearchParams(next, { replace: true });
     }, [searchParams, setSearchParams]);
 
-    const handleSubmit = async (values: LoginForm) => {
+    const handleSubmit = useSingleFlightCallback(async (values: LoginForm) => {
         setSubmitting(true);
         setError(null);
         setNotice(null);
@@ -121,9 +122,9 @@ export default function LoginPage() {
         } finally {
             setSubmitting(false);
         }
-    };
+    });
 
-    const handleMfaSubmit = async ({ code }: { code: string }) => {
+    const handleMfaSubmit = useSingleFlightCallback(async ({ code }: { code: string }) => {
         setSubmitting(true);
         setError(null);
         try {
@@ -134,9 +135,9 @@ export default function LoginPage() {
         } finally {
             setSubmitting(false);
         }
-    };
+    });
 
-    const handleSendCode = async () => {
+    const handleSendCode = useSingleFlightCallback(async () => {
         const normalizedPhone = phone.trim();
         if (!/^1[3-9]\d{9}$/.test(normalizedPhone)) {
             setError('请输入正确的手机号');
@@ -152,7 +153,7 @@ export default function LoginPage() {
         } catch (e) {
             setError(e instanceof ApiError ? e.message : '验证码发送失败，请稍后重试');
         }
-    };
+    });
 
     const handleEnterSubmit = (event: KeyboardEvent<HTMLFormElement>) => {
         if (event.key !== 'Enter' || event.nativeEvent.isComposing || event.repeat || !(event.target instanceof HTMLInputElement)) return;

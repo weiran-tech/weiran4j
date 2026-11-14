@@ -488,6 +488,7 @@ describe('enableLockScreen', () => {
         expect(screen.getByRole('dialog', { name: '屏幕已锁定' })).toBeInTheDocument();
         expect(fetch.calls.find((c) => c.path === '/api-backend/system/auth/verifyPassword')?.body).toEqual({ password: 'wrong' });
 
+        await act(async () => { await new Promise((resolve) => setTimeout(resolve, 320)); });
         ok = true;
         fireEvent.change(within(lock).getByLabelText('登录密码'), { target: { value: 'admin123' } });
         fireEvent.click(within(lock).getByRole('button', { name: '解锁' }));
@@ -508,6 +509,7 @@ describe('enableLockScreen', () => {
         await user.type(input, 'wrong{Enter}');
         expect(await within(lock).findByRole('alert')).toHaveTextContent('密码错误');
 
+        await act(async () => { await new Promise((resolve) => setTimeout(resolve, 320)); });
         ok = true;
         await user.clear(input);
         await user.type(input, 'admin123{Enter}');
