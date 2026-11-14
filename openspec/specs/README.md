@@ -2,7 +2,7 @@
 
 # 能力索引
 
-18 个能力 / 107 条需求 —— active 13 · partial 0 · superseded 5。
+18 个能力 / 110 条需求 —— active 13 · partial 0 · superseded 5。
 
 状态口径见 `openspec/config.yaml` 的 `rules.specs`:
 `active` 现行有效 · `partial` 主体有效但有已知缺口(缺口写在 Purpose 里) · `superseded` 已被取代,内容仅供追溯、**不再具有约束力**。
@@ -19,7 +19,7 @@
 | [system-file-storage](system-file-storage/spec.md) | 1 | active | 本能力长期负责 system 模块文件的安全存储与访问：根据部署配置选择禁用、本地开发或阿里云 OSS 存储，约束对… |
 | [system-media-library](system-media-library/spec.md) | 4 | active | 本能力长期负责后台图片资产的登记与维护：让管理员能够在一个位置批量上传、检索、复用和安全删除图片 |
 | [system-sms-sender](system-sms-sender/spec.md) | 6 | active | 本能力长期负责为业务模块提供统一、可替换且安全的短信发送入口，使业务模块不必直接依赖具体短信厂商 SDK；验证码生成… |
-| [test-workflows](test-workflows/spec.md) | 6 | active | 本能力长期负责项目 API、浏览器与手工接口测试流程的登记、发现、执行、认证上下文、证据复核与恢复，使开发者能复用共… |
+| [test-workflows](test-workflows/spec.md) | 9 | active | 本能力长期负责项目 API、浏览器与手工接口测试流程的登记、发现、执行、认证上下文、证据复核与恢复，使开发者能复用共… |
 | [user-list-search](user-list-search/spec.md) | 7 | active | 本能力长期负责后台用户列表的检索口径:`GET /api-backend/users` 接受哪些查询条件、每个条件如… |
 | [workflow-contracts](workflow-contracts/spec.md) | 2 | active | 工作流契约保证提供给开发者与自动化助手的现行工程提示与项目实际约束一致，使需求、设计和执行计划持续遵守当前技术栈、响… |
 | [admin-console-shell](admin-console-shell/spec.md) | 4 | superseded → `admin-foundation` | 本能力长期承担后台管理前端的整体外壳职责：统一的侧边菜单、顶部栏、嵌套布局路由，以及基于当前登录账号权限的菜单显隐控制 |

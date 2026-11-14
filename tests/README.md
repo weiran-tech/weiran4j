@@ -17,7 +17,7 @@ pnpm test:flows:browser
 | 目录 | 职责 |
 |---|---|
 | framework/ | CLI、声明/依赖检查、批次/进程/报告、会话/恢复、脚手架与自身回归 |
-| api/、e2e/、bruno/ | 7 条当前系统流程、声明及 plan |
+| api/、e2e/、bruno/ | 15 条基础与业务流程、声明及 plan |
 | support/ | fixture、环境/证据/多页面 helper、共享步骤与 INDEX |
 | unit/ | 系统步骤离线装配回归 |
 | envs/、registry.json | 非秘密环境地址和流程注册 |

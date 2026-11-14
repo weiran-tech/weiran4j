@@ -1,0 +1,80 @@
+生产packages/无改动：PASS
+私有资源清单/产物忽略：PASS
+ M docs/testing.md
+ M openspec/state/bizs/artifact.md
+ M package.json
+ M tests/README.md
+ M tests/api/system/access-boundary/access.spec.ts
+ M tests/api/system/access-boundary/flow.json
+ M tests/api/system/access-boundary/plan.md
+ M tests/docs/coverage.md
+ M tests/docs/running.md
+ M tests/docs/writing-flows.md
+ M tests/framework/browser/framework.integration.mjs
+ M tests/framework/unit/framework.test.mjs
+ M tests/registry.json
+ M tests/support/steps/INDEX.md
+ M tests/support/steps/system/access-boundary.ts
+?? openspec/changes/cover-core-admin-api-workflows/.openspec.yaml
+?? openspec/changes/cover-core-admin-api-workflows/design.md
+?? openspec/changes/cover-core-admin-api-workflows/exec/evidence/api-synthetic.log
+?? openspec/changes/cover-core-admin-api-workflows/exec/evidence/build.log
+?? openspec/changes/cover-core-admin-api-workflows/exec/evidence/docs-build.log
+?? openspec/changes/cover-core-admin-api-workflows/exec/evidence/flows-browser.log
+?? openspec/changes/cover-core-admin-api-workflows/exec/evidence/flows-check.log
+?? openspec/changes/cover-core-admin-api-workflows/exec/evidence/lint.log
+?? openspec/changes/cover-core-admin-api-workflows/exec/evidence/spotless.log
+?? openspec/changes/cover-core-admin-api-workflows/exec/evidence/test.log
+?? openspec/changes/cover-core-admin-api-workflows/exec/notes/E1-implementation.md
+?? openspec/changes/cover-core-admin-api-workflows/exec/notes/E2-implementation.md
+?? openspec/changes/cover-core-admin-api-workflows/exec/notes/E3-implementation.md
+?? openspec/changes/cover-core-admin-api-workflows/exec/notes/E4-implementation.md
+?? openspec/changes/cover-core-admin-api-workflows/exec/notes/E5-implementation.md
+?? openspec/changes/cover-core-admin-api-workflows/exec/plan.md
+?? openspec/changes/cover-core-admin-api-workflows/explore.md
+?? openspec/changes/cover-core-admin-api-workflows/interview.md
+?? openspec/changes/cover-core-admin-api-workflows/proposal.md
+?? openspec/changes/cover-core-admin-api-workflows/specs/test-workflows/spec.md
+?? openspec/changes/cover-core-admin-api-workflows/tasks.md
+?? tests/api/region/read/flow.json
+?? tests/api/region/read/plan.md
+?? tests/api/region/read/read.spec.ts
+?? tests/api/system/config-lifecycle/config-lifecycle.spec.ts
+?? tests/api/system/config-lifecycle/flow.json
+?? tests/api/system/config-lifecycle/plan.md
+?? tests/api/system/core-read/core-read.spec.ts
+?? tests/api/system/core-read/flow.json
+?? tests/api/system/core-read/plan.md
+?? tests/api/system/dict-lifecycle/dict-lifecycle.spec.ts
+?? tests/api/system/dict-lifecycle/flow.json
+?? tests/api/system/dict-lifecycle/plan.md
+?? tests/api/system/menu-lifecycle/flow.json
+?? tests/api/system/menu-lifecycle/menu-lifecycle.spec.ts
+?? tests/api/system/menu-lifecycle/plan.md
+?? tests/api/system/permission-boundary/flow.json
+?? tests/api/system/permission-boundary/permission-boundary.spec.ts
+?? tests/api/system/permission-boundary/plan.md
+?? tests/api/system/role-lifecycle/flow.json
+?? tests/api/system/role-lifecycle/plan.md
+?? tests/api/system/role-lifecycle/role-lifecycle.spec.ts
+?? tests/api/system/user-lifecycle/flow.json
+?? tests/api/system/user-lifecycle/plan.md
+?? tests/api/system/user-lifecycle/user-lifecycle.spec.ts
+?? tests/support/api/cleanup.mjs
+?? tests/support/api/data.mjs
+?? tests/support/api/protocol.mjs
+?? tests/support/api/resources.mjs
+?? tests/support/api/session.mjs
+?? tests/support/fixtures/api.ts
+?? tests/support/steps/api/identity.ts
+?? tests/support/steps/api/permissions.ts
+?? tests/support/steps/api/platform.ts
+?? tests/support/steps/api/read.ts
+?? tests/synthetic/api.integration.mjs
+?? tests/synthetic/harness.mjs
+?? tests/synthetic/model.mjs
+?? tests/unit/api-identity.test.mjs
+?? tests/unit/api-permissions.test.mjs
+?? tests/unit/api-platform.test.mjs
+?? tests/unit/api-read.test.mjs
+?? tests/unit/api-tools.test.mjs

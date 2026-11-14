@@ -1,0 +1,11 @@
+$ node --test tests/synthetic/api.integration.mjs
+8 条新增 API 流程及扩充匿名矩阵在合成 HTTP 服务实际通过；不代表真实业务通过。
+✔ API 合成装配：8条新流程、匿名矩阵、写前提、失败恢复及敏感产物扫描 (10888.201792ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10950.388083

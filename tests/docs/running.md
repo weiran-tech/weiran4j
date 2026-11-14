@@ -54,3 +54,12 @@ pnpm test:flows feedback <flowId> --verdict useful --run-id <runId>
 认证过程禁用自动 trace/video/失败截图，敏感输入失败只给固定错误；可显式保存挑选的非敏感页面及白名单状态。不得保存密码、Cookie、token、请求认证头或完整 storageState 作为普通附件。缓存与恢复文件在 tests/.local/，普通产物在 tests/.artifacts/，二者均忽略。
 
 `pnpm test:flows:browser` 仅访问其隔离的随机端口合成服务，结束时关闭所有资源。它证明框架接线，不证明真实业务服务可用。[覆盖边界](coverage.md) 中必须分别记录三类结果。
+
+
+## 核心 API 与业务资源恢复
+
+API读取：`pnpm test:flows run system/core-read --env local`、`region/read`。API写入：`FLOW_ALLOW_WRITE=true pnpm test:flows run --tag api-business --env local`；缺开关或为false在登录前拒绝。API只需后端，专用账号须具有对应管理权限，不依赖Chromium。
+
+8条新增流程和具体边界见 [coverage.md](coverage.md)；离线检查后可执行 `pnpm test:api:synthetic`，结果仅属于协议装配。真实环境仍使用相同CLI执行并保留原生报告。
+
+资源写前清单为 `tests/.local/api-resources/<env>/<24位资源runId>.json`，失败保留0600文件。使用 `FLOW_ALLOW_WRITE=true pnpm test:api:cleanup --env local --run-id <24位资源runId>` 恢复，支持同样的API/web地址覆盖。恢复编号取资源错误消息/清单文件名，不是CLI报告编号。恢复只精确清理本次记录、匹配环境和身份的普通资源，不批量按前缀删，不重发创建，不修改既有数据。会话恢复和业务资源恢复分开，真实审计日志保留。

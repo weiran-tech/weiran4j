@@ -17,7 +17,7 @@ read-only 不改变业务状态；transition 必须保存 before-state、after-s
 
 匿名 API 使用 support/fixtures/test 的独立 backend。认证业务 fixture 为 support/fixtures/authenticated；loginAs 只登录一次，跨角色使用独立用例。HttpOnly Cookie 由 BrowserContext/storageState 处理；写请求使用同一上下文的 CSRF，不添加旧版认证头或 localStorage 主体。fixture 清理自己创建的会话，借用的缓存由操作者管理。
 
-严格使用数字 code=0；失败核对 HTTP 状态与数字业务码。当前普通登出仅清 Cookie，不能断言旧 JWT 被吊销；真正的业务写入必须核对状态变化并验证业务清理，不以退出会话冒充回滚。不要自动修改种子、密码、权限或 token_version 来凑测试前提。
+严格使用数字 code=0；失败核对 HTTP 状态与数字业务码。当前普通登出仅清 Cookie，不能断言旧 JWT 被吊销；真正的业务写入必须核对状态变化并验证业务清理，不以退出会话冒充回滚。不要自动修改既有种子、账号密码、角色权限或 token_version 来凑测试前提；临时账号/角色仅按本次明确的所有权清单管理。
 
 敏感用例在 spec 中显式 `test.use({ trace: 'off', screenshot: 'off', video: 'off' })`，原始凭据操作日志要替换为固定错误。白名单状态由 attachState 保存，页面截图仅在非敏感阶段显式生成。
 
@@ -30,3 +30,6 @@ pnpm test:flows run demo/example --env local
 ```
 
 最后一项需要专用真实环境。分别记录离线、合成和真实执行结果；缺前提应说明并失败，不能跳过或放宽复核。源项目的 test-flows/、合同/返利/STS 不是本仓测试来源或执行入口。
+
+
+API业务流程使用 `support/fixtures/api.ts`，不依赖Page或Chromium。写用例声明 `test.use({ writes: true })`、manifest中的ALLOW_WRITE参数；fixture在登录前严格检查开关。复用 `support/api/protocol.mjs` 的固定错误断言，以及 `resources` 的写前登记、精确所有权和逆序清理；不要绕开资源清单创建业务记录（明确的重复/冲突负例只能引用已登记的本次资源）。现有角色资料与菜单授权共用version；配置只公开白名单站点标题，不能虚构自定义公开开关。每次新增行为都要用故障替身验证步骤会失败，合成装配只能声明为合成验证。

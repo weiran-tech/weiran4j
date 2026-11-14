@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "id": "system/dict-lifecycle",
+  "title": "字典项排序、启用与级联",
+  "runner": "playwright",
+  "entry": "api/system/dict-lifecycle/dict-lifecycle.spec.ts",
+  "project": "api",
+  "businessProject": "weiran4j",
+  "kind": "transition",
+  "envs": [
+    "local"
+  ],
+  "tags": [
+    "api-business",
+    "authenticated",
+    "writes"
+  ],
+  "expectedCases": 1,
+  "params": [
+    {
+      "name": "ALLOW_WRITE",
+      "description": "仅在专用测试环境显式设置 true 才允许创建与删除本次数据",
+      "required": true
+    }
+  ],
+  "preconditions": [
+    "API 已由操作者启动；不自动启动后端/后台。",
+    "明确提供专用管理测试账号，密码登录无需 MFA，拥有本流程管理权限；凭据文件0600。",
+    "FLOW_ALLOW_WRITE=true；只操作本次唯一标记的普通资源。"
+  ],
+  "verification": [
+    "字典项排序、启用与级联",
+    "分别验证 HTTP 状态、数字 code 和业务后置状态；错误与空结果不混淆。"
+  ],
+  "limitations": [
+    "合成验证不代表真实业务通过；缺真实环境明确未运行。",
+    "认证和业务写入会保留审计日志，不删除日志。",
+    "本流程不覆盖所有API或任意角色组合。"
+  ],
+  "steps": [
+    "support/steps/api/platform.ts"
+  ],
+  "inputs": [
+    "support/fixtures/api.ts",
+    "support/helpers/environment.ts",
+    "support/helpers/evidence.ts"
+  ],
+  "cleanup": "finally 正常清理本次会话；借用缓存保留。按私有清单逆序清理业务数据并复查，失败保留材料且执行失败；test:api:cleanup 可恢复。",
+  "evidence": {
+    "requiredAttachments": [
+      "before-state",
+      "after-state",
+      "cleanup-state"
+    ]
+  }
+}

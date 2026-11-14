@@ -98,6 +98,8 @@
 
 **2026-11-15**
 
+- `cover-core-admin-api-workflows` 补齐8条业务API流程与核心匿名矩阵：用户/角色/菜单/字典/配置生命周期、同会话撤权、核心读取与地区只读；总计15条。写入显式允许，独立Cookie/CSRF、唯一资源写前登记和精确恢复；测试产物不保存真实业务响应。实际覆盖/真实执行边界见 docs/testing.md、tests/docs/coverage.md 与本change验收记录；不把合成通过当真实业务通过。
+
 - `import-test-workflow-framework` 引入根 `tests/` 工作流：Playwright API/E2E、Bruno 与统一 CLI/注册表/严格证据复核，保留原 Gradle/Vitest 测试；CI 新增独立 Node 24 离线门禁。Cookie/CSRF 会话材料仅写 gitignore 的私有目录，正常登出验证 Cookie/缓存清除和匿名拒绝，不声明旧 JWT 已吊销。7 条系统流程已适配，离线与合成 Chromium 服务验证独立于真实业务通过结论；真实环境需专用账号与已启动服务。本次未运行真实业务流程。入口见 `docs/testing.md` 与 `tests/docs/coverage.md`。
 
 **2026-11-14**

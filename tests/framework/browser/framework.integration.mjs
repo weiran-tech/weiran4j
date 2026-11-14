@@ -113,7 +113,17 @@ test('Chromium：人工/API登录、CLI复用、Cookie/CSRF、系统流程与失
         // Execute the seven real system flow definitions against synthetic protocol endpoints.
         fs.rmSync(path.join(root,'e2e'),{recursive:true});
         for(const name of ['api','e2e','bruno','support']) fs.cpSync(path.join(source,name),path.join(root,name),{recursive:true});
-        write('tests/registry.json',fs.readFileSync(path.join(source,'registry.json')));
+        const originalRegistry = JSON.parse(fs.readFileSync(path.join(source, 'registry.json')));
+        originalRegistry.flows = originalRegistry.flows.filter((manifest) => {
+            const meta = JSON.parse(fs.readFileSync(path.join(source, manifest)));
+            if (!meta.tags.includes('api-business')) return true;
+            fs.rmSync(path.join(root, path.dirname(manifest)), { recursive: true, force: true });
+            return false;
+        });
+        fs.rmSync(path.join(root, 'support/steps/api'), { recursive: true, force: true });
+        const stepIndex = path.join(root, 'support/steps/INDEX.md');
+        fs.writeFileSync(stepIndex, fs.readFileSync(stepIndex, 'utf8').split('\n').filter((line) => !line.startsWith('| `api/')).join('\n'));
+        json('tests/registry.json', originalRegistry);
         json('tests/envs/local.json',addresses);
         result=await cli('run','--runner','playwright','--env','local','--headless');assert.equal(result.code,0,result.logs);
         result=await cli('run','--runner','bruno','--env','local');assert.equal(result.code,0,result.logs);

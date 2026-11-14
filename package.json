@@ -27,7 +27,9 @@
     "test:integration:ui": "node tests/framework/cli.mjs run --runner playwright --project e2e --env local --ui",
     "test:integration:list": "playwright test --config tests/playwright.config.ts --list",
     "test:flows:smoke": "node tests/framework/cli.mjs run --tag smoke --env local",
-    "test:flows:doctor": "node tests/framework/cli.mjs doctor"
+    "test:flows:doctor": "node tests/framework/cli.mjs doctor",
+    "test:api:cleanup": "node tests/support/api/cleanup.mjs",
+    "test:api:synthetic": "node --test tests/synthetic/api.integration.mjs"
   },
   "devDependencies": {
     "turbo": "^2.11.10",

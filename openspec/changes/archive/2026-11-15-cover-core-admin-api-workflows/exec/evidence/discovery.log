@@ -1,0 +1,789 @@
+[
+  {
+    "version": 1,
+    "id": "system/health",
+    "title": "后端公开健康检查",
+    "runner": "playwright",
+    "entry": "api/system/health/health.spec.ts",
+    "kind": "read-only",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "smoke",
+      "system",
+      "api"
+    ],
+    "expectedCases": 1,
+    "params": [],
+    "preconditions": [
+      "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。"
+    ],
+    "verification": [
+      "HTTP 200、code 为数字 0、data.status 为 UP。"
+    ],
+    "limitations": [
+      "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。",
+      "此接口只检查存活，不代表数据库、缓存或第三方依赖健康。"
+    ],
+    "steps": [
+      "support/steps/system/health.ts"
+    ],
+    "inputs": [
+      "support/fixtures/test.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "无业务数据变更；释放独立请求/浏览器上下文。",
+    "evidence": {
+      "requiredAttachments": [
+        "health-state"
+      ]
+    },
+    "project": "api",
+    "businessProject": "weiran4j",
+    "manifest": "api/system/health/flow.json",
+    "plan": "api/system/health/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/access-boundary",
+    "title": "核心后台接口匿名访问边界",
+    "runner": "playwright",
+    "entry": "api/system/access-boundary/access.spec.ts",
+    "kind": "read-only",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "smoke",
+      "system",
+      "auth",
+      "api"
+    ],
+    "expectedCases": 1,
+    "params": [],
+    "preconditions": [
+      "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。"
+    ],
+    "verification": [
+      "匿名读取本人、授权快照和登出请求均为 401/100101，data 为 null。",
+      "用户/角色/菜单/字典/配置/登录日志/操作日志的匿名读取均返回401/100101。"
+    ],
+    "limitations": [
+      "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。"
+    ],
+    "steps": [
+      "support/steps/system/access-boundary.ts"
+    ],
+    "inputs": [
+      "support/fixtures/test.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "无业务数据变更；释放独立请求/浏览器上下文。",
+    "evidence": {
+      "requiredAttachments": [
+        "access-state"
+      ]
+    },
+    "project": "api",
+    "businessProject": "weiran4j",
+    "manifest": "api/system/access-boundary/flow.json",
+    "plan": "api/system/access-boundary/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/login-entry",
+    "title": "后台登录入口与 API 代理",
+    "runner": "playwright",
+    "entry": "e2e/system/login-entry/login.spec.ts",
+    "kind": "read-only",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "smoke",
+      "system",
+      "ui"
+    ],
+    "expectedCases": 1,
+    "params": [],
+    "preconditions": [
+      "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。"
+    ],
+    "verification": [
+      "匿名访问 /profile 跳转登录，密码表单可用；同源代理保持 401/100101。"
+    ],
+    "limitations": [
+      "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。"
+    ],
+    "steps": [
+      "support/steps/system/login-entry.ts"
+    ],
+    "inputs": [
+      "support/fixtures/test.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "无业务数据变更；释放独立请求/浏览器上下文。",
+    "evidence": {
+      "requiredAttachments": [
+        "login-state",
+        "login-screenshot"
+      ]
+    },
+    "project": "e2e",
+    "businessProject": "weiran4j",
+    "manifest": "e2e/system/login-entry/flow.json",
+    "plan": "e2e/system/login-entry/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/health-manual",
+    "title": "手工健康检查与接口断言",
+    "runner": "bruno",
+    "entry": "bruno/system/health/health.yml",
+    "kind": "read-only",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "smoke",
+      "system",
+      "manual"
+    ],
+    "expectedCases": 1,
+    "params": [],
+    "preconditions": [
+      "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。"
+    ],
+    "verification": [
+      "HTTP 200、数字 code 0、data.status 为 UP。"
+    ],
+    "limitations": [
+      "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。",
+      "仅存活，不证明依赖健康。"
+    ],
+    "steps": [],
+    "inputs": [],
+    "cleanup": "无业务数据变更；释放独立请求/浏览器上下文。",
+    "evidence": {
+      "requiredAttachments": []
+    },
+    "businessProject": "weiran4j",
+    "manifest": "bruno/system/health/flow.json",
+    "plan": "bruno/system/health/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/access-manual",
+    "title": "手工未登录鉴权检查",
+    "runner": "bruno",
+    "entry": "bruno/system/access/profile-anonymous.yml",
+    "kind": "read-only",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "smoke",
+      "system",
+      "manual"
+    ],
+    "expectedCases": 1,
+    "params": [],
+    "preconditions": [
+      "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。"
+    ],
+    "verification": [
+      "匿名本人读取为 401/100101、data=null。"
+    ],
+    "limitations": [
+      "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。"
+    ],
+    "steps": [],
+    "inputs": [],
+    "cleanup": "无业务数据变更；释放独立请求/浏览器上下文。",
+    "evidence": {
+      "requiredAttachments": []
+    },
+    "businessProject": "weiran4j",
+    "manifest": "bruno/system/access/flow.json",
+    "plan": "bruno/system/access/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/admin-session",
+    "title": "API Cookie 会话、授权快照与 CSRF 清理",
+    "runner": "playwright",
+    "entry": "api/system/admin-session/admin-session.spec.ts",
+    "kind": "transition",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "authenticated",
+      "local",
+      "sts"
+    ],
+    "expectedCases": 1,
+    "params": [],
+    "preconditions": [
+      "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。",
+      "明确提供专用密码测试账号；环境不要求短信/MFA/SSO；凭据文件 tests/.local/admin.json 权限为 0600。",
+      "同角色会话缓存需先清理；本流程创建自己的认证上下文。"
+    ],
+    "verification": [
+      "登录主体和授权快照一致。",
+      "Cookie 缓存复用校验当前身份，写请求使用 CSRF；清理后 Cookie/缓存移除，匿名访问被拒。",
+      "已登录但缺 CSRF 的写请求为 403/100103。"
+    ],
+    "limitations": [
+      "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。",
+      "会写入真实登录/登出日志；不删除审计记录。",
+      "普通登出不吊销旧 JWT，测试不修改 token_version 或宣称旧 JWT 立即失效。",
+      "不证明全部受限角色矩阵，未覆盖短信/MFA/SSO、STS 或业务 CRUD。"
+    ],
+    "steps": [
+      "support/steps/system/admin-session.ts"
+    ],
+    "inputs": [
+      "support/fixtures/test.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "finally 清理本次 Cookie 会话和对应本地缓存；失败保留私有恢复材料并使流程失败；旧 JWT 按产品 TTL 到期。",
+    "evidence": {
+      "requiredAttachments": [
+        "before-state",
+        "after-state",
+        "cleanup-state"
+      ]
+    },
+    "project": "api",
+    "businessProject": "weiran4j",
+    "manifest": "api/system/admin-session/flow.json",
+    "plan": "api/system/admin-session/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/admin-browser",
+    "title": "浏览器登录、Cookie 隔离复用与清理",
+    "runner": "playwright",
+    "entry": "e2e/system/admin-browser/admin-browser.spec.ts",
+    "kind": "transition",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "authenticated",
+      "browser"
+    ],
+    "expectedCases": 1,
+    "params": [],
+    "preconditions": [
+      "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。",
+      "明确提供专用密码测试账号；环境不要求短信/MFA/SSO；凭据文件 tests/.local/admin.json 权限为 0600。",
+      "同角色会话缓存需先清理；本流程创建自己的认证上下文。"
+    ],
+    "verification": [
+      "登录主体和授权快照一致。",
+      "Cookie 缓存复用校验当前身份，写请求使用 CSRF；清理后 Cookie/缓存移除，匿名访问被拒。"
+    ],
+    "limitations": [
+      "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。",
+      "会写入真实登录/登出日志；不删除审计记录。",
+      "普通登出不吊销旧 JWT，测试不修改 token_version 或宣称旧 JWT 立即失效。",
+      "不证明全部受限角色矩阵，未覆盖短信/MFA/SSO、STS 或业务 CRUD。"
+    ],
+    "steps": [
+      "support/steps/system/admin-browser.ts",
+      "support/steps/auth/login.ts"
+    ],
+    "inputs": [
+      "support/fixtures/test.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "finally 清理本次 Cookie 会话和对应本地缓存；失败保留私有恢复材料并使流程失败；旧 JWT 按产品 TTL 到期。",
+    "evidence": {
+      "requiredAttachments": [
+        "before-state",
+        "after-state",
+        "cleanup-state",
+        "before-screenshot",
+        "after-screenshot"
+      ]
+    },
+    "project": "e2e",
+    "businessProject": "weiran4j",
+    "manifest": "e2e/system/admin-browser/flow.json",
+    "plan": "e2e/system/admin-browser/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/core-read",
+    "title": "核心后台读取契约",
+    "runner": "playwright",
+    "entry": "api/system/core-read/core-read.spec.ts",
+    "project": "api",
+    "businessProject": "weiran4j",
+    "kind": "read-only",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "api-business",
+      "authenticated",
+      "read-only"
+    ],
+    "expectedCases": 1,
+    "params": [],
+    "preconditions": [
+      "API 已由操作者启动；不自动启动后端/后台。",
+      "明确提供专用管理测试账号，密码登录无需 MFA，拥有本流程管理权限；凭据文件0600。"
+    ],
+    "verification": [
+      "核心后台读取契约",
+      "分别验证 HTTP 状态、数字 code 和业务后置状态；错误与空结果不混淆。"
+    ],
+    "limitations": [
+      "合成验证不代表真实业务通过；缺真实环境明确未运行。",
+      "认证和业务写入会保留审计日志，不删除日志。",
+      "本流程不覆盖所有API或任意角色组合。"
+    ],
+    "steps": [
+      "support/steps/api/read.ts"
+    ],
+    "inputs": [
+      "support/fixtures/api.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "finally 正常清理本次会话；借用缓存保留。只读不修改业务数据。",
+    "evidence": {
+      "requiredAttachments": [
+        "before-state",
+        "after-state",
+        "cleanup-state"
+      ]
+    },
+    "manifest": "api/system/core-read/flow.json",
+    "plan": "api/system/core-read/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/user-lifecycle",
+    "title": "用户生命周期与编辑冲突",
+    "runner": "playwright",
+    "entry": "api/system/user-lifecycle/user-lifecycle.spec.ts",
+    "project": "api",
+    "businessProject": "weiran4j",
+    "kind": "transition",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "api-business",
+      "authenticated",
+      "writes"
+    ],
+    "expectedCases": 1,
+    "params": [
+      {
+        "name": "ALLOW_WRITE",
+        "description": "仅在专用测试环境显式设置 true 才允许创建与删除本次数据",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      "API 已由操作者启动；不自动启动后端/后台。",
+      "明确提供专用管理测试账号，密码登录无需 MFA，拥有本流程管理权限；凭据文件0600。",
+      "FLOW_ALLOW_WRITE=true；只操作本次唯一标记的普通资源。"
+    ],
+    "verification": [
+      "用户生命周期与编辑冲突",
+      "分别验证 HTTP 状态、数字 code 和业务后置状态；错误与空结果不混淆。"
+    ],
+    "limitations": [
+      "合成验证不代表真实业务通过；缺真实环境明确未运行。",
+      "认证和业务写入会保留审计日志，不删除日志。",
+      "本流程不覆盖所有API或任意角色组合。"
+    ],
+    "steps": [
+      "support/steps/api/identity.ts"
+    ],
+    "inputs": [
+      "support/fixtures/api.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "finally 正常清理本次会话；借用缓存保留。按私有清单逆序清理业务数据并复查，失败保留材料且执行失败；test:api:cleanup 可恢复。",
+    "evidence": {
+      "requiredAttachments": [
+        "before-state",
+        "after-state",
+        "cleanup-state"
+      ]
+    },
+    "manifest": "api/system/user-lifecycle/flow.json",
+    "plan": "api/system/user-lifecycle/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/role-lifecycle",
+    "title": "角色生命周期与授权版本",
+    "runner": "playwright",
+    "entry": "api/system/role-lifecycle/role-lifecycle.spec.ts",
+    "project": "api",
+    "businessProject": "weiran4j",
+    "kind": "transition",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "api-business",
+      "authenticated",
+      "writes"
+    ],
+    "expectedCases": 1,
+    "params": [
+      {
+        "name": "ALLOW_WRITE",
+        "description": "仅在专用测试环境显式设置 true 才允许创建与删除本次数据",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      "API 已由操作者启动；不自动启动后端/后台。",
+      "明确提供专用管理测试账号，密码登录无需 MFA，拥有本流程管理权限；凭据文件0600。",
+      "FLOW_ALLOW_WRITE=true；只操作本次唯一标记的普通资源。"
+    ],
+    "verification": [
+      "角色生命周期与授权版本",
+      "分别验证 HTTP 状态、数字 code 和业务后置状态；错误与空结果不混淆。"
+    ],
+    "limitations": [
+      "合成验证不代表真实业务通过；缺真实环境明确未运行。",
+      "认证和业务写入会保留审计日志，不删除日志。",
+      "本流程不覆盖所有API或任意角色组合。"
+    ],
+    "steps": [
+      "support/steps/api/identity.ts"
+    ],
+    "inputs": [
+      "support/fixtures/api.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "finally 正常清理本次会话；借用缓存保留。按私有清单逆序清理业务数据并复查，失败保留材料且执行失败；test:api:cleanup 可恢复。",
+    "evidence": {
+      "requiredAttachments": [
+        "before-state",
+        "after-state",
+        "cleanup-state"
+      ]
+    },
+    "manifest": "api/system/role-lifecycle/flow.json",
+    "plan": "api/system/role-lifecycle/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/menu-lifecycle",
+    "title": "菜单树生命周期与防环",
+    "runner": "playwright",
+    "entry": "api/system/menu-lifecycle/menu-lifecycle.spec.ts",
+    "project": "api",
+    "businessProject": "weiran4j",
+    "kind": "transition",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "api-business",
+      "authenticated",
+      "writes"
+    ],
+    "expectedCases": 1,
+    "params": [
+      {
+        "name": "ALLOW_WRITE",
+        "description": "仅在专用测试环境显式设置 true 才允许创建与删除本次数据",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      "API 已由操作者启动；不自动启动后端/后台。",
+      "明确提供专用管理测试账号，密码登录无需 MFA，拥有本流程管理权限；凭据文件0600。",
+      "FLOW_ALLOW_WRITE=true；只操作本次唯一标记的普通资源。"
+    ],
+    "verification": [
+      "菜单树生命周期与防环",
+      "分别验证 HTTP 状态、数字 code 和业务后置状态；错误与空结果不混淆。"
+    ],
+    "limitations": [
+      "合成验证不代表真实业务通过；缺真实环境明确未运行。",
+      "认证和业务写入会保留审计日志，不删除日志。",
+      "本流程不覆盖所有API或任意角色组合。"
+    ],
+    "steps": [
+      "support/steps/api/identity.ts"
+    ],
+    "inputs": [
+      "support/fixtures/api.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "finally 正常清理本次会话；借用缓存保留。按私有清单逆序清理业务数据并复查，失败保留材料且执行失败；test:api:cleanup 可恢复。",
+    "evidence": {
+      "requiredAttachments": [
+        "before-state",
+        "after-state",
+        "cleanup-state"
+      ]
+    },
+    "manifest": "api/system/menu-lifecycle/flow.json",
+    "plan": "api/system/menu-lifecycle/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/dict-lifecycle",
+    "title": "字典项排序、启用与级联",
+    "runner": "playwright",
+    "entry": "api/system/dict-lifecycle/dict-lifecycle.spec.ts",
+    "project": "api",
+    "businessProject": "weiran4j",
+    "kind": "transition",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "api-business",
+      "authenticated",
+      "writes"
+    ],
+    "expectedCases": 1,
+    "params": [
+      {
+        "name": "ALLOW_WRITE",
+        "description": "仅在专用测试环境显式设置 true 才允许创建与删除本次数据",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      "API 已由操作者启动；不自动启动后端/后台。",
+      "明确提供专用管理测试账号，密码登录无需 MFA，拥有本流程管理权限；凭据文件0600。",
+      "FLOW_ALLOW_WRITE=true；只操作本次唯一标记的普通资源。"
+    ],
+    "verification": [
+      "字典项排序、启用与级联",
+      "分别验证 HTTP 状态、数字 code 和业务后置状态；错误与空结果不混淆。"
+    ],
+    "limitations": [
+      "合成验证不代表真实业务通过；缺真实环境明确未运行。",
+      "认证和业务写入会保留审计日志，不删除日志。",
+      "本流程不覆盖所有API或任意角色组合。"
+    ],
+    "steps": [
+      "support/steps/api/platform.ts"
+    ],
+    "inputs": [
+      "support/fixtures/api.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "finally 正常清理本次会话；借用缓存保留。按私有清单逆序清理业务数据并复查，失败保留材料且执行失败；test:api:cleanup 可恢复。",
+    "evidence": {
+      "requiredAttachments": [
+        "before-state",
+        "after-state",
+        "cleanup-state"
+      ]
+    },
+    "manifest": "api/system/dict-lifecycle/flow.json",
+    "plan": "api/system/dict-lifecycle/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/config-lifecycle",
+    "title": "配置分组生命周期与公开边界",
+    "runner": "playwright",
+    "entry": "api/system/config-lifecycle/config-lifecycle.spec.ts",
+    "project": "api",
+    "businessProject": "weiran4j",
+    "kind": "transition",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "api-business",
+      "authenticated",
+      "writes"
+    ],
+    "expectedCases": 1,
+    "params": [
+      {
+        "name": "ALLOW_WRITE",
+        "description": "仅在专用测试环境显式设置 true 才允许创建与删除本次数据",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      "API 已由操作者启动；不自动启动后端/后台。",
+      "明确提供专用管理测试账号，密码登录无需 MFA，拥有本流程管理权限；凭据文件0600。",
+      "FLOW_ALLOW_WRITE=true；只操作本次唯一标记的普通资源。"
+    ],
+    "verification": [
+      "配置分组生命周期与公开边界",
+      "分别验证 HTTP 状态、数字 code 和业务后置状态；错误与空结果不混淆。"
+    ],
+    "limitations": [
+      "合成验证不代表真实业务通过；缺真实环境明确未运行。",
+      "认证和业务写入会保留审计日志，不删除日志。",
+      "本流程不覆盖所有API或任意角色组合。"
+    ],
+    "steps": [
+      "support/steps/api/platform.ts"
+    ],
+    "inputs": [
+      "support/fixtures/api.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "finally 正常清理本次会话；借用缓存保留。按私有清单逆序清理业务数据并复查，失败保留材料且执行失败；test:api:cleanup 可恢复。",
+    "evidence": {
+      "requiredAttachments": [
+        "before-state",
+        "after-state",
+        "cleanup-state"
+      ]
+    },
+    "manifest": "api/system/config-lifecycle/flow.json",
+    "plan": "api/system/config-lifecycle/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "system/permission-boundary",
+    "title": "隔离账号的允许、拒绝与撤权",
+    "runner": "playwright",
+    "entry": "api/system/permission-boundary/permission-boundary.spec.ts",
+    "project": "api",
+    "businessProject": "weiran4j",
+    "kind": "transition",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "api-business",
+      "authenticated",
+      "writes"
+    ],
+    "expectedCases": 1,
+    "params": [
+      {
+        "name": "ALLOW_WRITE",
+        "description": "仅在专用测试环境显式设置 true 才允许创建与删除本次数据",
+        "required": true
+      }
+    ],
+    "preconditions": [
+      "API 已由操作者启动；不自动启动后端/后台。",
+      "明确提供专用管理测试账号，密码登录无需 MFA，拥有本流程管理权限；凭据文件0600。",
+      "FLOW_ALLOW_WRITE=true；只操作本次唯一标记的普通资源。"
+    ],
+    "verification": [
+      "隔离账号的允许、拒绝与撤权",
+      "分别验证 HTTP 状态、数字 code 和业务后置状态；错误与空结果不混淆。"
+    ],
+    "limitations": [
+      "合成验证不代表真实业务通过；缺真实环境明确未运行。",
+      "认证和业务写入会保留审计日志，不删除日志。",
+      "本流程不覆盖所有API或任意角色组合。"
+    ],
+    "steps": [
+      "support/steps/api/permissions.ts"
+    ],
+    "inputs": [
+      "support/fixtures/api.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "finally 正常清理本次会话；借用缓存保留。按私有清单逆序清理业务数据并复查，失败保留材料且执行失败；test:api:cleanup 可恢复。",
+    "evidence": {
+      "requiredAttachments": [
+        "before-state",
+        "after-state",
+        "cleanup-state"
+      ]
+    },
+    "manifest": "api/system/permission-boundary/flow.json",
+    "plan": "api/system/permission-boundary/plan.md"
+  },
+  {
+    "version": 1,
+    "id": "region/read",
+    "title": "地区公开与后台只读契约",
+    "runner": "playwright",
+    "entry": "api/region/read/read.spec.ts",
+    "project": "api",
+    "businessProject": "weiran4j",
+    "kind": "read-only",
+    "envs": [
+      "local"
+    ],
+    "tags": [
+      "api-business",
+      "authenticated",
+      "read-only"
+    ],
+    "expectedCases": 1,
+    "params": [],
+    "preconditions": [
+      "API 已由操作者启动；不自动启动后端/后台。",
+      "明确提供专用管理测试账号，密码登录无需 MFA，拥有本流程管理权限；凭据文件0600。"
+    ],
+    "verification": [
+      "地区公开与后台只读契约",
+      "分别验证 HTTP 状态、数字 code 和业务后置状态；错误与空结果不混淆。"
+    ],
+    "limitations": [
+      "合成验证不代表真实业务通过；缺真实环境明确未运行。",
+      "认证和业务写入会保留审计日志，不删除日志。",
+      "本流程不覆盖所有API或任意角色组合。"
+    ],
+    "steps": [
+      "support/steps/api/read.ts"
+    ],
+    "inputs": [
+      "support/fixtures/api.ts",
+      "support/helpers/environment.ts",
+      "support/helpers/evidence.ts"
+    ],
+    "cleanup": "finally 正常清理本次会话；借用缓存保留。只读不修改业务数据。",
+    "evidence": {
+      "requiredAttachments": [
+        "before-state",
+        "after-state",
+        "cleanup-state"
+      ]
+    },
+    "manifest": "api/region/read/flow.json",
+    "plan": "api/region/read/plan.md"
+  }
+]
+$ playwright test --config tests/playwright.config.ts --list
+Listing tests:
+  [api] › api/region/read/read.spec.ts:6:1 › 地区公开与后台只读契约
+  [api] › api/system/access-boundary/access.spec.ts:5:1 › 核心业务、本人资料、授权快照和登出接口拒绝未认证请求
+  [api] › api/system/admin-session/admin-session.spec.ts:8:1 › 本地 admin 登录、身份授权、CSRF 与 Cookie 清理闭环
+  [api] › api/system/config-lifecycle/config-lifecycle.spec.ts:6:1 › 配置分组生命周期与公开边界
+  [api] › api/system/core-read/core-read.spec.ts:6:1 › 核心后台读取契约
+  [api] › api/system/dict-lifecycle/dict-lifecycle.spec.ts:6:1 › 字典项排序、启用与级联
+  [api] › api/system/health/health.spec.ts:5:1 › 后端公开健康检查无需登录
+  [api] › api/system/menu-lifecycle/menu-lifecycle.spec.ts:6:1 › 菜单树生命周期与防环
+  [api] › api/system/permission-boundary/permission-boundary.spec.ts:6:1 › 隔离账号的允许、拒绝与撤权
+  [api] › api/system/role-lifecycle/role-lifecycle.spec.ts:6:1 › 角色生命周期与授权版本
+  [api] › api/system/user-lifecycle/user-lifecycle.spec.ts:6:1 › 用户生命周期与编辑冲突
+  [e2e] › e2e/system/admin-browser/admin-browser.spec.ts:9:1 › admin 页面登录、身份页面、隔离上下文复用及Cookie 清理
+  [e2e] › e2e/system/login-entry/login.spec.ts:5:1 › 未登录后台路由跳转登录页，前端代理保持后端鉴权响应
+Total: 13 tests in 13 files

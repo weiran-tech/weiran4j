@@ -1,7 +1,7 @@
 {
   "version": 1,
   "id": "system/access-boundary",
-  "title": "未登录接口鉴权边界",
+  "title": "核心后台接口匿名访问边界",
   "runner": "playwright",
   "entry": "api/system/access-boundary/access.spec.ts",
   "kind": "read-only",
@@ -20,7 +20,8 @@
     "操作者预先启动本项目 API 5200；浏览器流程另需后台 5202 和 Chromium。"
   ],
   "verification": [
-    "匿名读取本人、授权快照和登出请求均为 401/100101，data 为 null。"
+    "匿名读取本人、授权快照和登出请求均为 401/100101，data 为 null。",
+    "用户/角色/菜单/字典/配置/登录日志/操作日志的匿名读取均返回401/100101。"
   ],
   "limitations": [
     "只证明本流程声明的观察；离线与合成回归不等于真实业务通过。"

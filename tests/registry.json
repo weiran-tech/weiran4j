@@ -7,6 +7,14 @@
     "bruno/system/health/flow.json",
     "bruno/system/access/flow.json",
     "api/system/admin-session/flow.json",
-    "e2e/system/admin-browser/flow.json"
+    "e2e/system/admin-browser/flow.json",
+    "api/system/core-read/flow.json",
+    "api/system/user-lifecycle/flow.json",
+    "api/system/role-lifecycle/flow.json",
+    "api/system/menu-lifecycle/flow.json",
+    "api/system/dict-lifecycle/flow.json",
+    "api/system/config-lifecycle/flow.json",
+    "api/system/permission-boundary/flow.json",
+    "api/region/read/flow.json"
   ]
 }

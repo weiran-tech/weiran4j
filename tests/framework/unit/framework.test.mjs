@@ -57,9 +57,9 @@ test('原生维护支持删除预览、共享步骤保留及历史保留；无�
     assert.equal(cli('check', '--deep').status, 0);
 }));
 
-test('七条系统流程完整发现；显式阻塞仍写批次但不启动会话', () => workspace(async ({ root, cli, repo, json, addNative }) => {
+test('完整业务流程发现；显式阻塞仍写批次但不启动会话', () => workspace(async ({ root, cli, repo, json, addNative }) => {
     const system = loadFlows(root).filter((flow) => flow.id.startsWith('system/'));
-    assert.equal(system.length, 7); assert.equal(system.reduce((n, flow) => n + flow.expectedCases, 0), 7);
+    assert.equal(loadFlows(root).length, 15); assert.equal(system.length, 14); assert.equal(system.reduce((n, flow) => n + flow.expectedCases, 0), 14);
     const blocked = addNative('weiran4j/blocked');
     json(path.join(root, blocked.manifest), { ...JSON.parse(fs.readFileSync(path.join(root, blocked.manifest))), tags:['blocked-fixture'], blockedReason:'合成前提缺失' });
     const result = cli('run', '--tag', 'blocked-fixture');
@@ -86,7 +86,7 @@ test('移除的命令与参数直接报错，无兼容分支', () => workspace(a
 
 test('查询、原生执行、独立复核、历史与反馈共享严格判据', () => workspace(async ({ root, cli, addNative, write }) => {
     const flow = addNative();
-    assert.equal(JSON.parse(cli('list', '--project', 'api', '--json').stdout).length, 4);
+    assert.equal(JSON.parse(cli('list', '--project', 'api', '--json').stdout).length, 12);
     assert.equal(JSON.parse(cli('list', '--step', 'auth/login', '--json').stdout).length, 1);
     assert.deepEqual(JSON.parse(cli('list', 'no-match', '--json').stdout), []);
     assert.equal(cli('run', flow.id).status, 0);
