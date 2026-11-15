@@ -6,6 +6,9 @@
 
 ## 已知问题汇总
 
+- **#29 ⚠️ P2 ColumnSettings 测试偶发未捕获 Tooltip 异常，阻断前端发布**
+  症状：2026-11-15 发布 `semi-components-v0.4.2` 时，446 条测试断言全部通过，但 `ColumnSettings.test.tsx` 运行期间 Semi Tooltip 的异步定位回调在 `isElement` 中读取空节点的 `nodeType`，Vitest 因未捕获异常返回失败，npm 上传尚未执行。同一提交 `8d79ae5` 的 main CI 通过，发布工作流第二次运行也通过；重跑恢复发布不代表根因修复。本次仅记录，后续应排查组件卸载后的定位回调与测试清理时序，不忽略未捕获异常。证据：[发布运行第一次与重跑](https://github.com/weiran-tech/weiran4j/actions/runs/43718682397)。
+
 - **#28 ⚠️ P3 七份既有主规格未通过 CLI 全量严格校验**
   症状：执行 `openspec validate --specs --strict --no-interactive` 时，admin-foundation、deployment、observability、system-file-storage、system-site-config、system-sms-sender 的需求正文超过 500 字符，system-media-library 的 Purpose 过短；普通警告在 strict 模式使全量命令返回 1。2026-11-15 归档 import-test-workflow-framework 时，在未改动的 HEAD 基线隔离副本复现相同 7 项；本次涉及的 test-workflows 和 continuous-integration 均通过，仓库 `node openspec/check.mjs` 通过。后续应在保留需求语义和场景标题的前提下整理正文，不通过关闭 strict 掩盖。证据见该归档的 exec/evidence/baseline-spec-validation.log 与 archive-spec-validation.log。
 
