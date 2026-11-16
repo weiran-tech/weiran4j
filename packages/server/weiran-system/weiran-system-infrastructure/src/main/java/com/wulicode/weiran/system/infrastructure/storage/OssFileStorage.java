@@ -30,15 +30,26 @@ public final class OssFileStorage implements FileStorage, DirectUploadStorage, A
     private final String publicBaseUrl;
 
     public OssFileStorage(final SystemStorageProperties.Aliyun properties) {
+        this(properties, OssFileStorage.createClient(properties));
+    }
+
+    OssFileStorage(final SystemStorageProperties.Aliyun properties, final OSS client) {
+        MediaObjectNames.validateFolder(properties.folder());
         this.properties = properties;
         this.publicBaseUrl = OssFileStorage.trimSlash(properties.publicBaseUrl());
-        this.client = new OSSClientBuilder()
+        this.client = client;
+    }
+
+    private static OSS createClient(final SystemStorageProperties.Aliyun properties) {
+        MediaObjectNames.validateFolder(properties.folder());
+        return new OSSClientBuilder()
                 .build(properties.endpoint(), properties.accessKeyId(), properties.accessKeySecret());
     }
 
     @Override
     public StoredFile store(final String originalName, final InputStream input, final long size, final long userId) {
-        final String objectName = MediaObjectNames.newUserObjectName(originalName, userId, java.time.Clock.systemUTC());
+        final String objectName = MediaObjectNames.newUserObjectName(
+                this.properties.folder(), originalName, userId, java.time.Clock.systemUTC());
         final ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(size);
         final String extension = MediaFileTypes.extension(originalName);
@@ -61,7 +72,8 @@ public final class OssFileStorage implements FileStorage, DirectUploadStorage, A
     public Authorization authorize(final long userId) {
         final Instant now = Instant.now();
         final Instant expiresAt = now.plusSeconds(15 * 60);
-        final String prefix = MediaObjectNames.userPrefix(userId, java.time.Clock.systemUTC());
+        final String prefix =
+                MediaObjectNames.userPrefix(this.properties.folder(), userId, java.time.Clock.systemUTC());
         final String policyJson = "{\"expiration\":\"" + expiresAt + "\",\"conditions\":["
                 + "{\"bucket\":\"" + this.properties.bucket() + "\"},"
                 + "[\"starts-with\",\"$key\",\"" + prefix + "\"],"
@@ -88,7 +100,7 @@ public final class OssFileStorage implements FileStorage, DirectUploadStorage, A
 
     @Override
     public InspectedFile inspect(final String objectName, final String ticket, final long userId) {
-        if (!MediaObjectNames.validDirectKey(objectName) || ticket == null) {
+        if (!MediaObjectNames.validOssDirectKey(objectName) || ticket == null) {
             throw new IllegalArgumentException("上传对象无效");
         }
         final String[] parts = ticket.split("\\.", -1);
@@ -152,7 +164,7 @@ public final class OssFileStorage implements FileStorage, DirectUploadStorage, A
 
     @Override
     public void delete(final String objectName) {
-        if (!MediaObjectNames.validStoredKey(objectName)) {
+        if (!MediaObjectNames.validOssStoredKey(objectName)) {
             throw new IllegalArgumentException("文件对象名无效");
         }
         try {

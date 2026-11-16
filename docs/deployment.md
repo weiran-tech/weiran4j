@@ -65,9 +65,12 @@ Compose 起三个服务：
 | `WEIRAN_STORAGE_MODE` | — | 资源库存储模式：`disabled` 默认拒绝上传，`local` 仅供开发/测试，`aliyun` 使用阿里云 OSS |
 | `WEIRAN_STORAGE_LOCAL_*` | — | `local` 模式的本地根目录与访问前缀 |
 | `WEIRAN_STORAGE_ALIYUN_*` | `aliyun` 模式必填 | Endpoint、Bucket、RAM 子账号凭据与公网访问前缀；凭据只放环境变量 |
+| `WEIRAN_STORAGE_ALIYUN_FOLDER` | — | OSS 媒体根文件夹，默认 `media`；1～64 位 ASCII 字母、数字、下划线或连字符，以字母或数字开头 |
 | `WEIRAN_SMS_MODE` | — | 短信发送模式：`disabled` 默认；`local` 记录替换变量后的短信正文与参数用于受控开发/测试联调；`aliyun` 调用阿里云 |
 | `WEIRAN_SMS_ALIYUN_ACCESS_KEY_ID`、`WEIRAN_SMS_ALIYUN_ACCESS_KEY_SECRET` | `aliyun` 模式必填 | 阿里云短信 RAM 子账号凭据；凭据只放环境变量，建议仅授予 SendSms 权限。签名与验证码模板在「短信配置」页面维护 |
 | 其余 | — | 数据库地址与账号、端口、令牌有效期、令牌签发方 / 受众、前端端口 |
+
+OSS 媒体根目录可通过 `WEIRAN_STORAGE_ALIYUN_FOLDER`（Spring 配置 `weiran.storage.aliyun.folder`）指定，默认 `media`。例如设置为 `assets` 后，新对象写入 `assets/u/<用户标识>/<UTC日期>/<UUID>.<扩展名>`。该项不接受空值、斜杠、点号或空格；只影响 OSS 新授权和后端上传，本地存储仍用 `media`，批处理仍用独立目录。修改配置不移动旧对象或重写已有 URL；旧对象仍可按原记录删除，已签发的授权在其有效期内继续按原目录验收。配置可改回 `media`；若已产生自定义目录对象，直接回退到仅识别 `media` 的旧代码会使这些对象无法登记或删除，需保留兼容校验或先完成历史对象处置。
 
 启用阿里云短信前，先在阿里云短信服务创建并审核签名与模板，再为应用创建最小权限 RAM AccessKey。设置 `WEIRAN_SMS_MODE=aliyun` 并注入 `WEIRAN_SMS_ALIYUN_*` 后重启应用；在「短信配置」页面填写阿里云签名与验证码模板 CODE。SDK 单次调用不自动重试。短信参数由业务模块通过 `SmsService` 传入，短信验证码生命周期和频率限制由业务模块负责；system 不提供公网发送接口。AccessKey 不要写入仓库或日志。
 

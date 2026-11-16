@@ -18,7 +18,9 @@ final class MediaObjectNames {
     private static final DateTimeFormatter DAY_OF_MONTH = DateTimeFormatter.ofPattern("dd", Locale.ROOT);
     private static final String UUID_PART = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
     private static final String FILE_PART = UUID_PART + "\\.[a-z0-9]{2,10}";
-    private static final String USER_KEY = "media/u/[a-z0-9]{8,}/[0-9]{8}/" + FILE_PART;
+    private static final String FOLDER = "[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}";
+    private static final String USER_PATH = "/u/[a-z0-9]{8,}/[0-9]{8}/" + FILE_PART;
+    private static final String USER_KEY = "media" + USER_PATH;
     private static final String ANONYMOUS_KEY = "media/n/[0-9]{6}/[0-9]{2}/" + FILE_PART;
     private static final String LEGACY_LOCAL = "media/[0-9]{6}/[0-9a-fA-F-]{36}\\.[a-z0-9]{2,10}";
     private static final String LEGACY_DIRECT = "media/[0-9]{6}/[0-9a-f-]{36}/" + FILE_PART;
@@ -26,10 +28,21 @@ final class MediaObjectNames {
     private MediaObjectNames() {}
 
     static String userPrefix(final long userId, final Clock clock) {
+        return MediaObjectNames.userPrefix("media", userId, clock);
+    }
+
+    static void validateFolder(final String folder) {
+        if (!folder.matches(MediaObjectNames.FOLDER)) {
+            throw new IllegalArgumentException("WEIRAN_STORAGE_ALIYUN_FOLDER 必须为 1～64 位字母、数字、下划线或连字符，且以字母或数字开头");
+        }
+    }
+
+    static String userPrefix(final String folder, final long userId, final Clock clock) {
+        MediaObjectNames.validateFolder(folder);
         if (userId <= 0) {
             throw new IllegalArgumentException("用户标识无效");
         }
-        return "media/u/" + MediaObjectNames.USER_IDS.encode(userId) + "/"
+        return folder + "/u/" + MediaObjectNames.USER_IDS.encode(userId) + "/"
                 + LocalDate.now(clock).format(MediaObjectNames.DAY) + "/";
     }
 
@@ -40,11 +53,26 @@ final class MediaObjectNames {
     }
 
     static String newUserObjectName(final String originalName, final long userId, final Clock clock) {
+        return MediaObjectNames.newUserObjectName("media", originalName, userId, clock);
+    }
+
+    static String newUserObjectName(
+            final String folder, final String originalName, final long userId, final Clock clock) {
         final String extension = MediaFileTypes.extension(originalName);
         if (!MediaFileTypes.allowed(extension)) {
             throw new IllegalArgumentException("文件扩展名无效");
         }
-        return MediaObjectNames.userPrefix(userId, clock) + UUID.randomUUID() + "." + extension;
+        return MediaObjectNames.userPrefix(folder, userId, clock) + UUID.randomUUID() + "." + extension;
+    }
+
+    static boolean validOssDirectKey(final String objectName) {
+        return (objectName.matches(MediaObjectNames.FOLDER + MediaObjectNames.USER_PATH)
+                        || objectName.matches(MediaObjectNames.LEGACY_DIRECT))
+                && MediaFileTypes.allowed(MediaFileTypes.extension(objectName));
+    }
+
+    static boolean validOssStoredKey(final String objectName) {
+        return MediaObjectNames.validOssDirectKey(objectName) || MediaObjectNames.validStoredKey(objectName);
     }
 
     static boolean validDirectKey(final String objectName) {

@@ -61,6 +61,8 @@ weiran:
       access-key-id: ${WEIRAN_STORAGE_ALIYUN_ACCESS_KEY_ID:}
       access-key-secret: ${WEIRAN_STORAGE_ALIYUN_ACCESS_KEY_SECRET:}
       public-base-url: ${WEIRAN_STORAGE_ALIYUN_PUBLIC_BASE_URL:}
+      # OSS 媒体对象的单级根文件夹，默认 media；只影响新授权与后端上传。
+      folder: ${WEIRAN_STORAGE_ALIYUN_FOLDER:media}
   sms:
     # 可选值：disabled（默认，不发送）、local（记录模板与参数，仅受控开发/测试）、aliyun（阿里云短信）。
     mode: ${WEIRAN_SMS_MODE:disabled}

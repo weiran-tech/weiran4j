@@ -13,6 +13,22 @@ class MediaObjectNamesTest {
     private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-10-31T23:05:00Z"), ZoneOffset.UTC);
 
     @Test
+    @DisplayName("OSS 定制根目录保留用户与日期结构，本地校验仍仅接受 media")
+    void namesCustomOssFiles() {
+        final String objectName =
+                MediaObjectNames.newUserObjectName("Assets_1", "Photo.PNG", 7L, MediaObjectNamesTest.CLOCK);
+        assertThat(objectName).matches("Assets_1/u/[a-z0-9]{8,}/20261031/[0-9a-f-]{36}\\.png");
+        assertThat(MediaObjectNames.validOssDirectKey(objectName)).isTrue();
+        assertThat(MediaObjectNames.validOssStoredKey(objectName)).isTrue();
+        assertThat(MediaObjectNames.validStoredKey(objectName)).isFalse();
+        assertThat(MediaObjectNames.validOssStoredKey("../" + objectName)).isFalse();
+        assertThat(MediaObjectNames.validOssStoredKey("a/" + objectName)).isFalse();
+        assertThat(MediaObjectNames.validOssStoredKey(objectName.replace(".png", ".exe")))
+                .isFalse();
+        assertThat(MediaObjectNames.validOssStoredKey("assets/anything.png")).isFalse();
+    }
+
+    @Test
     @DisplayName("用户路径使用稳定的小写 Hashids 标识和 UTC 日期")
     void namesUserFiles() {
         final String prefix = MediaObjectNames.userPrefix(7L, MediaObjectNamesTest.CLOCK);
