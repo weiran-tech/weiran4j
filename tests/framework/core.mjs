@@ -4,6 +4,8 @@ import { createHash } from 'node:crypto';
 import { brunoConfigFiles } from "./bruno.mjs";
 import { dependencyGraph, inspectSteps } from "./inspect.mjs";
 
+// 标签只表达测试集合或专项；类型、工具、环境与状态使用独立字段。
+export const FLOW_TAGS = Object.freeze(['smoke', 'critical', 'permission', 'validation', 'security']);
 export const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 export const digest = (data) => createHash('sha256').update(data).digest('hex');
 export function writeJson(file, data) {
@@ -53,6 +55,7 @@ export function validateFlow(meta, root, manifest) {
     requireCondition(Number.isSafeInteger(meta.expectedCases) && meta.expectedCases > 0, 'expectedCases 必须为正整数');
     for (const name of ['envs', 'preconditions', 'verification', 'limitations']) strings(meta[name], name, true);
     for (const name of ['tags', 'steps', 'inputs']) strings(meta[name], name);
+    requireCondition(meta.tags.every((tag) => FLOW_TAGS.includes(tag)), `tags 仅支持：${FLOW_TAGS.join(', ')}；无合适标签时使用空数组`);
     meta.envs.forEach((env) => requireCondition(/^[a-zA-Z0-9_-]+(?:\.local)?$/.test(env), '环境名格式无效'));
     text(meta.cleanup, 'cleanup');
     const entry = inside(root, meta.entry);
@@ -162,7 +165,7 @@ export function flowHash(root, flow) {
     const common = flow.runner === 'playwright' ? ['playwright.config.ts'] : brunoConfigFiles(root, flow);
     const dependencies = flow.runner === 'playwright' ? dependencyGraph(root, [flow.entry, ...flow.inputs, ...flow.steps, ...common]) : [];
     const files = [...new Set([...dependencies, flow.manifest, flow.plan, flow.entry, ...flow.steps, ...flow.inputs, ...common,
-        '../package.json', '../pnpm-lock.yaml', 'framework/cli.mjs', 'framework/core.mjs', 'framework/inspect.mjs', 'framework/process.mjs', 'framework/bruno.mjs', 'framework/session.mjs', 'framework/scaffold.mjs', 'framework/utils.mjs', 'framework/maintenance.mjs', 'framework/batch.mjs', 'framework/catalog.mjs', 'framework/browser.mjs'])].sort();
+        '../package.json', '../pnpm-lock.yaml', 'framework/cli.mjs', 'framework/core.mjs', 'framework/inspect.mjs', 'framework/process.mjs', 'framework/bruno.mjs', 'framework/session.mjs', 'framework/scaffold.mjs', 'framework/utils.mjs', 'framework/maintenance.mjs', 'framework/batch.mjs', 'framework/catalog.mjs', 'framework/browser.mjs', 'framework/report.mjs', 'framework/report-model.mjs', 'framework/discovery.mjs'])].sort();
     const hash = createHash('sha256');
     for (const relative of files) {
         const file = path.resolve(root, relative);

@@ -62,7 +62,7 @@ test('实际间接依赖即使未手写 inputs 也参与指纹', () => fixture((
     write('support/steps/demo/shared.ts', "export { read } from '../../helpers/util';");
     write('support/helpers/util.ts', 'export function read() { return 1; }');
     for (const file of ['playwright.config.ts', '../package.json', '../pnpm-lock.yaml', 'framework/cli.mjs', 'framework/core.mjs',
-        'framework/inspect.mjs', 'framework/process.mjs', 'framework/bruno.mjs', 'framework/session.mjs', 'framework/scaffold.mjs', 'framework/utils.mjs', 'framework/maintenance.mjs', 'framework/batch.mjs', 'framework/catalog.mjs', 'framework/browser.mjs', flow().manifest, flow().plan]) write(file, 'initial');
+        'framework/inspect.mjs', 'framework/process.mjs', 'framework/bruno.mjs', 'framework/session.mjs', 'framework/scaffold.mjs', 'framework/utils.mjs', 'framework/maintenance.mjs', 'framework/batch.mjs', 'framework/catalog.mjs', 'framework/browser.mjs', 'framework/report.mjs', 'framework/report-model.mjs', 'framework/discovery.mjs', flow().manifest, flow().plan]) write(file, 'initial');
     const before = flowHash(root, flow());
     write('support/helpers/util.ts', 'export function read() { return 2; }');
     assert.notEqual(before, flowHash(root, flow()));
@@ -123,7 +123,7 @@ test('配置多级 extends、数组继承与父配置变动参与指纹，缺失
     write('../extra.json', '{"compilerOptions":{"target":"ES2022"}}');
     write('tsconfig.json', '{"extends":["../middle.json","../extra.json"]}');
     for (const file of ['playwright.config.ts', '../package.json', '../pnpm-lock.yaml', 'framework/cli.mjs', 'framework/core.mjs',
-        'framework/inspect.mjs', 'framework/process.mjs', 'framework/bruno.mjs', 'framework/session.mjs', 'framework/scaffold.mjs', 'framework/utils.mjs', 'framework/maintenance.mjs', 'framework/batch.mjs', 'framework/catalog.mjs', 'framework/browser.mjs', flow().manifest, flow().plan]) write(file, 'initial');
+        'framework/inspect.mjs', 'framework/process.mjs', 'framework/bruno.mjs', 'framework/session.mjs', 'framework/scaffold.mjs', 'framework/utils.mjs', 'framework/maintenance.mjs', 'framework/batch.mjs', 'framework/catalog.mjs', 'framework/browser.mjs', 'framework/report.mjs', 'framework/report-model.mjs', 'framework/discovery.mjs', flow().manifest, flow().plan]) write(file, 'initial');
     const files = dependencyGraph(root, [flow().entry]);
     for (const name of ['../base.json', '../middle.json', '../extra.json']) assert.ok(files.includes(name));
     const before = flowHash(root, flow());
@@ -136,7 +136,7 @@ test('配置多级 extends、数组继承与父配置变动参与指纹，缺失
 test('Bruno 生效的 collection 和父目录 folder 配置参与指纹', () => fixture((root, write) => {
     const item = { ...flow(), runner: 'bruno', entry: 'bruno/domain/read.yml', steps: [], inputs: [] };
     for (const file of [item.entry, item.manifest, item.plan, 'bruno/opencollection.yml', '../package.json', '../pnpm-lock.yaml',
-        'framework/cli.mjs', 'framework/core.mjs', 'framework/inspect.mjs', 'framework/process.mjs', 'framework/bruno.mjs', 'framework/session.mjs', 'framework/scaffold.mjs', 'framework/utils.mjs', 'framework/maintenance.mjs', 'framework/batch.mjs', 'framework/catalog.mjs', 'framework/browser.mjs']) write(file, 'initial');
+        'framework/cli.mjs', 'framework/core.mjs', 'framework/inspect.mjs', 'framework/process.mjs', 'framework/bruno.mjs', 'framework/session.mjs', 'framework/scaffold.mjs', 'framework/utils.mjs', 'framework/maintenance.mjs', 'framework/batch.mjs', 'framework/catalog.mjs', 'framework/browser.mjs', 'framework/report.mjs', 'framework/report-model.mjs', 'framework/discovery.mjs']) write(file, 'initial');
     const before = flowHash(root, item);
     write('bruno/opencollection.yml', 'collection settings');
     const collection = flowHash(root, item);

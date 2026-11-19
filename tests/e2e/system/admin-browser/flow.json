@@ -9,8 +9,7 @@
     "local"
   ],
   "tags": [
-    "authenticated",
-    "browser"
+    "security"
   ],
   "expectedCases": 1,
   "params": [],

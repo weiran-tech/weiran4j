@@ -53,7 +53,7 @@ test('API 合成装配：8条新流程、匿名矩阵、写前提、失败恢复
         fs.cpSync(path.join(source, 'bruno'), path.join(root, 'bruno'), { recursive: true });
         fs.writeFileSync(path.join(root, 'registry.json'), JSON.stringify(registry));
         fs.mkdirSync(path.join(root, 'envs')); fs.writeFileSync(path.join(root, 'envs/local.json'), JSON.stringify({ apiBaseURL: address, webBaseURL: address }));
-        const run = await cli('run', '--tag', 'api-business', '--env', 'local');
+        const run = await cli('run', '--tag', 'critical', '--env', 'local');
         assert.equal(run.code, 0, run.output);
         assert.match(run.output, /"selected": 8/);
         const anonymous = await cli('run', 'system/access-boundary', '--env', 'local'); assert.equal(anonymous.code, 0, anonymous.output);

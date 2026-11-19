@@ -74,7 +74,7 @@ function initFlowUnlocked(root, id, { runner = 'playwright', project = 'e2e', ti
     if (fs.existsSync(path.join(root, directory))) throw new Error('流程目录已存在，拒绝覆盖');
     const template = path.join(root, 'framework/templates', runner);
     const flow = JSON.parse(fs.readFileSync(path.join(template, 'flow.json'), 'utf8'));
-    flow.id = id; flow.businessProject = 'weiran4j'; flow.title = title; flow.tags = ['draft'];
+    flow.id = id; flow.businessProject = 'weiran4j'; flow.title = title; flow.tags = [];
     flow.entry = `${directory}/${runner === 'playwright' ? `${name}.spec.ts` : 'request.yml'}`;
     const files = new Map();
     let index;
@@ -116,7 +116,7 @@ function initFlowUnlocked(root, id, { runner = 'playwright', project = 'e2e', ti
             throw error;
         }
     }
-    return { dryRun, files: [...files.keys(), 'registry.json', ...(index ? ['support/steps/INDEX.md'] : [])], note: '已登记 draft；模板运行必失败，填写计划、步骤、证据后再运行。' };
+    return { dryRun, files: [...files.keys(), 'registry.json', ...(index ? ['support/steps/INDEX.md'] : [])], note: '已登记待实现流程；模板运行必失败，填写计划、步骤、证据后再运行。' };
 }
 
 export function newStep(root, id, dryRun = false) {

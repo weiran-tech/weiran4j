@@ -9,9 +9,7 @@
     "local"
   ],
   "tags": [
-    "smoke",
-    "system",
-    "api"
+    "smoke"
   ],
   "expectedCases": 1,
   "params": [],

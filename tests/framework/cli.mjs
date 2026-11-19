@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { readJson, writeJson, digest, inside, loadFlows, resolveExecution, flowHash, verifyReport, captureEvidence } from "./core.mjs";
+import { FLOW_TAGS, readJson, writeJson, digest, inside, loadFlows, resolveExecution, flowHash, verifyReport, captureEvidence } from "./core.mjs";
 import { initFlow, newStep } from "./scaffold.mjs";
 import { saveSession, checkSession, clearSession, recoverSessions } from "./session.mjs";
 import { validateBruno } from "./bruno.mjs";
@@ -14,28 +14,33 @@ import { removeFlow } from "./maintenance.mjs";
 import { runBatch } from "./batch.mjs";
 import { runHistory, statistics, feedbackList, recordFeedback, lintFlows } from "./catalog.mjs";
 import { loginWindow } from "./browser.mjs";
+import { locateReport, writeBatchReport } from './report.mjs';
+import { discoverCases, writeCaseCatalog, showCaseCatalog } from './discovery.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repository = path.dirname(root);
 const runs = path.join(root, '.artifacts/runs');
 const require = createRequire(import.meta.url);
 const usage = `weiran4j 测试工作流：
-  pnpm test:flows list [关键词] [--runner playwright|bruno] [--project api|e2e] [--tag smoke] [--step 路径] [--portal admin] [--json]
+  pnpm test:flows list [关键词] [--text | --json] [--no-open] [--runner playwright|bruno] [--type api|e2e] [--tag smoke] [--step 路径] [--portal admin]
+  pnpm test:flows run [domain/name | --all] [--type api|e2e] [--tag smoke] [--env local] [--dry-run]
+  pnpm test:flows report [batchId|runId] [--env local]
   pnpm test:flows show <domain/name>
   pnpm test:flows check [--deep] [--json]
   pnpm test:flows doctor [--env local]
-  pnpm test:flows init <domain/name> [--runner playwright|bruno] [--project api|e2e] [--title 标题] [--dry-run]
+  pnpm test:flows init <domain/name> [--runner playwright|bruno] [--type api|e2e] [--title 标题] [--dry-run]
   pnpm test:flows step new <domain/name> [--dry-run]
   pnpm test:flows remove <domain/name> [--dry-run | --yes]
-  pnpm test:flows run <domain/name> --env local [--headed | --headless | --ui] [--dry-run]
-  pnpm test:flows run --tag smoke --env local
   pnpm test:flows verify <runId>
   pnpm test:flows history [--flow id] [--env local]
   pnpm test:flows stats [id] [--env local]
   pnpm test:flows feedback <id> --verdict useful|stale|wrong --run-id <runId> [--note 说明]
   pnpm test:flows feedback --list [--flow id] [--env local]
-  pnpm test:flows report <runId>
   pnpm test:flows session login|check|clear|recover --env local --role admin
+浏览目录：list 默认打开可视化目录且不运行；--text/--json 只输出终端流程清单，--no-open 仅生成目录文件。
+浏览器执行：run 可追加 --headed/--headless/--ui（互斥）；与目录浏览相互独立。
+执行范围：run --all 显式选择全部已登记 API/E2E/Bruno 流程；--tag 按标签筛选，可与 --runner/--type/流程 ID 取交集。每批生成一份报告。
+流程标签：${FLOW_TAGS.join(' / ')}；按整个流程选择，不能只运行流程中的部分用例。
 人工登录：session login --manual [--portal admin]；自动登录默认读取所选角色的本地凭据。
 会话复用：run <id> --env local --role admin；不指定 role 时不复用缓存。
 运行参数：--api-base-url URL / --web-base-url URL / --param NAME=VALUE
@@ -47,8 +52,8 @@ function parse(argv) {
     const positional = [];
     const flags = {};
     const params = {};
-    const boolean = ['headed', 'headless', 'ui', 'dry-run', 'deep', 'json', 'yes', 'list', 'manual'];
-    const valued = ['runner', 'tag', 'env', 'api-base-url', 'web-base-url', 'timeout-ms', 'param', 'role', 'title', 'project', 'portal', 'step', 'flow', 'verdict', 'run-id', 'note'];
+    const boolean = ['headed', 'headless', 'ui', 'dry-run', 'deep', 'json', 'yes', 'list', 'manual', 'no-open', 'text', 'all'];
+    const valued = ['runner', 'tag', 'env', 'api-base-url', 'web-base-url', 'timeout-ms', 'param', 'role', 'title', 'type', 'portal', 'step', 'flow', 'verdict', 'run-id', 'note'];
     for (let i = 0; i < argv.length; i++) {
         const token = argv[i];
         if (!token.startsWith('--')) { positional.push(token); continue; }
@@ -80,7 +85,7 @@ function parse(argv) {
 function select(flows, id, flags) {
     const result = flows.filter((flow) => (!id || flow.id === id)
         && (!flags.runner || flow.runner === flags.runner)
-        && (!flags.project || flow.project === flags.project)
+        && (!flags.type || flow.project === flags.type)
         && (!flags.tag || flow.tags.includes(flags.tag))
         && (!flags.env || flow.envs.includes(flags.env)));
     if (!result.length) throw new Error('没有匹配的流程；请运行 list 查看定义及支持环境');
@@ -103,7 +108,7 @@ function commandFor(flow, environment, directory, flags) {
         else if (flags.headed || (flow.project === 'e2e' && !flags.headless && !process.env.CI)) args.push('--headed');
         return { args, cwd: repository, version: executable.version };
     }
-    if (flags.headed || flags.headless || flags.ui) throw new Error('浏览器运行模式只适用于 Playwright');
+    // 混合批次的浏览器选项只传给 Playwright，不妨碍 Bruno 执行。
     const executable = tool('@usebruno/cli');
     return { args: [executable.bin, 'run', path.relative('bruno', flow.entry),
         '--env-var', `baseUrl=${environment.apiBaseURL}`, '--reporter-json', path.join(directory, 'results.json'),
@@ -283,18 +288,19 @@ async function main() {
     const [action = 'help', id] = positional;
     const addresses = ['api-base-url', 'web-base-url'];
     const accepted = {
-        help: [], list: ['runner', 'tag', 'env', 'portal', 'step', 'json', 'project'], show: ['env', 'json'], check: ['deep', 'json'],
+        help: [], list: ['runner', 'tag', 'env', 'portal', 'step', 'json', 'type', 'text', 'no-open', 'timeout-ms'], show: ['env', 'json'], check: ['deep', 'json'],
         doctor: ['env', ...addresses, 'portal', 'json'], history: ['flow', 'env', 'json'], verify: ['json'],
-        run: ['runner', 'project', 'tag', 'env', ...addresses, 'portal', 'headed', 'headless', 'ui', 'dry-run', 'timeout-ms', 'role'],
-        session: ['env', 'role', ...addresses, 'manual', 'portal', 'timeout-ms'], init: ['runner', 'project', 'title', 'dry-run'], step: ['dry-run'],
+        run: ['all', 'runner', 'type', 'tag', 'env', ...addresses, 'portal', 'headed', 'headless', 'ui', 'dry-run', 'timeout-ms', 'role'],
+        session: ['env', 'role', ...addresses, 'manual', 'portal', 'timeout-ms'], init: ['runner', 'type', 'title', 'dry-run'], step: ['dry-run'],
         remove: ['dry-run', 'yes', 'json'], stats: ['env', 'json'], feedback: ['list', 'flow', 'env', 'verdict', 'run-id', 'note', 'json'],
-        report: ['dry-run', 'timeout-ms'],
+        report: ['env', 'dry-run', 'timeout-ms'],
     }[action];
     if (!accepted) throw new Error(`未知命令：${action}`);
     if (Object.keys(flags).some((key) => !accepted.includes(key))) throw new Error('当前命令不支持该选项，请查看 help');
     if (action !== 'run' && Object.keys(params).length) throw new Error('--param 只适用于 run');
     if (flags.runner && !['playwright', 'bruno'].includes(flags.runner)) throw new Error('runner 必须为 playwright/bruno');
-    if (flags.project && !['api', 'e2e'].includes(flags.project)) throw new Error('project 必须为 api/e2e');
+    if (flags.type && !['api', 'e2e'].includes(flags.type)) throw new Error('type 必须为 api/e2e');
+    if (flags.tag && !FLOW_TAGS.includes(flags.tag)) throw new Error(`tag 仅支持：${FLOW_TAGS.join(', ')}`);
     if (flags.role && !/^[a-z][a-z0-9-]*$/.test(flags.role)) throw new Error('role 格式无效');
     if (action === 'step') {
         if (id !== 'new' || positional.length !== 3) throw new Error('用法：step new domain/name');
@@ -308,12 +314,9 @@ async function main() {
         console.log(JSON.stringify(removeFlow(root, id, { dryRun: flags['dry-run'], yes: flags.yes }), null, 2)); return;
     }
     if (action === 'report') {
-        if (!/^\d{17}-[a-f0-9]{8}$/.test(id ?? '')) throw new Error('report 需要有效 runId');
-        const directory = inside(runs, `${id}/report`);
-        if (!fs.existsSync(path.join(directory, 'index.html'))) throw new Error('该运行没有 HTML 报告（Bruno 运行不提供 Playwright HTML）');
-        inside(directory, 'index.html');
-        const executable = tool('@playwright/test');
-        const args = [executable.bin, 'show-report', directory, '--host', '127.0.0.1'];
+        const report = locateReport(root, id, { env: flags.env });
+        if (report.kind === 'batch' && !flags['dry-run']) await writeBatchReport(root, readJson(inside(root, `.artifacts/batches/${report.id}/batch.json`)));
+        const args = [tool('@playwright/test').bin, 'show-report', report.directory, '--host', '127.0.0.1'];
         if (flags['dry-run']) console.log(JSON.stringify({ executable: process.execPath, args }));
         else {
             const result = await executeProcess(args, { cwd: repository, timeoutMs: Number(flags['timeout-ms'] ?? 1800000) });
@@ -350,7 +353,7 @@ async function main() {
         console.log(JSON.stringify(feedbackList(root, { id: flags.flow ?? id, env: flags.env, verdict: flags.verdict, runId: flags['run-id'] }), null, 2)); return;
     }
     if (action === 'init') {
-        console.log(JSON.stringify(initFlow(root, id, { runner: flags.runner, project: flags.project, title: flags.title, dryRun: flags['dry-run'] }), null, 2)); return;
+        console.log(JSON.stringify(initFlow(root, id, { runner: flags.runner, project: flags.type, title: flags.title, dryRun: flags['dry-run'] }), null, 2)); return;
     }
     const flows = loadFlows(root);
     if (action === 'feedback') {
@@ -383,16 +386,29 @@ async function main() {
         const query = id?.toLowerCase();
         const result = flows.filter((flow) => (!query || [flow.id, flow.title, flow.businessProject ?? 'weiran4j', ...flow.tags].join(' ').toLowerCase().includes(query))
             && (!flags.runner || flow.runner === flags.runner)
-            && (!flags.project || flow.project === flags.project) && (!flags.env || flow.envs.includes(flags.env)) && (!flags.tag || flow.tags.includes(flags.tag))
+            && (!flags.type || flow.project === flags.type) && (!flags.env || flow.envs.includes(flags.env)) && (!flags.tag || flow.tags.includes(flags.tag))
             && (!flags.portal || (flow.portal ?? 'admin') === flags.portal) && (!flags.step || flow.steps.some((step) => step === flags.step || step === `support/steps/${flags.step.replace(/\.ts$/, '')}.ts`)));
+        if (flags.text && flags.json) throw new Error('--text 与 --json 互斥');
+        if ((flags.text || flags.json) && (flags['no-open'] || flags['timeout-ms'])) throw new Error('--no-open/--timeout-ms 只适用于可视化目录');
         if (flags.json) console.log(JSON.stringify(result, null, 2));
-        else for (const flow of result) console.log(`${flow.id}\t${flow.runner}\t${flow.kind}\t${flow.title}\t[${flow.tags.join(',')}]${flow.blockedReason ? `\t阻塞：${flow.blockedReason}` : ''}`);
+        else if (flags.text) for (const flow of result) console.log(`${flow.id}\t${flow.runner}\t${flow.kind}\t${flow.title}\t[${flow.tags.join(',')}]${flow.blockedReason ? `\t阻塞：${flow.blockedReason}` : ''}`);
+        else {
+            const selected = new Set(result.map((flow) => flow.id));
+            const cases = discoverCases(root, flows).filter((entry) => selected.has(entry.flow.id));
+            const reportFile = await writeCaseCatalog(root, cases);
+            console.log(JSON.stringify({ mode: 'catalog', executed: false, reportFile }, null, 2));
+            console.log('只读用例目录：没有运行测试。Skipped 表示未执行；实际执行使用 pnpm test:flows run。');
+            if (!flags['no-open']) await showCaseCatalog(reportFile, Number(flags['timeout-ms'] ?? 1800000));
+        }
         return;
     }
     if (action === 'run') {
-        if (!id && !flags.tag && !flags.runner && !flags.project) throw new Error('run 需要流程 id，或 --tag/--runner/--project 筛选');
+        if (flags.all && (id || flags.tag || flags.runner || flags.type)) throw new Error('--all 不能与流程 ID 或筛选条件混用');
+        if (!flags.all && !id && !flags.tag && !flags.runner && !flags.type) throw new Error('run 需要流程 ID、筛选条件或显式 --all');
         const selected = select(flows, id, flags);
-        const batch = await runBatch(root, selected, { environment: flags.env ?? 'local', prepare: (flow) => prepare(flow, flags, params),
+        const selection = { mode: id || flags.tag || flags.runner || flags.type ? 'filtered' : 'all',
+            ...(id ? { flowId: id } : {}), ...Object.fromEntries(['tag', 'runner', 'type'].filter((key) => flags[key]).map((key) => [key, flags[key]])) };
+        const batch = await runBatch(root, selected, { environment: flags.env ?? 'local', selection, prepare: (flow) => prepare(flow, flags, params),
             run: (flow, execution) => run(flow, flags, execution), dryRun: Boolean(flags['dry-run']), shouldStop: () => stopRequested });
         console.log(JSON.stringify(batch, null, 2));
         process.exitCode = batch.ok ? 0 : 1;

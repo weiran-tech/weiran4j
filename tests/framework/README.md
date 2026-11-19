@@ -11,6 +11,9 @@
 | inspect.mjs | TypeScript AST 依赖、步骤索引、发现核对与 HTTP 探测 |
 | bruno.mjs | OpenCollection 配置输入与不执行脚本的语法检查 |
 | batch.mjs | 串行批次及全部选中项状态摘要 |
+| report.mjs | 统一批次原生 HTML 与报告定位 |
+| report-model.mjs | Playwright、Bruno 与执行问题的报告模型适配 |
+| discovery.mjs | 仅发现声明并生成独立的未执行用例目录 |
 | process.mjs | 子进程、总超时、取消与进程组收尾 |
 | session.mjs | 角色凭据、远端主体、缓存、撤销及幂等恢复 |
 | browser.mjs | 非持久人工登录窗口适配 |
@@ -50,3 +53,9 @@ pnpm openspec:validate
 ## 当前协议
 
 Cookie storageState 取代源项目的浏览器本地存储主体。API 与浏览器使用数字成功码和 CSRF；普通登出清 Cookie，不宣称旧 JWT 被吊销。默认 API 5200 / web 5202，无独立 Actuator。源参考提交 507cac6；仅迁入通用框架和 7 条系统流程，不维护跨项目同步关系。
+
+## 框架基线
+
+CLI 统一使用 `--type api|e2e`，全量运行显式使用 `run --all`；list 默认浏览未执行目录，终端使用 --text/--json。报告支持最近批次、batchId、runId，阻塞、未执行及严格复核问题纳入 execution 项目。
+
+标签只表达测试意图，不混入工具、环境、类型或状态。资源恢复保留 support/api 的所有权清单、逆序删除与失败恢复；协议适配继续由本项目维护，不以跨项目同步工具覆盖。

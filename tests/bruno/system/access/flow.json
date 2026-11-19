@@ -10,8 +10,7 @@
   ],
   "tags": [
     "smoke",
-    "system",
-    "manual"
+    "permission"
   ],
   "expectedCases": 1,
   "params": [],

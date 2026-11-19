@@ -11,9 +11,8 @@
     "local"
   ],
   "tags": [
-    "api-business",
-    "authenticated",
-    "writes"
+    "critical",
+    "permission"
   ],
   "expectedCases": 1,
   "params": [

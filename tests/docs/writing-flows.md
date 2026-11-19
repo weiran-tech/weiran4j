@@ -3,13 +3,15 @@
 先读运行指南与 support/steps/INDEX.md；复用实际共享步骤，不复制登录、请求或证据逻辑。
 
 ```bash
-pnpm test:flows init demo/example --project api --dry-run
-pnpm test:flows init demo/example --project api
+pnpm test:flows init demo/example --type api --dry-run
+pnpm test:flows init demo/example --type api
 pnpm test:flows step new demo/shared --dry-run
 pnpm test:flows remove demo/example --dry-run
 ```
 
 新增流程的 flow.json、plan.md、spec/Bruno 请求放同一目录；注册表只存声明路径。脚手架默认产生会失败的占位断言，不能把未实现示例当作成功。模板、注册表和共享步骤 INDEX 通过短时锁更新，普通异常回滚；不自动抢占未知遗留锁。
+
+标签只允许 smoke/critical/permission/validation/security，可为空数组；模板以实际失败表达未实现，不用 draft 标签。CLI 使用 --type，manifest 继续使用 project 字段。
 
 声明稳定 id=domain/name、runner、project、entry、kind、envs、tags、expectedCases、params、preconditions、verification、limitations、steps、inputs、cleanup 与 evidence.requiredAttachments。businessProject 为 weiran4j。所有实际间接共享步骤都需登记；AST 图会把本地依赖纳入代码摘要。不得有未登记 spec/请求或共享一个 entry。
 

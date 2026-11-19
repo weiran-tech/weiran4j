@@ -74,7 +74,7 @@ test('Chromium：人工/API登录、CLI复用、Cookie/CSRF、系统流程与失
         fs.rmSync(path.join(root, 'support/steps'), { recursive: true }); fs.mkdirSync(path.join(root, 'support/steps'), { recursive: true });
         write('tests/support/steps/INDEX.md', '# Steps');
         const flow = { version: 1, businessProject: 'weiran4j', id: 'weiran4j/reuse', title: '合成 Cookie 复用', runner: 'playwright', project: 'e2e',
-            entry: 'e2e/reuse/reuse.spec.ts', kind: 'read-only', expectedCases: 1, envs: ['local'], tags: ['framework'], params: [],
+            entry: 'e2e/reuse/reuse.spec.ts', kind: 'read-only', expectedCases: 1, envs: ['local'], tags: [], params: [],
             preconditions: ['仅合成服务'], verification: ['复用绑定 Cookie'], limitations: ['不代表真实业务覆盖'], cleanup: '清 Cookie 和缓存',
             steps: [], inputs: [], evidence: { requiredAttachments: ['state'] } };
         json('tests/e2e/reuse/flow.json', flow); write('tests/e2e/reuse/plan.md', '# Synthetic reuse');
@@ -116,7 +116,7 @@ test('Chromium：人工/API登录、CLI复用、Cookie/CSRF、系统流程与失
         const originalRegistry = JSON.parse(fs.readFileSync(path.join(source, 'registry.json')));
         originalRegistry.flows = originalRegistry.flows.filter((manifest) => {
             const meta = JSON.parse(fs.readFileSync(path.join(source, manifest)));
-            if (!meta.tags.includes('api-business')) return true;
+            if (!meta.steps.some((step) => step.startsWith('support/steps/api/'))) return true;
             fs.rmSync(path.join(root, path.dirname(manifest)), { recursive: true, force: true });
             return false;
         });

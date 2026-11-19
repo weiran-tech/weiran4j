@@ -71,7 +71,7 @@ pnpm test:flows session recover --env local --role admin
 
 ## 报告与范围
 
-执行器为选择生成批次摘要，为实际执行项生成独立 runId。结果、报告和附件位于被忽略的 `tests/.artifacts/`；首次验证与后续复核分别保存。skipped、flaky、断言降级、空跑或证据缺失均不能通过。
+执行器为选择生成批次摘要和统一 Playwright 原生 HTML，为实际执行项生成独立 runId。`pnpm test:flows report` 查看最近批次，也支持 batchId/runId。`list` 默认浏览未执行目录，终端使用 `--text` 或 `--json`。筛选使用 `--type api|e2e`，全部执行显式使用 `run --all`。结果、报告和附件位于被忽略的 `tests/.artifacts/`；首次验证与后续复核分别保存。skipped、flaky、断言降级、空跑或证据缺失均不能通过。
 
 当前登记 **15 条流程**：原有 7 条基础流程，加 8 条业务 API 流程（11 条 Playwright API、2 条 E2E、2 条 Bruno）。核心用户/角色/菜单/字典/配置 CRUD 和一个受限角色授权生命周期已有流程；完整角色矩阵、短信/MFA/SSO、媒体/文件/批处理、地区写入与导出尚未覆盖。真实业务通过仅以明确环境的实际报告为准。
 
@@ -103,7 +103,7 @@ pnpm test:flows run region/read --env local
 
 # 写入显式允许。首次登录或业务写入前检查开关，缺失/false都失败。
 FLOW_ALLOW_WRITE=true pnpm test:flows run system/user-lifecycle --env local
-FLOW_ALLOW_WRITE=true pnpm test:flows run --tag api-business --env local
+FLOW_ALLOW_WRITE=true pnpm test:flows run --tag critical --env local
 # 全部API（含原有健康/认证）
 FLOW_ALLOW_WRITE=true pnpm test:api
 ```
@@ -119,3 +119,5 @@ FLOW_ALLOW_WRITE=true pnpm test:api:cleanup --env local --run-id <24位资源run
 这里是错误消息/清单文件中的 **24 位资源 runId**，与 CLI 报告的运行编号不同。恢复重新验证专用管理员及目标环境，按固定资源类型和清单身份清理；错误地址/主体、内置资源、ID或父级不符、损坏/权限过宽清单都会失败并保留材料，不进行前缀批删。该命令不重放创建、不修改密码、不删除审计。普通 `session recover` 只处理会话材料，不能代替业务资源清理。
 
 合成验证包含8条业务流程、扩充后的匿名矩阵、写前提拒绝、实际清理失败与恢复入口、普通产物凭据扫描；它不证明真实数据库/部署环境通过。没有专用凭据时，真实业务用例记录未运行。
+
+标签只表达测试集合或专项，允许 `smoke / critical / permission / validation / security`，无匹配时使用空数组。`pnpm test` 包含框架与步骤离线单测及前端测试；完整框架检查使用 `pnpm test:flows:check`，合成浏览器和 API 装配分别执行。

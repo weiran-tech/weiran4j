@@ -17,7 +17,7 @@ async function fixture(run) {
     };
     const json = (name, value) => write(name, JSON.stringify(value));
     try {
-        for (const name of ['framework/cli.mjs', 'framework/core.mjs', 'framework/inspect.mjs', 'framework/process.mjs', 'framework/bruno.mjs', 'framework/session.mjs', 'framework/scaffold.mjs', 'framework/utils.mjs', 'framework/maintenance.mjs', 'framework/batch.mjs', 'framework/catalog.mjs', 'framework/browser.mjs']) {
+        for (const name of ['framework/cli.mjs', 'framework/core.mjs', 'framework/inspect.mjs', 'framework/process.mjs', 'framework/bruno.mjs', 'framework/session.mjs', 'framework/scaffold.mjs', 'framework/utils.mjs', 'framework/maintenance.mjs', 'framework/batch.mjs', 'framework/catalog.mjs', 'framework/browser.mjs', 'framework/report.mjs', 'framework/report-model.mjs', 'framework/discovery.mjs']) {
             write(`tests/${name}`, fs.readFileSync(path.join(source, name)));
         }
         fs.cpSync(path.join(source, 'framework/templates'), path.join(repo, 'tests/framework/templates'), { recursive: true });
@@ -31,7 +31,7 @@ async function fixture(run) {
         json('tests/tsconfig.json', { compilerOptions: { module: 'ESNext', moduleResolution: 'Bundler', target: 'ES2022', noEmit: true, types: ['node'], skipLibCheck: true }, include: ['api/**/*.ts', 'e2e/**/*.ts', 'support/**/*.ts', 'playwright.config.ts'] });
         write('tests/playwright.config.ts', `import {defineConfig} from '@playwright/test'; export default defineConfig({testDir:'.', outputDir:process.env.TEST_FLOW_ARTIFACT_DIR ? process.env.TEST_FLOW_ARTIFACT_DIR+'/results' : 'test-results', reporter:[['json',{outputFile:process.env.TEST_FLOW_ARTIFACT_DIR ? process.env.TEST_FLOW_ARTIFACT_DIR+'/results.json' : undefined}]],projects:[{name:'api'}]});`);
         const flow = { version: 1, id: 'fixture/read', title: 'CLI fixture', runner: 'playwright', project: 'api', entry: 'api/read.spec.ts',
-            kind: 'read-only', envs: ['local'], tags: ['fixture'], expectedCases: 1, params: [], preconditions: ['offline'], verification: ['assertion'],
+            kind: 'read-only', envs: ['local'], tags: [], expectedCases: 1, params: [], preconditions: ['offline'], verification: ['assertion'],
             limitations: ['fixture'], cleanup: 'none', steps: [], inputs: [], evidence: { requiredAttachments: ['state'] } };
         json('tests/api/flow.json', flow);
         write('tests/api/plan.md', '# Plan');
@@ -223,17 +223,17 @@ test('真实 Bruno CLI 对本地测试服务器运行并按请求路径复核', 
 
 test('init/step 脚手架：dry-run 不落盘、模板实际失败、冲突拒绝且索引不重复', () => fixture(async ({ repo, cli }) => {
     assert.equal(cli('session','login','--dry-run').status,1); // 不允许忽略 dry-run 后创建真实会话。
-    assert.equal(cli('init','demo/scaffold','--project','api','--dry-run').status,0);
+    assert.equal(cli('init','demo/scaffold','--type','api','--dry-run').status,0);
     const directory = path.join(repo,'tests/api/demo/scaffold');
     assert.equal(fs.existsSync(directory),false);
-    assert.equal(cli('init','demo/scaffold','--project','api','--title','示例').status,0);
+    assert.equal(cli('init','demo/scaffold','--type','api','--title','示例').status,0);
     const checked = cli('check','--deep');
     assert.equal(checked.status,0,checked.stdout+checked.stderr);
     const run = cli('run','demo/scaffold');
     assert.equal(run.status,1);
     assert.match(run.stdout,/TODO/);
-    assert.equal(cli('init','demo/scaffold','--project','api').status,1);
-    assert.equal(cli('init','demo/default','--project','api').status,0);
+    assert.equal(cli('init','demo/scaffold','--type','api').status,1);
+    assert.equal(cli('init','demo/default','--type','api').status,0);
     assert.match(fs.readFileSync(path.join(repo,'tests/support/steps/demo/default.ts'),'utf8'),/function stepDefault/);
     assert.equal(cli('check','--deep').status,0);
     assert.equal(cli('step','new','demo/extra','--dry-run').status,0);

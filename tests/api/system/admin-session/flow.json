@@ -9,9 +9,7 @@
     "local"
   ],
   "tags": [
-    "authenticated",
-    "local",
-    "sts"
+    "security"
   ],
   "expectedCases": 1,
   "params": [],

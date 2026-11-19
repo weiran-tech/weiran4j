@@ -9,9 +9,7 @@
   "envs": [
     "local"
   ],
-  "tags": [
-    "example"
-  ],
+  "tags": [],
   "expectedCases": 1,
   "params": [],
   "preconditions": [

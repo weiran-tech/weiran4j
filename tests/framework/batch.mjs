@@ -2,13 +2,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { writeJson } from "./core.mjs";
+import { writeBatchReport } from './report.mjs';
 
 // 一次选择对应一个批次；每条真实执行仍保留独立 runId 和原生报告。
-export async function runBatch(root, flows, { prepare, run, environment = 'local', dryRun = false, shouldStop = () => false }) {
+export async function runBatch(root, flows, { prepare, run, environment = 'local', selection, dryRun = false, shouldStop = () => false }) {
     const batchId = `${new Date().toISOString().replace(/\D/g, '')}-${randomUUID().slice(0, 8)}`;
     const file = path.join(root, '.artifacts/batches', batchId, 'batch.json');
-    const batch = { batchId, startedAt: new Date().toISOString(), status: 'running', environment, dryRun,
-        items: flows.map((flow) => ({ flowId: flow.id, status: flow.blockedReason ? 'blocked' : 'pending',
+    const batch = { batchId, startedAt: new Date().toISOString(), status: 'running', environment, selection, dryRun,
+        items: flows.map((flow) => ({ flowId: flow.id, title: flow.title, runner: flow.runner, project: flow.project, tags: flow.tags, entry: flow.entry, status: flow.blockedReason ? 'blocked' : 'pending',
             executed: false, ...(flow.blockedReason ? { reason: flow.blockedReason, failureKind: 'ENVIRONMENT' } : {}) })) };
     const prepared = new Map();
     for (const [index, flow] of flows.entries()) {
@@ -46,5 +47,7 @@ export async function runBatch(root, flows, { prepare, run, environment = 'local
     batch.ok = batch.items.every((item) => item.status === (dryRun ? 'planned' : 'passed'));
     batch.status = batch.ok ? (dryRun ? 'planned' : 'passed') : 'failed';
     batch.finishedAt = new Date().toISOString(); save();
-    return { ...batch, ...(dryRun ? {} : { artifactFile: file }) };
+    const reportFile = dryRun ? undefined : await writeBatchReport(root, batch);
+    return { ...batch, ...(dryRun ? {} : { artifactFile: file, reportFile,
+        reportCommand: `pnpm test:flows report ${batchId}` }) };
 }

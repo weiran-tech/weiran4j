@@ -61,8 +61,8 @@ test('完整业务流程发现；显式阻塞仍写批次但不启动会话', ()
     const system = loadFlows(root).filter((flow) => flow.id.startsWith('system/'));
     assert.equal(loadFlows(root).length, 15); assert.equal(system.length, 14); assert.equal(system.reduce((n, flow) => n + flow.expectedCases, 0), 14);
     const blocked = addNative('weiran4j/blocked');
-    json(path.join(root, blocked.manifest), { ...JSON.parse(fs.readFileSync(path.join(root, blocked.manifest))), tags:['blocked-fixture'], blockedReason:'合成前提缺失' });
-    const result = cli('run', '--tag', 'blocked-fixture');
+    json(path.join(root, blocked.manifest), { ...JSON.parse(fs.readFileSync(path.join(root, blocked.manifest))), tags:['validation'], blockedReason:'合成前提缺失' });
+    const result = cli('run', '--tag', 'validation');
     assert.equal(result.status, 1);
     const batch = JSON.parse(result.stdout);
     assert.equal(batch.counts.selected, 1); assert.equal(batch.counts.blocked, 1); assert.equal(batch.counts.executed, 0);
@@ -80,13 +80,13 @@ test('移除的命令与参数直接报错，无兼容分支', () => workspace(a
     for (const flag of ['--allow-stale', '--allow-skipped', '--allow-flaky', '--allow-degraded']) assert.equal(cli('run', 'system/health', flag).status, 1);
     assert.equal(cli('run', 'system/health', '--consumer', 'manage').status, 1);
     assert.equal(cli('run', 'system/health', '--storage-state', '/tmp/cache').status, 1);
-    assert.equal(cli('list', '--project', 'weiran4j').status, 1);
+    assert.equal(cli('list', '--type', 'weiran4j').status, 1);
     assert.equal(cli('session', 'save').status, 1);
 }));
 
 test('查询、原生执行、独立复核、历史与反馈共享严格判据', () => workspace(async ({ root, cli, addNative, write }) => {
     const flow = addNative();
-    assert.equal(JSON.parse(cli('list', '--project', 'api', '--json').stdout).length, 12);
+    assert.equal(JSON.parse(cli('list', '--type', 'api', '--json').stdout).length, 12);
     assert.equal(JSON.parse(cli('list', '--step', 'auth/login', '--json').stdout).length, 1);
     assert.deepEqual(JSON.parse(cli('list', 'no-match', '--json').stdout), []);
     assert.equal(cli('run', flow.id).status, 0);
@@ -108,13 +108,13 @@ test('查询、原生执行、独立复核、历史与反馈共享严格判据',
 
 test('真实批次继续执行可用项，记录阻塞/通过/失败，dry-run 不落盘', () => workspace(async ({ root, cli, addNative, json }) => {
     const blocked = addNative('weiran4j/blocked');
-    json(path.join(root, blocked.manifest), { ...JSON.parse(fs.readFileSync(path.join(root, blocked.manifest))), tags:['batch-fixture'], blockedReason:'合成前提缺失' });
+    json(path.join(root, blocked.manifest), { ...JSON.parse(fs.readFileSync(path.join(root, blocked.manifest))), tags:['validation'], blockedReason:'合成前提缺失' });
     const passed = addNative('weiran4j/passed');
     const failed = addNative('weiran4j/failed', 'expect(1).toBe(2);');
-    for (const flow of [passed, failed]) json(path.join(root, flow.manifest), { ...JSON.parse(fs.readFileSync(path.join(root, flow.manifest))), tags: ['batch-fixture'] });
-    assert.equal(cli('run', '--tag', 'batch-fixture', '--dry-run').status, 1);
+    for (const flow of [passed, failed]) json(path.join(root, flow.manifest), { ...JSON.parse(fs.readFileSync(path.join(root, flow.manifest))), tags: ['validation'] });
+    assert.equal(cli('run', '--tag', 'validation', '--dry-run').status, 1);
     assert.equal(fs.existsSync(path.join(root, '.artifacts')), false);
-    assert.equal(cli('run', '--tag', 'batch-fixture').status, 1);
+    assert.equal(cli('run', '--tag', 'validation').status, 1);
     const directory = path.join(root, '.artifacts/batches');
     const batch = JSON.parse(fs.readFileSync(path.join(directory, fs.readdirSync(directory)[0], 'batch.json')));
     assert.equal(batch.counts.selected, 3); assert.equal(batch.counts.blocked, 1);

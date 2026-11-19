@@ -1,11 +1,15 @@
 # 运行指南
 
-使用 Node 24，在仓库根运行 `pnpm test:flows --help` 查看实际入口。依赖由根 pnpm 安装，tests/ 不创建独立 package.json、锁文件或 node_modules。
+使用 Node 24，在仓库根运行 `pnpm test:flows help` 查看实际入口。依赖由根 pnpm 安装，tests/ 不创建独立 package.json、锁文件或 node_modules。
 
 ## 选择与执行
 
 ```bash
+pnpm test:flows list                 # 可视化目录，不执行测试
+pnpm test:flows list --text
 pnpm test:flows list --json
+pnpm test:flows list --no-open        # 仅生成目录
+pnpm test:flows run --all --env local # 显式执行全部注册流程
 pnpm test:flows show system/health
 pnpm test:flows check --deep
 pnpm test:flows doctor --env local
@@ -15,7 +19,7 @@ pnpm test:flows run system/admin-browser --env local --headless
 pnpm test:flows run system/health --env local --dry-run
 ```
 
-CLI 提供 runner/project/tag/step/portal 等筛选。dry-run 不执行，不能算通过。原生 Playwright 只用来 `--list`，运行通过统一 CLI 才能生成完整批次和严格复核。
+CLI 的 list 提供 runner/type/tag/step/portal 等筛选；run 支持 runner/type/tag 或稳定流程 ID。`--type api|e2e` 对应声明中的 project 字段，`--project` 不再接受。无筛选的 run 会失败，全部执行需显式 `--all`，且不能与 ID 或筛选混用。dry-run 不执行，不能算通过。原生 Playwright 只用来 `--list`，运行通过统一 CLI 才能生成完整批次和严格复核。
 
 默认 API localhost:5200、后台 localhost:5202；`--api-base-url`、`--web-base-url` 优先于 TEST_API_BASE_URL / TEST_WEB_BASE_URL，再优先于 tests/envs/local.json。无独立 Actuator 地址。其他环境需增加 envs/<name>.json 并在所需流程的 envs 中登记。地址不能含凭据、query 或 fragment。
 
@@ -45,9 +49,13 @@ pnpm test:flows session recover --env local --role admin
 pnpm test:flows history
 pnpm test:flows stats
 pnpm test:flows verify <runId>
-pnpm test:flows report <runId> --dry-run
+pnpm test:flows report                       # 最近批次
+pnpm test:flows report <batchId或runId>
+pnpm test:flows report <batchId或runId> --dry-run
 pnpm test:flows feedback <flowId> --verdict useful --run-id <runId>
 ```
+
+每批生成统一 Playwright 原生 HTML，汇总 API/E2E/Bruno 结果及 execution 检查。目录单独存入 `.artifacts/catalog/`，以“未执行”展示，不计入执行历史。历史孤立运行的 HTML 仍可按 runId 打开。
 
 首次执行记录在 tests/.artifacts/，后续 verify 写独立复核文件，不覆盖原始结论。跳过、flaky、数量不符、断言降级、空跑、损坏或缺失附件均失败。取消/超时也会产生明确失败记录并回收执行器的子进程组。
 
@@ -58,8 +66,14 @@ pnpm test:flows feedback <flowId> --verdict useful --run-id <runId>
 
 ## 核心 API 与业务资源恢复
 
-API读取：`pnpm test:flows run system/core-read --env local`、`region/read`。API写入：`FLOW_ALLOW_WRITE=true pnpm test:flows run --tag api-business --env local`；缺开关或为false在登录前拒绝。API只需后端，专用账号须具有对应管理权限，不依赖Chromium。
+API读取：`pnpm test:flows run system/core-read --env local`、`region/read`。API写入：`FLOW_ALLOW_WRITE=true pnpm test:flows run --tag critical --env local`；缺开关或为false在登录前拒绝。API只需后端，专用账号须具有对应管理权限，不依赖Chromium。
 
 8条新增流程和具体边界见 [coverage.md](coverage.md)；离线检查后可执行 `pnpm test:api:synthetic`，结果仅属于协议装配。真实环境仍使用相同CLI执行并保留原生报告。
 
 资源写前清单为 `tests/.local/api-resources/<env>/<24位资源runId>.json`，失败保留0600文件。使用 `FLOW_ALLOW_WRITE=true pnpm test:api:cleanup --env local --run-id <24位资源runId>` 恢复，支持同样的API/web地址覆盖。恢复编号取资源错误消息/清单文件名，不是CLI报告编号。恢复只精确清理本次记录、匹配环境和身份的普通资源，不批量按前缀删，不重发创建，不修改既有数据。会话恢复和业务资源恢复分开，真实审计日志保留。
+
+## 标签与检查入口
+
+标签只表达测试集合或专项：`smoke`、`critical`、`permission`、`validation`、`security`。类型、运行器、环境、领域和状态使用已有字段；无合适标签时使用空数组。标签按整条流程筛选，不拆分内部用例。
+
+`pnpm test` 包含框架/共享步骤离线单测及前端 Vitest；完整测试框架门禁为 `pnpm test:flows:check`，另行执行 `pnpm test:flows:browser` 和 `pnpm test:api:synthetic`。三者均不代表真实环境通过。

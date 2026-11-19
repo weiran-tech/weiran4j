@@ -9,9 +9,7 @@
     "local"
   ],
   "tags": [
-    "smoke",
-    "system",
-    "manual"
+    "smoke"
   ],
   "expectedCases": 1,
   "params": [],

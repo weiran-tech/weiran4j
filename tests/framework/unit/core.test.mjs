@@ -110,7 +110,7 @@ test('共享步骤变动也改变流程指纹', () => fixture((directory) => {
     const local = path.join(directory, 'tests');
     const flow = flows[0];
     for (const relative of [flow.manifest, flow.plan, flow.entry, ...flow.steps, ...flow.inputs,
-        'playwright.config.ts', '../package.json', '../pnpm-lock.yaml', 'framework/cli.mjs', 'framework/core.mjs', 'framework/inspect.mjs', 'framework/process.mjs', 'framework/bruno.mjs', 'framework/session.mjs', 'framework/scaffold.mjs', 'framework/utils.mjs', 'framework/maintenance.mjs', 'framework/batch.mjs', 'framework/catalog.mjs', 'framework/browser.mjs']) {
+        'playwright.config.ts', '../package.json', '../pnpm-lock.yaml', 'framework/cli.mjs', 'framework/core.mjs', 'framework/inspect.mjs', 'framework/process.mjs', 'framework/bruno.mjs', 'framework/session.mjs', 'framework/scaffold.mjs', 'framework/utils.mjs', 'framework/maintenance.mjs', 'framework/batch.mjs', 'framework/catalog.mjs', 'framework/browser.mjs', 'framework/report.mjs', 'framework/report-model.mjs', 'framework/discovery.mjs']) {
         const file = path.resolve(local, relative);
         fs.mkdirSync(path.dirname(file), { recursive: true });
         fs.writeFileSync(file, 'initial');

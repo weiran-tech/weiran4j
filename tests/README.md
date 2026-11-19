@@ -19,9 +19,12 @@ pnpm test:flows:browser
 | framework/ | CLI、声明/依赖检查、批次/进程/报告、会话/恢复、脚手架与自身回归 |
 | api/、e2e/、bruno/ | 15 条基础与业务流程、声明及 plan |
 | support/ | fixture、环境/证据/多页面 helper、共享步骤与 INDEX |
+| synthetic/ | API 与资源恢复的合成服务回归 |
 | unit/ | 系统步骤离线装配回归 |
 | envs/、registry.json | 非秘密环境地址和流程注册 |
 | .local/ | 被忽略的专用凭据、Cookie 缓存和恢复材料，权限 0600 |
 | .artifacts/ | 被忽略的批次、runId、原生结果、附件与复核 |
 
 阅读入口：[运行指南](docs/running.md)、[编写流程](docs/writing-flows.md)、[覆盖边界](docs/coverage.md)、[框架说明](framework/README.md)。文档站入口为 [docs/testing.md](../docs/testing.md)。
+
+常用入口：`pnpm test:flows list` 浏览未执行目录，`list --text/--json` 输出清单；`run --type api`、`run --tag smoke` 筛选执行，`run --all` 显式全量执行；`report` 查看最近批次，或追加 batchId/runId。标签约定见 [运行指南](docs/running.md#标签与检查入口)。
