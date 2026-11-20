@@ -3,7 +3,7 @@ import { withMermaid } from 'vitepress-plugin-mermaid'
 
 const config = withMermaid({
   vite: { resolve: { alias: { '@': fileURLToPath(new URL('../../packages/manage/src', import.meta.url)) } } },
-  base: process.env.VITEPRESS_BASE || '/',
+  base: '/',
   sitemap: { hostname: 'https://weiran4j.wulicode.com' },
   lang: 'zh-CN',
   title: 'weiran4j',
@@ -17,7 +17,7 @@ const config = withMermaid({
       { text: '公共组件', link: '/components/' },
       { text: '页面状态', link: '/page-states' },
       { text: 'OpenAPI', link: '/openapi' },
-      { text: '测试', link: '/testing' },
+      { text: '测试', link: '/testing/' },
       { text: '部署与运维', link: '/deployment' },
     ],
     sidebar: [
@@ -44,7 +44,20 @@ const config = withMermaid({
           ] },
           { text: '页面状态演示', link: '/page-states' },
           { text: 'OpenAPI 与 Swagger UI', link: '/openapi' },
-          { text: '测试工作流', link: '/testing' },
+          { text: '测试框架基线', link: '/testing/', items: [
+            { text: '项目测试入口', link: '/testing' },
+            { text: '工作区与声明', link: '/testing/structure' },
+            { text: '运行与检查', link: '/testing/running' },
+            { text: '编写流程', link: '/testing/writing-flows' },
+            { text: '证据与报告', link: '/testing/evidence' },
+            { text: '资源与恢复', link: '/testing/resources' },
+            { text: '覆盖与验收口径', link: '/testing/coverage' },
+          ] },
+          { text: '业务定义', link: '/biz/', items: [
+            { text: '身份与权限', link: '/biz/identity-access/' },
+            { text: '基础配置', link: '/biz/configuration/' },
+            { text: '行政区划扩展', link: '/biz/region/' },
+          ] },
           { text: '接口与数据约定', link: '/contracts' },
           { text: '资源库引用与删除', link: '/资源库引用与删除设计' },
           { text: '批处理任务', link: '/batch-processing' },

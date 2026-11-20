@@ -27,4 +27,4 @@ pnpm test:flows:browser
 
 阅读入口：[运行指南](docs/running.md)、[编写流程](docs/writing-flows.md)、[覆盖边界](docs/coverage.md)、[框架说明](framework/README.md)。文档站入口为 [docs/testing.md](../docs/testing.md)。
 
-常用入口：`pnpm test:flows list` 浏览未执行目录，`list --text/--json` 输出清单；`run --type api`、`run --tag smoke` 筛选执行，`run --all` 显式全量执行；`report` 查看最近批次，或追加 batchId/runId。标签约定见 [运行指南](docs/running.md#标签与检查入口)。
+常用入口：`pnpm test:flows list` 浏览未执行目录，`list --text/--json` 输出清单；`run --type api`、`run --tag smoke` 筛选执行，`run` 默认全量执行；`report` 查看最近批次，或追加 batchId/runId。标签约定见 [运行指南](docs/running.md#标签与检查入口)。

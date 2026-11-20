@@ -23,6 +23,15 @@ async function fixture(run) {
     }
 }
 
+test('私有凭据拒绝指向同目录文件的符号链接', () => fixture(async (root) => {
+    const file = path.join(root, '.local/admin.json');
+    const target = path.join(root, '.local/credentials.json');
+    fs.renameSync(file, target);
+    fs.symlinkSync(target, file);
+    assert.throws(() => readCredentials(root), /未配置/);
+    assert.equal(fs.existsSync(target), true);
+}));
+
 test('Cookie 会话保存、远端核验和本地清理；普通登出不宣称吊销旧 JWT', () => fixture(async (root, state) => {
     await saveSession(root, 'local', 'admin', addresses);
     const value = await checkSession(root, 'local', 'admin', addresses);

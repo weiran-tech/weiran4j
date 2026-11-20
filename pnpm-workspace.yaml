@@ -6,6 +6,19 @@ packages:
 overrides:
   '@tiptap/extension-bubble-menu': 3.31.3
   '@tiptap/extension-floating-menu': 3.31.3
+  # 上游稳定版仍锁定受影响的传递依赖；升级至已修复版本。
+  axios@<1.20.0: 1.20.0
+  js-yaml@>=4.0.0 <4.3.2: 4.3.2
+  form-data@>=4.0.0 <4.0.6: 4.0.6
+  csv-parse@<7.0.2: 7.0.2
+  '@faker-js/faker@<10.5.0': 10.5.0
+  uuid@<11.1.1: 11.1.1
+  katex@<0.18.2: 0.18.2
+  minimatch@>=7.0.0 <11.0.1: 11.0.1
+  yaml@>=2.0.0 <2.8.3: 2.8.3
+  glob@>=9.0.0 <14.0.2: 14.0.2
+  # VitePress 1.x 的 Vue 插件支持 Vite 6，避免继续安装 Vite 5 / esbuild 0.21。
+  vitepress>vite: 6.4.6
 allowBuilds:
   '@parcel/watcher': true
   core-js: true

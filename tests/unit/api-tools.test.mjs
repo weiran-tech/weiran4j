@@ -51,6 +51,24 @@ test('创建响应丢失后按写前唯一意图恢复，不重发创建，0600�
     assert.equal(model.db.user.length, 1); assert.equal(fs.existsSync(file), false);
     assert.equal(model.calls.filter((call) => call.route.endsWith('/user/create')).length, 1);
 }));
+test('恢复清单拒绝指向同目录私有文件的符号链接，不执行删除', () => fixture(async ({ model, session }) => {
+    await session(async (api) => {
+        const ledger = new ResourceLedger(api);
+        const body = roleBody(ledger.key('r'));
+        await ledger.create('role', body.code, body);
+        const target = ledger.file + '.original';
+        fs.renameSync(ledger.file, target);
+        fs.symlinkSync(target, ledger.file);
+        const before = model.calls.length;
+        await assert.rejects(recoverResources(api, ledger.value.runId), { code: 'ELOOP' });
+        assert.equal(model.calls.length, before);
+        assert.equal(fs.existsSync(target), true);
+        fs.unlinkSync(ledger.file);
+        fs.renameSync(target, ledger.file);
+        await ledger.cleanup();
+    });
+}));
+
 test('删除失败保留清单；服务恢复后只清理自己的资源，已有数据保持', () => fixture(async ({ model, session }) => {
     let runId, file;
     await session(async (api) => {

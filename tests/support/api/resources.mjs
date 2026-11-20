@@ -168,10 +168,15 @@ export class ResourceLedger {
 /** @param {any} api @param {string} runId */
 export async function recoverResources(api, runId) {
     allowWrites(); const file = ledgerPath(api.scope.root, api.scope.environment, runId);
-    if (!fs.existsSync(file)) return { recovered: false };
-    requireValue((fs.statSync(file).mode & 0o077) === 0, '恢复清单权限必须为0600');
-    let value;
-    try { value = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { throw new Error('恢复清单损坏'); }
+    let value, descriptor;
+    try {
+        try { descriptor = fs.openSync(file, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW); }
+        catch (error) { if (error.code === 'ENOENT') return { recovered: false }; throw error; }
+        const stat = fs.fstatSync(descriptor);
+        requireValue(stat.isFile() && (stat.mode & 0o077) === 0, '恢复清单权限必须为0600');
+        try { value = JSON.parse(fs.readFileSync(descriptor, 'utf8')); }
+        catch { throw new Error('恢复清单损坏'); }
+    } finally { if (descriptor !== undefined) fs.closeSync(descriptor); }
     validate(value, api, runId);
     await new ResourceLedger(api, value).cleanup();
     return { recovered: true };

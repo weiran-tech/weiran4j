@@ -1,5 +1,7 @@
 # 测试工作流
 
+公共框架约定见 [测试框架基线](testing/index.md)，业务对象、规则与验收定义见 [业务定义](biz/index.md)。本页保留 weiran4j 环境、Cookie/CSRF、资源适配及常用入口。
+
 根 `tests/` 管理 Playwright API/E2E、Bruno 请求及流程执行器。执行器迁自 kr-alang-mono4j 的 tests/，已按本项目的数字错误码、HttpOnly Cookie、CSRF 和授权快照适配。包内 Vitest 与后端 Gradle/Testcontainers 测试继续保留。
 
 ## 安装与离线检查
@@ -13,7 +15,7 @@ pnpm test:flows list
 pnpm test:integration:list
 ```
 
-`test:flows:check` 校验流程声明、共享步骤、TypeScript、Playwright 用例发现、Bruno 语法，并运行框架与系统步骤离线回归。无需真实账号、业务服务或下载浏览器；部分框架回归会创建并关闭隔离的本地合成 HTTP 服务。
+`test:flows:check` 校验流程声明、共享步骤、TypeScript、Playwright 用例发现、Bruno 语法，并由 Turbo 编排根 `test:flows:unit`，通过 Node test runner 运行框架与系统步骤离线回归。根任务禁用缓存，每次真实执行。无需真实账号、业务服务或下载浏览器；部分框架回归会创建并关闭隔离的本地合成 HTTP 服务。
 
 CI 使用独立 Node 24 job 执行这项检查。原前端 `pnpm test` 和后端 `./gradlew check` 的职责不变。
 
@@ -71,7 +73,7 @@ pnpm test:flows session recover --env local --role admin
 
 ## 报告与范围
 
-执行器为选择生成批次摘要和统一 Playwright 原生 HTML，为实际执行项生成独立 runId。`pnpm test:flows report` 查看最近批次，也支持 batchId/runId。`list` 默认浏览未执行目录，终端使用 `--text` 或 `--json`。筛选使用 `--type api|e2e`，全部执行显式使用 `run --all`。结果、报告和附件位于被忽略的 `tests/.artifacts/`；首次验证与后续复核分别保存。skipped、flaky、断言降级、空跑或证据缺失均不能通过。
+执行器为选择生成批次摘要和统一 Playwright 原生 HTML，为实际执行项生成独立 runId。`pnpm test:flows report` 查看最近批次，也支持 batchId/runId。`list` 默认浏览未执行目录，终端使用 `--text` 或 `--json`。筛选使用 `--type api|e2e`，全部执行使用 `run`。结果、报告和附件位于被忽略的 `tests/.artifacts/`；首次验证与后续复核分别保存。skipped、flaky、断言降级、空跑或证据缺失均不能通过。
 
 当前登记 **15 条流程**：原有 7 条基础流程，加 8 条业务 API 流程（11 条 Playwright API、2 条 E2E、2 条 Bruno）。核心用户/角色/菜单/字典/配置 CRUD 和一个受限角色授权生命周期已有流程；完整角色矩阵、短信/MFA/SSO、媒体/文件/批处理、地区写入与导出尚未覆盖。真实业务通过仅以明确环境的实际报告为准。
 
@@ -120,4 +122,4 @@ FLOW_ALLOW_WRITE=true pnpm test:api:cleanup --env local --run-id <24位资源run
 
 合成验证包含8条业务流程、扩充后的匿名矩阵、写前提拒绝、实际清理失败与恢复入口、普通产物凭据扫描；它不证明真实数据库/部署环境通过。没有专用凭据时，真实业务用例记录未运行。
 
-标签只表达测试集合或专项，允许 `smoke / critical / permission / validation / security`，无匹配时使用空数组。`pnpm test` 包含框架与步骤离线单测及前端测试；完整框架检查使用 `pnpm test:flows:check`，合成浏览器和 API 装配分别执行。
+标签只表达测试集合或专项，允许 `smoke / critical / permission / validation / security`，无匹配时使用空数组。`pnpm test` 保持原有前端测试入口；框架与步骤离线单测由 Turbo 编排，使用独立 Node test runner 且禁用缓存；完整框架检查使用 `pnpm test:flows:check`，合成浏览器和 API 装配分别执行。

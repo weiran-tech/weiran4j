@@ -27,7 +27,7 @@ jobs:
           distribution: temurin
           java-version: 21
       # main 写入 Gradle 构建缓存，lib 标签发布时可复用编译与任务输出。
-      - uses: gradle/actions/setup-gradle@v6
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
       # 托管 runner 自带 Docker，集成测试的 MySQL 由 Testcontainers 拉起；JWT 密钥用测试 profile 里的假值，不需要 secrets。
       - name: ./gradlew check
         working-directory: packages/server
@@ -40,7 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       # 版本取 package.json 的 packageManager。
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -72,7 +72,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
       - uses: actions/setup-node@v7
         with:
           node-version: 24

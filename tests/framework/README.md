@@ -36,7 +36,7 @@ pnpm openspec:check
 pnpm openspec:validate
 ```
 
-首项直接执行框架与系统步骤单测，不依赖真实账号或服务；浏览器回归单独需要 Chromium 和本机启动权限。不得将临时服务、模拟浏览器或合成账号结果算作真实业务覆盖。
+首项完成深度检查后，由 Turbo 编排根 test:flows:unit，使用 Node test runner 执行框架与系统步骤单测；任务禁用缓存，不依赖真实账号或服务；浏览器回归单独需要 Chromium 和本机启动权限。不得将临时服务、模拟浏览器或合成账号结果算作真实业务覆盖。
 
 根 pnpm 统一依赖，不在 framework 新建 package.json、锁文件或独立安装。框架模块与真实本地依赖参与流程代码摘要，目录变化会改变当前版本，旧证据保持原样并提示版本不同。
 
@@ -56,6 +56,6 @@ Cookie storageState 取代源项目的浏览器本地存储主体。API 与浏�
 
 ## 框架基线
 
-CLI 统一使用 `--type api|e2e`，全量运行显式使用 `run --all`；list 默认浏览未执行目录，终端使用 --text/--json。报告支持最近批次、batchId、runId，阻塞、未执行及严格复核问题纳入 execution 项目。
+CLI 统一使用 `--type api|e2e`，全量运行使用 `run`；list 默认浏览未执行目录，终端使用 --text/--json。报告支持最近批次、batchId、runId，阻塞、未执行及严格复核问题纳入 execution 项目。
 
 标签只表达测试意图，不混入工具、环境、类型或状态。资源恢复保留 support/api 的所有权清单、逆序删除与失败恢复；协议适配继续由本项目维护，不以跨项目同步工具覆盖。

@@ -22,7 +22,7 @@ jobs:
           distribution: temurin
           java-version: 21
       # 标签只读取 main 的 Gradle 缓存，避免各版本标签写入重复缓存。
-      - uses: gradle/actions/setup-gradle@v6
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
         with:
           cache-read-only: true
       - name: 校验发布版本

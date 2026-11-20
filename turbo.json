@@ -4,13 +4,15 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "env": ["VITEPRESS_BASE"],
       "outputs": ["dist/**", ".vitepress/dist/**"]
     },
     "dev": {
       "cache": false,
       "persistent": true,
       "passThroughEnv": ["JAVA_HOME", "JAVA_HOME_21", "WEIRAN_*", "SERVER_PORT", "SPRING_*"]
+    },
+    "//#test:flows:unit": {
+      "cache": false
     },
     "preview": {
       "cache": false,

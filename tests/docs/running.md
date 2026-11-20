@@ -9,7 +9,7 @@ pnpm test:flows list                 # 可视化目录，不执行测试
 pnpm test:flows list --text
 pnpm test:flows list --json
 pnpm test:flows list --no-open        # 仅生成目录
-pnpm test:flows run --all --env local # 显式执行全部注册流程
+pnpm test:flows run --env local # 默认执行全部注册流程
 pnpm test:flows show system/health
 pnpm test:flows check --deep
 pnpm test:flows doctor --env local
@@ -19,7 +19,7 @@ pnpm test:flows run system/admin-browser --env local --headless
 pnpm test:flows run system/health --env local --dry-run
 ```
 
-CLI 的 list 提供 runner/type/tag/step/portal 等筛选；run 支持 runner/type/tag 或稳定流程 ID。`--type api|e2e` 对应声明中的 project 字段，`--project` 不再接受。无筛选的 run 会失败，全部执行需显式 `--all`，且不能与 ID 或筛选混用。dry-run 不执行，不能算通过。原生 Playwright 只用来 `--list`，运行通过统一 CLI 才能生成完整批次和严格复核。
+CLI 的 list 提供 runner/type/tag/step/portal 等筛选；run 支持 runner/type/tag 或稳定流程 ID。`--type api|e2e` 对应声明中的 project 字段，`--project` 不再接受。无筛选的 run 默认执行全部已登记 API/E2E/Bruno 流程。dry-run 不执行，不能算通过。原生 Playwright 只用来 `--list`，运行通过统一 CLI 才能生成完整批次和严格复核。
 
 默认 API localhost:5200、后台 localhost:5202；`--api-base-url`、`--web-base-url` 优先于 TEST_API_BASE_URL / TEST_WEB_BASE_URL，再优先于 tests/envs/local.json。无独立 Actuator 地址。其他环境需增加 envs/<name>.json 并在所需流程的 envs 中登记。地址不能含凭据、query 或 fragment。
 
@@ -76,4 +76,4 @@ API读取：`pnpm test:flows run system/core-read --env local`、`region/read`�
 
 标签只表达测试集合或专项：`smoke`、`critical`、`permission`、`validation`、`security`。类型、运行器、环境、领域和状态使用已有字段；无合适标签时使用空数组。标签按整条流程筛选，不拆分内部用例。
 
-`pnpm test` 包含框架/共享步骤离线单测及前端 Vitest；完整测试框架门禁为 `pnpm test:flows:check`，另行执行 `pnpm test:flows:browser` 和 `pnpm test:api:synthetic`。三者均不代表真实环境通过。
+`pnpm test` 保持原有前端 Vitest 入口；框架/共享步骤单测由 Turbo 编排根 test:flows:unit，通过独立 Node test runner 执行且禁用缓存，不接入前端测试链；完整测试框架门禁为 `pnpm test:flows:check`，另行执行 `pnpm test:flows:browser` 和 `pnpm test:api:synthetic`。三者均不代表真实环境通过。

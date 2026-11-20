@@ -36,10 +36,10 @@ test('分类脚本执行真实 CLI 选择，全量/类型/标签共用同一套�
         ['test:flows:api', [], flows.filter((flow) => flow.project === 'api')],
         ['test:flows:e2e', [], flows.filter((flow) => flow.project === 'e2e')],
         ['test:flows:bruno', [], flows.filter((flow) => flow.runner === 'bruno')],
-        ['test:flows:run', ['--type', 'api'], flows.filter((flow) => flow.project === 'api')],
-        ['test:flows:run', ['--tag', 'smoke', '--headless'], flows.filter((flow) => flow.tags.includes('smoke'))],
+        ['test:flows:all', ['--type', 'api'], flows.filter((flow) => flow.project === 'api')],
+        ['test:flows:all', ['--tag', 'smoke', '--headless'], flows.filter((flow) => flow.tags.includes('smoke'))],
         ['test:flows:api', ['--tag', 'permission'], flows.filter((flow) => flow.project === 'api' && flow.tags.includes('permission'))],
-        ...FLOW_TAGS.filter((tag) => flows.some((flow) => flow.tags.includes(tag))).map((tag) => ['test:flows:run', ['--tag', tag], flows.filter((flow) => flow.tags.includes(tag))]),
+        ...FLOW_TAGS.filter((tag) => flows.some((flow) => flow.tags.includes(tag))).map((tag) => ['test:flows:all', ['--tag', tag], flows.filter((flow) => flow.tags.includes(tag))]),
     ];
     for (const [name, args, expected] of selections) {
         const batch = preview(name, args);
@@ -90,16 +90,11 @@ test('list 默认生成只读全量目录，并支持类型和标签筛选，不
 });
 
 
-test('全量运行必须显式声明，拒绝空选择、冲突选择、旧参数与无匹配标签', () => {
-    const cli = (...args) => spawnSync(process.execPath, ['tests/framework/cli.mjs', ...args], { cwd: repository, encoding: 'utf8', timeout: 15000 });
-    for (const args of [[], ['--env', 'local'], ['--all', '--type', 'api'], ['--all', 'system/health'], ['--all', '--tag', 'smoke'], ['--project', 'api'], ['--tag', 'api-business']]) {
-        const result = cli('run', ...args, '--dry-run');
-        assert.equal(result.status, 1, JSON.stringify(args));
-        assert.equal(result.stdout.includes('"batchId"'), false);
-    }
-    assert.equal(cli('list', '--type', 'api', '--json').status, 0);
-    assert.equal(cli('list', '--project', 'api', '--json').status, 1);
-    const empty = cli('run', '--tag', 'validation', '--dry-run');
-    assert.equal(empty.status, 1);
-    assert.match(empty.stderr, /没有匹配/);
+test('默认 run 选择全量，旧 --all 参数被拒绝，框架回归独立于前端测试', () => {
+    const batch = preview('test:flows:all');
+    assert.equal(batch.selection.mode, 'all');
+    assert.equal(batch.counts.selected, flows.length);
+    const result = spawnSync(process.execPath, ['tests/framework/cli.mjs', 'run', '--all', '--dry-run'], { cwd: repository, encoding: 'utf8' });
+    assert.equal(result.status, 1);
+    assert.equal(scripts.test, 'pnpm --filter @weiran/manage test');
 });

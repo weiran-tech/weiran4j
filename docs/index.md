@@ -28,6 +28,8 @@ features:
 - [架构说明](/architecture)：仓库结构、前后端关系、后端分层和请求流程。
 - [系统配置](/configuration)：分组 Tab、动态表单字段、校验与配置键前缀。
 - [OpenAPI 与 Swagger UI](/openapi)：本地接口定义与交互页面的访问方式。
+- [测试框架基线](/testing/)：目录、Turbo 检查、流程、证据与资源恢复约定。
+- [业务定义](/biz/)：按身份权限、基础配置和行政区划组织规则与验收场景。
 - [接口与数据约定](/contracts)：认证、错误码、数据关系与跨接口规则。
 - [部署与运维](/deployment)：Docker Compose、环境变量、反向代理与 SLS 日志采集。
 - [环境变量与配置模板](/environment)：完整的 `.env` 和可选生产 YAML 示例。

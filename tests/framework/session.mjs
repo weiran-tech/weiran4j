@@ -37,10 +37,14 @@ function scope(root, environment, role, addresses) {
     return { file: inside(root, path.join(directory, `${role}.json`)), recovery: inside(root, path.join(directory, `${role}.recovery`)) };
 }
 function readPrivate(file) {
+    let descriptor;
     try {
-        ensure((fs.statSync(file).mode & 0o077) === 0, '私有文件权限必须为 0600');
-        return JSON.parse(fs.readFileSync(file, 'utf8'));
+        descriptor = fs.openSync(file, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+        const stat = fs.fstatSync(descriptor);
+        ensure(stat.isFile() && (stat.mode & 0o077) === 0, '私有文件权限必须为 0600');
+        return JSON.parse(fs.readFileSync(descriptor, 'utf8'));
     } catch { throw workflowError('CONFIG', '本地会话恢复材料缺失、权限过宽或损坏'); }
+    finally { if (descriptor !== undefined) fs.closeSync(descriptor); }
 }
 function writePrivate(file, value, exclusive = false) {
     fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });

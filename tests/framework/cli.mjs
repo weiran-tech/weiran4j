@@ -23,7 +23,7 @@ const runs = path.join(root, '.artifacts/runs');
 const require = createRequire(import.meta.url);
 const usage = `weiran4j 测试工作流：
   pnpm test:flows list [关键词] [--text | --json] [--no-open] [--runner playwright|bruno] [--type api|e2e] [--tag smoke] [--step 路径] [--portal admin]
-  pnpm test:flows run [domain/name | --all] [--type api|e2e] [--tag smoke] [--env local] [--dry-run]
+  pnpm test:flows run [domain/name] [--type api|e2e] [--tag smoke] [--env local] [--dry-run]
   pnpm test:flows report [batchId|runId] [--env local]
   pnpm test:flows show <domain/name>
   pnpm test:flows check [--deep] [--json]
@@ -39,7 +39,7 @@ const usage = `weiran4j 测试工作流：
   pnpm test:flows session login|check|clear|recover --env local --role admin
 浏览目录：list 默认打开可视化目录且不运行；--text/--json 只输出终端流程清单，--no-open 仅生成目录文件。
 浏览器执行：run 可追加 --headed/--headless/--ui（互斥）；与目录浏览相互独立。
-执行范围：run --all 显式选择全部已登记 API/E2E/Bruno 流程；--tag 按标签筛选，可与 --runner/--type/流程 ID 取交集。每批生成一份报告。
+执行范围：run 默认选择全部已登记 API/E2E/Bruno 流程；--tag 按标签筛选，可与 --runner/--type/流程 ID 取交集。每批生成一份报告。
 流程标签：${FLOW_TAGS.join(' / ')}；按整个流程选择，不能只运行流程中的部分用例。
 人工登录：session login --manual [--portal admin]；自动登录默认读取所选角色的本地凭据。
 会话复用：run <id> --env local --role admin；不指定 role 时不复用缓存。
@@ -52,7 +52,7 @@ function parse(argv) {
     const positional = [];
     const flags = {};
     const params = {};
-    const boolean = ['headed', 'headless', 'ui', 'dry-run', 'deep', 'json', 'yes', 'list', 'manual', 'no-open', 'text', 'all'];
+    const boolean = ['headed', 'headless', 'ui', 'dry-run', 'deep', 'json', 'yes', 'list', 'manual', 'no-open', 'text'];
     const valued = ['runner', 'tag', 'env', 'api-base-url', 'web-base-url', 'timeout-ms', 'param', 'role', 'title', 'type', 'portal', 'step', 'flow', 'verdict', 'run-id', 'note'];
     for (let i = 0; i < argv.length; i++) {
         const token = argv[i];
@@ -290,7 +290,7 @@ async function main() {
     const accepted = {
         help: [], list: ['runner', 'tag', 'env', 'portal', 'step', 'json', 'type', 'text', 'no-open', 'timeout-ms'], show: ['env', 'json'], check: ['deep', 'json'],
         doctor: ['env', ...addresses, 'portal', 'json'], history: ['flow', 'env', 'json'], verify: ['json'],
-        run: ['all', 'runner', 'type', 'tag', 'env', ...addresses, 'portal', 'headed', 'headless', 'ui', 'dry-run', 'timeout-ms', 'role'],
+        run: ['runner', 'type', 'tag', 'env', ...addresses, 'portal', 'headed', 'headless', 'ui', 'dry-run', 'timeout-ms', 'role'],
         session: ['env', 'role', ...addresses, 'manual', 'portal', 'timeout-ms'], init: ['runner', 'type', 'title', 'dry-run'], step: ['dry-run'],
         remove: ['dry-run', 'yes', 'json'], stats: ['env', 'json'], feedback: ['list', 'flow', 'env', 'verdict', 'run-id', 'note', 'json'],
         report: ['env', 'dry-run', 'timeout-ms'],
@@ -403,8 +403,6 @@ async function main() {
         return;
     }
     if (action === 'run') {
-        if (flags.all && (id || flags.tag || flags.runner || flags.type)) throw new Error('--all 不能与流程 ID 或筛选条件混用');
-        if (!flags.all && !id && !flags.tag && !flags.runner && !flags.type) throw new Error('run 需要流程 ID、筛选条件或显式 --all');
         const selected = select(flows, id, flags);
         const selection = { mode: id || flags.tag || flags.runner || flags.type ? 'filtered' : 'all',
             ...(id ? { flowId: id } : {}), ...Object.fromEntries(['tag', 'runner', 'type'].filter((key) => flags[key]).map((key) => [key, flags[key]])) };

@@ -6,6 +6,12 @@
 
 ## 已知问题汇总
 
+- **#30 ⚠️ P2 CodeQL 默认扫描未覆盖 Java/Kotlin 后端**
+  症状：2026-11-20 恢复 CodeQL 扩展查询扫描时，Java/Kotlin 自动构建在仓库根找不到 `packages/server/` 内的 Gradle 入口，GitHub 默认配置排除该语言；当前持续扫描仅覆盖 Actions 与 JavaScript/TypeScript。需改用高级工作流，显式设置 JDK 21 和后端构建目录后验证 Java 分析成功；不能将当前扫描通过当作后端安全扫描通过。证据：[初始化扫描](https://github.com/weiran-tech/weiran4j/actions/runs/44671466121)。
+
+- **#31 ⚠️ P3 VitePress 的 DocSearch 3 声明不支持 React 19 peer**
+  症状：`pnpm peers check` 报告 `@docsearch/react@3.8.2` 的 React / React DOM / 类型声明 peer 要求低于 19，与文档站演示使用的 React 19 不符。文档站构建通过；后续随 VitePress/DocSearch 上游升级处理，不能通过关闭 peer 检查假称兼容。
+
 - **#29 ⚠️ P2 ColumnSettings 测试偶发未捕获 Tooltip 异常，阻断前端发布**
   症状：2026-11-15 发布 `semi-components-v0.4.2` 时，446 条测试断言全部通过，但 `ColumnSettings.test.tsx` 运行期间 Semi Tooltip 的异步定位回调在 `isElement` 中读取空节点的 `nodeType`，Vitest 因未捕获异常返回失败，npm 上传尚未执行。同一提交 `8d79ae5` 的 main CI 通过，发布工作流第二次运行也通过；重跑恢复发布不代表根因修复。本次仅记录，后续应排查组件卸载后的定位回调与测试清理时序，不忽略未捕获异常。证据：[发布运行第一次与重跑](https://github.com/weiran-tech/weiran4j/actions/runs/43718682397)。
 

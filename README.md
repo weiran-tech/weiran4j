@@ -32,10 +32,12 @@ pnpm dev
 - [架构、数据库与业务约束](packages/server/docs/01-架构与接口契约.md)
 - [部署手册](packages/server/docs/02-部署.md)
 - [版本发布](docs/releases.md)：GitHub Packages 组件包与 GHCR 完整 Demo 镜像
-- [测试工作流](docs/testing.md)：API/E2E/Bruno、离线检查与 Cookie 会话管理
+- [测试框架基线](docs/testing/index.md)：目录、Turbo 检查、流程、证据与资源恢复约定
+- [业务定义](docs/biz/index.md)：按业务域组织规则、场景和验收定义
+- [项目测试入口](docs/testing.md)：API/E2E/Bruno、离线检查与 Cookie 会话管理
 - [开发约定](AGENTS.md)
 
 文档站由 Turbo 管理：`pnpm dev:docs` 单独启动，`pnpm build:docs` 构建。
 
 文档站在 Vercel 使用仓库根目录构建，配置见 `vercel.json`，域名为 `weiran4j.wulicode.com`。
-Markdown 中的 `mermaid` 代码块会显示为图表；GitHub Pages 构建通过 `VITEPRESS_BASE=/weiran4j/` 保留子路径访问。
+Markdown 中的 `mermaid` 代码块会显示为图表。
