@@ -6,6 +6,9 @@
 
 ## 已知问题汇总
 
+- **#33 ⚠️ P3 主从维护页的新增入口位置不同**
+  症状：2026-11-23 源码巡检发现，配置与短信配置页将“新增配置项”放在 `PageContainer.extra` 的标题栏右侧，字典项维护页将“新增字典项”放在内容区 `SearchToolbar.leading` 左侧，其他标准列表也使用左侧主操作。切换同类维护页时新增入口位置变化。配置右侧为分组表单，与表格页有结构差异；建议统一位置，或明确记录表单维护页例外，不能仅以布局不同判定功能错误。本次未做全站账号截图对照。
+
 - **#30 ⚠️ P2 CodeQL 默认扫描未覆盖 Java/Kotlin 后端**
   症状：2026-11-20 恢复 CodeQL 扩展查询扫描时，Java/Kotlin 自动构建在仓库根找不到 `packages/server/` 内的 Gradle 入口，GitHub 默认配置排除该语言；当前持续扫描仅覆盖 Actions 与 JavaScript/TypeScript。需改用高级工作流，显式设置 JDK 21 和后端构建目录后验证 Java 分析成功；不能将当前扫描通过当作后端安全扫描通过。证据：[初始化扫描](https://github.com/weiran-tech/weiran4j/actions/runs/44671466121)。
 
@@ -100,6 +103,11 @@
   症状：`PhoneLoginApplicationService`、`MfaLoginApplicationService` 和 `PhoneBindingApplicationService` 使用进程内 Map 保存挑战及节流状态；验证码在 A 实例创建后，请求被分配到 B 实例可能被判无效，实例重启也会丢失未过期挑战，发送频控无法跨节点累加。`AuthSnapshotCache` 的权限失效也只作用于本节点（另见本文件 #02）。建议先明确单实例运行约束；有多实例需求时，为挑战与频控定义共享存储端口、原子消费和过期语义，并单独处理权限失效传播。2026-11-14 静态复查，未进行双实例验证。
 
 ## changelog
+
+**2026-11-23**
+
+- **#34 ✅ P2 安全设置编辑抽屉的关闭行为已统一**
+  由 `unify-config-feedback-and-security-close` 解决：密码策略、MFA、登录方式共用 useDraftCloseGuard，未修改直接关闭，有修改确认放弃；保存期间阻止取消、关闭、Esc、遮罩和重复提交，失败保留草稿，成功直接关闭。真实组件测试覆盖三种抽屉，docs 复用实际字段与保护 hook 展示延迟保存和失败恢复。
 
 **2026-11-22**
 

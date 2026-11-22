@@ -12,3 +12,5 @@
 .security-settings__length .semi-input-number { width: 120px; }
 .security-settings__footer { display: flex; justify-content: flex-end; gap: 10px; }
 @media (--md-down) { .security-settings__line { grid-template-columns: 1fr; gap: 4px; } }
+
+.security-settings__login { display: grid; gap: 16px; margin-top: 16px; }

@@ -13,6 +13,8 @@ import type {
     PageResult,
 } from '@/types/api';
 
+export const PHONE_LOGIN_CONFIG_KEY = 'system.user.enable_phone_login';
+
 export const configKeys = {
     all: ['configs'] as const,
     list: (q: ConfigQuery) => ['configs', 'list', q] as const,

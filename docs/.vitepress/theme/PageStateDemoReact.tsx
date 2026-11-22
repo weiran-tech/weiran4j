@@ -1,3 +1,4 @@
+import { ConfigFeedbackDemo, SecurityDrawerDemo } from './ConfigRecoveryDemos';
 import { MediaLibraryStyleDemo } from './MediaLibraryStyleDemo';
 import { useDebouncedCallback } from '../../../packages/manage/src/hooks/useActionGuard';
 import { ActionGuardDemo } from './ActionGuardDemo';
@@ -15,23 +16,27 @@ import { FormProtectionDemo, ReadRecoveryDemo } from './AdminRecoveryDemos';
 import './page-state-demo.css';
 import { EditBoundaryDemo, PasswordAttemptDemo } from './EditBoundaryDemos';
 import { AuthorizationCalibrationDemo } from './AuthorizationCalibrationDemo';
+import { LoginMethodsSummary, LoginMethodsFields } from '../../../packages/manage/src/pages/system/security/LoginMethodsSettings';
+import { Divider } from '@douyinfe/semi-ui';
 import { SecuritySettingsSummary } from '../../../packages/manage/src/pages/system/security/SecuritySettingsPage';
 import { UploadSettingsFields, fromSettings } from '../../../packages/manage/src/pages/system/upload-settings/UploadSettingsPage';
 
 type Mode = 'success' | 'loading' | 'error' | 'cached-error' | 'retrying';
-type Scene = 'media' | 'actions' | 'authorization' | 'menu-conflict' | 'conflict' | 'throttle' | 'permissions' | 'security' | 'upload' | 'sync' | 'recovery' | 'search' | 'forms' | 'lists' | 'detail';
-const SCENES: Record<Scene, string> = { media: '资源列表风格', actions: '操作防抖', authorization: '授权校准', 'menu-conflict': '菜单编辑冲突', conflict: '编辑冲突', throttle: '认证限流', permissions: '权限分配', security: '安全设置', upload: '上传设置', sync: '权限同步', recovery: '异常恢复', search: '窄屏搜索', forms: '编辑保护', lists: '列表反馈', detail: '日志详情' };
+type Scene = 'config-feedback' | 'security-close' | 'media' | 'actions' | 'authorization' | 'menu-conflict' | 'conflict' | 'throttle' | 'permissions' | 'security' | 'upload' | 'sync' | 'recovery' | 'search' | 'forms' | 'lists' | 'detail';
+const SCENES: Record<Scene, string> = { 'config-feedback': '配置读取恢复', 'security-close': '安全抽屉关闭保护', media: '资源列表风格', actions: '操作防抖', authorization: '授权校准', 'menu-conflict': '菜单编辑冲突', conflict: '编辑冲突', throttle: '认证限流', permissions: '权限分配', security: '安全设置', upload: '上传设置', sync: '权限同步', recovery: '异常恢复', search: '窄屏搜索', forms: '编辑保护', lists: '列表反馈', detail: '日志详情' };
 const MODES: Record<Mode, string> = { success: '读取成功', loading: '首次加载中', error: '首次读取失败', 'cached-error': '缓存刷新失败', retrying: '正在重试' };
 function query(mode: Mode): ReadableQuery {
     return { data: mode === 'success' || mode === 'cached-error' ? {} : undefined, isSuccess: mode === 'success', isError: mode === 'error' || mode === 'cached-error', isFetching: mode === 'loading' || mode === 'retrying' };
 }
 
-function ReadDemo({ scene }: { scene: Exclude<Scene, 'media' | 'actions' | 'authorization' | 'menu-conflict' | 'conflict' | 'throttle' | 'sync' | 'recovery' | 'search' | 'forms' | 'lists' | 'detail'> }) {
-    const labels = scene === 'permissions' ? ['菜单树', '角色详情'] : scene === 'upload' ? ['上传规则', '配置列表'] : ['安全设置'];
+function ReadDemo({ scene }: { scene: Exclude<Scene, 'config-feedback' | 'security-close' | 'media' | 'actions' | 'authorization' | 'menu-conflict' | 'conflict' | 'throttle' | 'sync' | 'recovery' | 'search' | 'forms' | 'lists' | 'detail'> }) {
+    const labels = scene === 'permissions' ? ['菜单树', '角色详情'] : scene === 'upload' ? ['上传规则', '配置列表'] : ['安全设置', '登录方式'];
     const [modes, setModes] = useState<Mode[]>(labels.map(() => 'success'));
     const [selected, setSelected] = useState(true);
     const [uploadDraft, setUploadDraft] = useState(() => fromSettings({ imageFormats: ['jpg', 'png'], imageMaxSizeMb: 20, videoFormats: ['mp4'], videoMaxSizeMb: 100, fileFormats: ['pdf'], fileMaxSizeMb: 10 }));
     const [length, setLength] = useState('12');
+    const [phoneLogin, setPhoneLogin] = useState(false);
+    const [canEditLogin, setCanEditLogin] = useState(true);
     const [saved, setSaved] = useState('');
     const states = modes.map(query);
     const ready = queriesReady(...states);
@@ -63,6 +68,12 @@ function ReadDemo({ scene }: { scene: Exclude<Scene, 'media' | 'actions' | 'auth
                     passwordAction={<Button theme="borderless" type="primary" disabled={!ready} onClick={() => setSaved('修改下方密码最小长度后保存（本地演示）。')}>修改</Button>}
                     mfaAction={<Button theme="borderless" type="primary" disabled={!ready} onClick={() => setSaved('实际页面从此处打开多因素认证设置抽屉。')}>修改</Button>}
                 />
+                <div className="security-settings__login"><Divider margin="0" />
+                    <LoginMethodsSummary enabled={states[1]?.data ? phoneLogin : undefined}>
+                        <Checkbox checked={canEditLogin} onChange={event => setCanEditLogin(event.target.checked ?? false)}>允许修改登录方式</Checkbox>
+                        <LoginMethodsFields enabled={phoneLogin} disabled={!queriesReady(states[1]!) || !canEditLogin} onChange={setPhoneLogin} />
+                    </LoginMethodsSummary>
+                </div>
                 <label>密码最小长度<Input type="number" aria-label="演示密码最小长度" value={length} disabled={!ready} onChange={setLength} /></label>
             </>}
             {scene === 'upload' && <div className="upload-settings">
@@ -147,6 +158,6 @@ export function PageStateDemo() {
     const [scene, setScene] = useState<Scene>('permissions');
     return <div className="page-state-demo">
         <label>选择场景<select aria-label="选择场景" value={scene} onChange={(event) => setScene(event.target.value as Scene)}>{Object.entries(SCENES).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-        {scene === 'media' ? <MediaLibraryStyleDemo /> : scene === 'actions' ? <ActionGuardDemo /> : scene === 'authorization' ? <AuthorizationCalibrationDemo /> : scene === 'menu-conflict' ? <EditBoundaryDemo kind="menu" /> : scene === 'conflict' ? <EditBoundaryDemo /> : scene === 'throttle' ? <PasswordAttemptDemo /> : scene === 'forms' ? <FormProtectionDemo /> : scene === 'lists' ? <ReadRecoveryDemo /> : scene === 'detail' ? <ReadRecoveryDemo detail /> : scene === 'sync' ? <SyncDemo /> : scene === 'recovery' ? <RecoveryDemo /> : scene === 'search' ? <SearchDemo /> : <ReadDemo key={scene} scene={scene} />}
+        {scene === 'config-feedback' ? <ConfigFeedbackDemo /> : scene === 'security-close' ? <SecurityDrawerDemo /> : scene === 'media' ? <MediaLibraryStyleDemo /> : scene === 'actions' ? <ActionGuardDemo /> : scene === 'authorization' ? <AuthorizationCalibrationDemo /> : scene === 'menu-conflict' ? <EditBoundaryDemo kind="menu" /> : scene === 'conflict' ? <EditBoundaryDemo /> : scene === 'throttle' ? <PasswordAttemptDemo /> : scene === 'forms' ? <FormProtectionDemo /> : scene === 'lists' ? <ReadRecoveryDemo /> : scene === 'detail' ? <ReadRecoveryDemo detail /> : scene === 'sync' ? <SyncDemo /> : scene === 'recovery' ? <RecoveryDemo /> : scene === 'search' ? <SearchDemo /> : <ReadDemo key={scene} scene={scene} />}
     </div>;
 }

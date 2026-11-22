@@ -2,12 +2,14 @@ import { useSingleFlightCallback, useDebouncedCallback } from '@/hooks/useAction
 import { Button, Dropdown, Empty, Form, Modal, Pagination, Space, Tag, Toast, Tooltip } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import { Eye, EyeOff, MoreHorizontal, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
+import { queriesReady, QueryReadiness } from '@/components/QueryReadiness';
 import { PageContainer } from '@/components/PageContainer';
 import { parseConfigFieldOptions, SystemConfigGroupForm } from '@/components/SystemConfigGroupForm';
 import { NavListItem, NavListPanel } from '@/components/NavListPanel';
 import { Permission } from '@/components/Permission';
 import {
+    PHONE_LOGIN_CONFIG_KEY,
     useConfigAll,
     useConfigGroups,
     useCreateConfigGroup,
@@ -61,6 +63,8 @@ function ConfigMetadataModal({
     canDelete,
     onDelete,
     onClose,
+    readReady,
+    feedback,
 }: {
     record: ConfigView | null;
     domain: ConfigDomain;
@@ -69,12 +73,15 @@ function ConfigMetadataModal({
     canDelete: boolean;
     onDelete: (record: ConfigView) => void;
     onClose: () => void;
+    readReady: boolean;
+    feedback: ReactNode;
 }) {
     const api = useRef<FormApi<ConfigMetadataForm> | null>(null);
     const save = useSaveConfig();
     const isEdit = record !== null;
 
     const submit = useSingleFlightCallback(async () => {
+        if (!readReady) return;
         const value = await api.current?.validate();
         if (!value) return;
         const type = configType(value.fieldType);
@@ -105,7 +112,7 @@ function ConfigMetadataModal({
                         <Button
                             type="danger"
                             theme="borderless"
-                            disabled={!canDelete || record.isBuiltin}
+                            disabled={!readReady || !canDelete || record.isBuiltin}
                             onClick={() => { onClose(); onDelete(record); }}
                         >
                             删除配置项
@@ -113,7 +120,7 @@ function ConfigMetadataModal({
                     ) : <span />}
                     <Space>
                         <Button onClick={onClose}>取消</Button>
-                        <Button type="primary" theme="solid" loading={save.isPending} onClick={() => submit().catch(() => undefined)}>
+                        <Button type="primary" theme="solid" disabled={!readReady} loading={save.isPending} onClick={() => submit().catch(() => undefined)}>
                             {isEdit ? '保存' : '新增'}
                         </Button>
                     </Space>
@@ -121,6 +128,7 @@ function ConfigMetadataModal({
             }
             maskClosable={false}
         >
+            {feedback}
             <Form<ConfigMetadataForm>
                 getFormApi={(formApi) => {
                     api.current = formApi;
@@ -210,10 +218,14 @@ function ConfigGroupModal({
     domain,
     onClose,
     onCreated,
+    readReady,
+    feedback,
 }: {
     record: ConfigGroupView | null;
     domain: ConfigDomain;
     onClose: () => void;
+    readReady: boolean;
+    feedback: ReactNode;
     onCreated: (key: string) => void;
 }) {
     const api = useRef<FormApi<{ key: string; label: string }> | null>(null);
@@ -222,6 +234,7 @@ function ConfigGroupModal({
     const isEdit = record !== null;
 
     const submit = useSingleFlightCallback(async () => {
+        if (!readReady) return;
         const value = await api.current?.validate();
         if (!value) return;
         const key = record?.key ?? value.key.trim();
@@ -243,9 +256,10 @@ function ConfigGroupModal({
             okText={isEdit ? '保存' : '新增'}
             onCancel={onClose}
             onOk={() => void submit().catch(() => undefined)}
-            okButtonProps={{ loading: createGroup.isPending || updateGroup.isPending }}
+            okButtonProps={{ disabled: !readReady, loading: createGroup.isPending || updateGroup.isPending }}
             maskClosable={false}
         >
+            {feedback}
             <Form<{ key: string; label: string }>
                 getFormApi={(formApi) => {
                     api.current = formApi;
@@ -272,8 +286,15 @@ function ConfigGroupModal({
 
 export default function ConfigsPage({ domain = 'config_system' }: { domain?: ConfigDomain }) {
     const { hasAnyPermission } = usePermission();
-    const { data } = useConfigAll();
-    const { data: groupCatalog = [], isFetching: isFetchingGroups, refetch: refetchGroups } = useConfigGroups();
+    const configsQuery = useConfigAll();
+    const groupsQuery = useConfigGroups();
+    const { data } = configsQuery;
+    const { data: groupCatalog = [], isFetching: isFetchingGroups, refetch: refetchGroups } = groupsQuery;
+    const ready = queriesReady(configsQuery, groupsQuery);
+    const readFeedback = <>
+        <QueryReadiness query={groupsQuery} label="配置分组" onRetry={() => groupsQuery.refetch()} />
+        <QueryReadiness query={configsQuery} label="配置项" onRetry={() => configsQuery.refetch()} />
+    </>;
     const domainGroups = groupCatalog.filter((group) => group.groupKey === domain && (domain !== 'config_system' || !['upload', 'demo'].includes(group.key)));
     const deleteConfig = useDeleteConfig();
     const deleteConfigGroup = useDeleteConfigGroup();
@@ -296,7 +317,7 @@ export default function ConfigsPage({ domain = 'config_system' }: { domain?: Con
     const pageGroups = filteredGroups.slice((currentPage - 1) * pageSize, currentPage * pageSize);
     const selectedGroup = pageGroups.find((group) => group.key === activeGroup) ?? pageGroups[0] ?? null;
     const selectedRecords = selectedGroup
-        ? (data ?? []).filter((record) => record.groupKey === selectedGroup.key && record.configKey.startsWith(domain === 'config_sms' ? 'sms.' : 'system.'))
+        ? (data ?? []).filter((record) => record.configKey !== PHONE_LOGIN_CONFIG_KEY && record.groupKey === selectedGroup.key && record.configKey.startsWith(domain === 'config_sms' ? 'sms.' : 'system.'))
         : [];
 
     const { schedule: searchGroups } = useDebouncedCallback(() => {
@@ -329,6 +350,7 @@ export default function ConfigsPage({ domain = 'config_system' }: { domain?: Con
     return (
         <div className="config-groups-layout">
             <div className="config-groups-layout__master">
+                <QueryReadiness query={groupsQuery} label="配置分组" onRetry={() => groupsQuery.refetch()} />
                 <NavListPanel
                     title="配置分组"
                     headerExtra={
@@ -359,6 +381,7 @@ export default function ConfigsPage({ domain = 'config_system' }: { domain?: Con
                                     <Button
                                         theme="borderless"
                                         size="small"
+                                        disabled={!ready}
                                         aria-label="新增分组"
                                         icon={<Plus size={14} />}
                                         onClick={() => setCreatingGroup(true)}
@@ -374,7 +397,7 @@ export default function ConfigsPage({ domain = 'config_system' }: { domain?: Con
                         onEnterPress: searchGroups,
                     }}
                     loading={isFetchingGroups && domainGroups.length === 0}
-                    emptyText={groupKeyword ? '没有匹配的配置分组' : '暂无配置分组'}
+                    emptyText={groupsQuery.isError || groupsQuery.isFetching ? '' : groupKeyword ? '没有匹配的配置分组' : '暂无配置分组'}
                     footer={<>
                         <span>共 {filteredGroups.length} 条</span>
                         <Pagination
@@ -435,7 +458,7 @@ export default function ConfigsPage({ domain = 'config_system' }: { domain?: Con
                                             </Dropdown.Menu>
                                         }
                                     >
-                                        <Button theme="borderless" size="small" aria-label={`${group.label}的操作`} icon={<MoreHorizontal size={14} />} />
+                                        <Button disabled={!ready} theme="borderless" size="small" aria-label={`${group.label}的操作`} icon={<MoreHorizontal size={14} />} />
                                     </Dropdown>
                                 ),
                             })}
@@ -449,20 +472,28 @@ export default function ConfigsPage({ domain = 'config_system' }: { domain?: Con
                 }
                 extra={
                     <Permission code="system:config:create">
-                        <Button type="primary" theme="solid" onClick={() => setEditing(null)}>
+                        <Button type="primary" theme="solid" disabled={!ready} onClick={() => setEditing(null)}>
                             新增配置项
                         </Button>
                     </Permission>
                 }
             >
+            <QueryReadiness query={configsQuery} label="配置项" onRetry={() => configsQuery.refetch()} />
             <Space vertical align="start" style={{ width: '100%' }} spacing={16}>
-                {!selectedGroup ? (
+                {!selectedGroup && (groupsQuery.isError || groupsQuery.isFetching) ? (
+                    <p role="status">{groupsQuery.isError ? '配置分组加载失败，请在左侧重试。' : '正在读取配置分组…'}</p>
+                ) : !selectedGroup ? (
                     <Empty title="暂无配置分组" description="请使用左侧分组菜单新增配置分组" style={{ padding: 48 }} />
+                ) : selectedRecords.length === 0 && (configsQuery.isError || configsQuery.isFetching) ? (
+                    <span aria-hidden="true" />
+                ) : selectedRecords.length === 0 ? (
+                    <Empty title="暂无配置项" description={selectedGroup.key === 'user' && domain === 'config_system' ? '手机号登录方式已移至安全设置，可在此新增其他用户配置' : '请点击新增配置项添加配置'} style={{ padding: 48 }} />
                 ) : (
                     <SystemConfigGroupForm
                         key={`${selectedGroup.key}-${selectedRecords.map((record) => record.id).join('-')}`}
                         records={selectedRecords}
                         canEdit={canEdit}
+                        disabled={!ready}
                         showSettings={showConfigSettings}
                         onEdit={(record) => setEditing(record)}
                     />
@@ -471,6 +502,7 @@ export default function ConfigsPage({ domain = 'config_system' }: { domain?: Con
             </PageContainer>
             {editing !== undefined && (
                 <ConfigMetadataModal
+                    readReady={ready} feedback={readFeedback}
                     record={editing}
                     domain={domain}
                     defaultGroup={selectedGroup ?? undefined}
@@ -482,6 +514,7 @@ export default function ConfigsPage({ domain = 'config_system' }: { domain?: Con
             )}
             {creatingGroup && (
                 <ConfigGroupModal
+                    readReady={ready} feedback={readFeedback}
                     record={null}
                     domain={domain}
                     onClose={() => setCreatingGroup(false)}
@@ -496,6 +529,7 @@ export default function ConfigsPage({ domain = 'config_system' }: { domain?: Con
             )}
             {editingGroup && (
                 <ConfigGroupModal
+                    readReady={ready} feedback={readFeedback}
                     record={editingGroup}
                     domain={domain}
                     onClose={() => setEditingGroup(undefined)}

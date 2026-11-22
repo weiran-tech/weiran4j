@@ -1,5 +1,5 @@
 /** @jsxRuntime automatic */
-import { useSingleFlightCallback } from '@/hooks/useActionGuard';
+import { useDraftCloseGuard } from '@/hooks/useFormCloseGuard';
 import { Button, Checkbox, Divider, InputNumber, SideSheet, Toast } from '@douyinfe/semi-ui';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
@@ -9,6 +9,7 @@ import { Permission } from '@/components/Permission';
 import { useSecuritySettings, useUpdateMfaSettings, useUpdatePasswordRules } from '@/hooks/queries/security';
 import type { PasswordRulesUpdateRequest, SecuritySettingsView } from '@/types/api';
 import './SecuritySettingsPage.css';
+import { LoginMethodsSettings } from './LoginMethodsSettings';
 
 type Panel = 'password' | 'mfa' | null;
 
@@ -58,9 +59,11 @@ export default function SecuritySettingsPage() {
     const [mfaEnabled, setMfaEnabled] = useState(false);
     const [rememberDays, setRememberDays] = useState(7);
 
-    const ready = queriesReady(query) && !savePassword.isPending && !saveMfa.isPending;
+    const [initialDraft, setInitialDraft] = useState(() => ({ password, mfaEnabled, rememberDays }));
+    const guard = useDraftCloseGuard({ password, mfaEnabled, rememberDays }, initialDraft, () => setPanel(null));
+    const ready = !guard.saving && queriesReady(query) && !savePassword.isPending && !saveMfa.isPending;
 
-    const submit = useSingleFlightCallback(async () => {
+    const submit = async () => {
         if (!ready || !data || panel === null) return;
         if (panel === 'password') {
             if (password.minLength > password.maxLength) {
@@ -77,24 +80,27 @@ export default function SecuritySettingsPage() {
         }
         Toast.success('安全设置已保存');
         setPanel(null);
-    });
+    };
 
     if (!data) return <PageContainer><QueryReadiness query={query} label="安全设置" onRetry={() => query.refetch()} /></PageContainer>;
 
     const openPassword = () => {
         if (!ready) return;
-        setPassword({
+        const next = {
             minLength: data.passwordMinLength,
             maxLength: data.passwordMaxLength,
             requireLower: data.requireLower,
             requireUpper: data.requireUpper,
             requireDigit: data.requireDigit,
             requireSymbol: data.requireSymbol,
-        });
+        };
+        setInitialDraft({ password: next, mfaEnabled, rememberDays });
+        setPassword(next);
         setPanel('password');
     };
     const openMfa = () => {
         if (!ready) return;
+        setInitialDraft({ password, mfaEnabled: data.mfaEnabled, rememberDays: data.mfaRememberDays });
         setMfaEnabled(data.mfaEnabled);
         setRememberDays(data.mfaRememberDays);
         setPanel('mfa');
@@ -108,9 +114,10 @@ export default function SecuritySettingsPage() {
                 passwordAction={<Permission code="system:security:update"><Button theme="borderless" type="primary" disabled={!ready} onClick={openPassword}>修改</Button></Permission>}
                 mfaAction={<Permission code="system:security:update"><Button theme="borderless" type="primary" disabled={!ready} onClick={openMfa}>修改</Button></Permission>}
             />
+            <Permission code="system:config:list"><div className="security-settings__login"><Divider margin="0" /><LoginMethodsSettings /></div></Permission>
         </PageContainer>
 
-        <SideSheet visible={panel !== null} title={panel === 'password' ? '修改密码策略' : '修改多因素认证'} width={560} onCancel={() => setPanel(null)} footer={<div className="security-settings__footer"><Button onClick={() => setPanel(null)}>取消</Button><Button type="primary" theme="solid" disabled={!ready} loading={savePassword.isPending || saveMfa.isPending} onClick={() => void submit().catch(() => undefined)}>保存</Button></div>}>
+        <SideSheet visible={panel !== null} title={panel === 'password' ? '修改密码策略' : '修改多因素认证'} width={560} onCancel={guard.requestClose} closable={!guard.saving} closeOnEsc={!guard.saving} maskClosable={false} footer={<div className="security-settings__footer"><Button disabled={guard.saving} onClick={guard.requestClose}>取消</Button><Button type="primary" theme="solid" disabled={!ready} loading={savePassword.isPending || saveMfa.isPending} onClick={() => void guard.submit(submit).catch(() => undefined)}>保存</Button></div>}>
             <QueryReadiness query={query} label="安全设置" onRetry={() => query.refetch()} />
             {panel === 'password' && <div className="security-settings__form">
                 <label>密码长度</label>

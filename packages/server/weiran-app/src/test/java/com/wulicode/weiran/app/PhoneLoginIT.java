@@ -7,6 +7,8 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.wulicode.weiran.framework.auth.AuthCookies;
+import com.wulicode.weiran.system.domain.user.SecuritySettings;
+import com.wulicode.weiran.system.domain.user.SecuritySettingsRepository;
 import com.wulicode.weiran.system.infrastructure.sms.LocalSmsSender;
 import java.util.List;
 import java.util.Locale;
@@ -17,6 +19,7 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -27,10 +30,14 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(properties = "weiran.sms.mode=local")
 class PhoneLoginIT extends IntegrationTestSupport {
 
+    @Autowired
+    SecuritySettingsRepository securitySettings;
+
     @Test
     @DisplayName("手机多因素认证先验短信再发令牌，同一设备有效期内免验，未绑定手机号的账号暂时免验")
     void mfaRequiresCodeAndRemembersDevice() {
         final String admin = this.adminToken();
+        final SecuritySettings originalSecurity = this.securitySettings.load();
         final String originalTemplate = Objects.requireNonNull(this.jdbc.queryForObject(
                 "SELECT config_value FROM sys_config WHERE config_key = ?", String.class, PhoneLoginIT.TEMPLATE_KEY));
         final Logger logger = (Logger) LoggerFactory.getLogger(LocalSmsSender.class);
@@ -117,9 +124,9 @@ class PhoneLoginIT extends IntegrationTestSupport {
                             .asBoolean())
                     .isFalse();
         } finally {
-            this.jdbc.update("UPDATE sys_config SET config_value = json_set(config_value, '$.mfaEnabled', false, "
-                    + "'$.revision', cast(json_unquote(json_extract(config_value, '$.revision')) as unsigned) + 1) "
-                    + "WHERE config_key = 'system.security.settings'");
+            this.securitySettings.save(this.securitySettings
+                    .load()
+                    .withMfa(originalSecurity.mfaEnabled(), originalSecurity.mfaRememberDays()));
             this.jdbc.update(
                     "UPDATE sys_config SET config_value = ? WHERE config_key = ?",
                     originalTemplate,

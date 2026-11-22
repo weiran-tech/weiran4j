@@ -203,6 +203,8 @@ function validateField(record: ConfigView, value: unknown): string | null {
 export function SystemConfigGroupForm({
     records,
     canEdit,
+    disabled = false,
+    successMessage,
     showSettings,
     onEdit,
     onSave,
@@ -211,6 +213,8 @@ export function SystemConfigGroupForm({
 }: {
     records: ConfigView[];
     canEdit: boolean;
+    disabled?: boolean;
+    successMessage?: string;
     showSettings: boolean;
     onEdit: (record: ConfigView) => void;
     onSave?: (values: ConfigSaveRequest[]) => Promise<void> | void;
@@ -233,7 +237,7 @@ export function SystemConfigGroupForm({
     );
 
     const submit = useSingleFlightCallback(async () => {
-        if (uploadingFields.current.size > 0) return;
+        if (!canEdit || disabled || uploadingFields.current.size > 0) return;
         const values = await api.current?.validate();
         if (!values) return;
         for (const record of records) {
@@ -264,7 +268,7 @@ export function SystemConfigGroupForm({
             } else {
                 await Promise.all(records.map((record, index) => save.mutateAsync({ id: record.id, body: requests[index]! })));
             }
-            Toast.success(onSave ? '示例值已保存到数据库' : '分组配置已保存');
+            Toast.success(successMessage ?? (onSave ? '示例值已保存到数据库' : '分组配置已保存'));
         } finally {
             setSaving(false);
         }
@@ -286,6 +290,7 @@ export function SystemConfigGroupForm({
                         <div className="config-field-title">
                             {canEdit && showSettings && (
                                 <Button
+                                    disabled={disabled}
                                     className="config-field-title__edit"
                                     theme="borderless"
                                     size="small"
@@ -306,13 +311,13 @@ export function SystemConfigGroupForm({
                         field,
                         label,
                         fieldStyle: { padding: 0 },
-                        disabled: !canEdit,
+                        disabled: !canEdit || disabled,
                         rules: record.required ? [{ required: true, message: '此项必填' }] : [],
                     };
                     return (
                         <div key={record.id} style={{ width: '100%' }}>
                             {record.configKey === 'sms.system_tpl.captcha_local' && (record.fieldType === 'textarea' || record.fieldType === 'input') ? (
-                                <LocalSmsTemplateField field={field} label={label} disabled={!canEdit} required={record.required} multiline={record.fieldType === 'textarea'} />
+                                <LocalSmsTemplateField field={field} label={label} disabled={!canEdit || disabled} required={record.required} multiline={record.fieldType === 'textarea'} />
                             ) : record.fieldType === 'textarea' ? (
                                 <Form.TextArea {...common} rows={3} maxLength={65535} />
                             ) : record.fieldType === 'number' ? (
@@ -328,7 +333,7 @@ export function SystemConfigGroupForm({
                                     <ConfigMultiFileField
                                         key={`${record.id}:${record.configValue}`}
                                         value={toStringValue(initValues[field])}
-                                        disabled={!canEdit}
+                                        disabled={!canEdit || disabled}
                                         uploadTypes={parseUploadTypes(record.fieldOptions, ALL_UPLOAD_TYPES)}
                                         {...(onUploadFile ? { onUpload: onUploadFile } : {})}
                                         onUploadingChange={(active) => setFieldUploading(record.id, active)}
@@ -344,14 +349,14 @@ export function SystemConfigGroupForm({
                                     {record.fieldType === 'image' ? <SystemImageUpload
                                         key={`${record.id}:${record.configValue}`}
                                         value={toStringValue(initValues[field])}
-                                        disabled={!canEdit}
+                                        disabled={!canEdit || disabled}
                                         {...(onUploadFile ? { onUpload: onUploadFile } : {})}
                                         onUploadingChange={(active) => setFieldUploading(record.id, active)}
                                         onChange={(url) => { api.current?.setValue(field, url); }}
                                     /> : <ConfigFileField
                                         key={`${record.id}:${record.configValue}`}
                                         value={toStringValue(initValues[field])}
-                                        disabled={!canEdit}
+                                        disabled={!canEdit || disabled}
                                         uploadTypes={record.fieldType === 'file' ? parseUploadTypes(record.fieldOptions, ['file']) : [record.fieldType]}
                                         {...(onUploadFile ? { onUpload: onUploadFile } : {})}
                                         onUploadingChange={(active) => setFieldUploading(record.id, active)}
@@ -367,7 +372,7 @@ export function SystemConfigGroupForm({
                                     <RichTextEditor
                                         key={record.id}
                                         value={toStringValue(initValues[field])}
-                                        disabled={!canEdit}
+                                        disabled={!canEdit || disabled}
                                         label={record.description || record.configKey}
                                         {...(onUploadImage ? { onUploadImage } : {})}
                                         onUploadingChange={(active) => setFieldUploading(record.id, active)}
@@ -383,7 +388,7 @@ export function SystemConfigGroupForm({
                     );
                 })}
                 {canEdit && (
-                    <Button type="primary" theme="solid" loading={saving || save.isPending} disabled={uploading} onClick={() => void submit().catch(() => undefined)}>
+                    <Button type="primary" theme="solid" loading={saving || save.isPending} disabled={disabled || uploading} onClick={() => void submit().catch(() => undefined)}>
                         保存本组
                     </Button>
                 )}

@@ -1,7 +1,7 @@
 import { useSingleFlightCallback } from './useActionGuard';
 import { Modal } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 
 function isEmpty(value: unknown): boolean {
     return value === undefined || value === null || value === '';
@@ -20,7 +20,7 @@ function equalValues(left: unknown, right: unknown): boolean {
 }
 
 /** 保护弹窗关闭与提交，仅在内存读取表单，不存储或记录草稿。 */
-export function useFormCloseGuard<T extends object>(api: RefObject<FormApi<T> | null>, onClose: () => void) {
+export function useFormCloseGuard<T extends object>(api: RefObject<Pick<FormApi<T>, 'getValues' | 'getInitValues'> | null>, onClose: () => void) {
     const [saving, setSaving] = useState(false);
     // ref 在同一事件循环内也能拦住重复提交或关闭，不依赖下一次渲染。
     const busy = useRef(false);
@@ -65,4 +65,13 @@ export function useFormCloseGuard<T extends object>(api: RefObject<FormApi<T> | 
     });
 
     return { saving, requestClose, submit };
+}
+
+/** 非 Semi Form 的受控草稿复用相同关闭与提交规则；初值由打开编辑入口时捕获。 */
+export function useDraftCloseGuard<T extends object>(values: T, initialValues: T, onClose: () => void) {
+    const api = useRef<Pick<FormApi<T>, 'getValues' | 'getInitValues'> | null>(null);
+    useLayoutEffect(() => {
+        api.current = { getValues: () => values, getInitValues: () => initialValues };
+    }, [values, initialValues]);
+    return useFormCloseGuard(api, onClose);
 }

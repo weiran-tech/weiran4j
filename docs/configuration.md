@@ -32,3 +32,29 @@
 匿名接口 `/api-backend/n/system/config/getPublic/{key}` 只允许 `system.general.title`。它不会自动改变前端显示；标题仍由构建变量 `VITE_APP_TITLE` 提供。
 
 站点内容配置已从页面、接口与数据库移除。表结构和跨接口业务约束见[接口与数据约定](/contracts)；接口路径与字段以[OpenAPI 文档](/openapi)为准。资源文件的引用与删除规则见[资源库引用与删除设计](/资源库引用与删除设计)。
+
+### 登录方式
+
+“启用手机号+短信验证码登录”已移至 **安全设置 → 登录方式 → 修改**，系统配置的用户分组不再显示该开关；若没有其他配置项，则显示迁移提示和空态。仍使用 `sys_config` 的 `system.user.enable_phone_login` 原值，保留 `system:config:list` 读取与 `system:config:update` 修改权限；访问安全设置本身仍需 `system:security:list`。短信发送器和验证码模板继续在短信配置维护。启用开关后，只有短信模式与验证码模板可用时，登录页才提供手机号验证码登录。
+
+密码策略和多因素认证同样存储在 `sys_config`，分别使用内部三段式标量配置键 `system.security.*`，通过安全设置专用接口维护。
+
+安全设置不再使用 JSON 保存，配置键如下：
+
+| 配置键 | 类型 | 含义 |
+| --- | --- | --- |
+| `system.security.password_min_length` | number | 密码最小长度 |
+| `system.security.password_max_length` | number | 密码最大长度 |
+| `system.security.require_lower` | boolean | 必须包含小写字母 |
+| `system.security.require_upper` | boolean | 必须包含大写字母 |
+| `system.security.require_digit` | boolean | 必须包含数字 |
+| `system.security.require_symbol` | boolean | 必须包含符号 |
+| `system.security.mfa_enabled` | boolean | 启用手机多因素认证 |
+| `system.security.mfa_remember_days` | number | 多因素认证免验天数 |
+| `system.security.revision` | number | 内部并发修订号 |
+
+这些内部配置仅由安全设置专用接口读写，通用系统配置页面不展示。保存时在同一事务中更新修订号与各字段。旧 JSON 数据由 Flyway 一次性拆分，应用不保留旧格式回退读取。
+
+配置分组与配置项各自展示读取中、失败和重试反馈；失败不显示“暂无配置”成功空态。缓存刷新失败保留原内容与未保存草稿，读取恢复前禁止编辑和保存，新建／删除入口也暂时禁用。已打开的配置元数据弹窗保留输入，恢复前禁止提交，可直接在弹窗内重试。
+
+密码策略、多因素认证和登录方式抽屉共用关闭保护：未修改时直接关闭，有修改时先确认放弃；保存期间禁用取消、关闭和 Esc，遮罩不关闭抽屉。保存失败保留草稿，保存成功直接关闭。

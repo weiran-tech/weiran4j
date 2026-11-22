@@ -31,9 +31,11 @@
 | 后端模块 | `weiran-system`；`ConfigController` → `ConfigApplicationService` → `MybatisConfigRepository` |
 | 接口前缀 | `/api-backend/system/config`；具体 HTTP 接口以 Springdoc OpenAPI 为准 |
 | 权限码 | `system:config:list` · `system:config:create` · `system:config:update` · `system:config:delete`；`GET /public/{key}` 为 `@PublicApi`（免登录） |
-| 种子 | `system.general.title` = `Weiran Admin`（`config_system/general`，string，内置）；`system.user.enable_phone_login` = `false`（`config_system/user`，boolean，内置）；`system.upload.*` 六项（`config_system/upload`，内置，图片、视频和普通文件各有格式与大小限制）；`sms.general.sign_name`（`config_sms/general`）、`sms.system_tpl.captcha_local`、`sms.system_tpl.captcha_aliyun`（`config_sms/system_tpl`，string，内置，默认空）；`system.security.settings` 从旧表迁入（`group_key=security`，内部 JSON 配置）；`config_system` 含 `general`、`user`、`upload`，`config_sms` 含 `general`、`system_tpl`，不登记公开 `security` 分组 |
+| 种子 | `system.general.title` = `Weiran Admin`（`config_system/general`，string，内置）；`system.user.enable_phone_login` = `false`（`config_system/user`，boolean，内置）；`system.upload.*` 六项（`config_system/upload`，内置，图片、视频和普通文件各有格式与大小限制）；`sms.general.sign_name`（`config_sms/general`）、`sms.system_tpl.captcha_local`、`sms.system_tpl.captcha_aliyun`（`config_sms/system_tpl`，string，内置，默认空）；`system.security.*` 九项独立标量配置（`group_key=security`，内部 number/boolean 配置）；`config_system` 含 `general`、`user`、`upload`，`config_sms` 含 `general`、`system_tpl`，不登记公开 `security` 分组 |
 
 ## 1. 可视化表单
+
+系统配置与短信配置分组和配置项读取失败时各自显示持久反馈与重试；首次失败不显示成功空态，刷新失败保留缓存与草稿，必要数据恢复前禁用编辑和保存。
 
 系统配置与短信配置共用 `ConfigsPage` 的左侧分组导航、右侧动态表单和配置项管理；短信菜单通过轻量入口传入 `config_sms`，系统配置使用 `config_system`。上传配置由资源管理内的独立 Tab 维护，系统配置页不展示 `upload` 分组；演示专用 `demo` 分组仅在 `/demo/config` 使用，也不在系统配置页展示。演示表单的各组示例值合并保存在 `system.demo.samples` JSON 配置中，刷新后从数据库恢复。三者复用 `sys_config`/`sys_group`。短信签名存放于短信域的 `general` 组，验证码模板存放于 `system_tpl` 组。
 分组由共享分组数据表承载，可供后续模块复用；左栏菜单支持刷新、新增分组，分组条目显示创建时间和内置状态并提供编辑/删除操作。右侧配置详情只展示当前分组名称，不显示创建时间、内置或可删除状态。新增配置项默认使用当前选中分组。
@@ -89,15 +91,18 @@
 
 设置分组采用 16px h3、16px 分区间距与零外边距分割线；配置项新增按钮为纯文字。上传配置演示复用实际分组字段。
 
+- 安全设置三个编辑抽屉共用草稿关闭保护：未修改直接关闭，修改后确认放弃；保存期间禁止取消、关闭和 Esc，保存失败保留草稿；遮罩不关闭。
 - 安全设置与上传设置使用 `QueryReadiness` 区分加载、失败及后台刷新；错误可单独重试。上传规则与配置列表均成功且未刷新时开放编辑和保存，本地草稿在重试后保留。相关交互见 docs/page-states.md。
-- 安全设置卡片不重复显示页面标题；“密码策略”和“多因素认证”均使用 h3 标题，两个完整区块之间带分割线，修改入口保留在标题同行。docs 复用 `SecuritySettingsSummary` 展示实际分区样式。
+- 安全设置卡片不重复显示页面标题；“密码策略”“多因素认证”和“登录方式”均使用 h3 标题，完整区块之间带分割线，修改入口保留在标题同行。docs 复用 `SecuritySettingsSummary` 展示实际分区样式。
 
 - 配置写入后没有缓存层，公开接口每次查库。
 - 配置保存和删除时，在同一事务同步替换 `sys_media_reference` 中的 `system_config` 引用；资源库仍通过实时检查器核对历史配置值。
 - 业务模块可调用 `ConfigService.createBusiness(namespace, command)` 创建业务键，并调用 `updateBusinessValue(namespace, key, value)` 原位改值；业务键限三级小写结构，保留 `system`、`sms` 命名空间。创建时检查启用的 `config_system` 分组、值类型和字段定义，更新时锁定原记录并复用值校验，只写 `config_value` 与媒体引用。业务接口负责权限，不另开放 system HTTP 路由。
 - 系统配置页面按 `sys_group(type=config,group_key=config_system)` 分组并排除 `upload`；资源管理的上传配置 Tab 编辑 `system.upload.*` 六项；短信页面按 `group_key=config_sms` 分组。配置键遵循 `{range}.{group}.{value}`，其中 `range=system/sms`、`group=sys_config.group_key=sys_group.code`；新建或变更键、分组时校验。已有不合规的自定义键允许原位改值。`field_type`、`field_options`、`required` 控制表单渲染和校验。匿名读取仅允许 `system.general.title`。
-- 安全设置独占内部键 `system.security.settings`（`group_key=security`）：单条 JSON 保存密码最小/最大长度、必需字符类型、MFA 开关、设备免验天数与 `revision`。该组不登记 `sys_group`，通用配置列表、分页和详情不返回它，通用新增/编辑/删除及分组管理也不得触及；只有安全设置接口读写。保存时按 JSON 修订号乐观并发更新，修订号变化使旧设备信任凭据失效。旧 `sys_security_settings` 表在迁移保留值后删除。
+- 安全设置使用 `group_key=security` 的内部独立标量键：`system.security.password_min_length/password_max_length`、`system.security.require_lower/require_upper/require_digit/require_symbol`、`system.security.mfa_enabled/mfa_remember_days/revision`（每个斜杠后字段均带 `system.security.` 前缀），分别使用 number 或 boolean 配置类型，不使用 JSON。该组不登记 `sys_group`，通用配置列表、分页和详情不返回它，通用新增/编辑/删除及分组管理也不得触及；只有安全设置接口读写。保存时按独立 revision 配置键乐观并发更新，修订号和所有字段在同一事务内保存，修订号变化使旧设备信任凭据失效。旧 `sys_security_settings` 表在迁移保留值后删除。
 - 短信配置由 `/system/sms` 菜单进入共用的 `ConfigsPage`，传入 `config_sms` 后只呈现短信域分组及 `sms.*` 配置项：`sms.general.sign_name` 位于 `general` 组，`sms.system_tpl.captcha_local` 与 `sms.system_tpl.captcha_aliyun` 位于 `system_tpl` 组。分组与配置项管理共用同一页面流程，分组写接口按配置域定位。
+- 手机号短信登录开关的页面入口在“安全设置 → 登录方式”，系统配置用户分组隐藏该项，无其他配置时显示迁移提示且不显示空的保存按钮；仍保留 `system.user.enable_phone_login` 配置键及 `system:config:list/update` 权限，通过原配置接口读写，不迁移或重置已有值。登录方式读取失败可单独重试，缓存刷新失败保留摘要和草稿并禁用保存；缺失配置不显示为“未启用”。
+
 - 登录页通过公开 `/api-backend/n/system/auth/listProviders` 获取手机号登录状态；后端只有在 `system.user.enable_phone_login=true`、短信发送模式可用且当前模式的验证码模板有效时才返回 `phoneLoginEnabled=true`。`local` 模式的 `sms.system_tpl.captcha_local` 是短信正文，必须包含 `${code}`；发码时替换并写入应用日志。`aliyun` 模式的 `sms.system_tpl.captcha_aliyun` 是已审核模板 CODE。
 - 本地验证码模板的文本字段显示 `${变量名}` / `${code}` 说明，点击验证码变量在当前光标处插入，或替换选中文字并恢复光标；首次未定位时追加到末尾。无编辑权限时正文和按钮同时禁用；阿里云模板不显示变量插入。交互演示见 docs/configuration.md。
 - 站点标题仍取自构建期环境变量 `VITE_APP_TITLE`（见 #02）；`packages/manage/src` 不直接调用公开配置接口。
@@ -105,6 +110,9 @@
 - [系统配置说明](../../../docs/configuration.md)记录了分组和表单字段的使用方式。
 
 ## 6. 已知问题汇总
+
+- **#08 ⚠️ P3 配置项与配置分组的删除确认按钮风格不同**
+  症状：同一 `ConfigsPage` 中，删除分组明确使用“删除”文案和 danger/solid 按钮；删除配置项的 `Modal.confirm` 没有设置 `okText` 与危险按钮属性，采用默认确认文案与样式。字典删除也已使用明确的危险操作按钮。建议统一删除文案与危险色；本次源码确认，未改删除逻辑。
 
 - **#05 ⚠️ P2 上传设置一次保存可能只生效一部分**
   症状：`UploadSettingsPage` 把图片、视频、普通文件的多个配置项依次调用单项更新；中途某项失败时，前面项目已保存，页面只显示通用失败提示，管理员无法知道哪些设置已生效。应提供整体保存结果，或通过批量原子更新保障一次操作的完整性；本轮只记录，不改变接口。
@@ -120,6 +128,16 @@
   症状：在系统配置页修改 `system.general.title` 后，登录页与顶栏标题不变。
 
 ## 7. changelog
+
+**2026-11-23**
+
+- **#07 ✅ P2 系统与短信配置读取反馈已统一**
+  由 `unify-config-feedback-and-security-close` 解决：配置分组与配置项各自使用持久反馈和独立重试；首次失败不显示成功空态，缓存刷新失败保留原内容和本地草稿，读取未就绪时禁止编辑与保存。配置元数据弹窗也可独立重试并保留输入。两种配置域的读取恢复回归与 docs 本地演示已覆盖。
+
+**2026-11-22**
+- 恢复本地已应用的 `V202611222335` 原校验和 `427203121`，布尔值 `0/1` 归一化改由追加的 `V202611222350` 执行，避免开发服务自动应用迁移后再次修改原文件引起校验失败。
+- 将内部安全设置拆成九个 `system.security.*` 标量配置键；追加迁移保留旧 JSON 中的现有值后删除旧项，运行时不保留 JSON 回退；保留并发冲突检查和设备信任失效行为。
+- 将“启用手机号+短信验证码登录”从系统配置移至安全设置的“登录方式”分组，复用现有配置存储、接口及权限；同步本地文档演示和读取恢复、只读与保存回归。
 
 新条目插在本节最上方（按日期倒序，新在上）。
 
