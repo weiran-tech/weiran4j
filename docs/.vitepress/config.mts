@@ -44,6 +44,8 @@ const config = withMermaid({
             { text: 'NavListItem', link: '/components/nav-list-item' },
           ] },
           { text: '页面状态演示', link: '/page-states' },
+          { text: '后台页面示例', link: '/backoffice-examples' },
+          { text: '演示开发约定', link: '/examples/' },
           { text: 'OpenAPI 与 Swagger UI', link: '/openapi' },
           { text: '测试框架基线', link: '/testing/', items: [
             { text: '项目测试入口', link: '/testing' },

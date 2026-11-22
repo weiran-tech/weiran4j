@@ -40,26 +40,13 @@ dependencies {
     runtimeOnly("com.mysql:mysql-connector-j")
     developmentOnly(platform(project(":weiran-dependencies")))
     developmentOnly("org.springframework.boot:spring-boot-devtools")
-    // 可选演示种子：本地 bootRun / 测试可见；只有专用 Demo 镜像的 bootJar 才打包它。
-    // 下游可省略整个 weiran-demo 目录，普通生产镜像仍不包含演示功能。
-    val demoImageEnabled = providers.gradleProperty("weiran.demo.image").map { it.toBooleanStrict() }.orElse(false).get()
-    require(!demoImageEnabled || findProject(":weiran-demo") != null) {
-        "Demo 镜像需要可选的 weiran-demo 模块。"
-    }
-    if (findProject(":weiran-demo") != null) {
-        if (demoImageEnabled) {
-            runtimeOnly(project(":weiran-demo"))
-        } else {
-            developmentOnly(project(":weiran-demo"))
-        }
-        testRuntimeOnly(project(":weiran-demo"))
-    }
-
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:mysql")
     // 操作日志异步落库，断言时需要轮询等待。
     testImplementation("org.awaitility:awaitility")
+    // Excel/ZIP 处理器只作为真实 worker 集成测试夹具。
+    testImplementation("org.apache.poi:poi-ooxml")
     // 集成测试直接用 JdbcTemplate 查库断言：走 Mapper 断言会让「断言」和「被测逻辑」
     // 共用同一条实现路径，实现整体写错时测试照样绿。
     testImplementation("org.springframework.boot:spring-boot-starter-jdbc")
@@ -90,7 +77,7 @@ aggregatedCoverageProjects.forEach { path ->
 val runtimeProjectPaths = listOf(":weiran-framework") +
     businessModules.flatMap { module ->
         listOf("api", "domain", "application", "infrastructure", "adapter").map { layer -> ":$module-$layer" }
-    } + listOfNotNull(if (findProject(":weiran-demo") != null) ":weiran-demo" else null)
+    }
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
     systemProperty("spring.config.additional-location", "optional:file:$rootDir/config/")
     systemProperty("spring.profiles.active", (findProperty("profile") as String?) ?: "local")

@@ -295,7 +295,7 @@ export default function ConfigsPage({ domain = 'config_system' }: { domain?: Con
         <QueryReadiness query={groupsQuery} label="配置分组" onRetry={() => groupsQuery.refetch()} />
         <QueryReadiness query={configsQuery} label="配置项" onRetry={() => configsQuery.refetch()} />
     </>;
-    const domainGroups = groupCatalog.filter((group) => group.groupKey === domain && (domain !== 'config_system' || !['upload', 'demo'].includes(group.key)));
+    const domainGroups = groupCatalog.filter((group) => group.groupKey === domain && (domain !== 'config_system' || group.key !== 'upload'));
     const deleteConfig = useDeleteConfig();
     const deleteConfigGroup = useDeleteConfigGroup();
     const [editing, setEditing] = useState<ConfigView | null | undefined>(undefined);

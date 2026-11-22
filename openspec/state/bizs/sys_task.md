@@ -6,7 +6,7 @@
 | --- | --- |
 | 表 | `sys_task` |
 | 模块 | `weiran-system` |
-| 演示页面 | `/demo/batch`（仅 local/test） |
+| 演示页面 | docs `/backoffice-examples`（本地模拟） |
 | 权限 | `system:batch-job:create/list/cancel` |
 
 ## 1. 列表
@@ -27,13 +27,17 @@
 
 ## 5. 说明与建议
 
-任务源文件不进入 `sys_media`，完成后保留 7 天；任务和明细继续保留。Excel/ZIP 演示处理器在可选的 `weiran-demo` 模块中。接入方式见 `docs/batch-processing.md`。
+任务源文件不进入 `sys_media`，完成后保留 7 天；任务和明细继续保留。Excel/ZIP 处理器仅作为 `weiran-app` 测试夹具，不进入运行时。接入方式见 `docs/batch-processing.md`。
 
 ## 6. 已知问题汇总
 
 无。
 
 ## 7. changelog
+
+**2026-11-23**
+
+- `extract-runtime-examples` 将展示迁入 docs，真实后端流程继续由测试夹具验证，运行时移除示例装配。
 
 **2026-11-11**
 

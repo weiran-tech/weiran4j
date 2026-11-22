@@ -6,7 +6,7 @@
 | --- | --- |
 | 表 | `sys_task_detail` |
 | 模块 | `weiran-system` |
-| 演示页面 | `/demo/batch`（仅 local/test） |
+| 演示页面 | docs `/backoffice-examples`（本地模拟） |
 | 权限 | `system:batch-job:list` |
 
 ## 1. 列表
@@ -34,6 +34,10 @@
 无。
 
 ## 7. changelog
+
+**2026-11-23**
+
+- `extract-runtime-examples` 将展示迁入 docs，真实后端流程继续由测试夹具验证，运行时移除示例装配。
 
 **2026-10-26**
 

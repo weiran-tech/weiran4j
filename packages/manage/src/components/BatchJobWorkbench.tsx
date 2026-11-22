@@ -13,6 +13,13 @@ export type BatchPageResult<T> = PageResult<T>;
 export type BatchJob = BatchJobView;
 export interface BatchKindOption { value: string; label: string; accept: string }
 export interface BatchSample { label: string; href: string }
+export interface BatchJobDataSource {
+    list: (kinds: string) => Promise<BatchJob[]>;
+    get: (id: number) => Promise<BatchJob>;
+    details: (id: number, params: URLSearchParams) => Promise<BatchPageResult<BatchTaskDetailView>>;
+    create: (kind: string, file: File) => Promise<BatchJob>;
+    cancel: (id: number) => Promise<BatchJob>;
+}
 export interface BatchJobWorkbenchProps {
     title: string;
     description: string;
@@ -21,7 +28,21 @@ export interface BatchJobWorkbenchProps {
     sampleHint?: string;
     uploadHint?: string;
     ResultPanel?: ComponentType<{ job: BatchJob }>;
+    dataSource?: BatchJobDataSource;
 }
+
+const systemDataSource: BatchJobDataSource = {
+    list: (kinds) => http.get<BatchJob[]>(`/api-backend/system/batchJob/list?kinds=${encodeURIComponent(kinds)}`),
+    get: (id) => http.get<BatchJob>(`/api-backend/system/batchJob/get/${id}`),
+    details: (id, params) => http.get<BatchPageResult<BatchTaskDetailView>>(`/api-backend/system/batchJob/listDetails/${id}?${params}`),
+    create: (kind, file) => {
+        const body = new FormData();
+        body.append('kind', kind);
+        body.append('file', file);
+        return http.post<BatchJob>('/api-backend/system/batchJob/create', body);
+    },
+    cancel: (id) => http.post<BatchJob>(`/api-backend/system/batchJob/cancel/${id}`),
+};
 
 const ACTIVE = new Set(['queued', 'running', 'cancel_requested']);
 const STATUS: Record<string, string> = {
@@ -67,7 +88,7 @@ function BatchDetailTable({ data, loading, page, onPageChange }: {
         showTotal: true, formatPageText: formatPaginationTotal, onChange: (nextPage) => onPageChange(nextPage) }} />;
 }
 
-export function BatchJobWorkbench({ title, description, kinds, samples = [], sampleHint, uploadHint, ResultPanel }: BatchJobWorkbenchProps) {
+export function BatchJobWorkbench({ title, description, kinds, samples = [], sampleHint, uploadHint, ResultPanel, dataSource = systemDataSource }: BatchJobWorkbenchProps) {
     const client = useQueryClient();
     const stageRef = useRef<HTMLElement>(null);
     const { hasPermission } = usePermission();
@@ -82,13 +103,13 @@ export function BatchJobWorkbench({ title, description, kinds, samples = [], sam
     const kindFilter = kinds.map((option) => option.value).join(',');
     const list = useQuery({
         queryKey: ['batch-jobs', kindFilter],
-        queryFn: () => http.get<BatchJob[]>(`/api-backend/system/batchJob/list?kinds=${encodeURIComponent(kindFilter)}`),
+        queryFn: () => dataSource.list(kindFilter),
         enabled: kinds.length > 0,
         refetchInterval: 3000,
     });
     const detail = useQuery({
         queryKey: ['batch-job', selectedId],
-        queryFn: () => http.get<BatchJob>(`/api-backend/system/batchJob/get/${selectedId}`),
+        queryFn: () => dataSource.get(selectedId!),
         enabled: selectedId !== null,
         refetchInterval: (query) => ACTIVE.has(query.state.data?.status ?? 'queued') ? 1500 : false,
     });
@@ -99,7 +120,7 @@ export function BatchJobWorkbench({ title, description, kinds, samples = [], sam
         queryFn: () => {
             const params = new URLSearchParams({ page: String(detailPage), pageSize: '20', stage: activeStep === 1 ? 'validating' : 'processing' });
             if (detailStatus !== 'all') params.set('status', detailStatus);
-            return http.get<BatchPageResult<BatchTaskDetailView>>(`/api-backend/system/batchJob/listDetails/${selectedId}?${params}`);
+            return dataSource.details(selectedId!, params);
         },
         enabled: selectedId !== null && (activeStep === 1 || activeStep === 3),
         refetchInterval: detail.data && ACTIVE.has(detail.data.status) ? 2000 : false,
@@ -107,10 +128,7 @@ export function BatchJobWorkbench({ title, description, kinds, samples = [], sam
     const create = useMutation({
         mutationFn: async () => {
             if (!file) throw new Error('请选择文件');
-            const body = new FormData();
-            body.append('kind', kind);
-            body.append('file', file);
-            return http.post<BatchJob>('/api-backend/system/batchJob/create', body);
+            return dataSource.create(kind, file);
         },
         onSuccess: (job) => {
             setSelectedId(job.id);
@@ -123,7 +141,7 @@ export function BatchJobWorkbench({ title, description, kinds, samples = [], sam
         },
     });
     const cancel = useMutation({
-        mutationFn: (id: number) => http.post<BatchJob>(`/api-backend/system/batchJob/cancel/${id}`),
+        mutationFn: (id: number) => dataSource.cancel(id),
         onSuccess: () => {
             void client.invalidateQueries({ queryKey: ['batch-jobs'] });
             void client.invalidateQueries({ queryKey: ['batch-job', selectedId] });

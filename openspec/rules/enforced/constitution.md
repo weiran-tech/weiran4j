@@ -81,8 +81,8 @@ Checkstyle、Spotless、SpotBugs、Forbidden APIs、Error Prone/NullAway 的配�
 
 所有表结构与种子数据的变化只能以新增 Flyway 脚本的方式落地
 （`weiran-*-infrastructure/src/main/resources/db/migration/<module>/V<yyyyMMddHHmm>__<module>_<desc>.sql`）。
-仅供本应用 local/test 使用的演示种子可放在可选 `weiran-demo/src/main/resources/db/app-demo/`，
-该目录只能由 local/test profile 显式加入 Flyway locations，不能进入通用基座或生产环境的默认扫描路径。
+已发布的 local/test 演示种子原样保存在 `weiran-app/src/main/resources/db/app-demo/`，只为保留旧数据库的迁移历史；不再新增业务演示种子。
+该目录只能由 local/test profile 显式加入 Flyway locations，不能进入通用基座或生产环境的默认扫描路径；测试专用夹具迁移只放在 test resources。
 已合入主干的脚本不得修改或删除，要纠正就追加新脚本。不手写 DDL 到任何环境。
 
 **为什么**：Flyway 以校验和识别已执行的脚本。改一个已执行过的脚本，

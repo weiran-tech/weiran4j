@@ -6,11 +6,11 @@ import { SystemConfigGroupForm } from '../SystemConfigGroupForm';
 
 const multiFileConfig: ConfigView = {
     id: 42,
-    configKey: 'system.demo.images',
+    configKey: 'system.test.images',
     configValue: '["/first.pdf"]',
     configType: 'json',
-    groupKey: 'demo',
-    fieldType: 'json',
+    groupKey: 'test',
+    fieldType: 'files',
     fieldOptions: null,
     required: false,
     description: '多文件上传 · FileUpload',
@@ -78,7 +78,7 @@ it('本地模板只读时禁止插入，其他模板不显示变量操作', () =
     expect(screen.getAllByRole('button', { name: '插入验证码变量' })).toHaveLength(1);
 });
 
-it('将旧演示 JSON 字段显示为多文件上传并保存 URL 数组', async () => {
+it('多文件字段保存 URL 数组', async () => {
     mockFetch({});
     const onSave = vi.fn();
     renderWithProviders(<SystemConfigGroupForm records={[multiFileConfig]} canEdit showSettings={false} onEdit={() => undefined} onSave={onSave} />);
@@ -90,9 +90,9 @@ it('将旧演示 JSON 字段显示为多文件上传并保存 URL 数组', async
     fireEvent.click(screen.getByRole('button', { name: '保存本组' }));
 
     await waitFor(() => expect(onSave).toHaveBeenCalledWith([expect.objectContaining({
-        configKey: 'system.demo.images',
+        configKey: 'system.test.images',
         configType: 'json',
-        fieldType: 'json',
+        fieldType: 'files',
         configValue: '[]',
     })]));
 });
@@ -105,7 +105,7 @@ it('单图字段只接受配置允许的图片，并拒绝拖入视频', async (
     });
     const onUploadFile = vi.fn(() => Promise.resolve('/system-uploads/cover.png'));
     const { container } = renderWithProviders(<SystemConfigGroupForm
-        records={[{ ...multiFileConfig, id: 43, configKey: 'system.demo.image', configValue: '', configType: 'string', fieldType: 'image', fieldOptions: '["image","video"]' }]}
+        records={[{ ...multiFileConfig, id: 43, configKey: 'system.test.image', configValue: '', configType: 'string', fieldType: 'image', fieldOptions: '["image","video"]' }]}
         canEdit showSettings={false} onEdit={() => undefined} onUploadFile={onUploadFile}
     />);
     const input = await waitFor(() => {
@@ -137,7 +137,7 @@ it.each([
     });
     const onUploadFile = vi.fn(() => Promise.resolve(`/system-uploads/${allowed}`));
     const { container } = renderWithProviders(<SystemConfigGroupForm
-        records={[{ ...multiFileConfig, id: 44, configKey: `system.demo.${fieldType}`, configValue: '', configType: 'string', fieldType }]}
+        records={[{ ...multiFileConfig, id: 44, configKey: `system.test.${fieldType}`, configValue: '', configType: 'string', fieldType }]}
         canEdit showSettings={false} onEdit={() => undefined} onUploadFile={onUploadFile}
     />);
     const input = await waitFor(() => {
@@ -166,7 +166,7 @@ it('多文件字段可组合图片和视频，拒绝普通文件', async () => {
     });
     const onUploadFile = vi.fn((file: File) => Promise.resolve(`/system-uploads/${file.name}`));
     const { container } = renderWithProviders(<SystemConfigGroupForm
-        records={[{ ...multiFileConfig, id: 45, configKey: 'system.demo.mixed', configValue: '[]', fieldType: 'files', fieldOptions: '["image","video"]' }]}
+        records={[{ ...multiFileConfig, id: 45, configKey: 'system.test.mixed', configValue: '[]', fieldType: 'files', fieldOptions: '["image","video"]' }]}
         canEdit showSettings={false} onEdit={() => undefined} onUploadFile={onUploadFile}
     />);
     const input = await waitFor(() => {

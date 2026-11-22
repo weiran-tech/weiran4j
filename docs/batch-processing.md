@@ -34,6 +34,6 @@ worker 在两项之间检查取消；超时重领保留所有明细和决策，�
 
 `BatchJobService.get(id, userId)`、`recent(userId, kinds)` 和 `details(id, userId, stage, status, page)` 负责创建者隔离。明细支持按 `validating` / `processing` 和 `pending` / `succeeded` / `failed` 分页。业务接口应先验证任务归属和业务权限，再按 `sys_task.id` 查询通用结果。
 
-通用 HTTP 接口由 Springdoc OpenAPI 描述：`/api-backend/system/batchJob/**` 提供文件创建、任务查询、取消和明细分页；业务引用型创建由业务模块调用 Java 服务。前端 `BatchJobWorkbench` 展示五阶段及三类计数。演示模块的 Excel、ZIP 处理器仅在 local/test 装配；下游可以省略整个 `weiran-demo` 模块。
+通用 HTTP 接口由 Springdoc OpenAPI 描述：`/api-backend/system/batchJob/**` 提供文件创建、任务查询、取消和明细分页；业务引用型创建由业务模块调用 Java 服务。前端 `BatchJobWorkbench` 展示五阶段及三类计数。[后台页面示例](/backoffice-examples)通过本地 `BatchJobDataSource` 复用工作台，展示上传、预检、决策、入库与总结，不解析文件或写入业务数据。Excel/ZIP 真实处理器已移入 `weiran-app` 测试夹具，继续验证 worker、解析与事务行为，不在应用运行时装配。
 
 演示 Excel 的 `name/value` 空值或超长是单项预检失败，其他行继续入库；ZIP 的不支持类型是单项失败，损坏或超过解压限制则是任务级失败。演示业务表 `demo_batch_item` 是目标数据，不是逐项结果表。

@@ -117,7 +117,7 @@ function readFiles(value: string): string[] {
 }
 
 function isFilesField(record: ConfigView): boolean {
-    return record.fieldType === 'files' || (record.configKey === 'system.demo.images' && record.fieldType === 'json');
+    return record.fieldType === 'files';
 }
 
 function ConfigFileField({
@@ -268,7 +268,7 @@ export function SystemConfigGroupForm({
             } else {
                 await Promise.all(records.map((record, index) => save.mutateAsync({ id: record.id, body: requests[index]! })));
             }
-            Toast.success(successMessage ?? (onSave ? '示例值已保存到数据库' : '分组配置已保存'));
+            Toast.success(successMessage ?? '分组配置已保存');
         } finally {
             setSaving(false);
         }
@@ -375,6 +375,7 @@ export function SystemConfigGroupForm({
                                         disabled={!canEdit || disabled}
                                         label={record.description || record.configKey}
                                         {...(onUploadImage ? { onUploadImage } : {})}
+                                        {...(onUploadFile ? { upload: onUploadFile } : {})}
                                         onUploadingChange={(active) => setFieldUploading(record.id, active)}
                                         onChange={(html) => {
                                             api.current?.setValue(field, html);

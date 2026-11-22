@@ -29,7 +29,10 @@ Turbo 管理根目录的前端、后端开发启动任务和 VitePress 文档构
 | `packages/server/weiran-app/` | 可执行 Spring Boot 应用、配置和集成测试 |
 | `packages/server/weiran-dependencies/` | Gradle 依赖版本平台 |
 | `docs/` | VitePress 文档站，纳入 pnpm workspace 与 Turbo |
+| `docs/examples/` | 独立于业务应用的交互演示、模拟数据与演示样式；复用真实组件 |
 | `openspec/` | 需求、规格、工程规则和变更记录 |
+
+文档与演示留在同仓库，便于随组件一起修改与验证；后台构建不依赖文档演示。演示维护方式与既有后台演示的迁移范围见[演示开发约定](/examples/)。
 
 ## 后端模块分层
 

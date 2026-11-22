@@ -7,13 +7,12 @@
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /src
 COPY . .
-ARG WEIRAN_DEMO_IMAGE=false
 ARG WEIRAN_DEMO_VERSION=0.1.0-SNAPSHOT
 # settings.gradle.kts 按目录自动发现模块（D-012），只拷构建脚本跑不起来，所以整份拷贝；
 # 依赖缓存改用 BuildKit 缓存挂载，源码改动不必重新下载。
 RUN --mount=type=cache,target=/root/.gradle \
     ./gradlew --no-daemon :weiran-app:bootJar -x test \
-      -Pweiran.demo.image="${WEIRAN_DEMO_IMAGE}" -PdemoVersion="${WEIRAN_DEMO_VERSION}" \
+      -PdemoVersion="${WEIRAN_DEMO_VERSION}" \
     && cp weiran-app/build/libs/weiran-app-*.jar /src/app.jar
 
 # ---- 运行 ----

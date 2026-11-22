@@ -16,7 +16,7 @@ onMounted(async () => {
     const [{ createElement }, { createRoot }, { PageStateDemo }] = await Promise.all([
         import('react'),
         import('react-dom/client'),
-        import('./PageStateDemoReact'),
+        import('../../examples/PageStateDemoReact'),
     ]);
     if (!mounted || !container.value) return;
     const root = createRoot(container.value);

@@ -31,7 +31,7 @@ pnpm add @weiran-tech/semi-components@0.4.1
 
 ## 发布组件包
 
-在准备发布的提交通过 CI 后创建并推送 `lib-v<主>.<次>.<修订>` tag，例如 `lib-v0.1.2`。[`publish-libraries.yml`](../.github/workflows/publish-libraries.yml) 使用 JDK 21 跑后端 `check`，然后以 tag 中的版本发布 BOM、framework、system 和 region 的五层及 `weiran-system`、`weiran-region` 入口包。发布成功后，工作流创建 GitHub Release，并由 `.github/scripts/lib-release-notes.sh` 列出上一枚 `lib-v*` tag 以来的中文提交标题及其链接；首次发布仅写入组件包坐标。若提交标题没有中文，先在 `.github/release-notes/lib-v<版本>.md` 编写中文说明再创建 tag，发布工作流会在上传组件包前检查并使用该文件。`weiran-app` 和 `weiran-demo` 不发布。BOM 与它登记的本仓模块必须同批发布，不能留下引用不到的坐标。`lib-v0.1.1` 没有 `weiran-system` 入口包；从 `0.1.2` 起使用该坐标。
+在准备发布的提交通过 CI 后创建并推送 `lib-v<主>.<次>.<修订>` tag，例如 `lib-v0.1.2`。[`publish-libraries.yml`](../.github/workflows/publish-libraries.yml) 使用 JDK 21 跑后端 `check`，然后以 tag 中的版本发布 BOM、framework、system 和 region 的五层及 `weiran-system`、`weiran-region` 入口包。发布成功后，工作流创建 GitHub Release，并由 `.github/scripts/lib-release-notes.sh` 列出上一枚 `lib-v*` tag 以来的中文提交标题及其链接；首次发布仅写入组件包坐标。若提交标题没有中文，先在 `.github/release-notes/lib-v<版本>.md` 编写中文说明再创建 tag，发布工作流会在上传组件包前检查并使用该文件。`weiran-app` 不作为库发布。BOM 与它登记的本仓模块必须同批发布，不能留下引用不到的坐标。`lib-v0.1.1` 没有 `weiran-system` 入口包；从 `0.1.2` 起使用该坐标。
 
 ```bash
 git tag lib-v0.1.2
@@ -65,9 +65,9 @@ dependencies {
 
 外部应用可引入 system 和 region 两个入口包。它们各自只把 `*-api` 放在编译依赖中，将 `*-adapter` 与 `*-infrastructure` 放在运行依赖中；Gradle 会经它们取得剩余层和自动配置。已经装配 weiran4j 基座的应用只需添加 region 入口依赖。直接 fork 本仓源码的下游继续由 `weiran-app` 按五层项目依赖装配，无需再下载入口包。
 
-## 发布完整 Demo 镜像
+## 发布后台体验镜像
 
-在准备发布的提交通过 CI 后推送 `demo-v<主>.<次>.<修订>` tag。[`publish-demo.yml`](../.github/workflows/publish-demo.yml) 运行后端与前端门禁，验证 Demo bootJar 包含演示模块及迁移，先用两张本地镜像启动 Compose 并检查健康接口和演示菜单，再发布两张同版本镜像并创建 GitHub Release。Release 保留源码提交、组件包 tag、镜像摘要和部署命令，并从上一枚 `demo-v*` tag 自动生成变更说明；首次发布仅写入部署信息：
+在准备发布的提交通过 CI 后推送 `demo-v<主>.<次>.<修订>` tag。[`publish-demo.yml`](../.github/workflows/publish-demo.yml) 运行后端与前端门禁，验证 bootJar 不含示例模块与测试夹具且保留历史迁移，先用两张本地镜像启动 Compose 并检查健康接口和旧示例菜单已清理，再发布两张同版本镜像并创建 GitHub Release。Release 保留源码提交、组件包 tag、镜像摘要和部署命令，并从上一枚 `demo-v*` tag 自动生成变更说明；首次发布仅写入部署信息：
 
 ```text
 ghcr.io/weiran-tech/weiran4j-demo-backend:0.3.0
@@ -90,13 +90,13 @@ docker compose --env-file .env -f compose.yml pull
 docker compose --env-file .env -f compose.yml up -d
 ```
 
-浏览器访问 `http://localhost:5202`。Compose 使用独立的 `weiran4j_demo` 数据库和命名卷；后端镜像把 `weiran-demo` 打进 bootJar，并用现有 `local` profile 加载 `db/app-demo` 迁移。Compose 同时把 DEBUG 日志、Swagger 和本地文件存储关闭。生产部署的 [`docker-compose.yml`](../docker-compose.yml) 仍构建普通镜像，不会打包演示模块。
+浏览器访问 `http://localhost:5202`。Compose 使用独立的 `weiran4j_demo` 数据库和命名卷；体验镜像使用普通后台 bootJar，不包含页面示例、示例接口或测试夹具；保留 `local` profile 校验旧 `db/app-demo` 历史，追加迁移清理旧示例菜单、配置和结果表。页面和组件示例在文档站独立访问。Compose 同时把 DEBUG 日志、Swagger 和本地文件存储关闭。生产部署的 [`docker-compose.yml`](../docker-compose.yml) 仍构建普通镜像，不会打包演示模块。
 
 本机 HTTP 演示默认 `WEIRAN_COOKIE_SECURE=false`。如果把 Demo 放到 HTTPS 地址，在 `.env` 中改为 `true`，并把 `WEIRAN_PUBLIC_BASE_URL` 设置为实际对外地址；前端与后端仍须同源。演示数据库含初始账号 `admin` / `admin123`，对外开放前要修改密码。使用已有数据卷升级 Demo 时，先核对该版本新增的 Flyway 脚本；不要把演示 Compose 指向业务或生产数据库。
 
 ## 本地验证发布物
 
-所有 Gradle 命令都使用 JDK 21。组件包可先生成 POM，检查 BOM 中每个 `com.wulicode.weiran` 坐标都存在对应 publication；Demo 可按发布工作流构建 bootJar，检查其中的 `weiran-demo` 依赖与迁移。
+所有 Gradle 命令都使用 JDK 21。组件包可先生成 POM，检查 BOM 中每个 `com.wulicode.weiran` 坐标都存在对应 publication；体验镜像可按发布工作流构建 bootJar，检查其中不含示例模块与测试夹具，且仍保留旧数据库需要的历史迁移。
 
 ```bash
 cd packages/server
@@ -104,5 +104,5 @@ export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 ./gradlew spotlessApply
 ./gradlew check --no-daemon
 ./gradlew :weiran-dependencies:generatePomFileForMavenBomPublication -PlibVersion=0.1.0
-./gradlew :weiran-app:bootJar -Pweiran.demo.image=true -PdemoVersion=0.3.0
+./gradlew :weiran-app:bootJar -PdemoVersion=0.3.0
 ```

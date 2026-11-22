@@ -1,0 +1,10 @@
+{
+  "extends": "../packages/manage/tsconfig.json",
+  "compilerOptions": {
+    // VitePress 的 JSX 转换需要显式 React 导入；它们不属于未使用代码。
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "types": ["node"]
+  },
+  "include": ["examples/**/*.ts", "examples/**/*.tsx", "../packages/manage/src/vite-env.d.ts"]
+}

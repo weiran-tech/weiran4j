@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "vitepress dev . --host 0.0.0.0 --port 5209 --strictPort",
-    "build": "vitepress build .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "pnpm typecheck && vitepress build .",
     "preview": "vitepress preview . --host 0.0.0.0 --port 4173"
   },
   "dependencies": {

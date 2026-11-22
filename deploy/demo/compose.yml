@@ -25,7 +25,7 @@ services:
       WEIRAN_JWT_SECRET: ${WEIRAN_JWT_SECRET:?请在 .env 中设置 JWT 密钥}
       WEIRAN_COOKIE_SECURE: ${WEIRAN_COOKIE_SECURE:-false}
       WEIRAN_PUBLIC_BASE_URL: ${WEIRAN_PUBLIC_BASE_URL:-http://localhost:5202}
-      # CP-7：演示迁移只由现有 local/test profile 显式加载；镜像只在此 Compose 中启用 local。
+      # CP-7：local 加载原样保留的历史迁移，追加迁移会清理旧示例；不装配示例接口。
       SPRING_PROFILES_ACTIVE: local
       # local profile 的开发默认值在公开 Demo 中收紧。
       LOGGING_LEVEL_COM_WEIRAN: INFO

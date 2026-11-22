@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import type { ItemKey } from './ComponentGalleryReact';
+import type { ItemKey } from '../../examples/ComponentGalleryReact';
 
 const props = defineProps<{ component: ItemKey }>();
 
@@ -13,7 +13,7 @@ onMounted(async () => {
     const [{ createElement }, { createRoot }, { ComponentGallery }] = await Promise.all([
         import('react'),
         import('react-dom/client'),
-        import('./ComponentGalleryReact'),
+        import('../../examples/ComponentGalleryReact'),
     ]);
     if (!mounted || !container.value) return;
     const root = createRoot(container.value);

@@ -7,7 +7,7 @@ let mounted = true;
 
 onMounted(async () => {
     const [{ createElement }, { createRoot }, { SmsTemplateDemo }] = await Promise.all([
-        import('react'), import('react-dom/client'), import('./SmsTemplateDemoReact'),
+        import('react'), import('react-dom/client'), import('../../examples/SmsTemplateDemoReact'),
     ]);
     if (!mounted || !container.value) return;
     const root = createRoot(container.value);

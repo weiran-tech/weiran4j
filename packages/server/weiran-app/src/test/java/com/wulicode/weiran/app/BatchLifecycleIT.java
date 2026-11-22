@@ -150,7 +150,7 @@ class BatchLifecycleIT extends IntegrationTestSupport {
         assertThat(task.processed()).isEqualTo(3L);
         assertThat(task.succeeded()).isEqualTo(1L);
         assertThat(task.failed()).isEqualTo(2L);
-        assertThat(this.jdbc.queryForObject("select count(*) from demo_batch_item where job_id = ?", Long.class, id))
+        assertThat(this.jdbc.queryForObject("select count(*) from test_batch_item where job_id = ?", Long.class, id))
                 .isEqualTo(1L);
         assertThat(this.jobs
                         .details(id, "validating", null, new PageQuery(1, 20))
@@ -327,37 +327,37 @@ class BatchLifecycleIT extends IntegrationTestSupport {
         assertThatThrownBy(() -> tx.executeWithoutResult(status -> {
                     this.jobs.lockItem(id, "worker-tx", 1);
                     this.jdbc.update(
-                            "insert into demo_batch_item (job_id, item_no, item_name, item_value) values (?, 1, 'item', 'value')",
+                            "insert into test_batch_item (job_id, item_no, item_name, item_value) values (?, 1, 'item', 'value')",
                             id);
                     throw new IllegalStateException("模拟业务写入后退出");
                 }))
                 .isInstanceOf(IllegalStateException.class);
-        assertThat(this.jdbc.queryForObject("select count(*) from demo_batch_item where job_id = ?", Long.class, id))
+        assertThat(this.jdbc.queryForObject("select count(*) from test_batch_item where job_id = ?", Long.class, id))
                 .isZero();
         assertThat(this.jobs.pending(id)).hasSize(1);
 
         assertThatThrownBy(() -> tx.executeWithoutResult(status -> {
                     this.jobs.lockItem(id, "worker-tx", 1);
                     this.jdbc.update(
-                            "insert into demo_batch_item (job_id, item_no, item_name, item_value) values (?, 1, 'item', 'value')",
+                            "insert into test_batch_item (job_id, item_no, item_name, item_value) values (?, 1, 'item', 'value')",
                             id);
                     this.jobs.succeeded(id, "worker-tx", 1, "demo", "1");
                     throw new IllegalStateException("模拟成功明细后提交前退出");
                 }))
                 .isInstanceOf(IllegalStateException.class);
-        assertThat(this.jdbc.queryForObject("select count(*) from demo_batch_item where job_id = ?", Long.class, id))
+        assertThat(this.jdbc.queryForObject("select count(*) from test_batch_item where job_id = ?", Long.class, id))
                 .isZero();
         assertThat(this.jobs.pending(id)).hasSize(1);
 
         tx.executeWithoutResult(status -> {
             this.jobs.lockItem(id, "worker-tx", 1);
             this.jdbc.update(
-                    "insert into demo_batch_item (job_id, item_no, item_name, item_value) values (?, 1, 'item', 'value')",
+                    "insert into test_batch_item (job_id, item_no, item_name, item_value) values (?, 1, 'item', 'value')",
                     id);
             this.jobs.succeeded(id, "worker-tx", 1, "demo", "1");
         });
         this.jobs.finish(id, "worker-tx");
-        assertThat(this.jdbc.queryForObject("select count(*) from demo_batch_item where job_id = ?", Long.class, id))
+        assertThat(this.jdbc.queryForObject("select count(*) from test_batch_item where job_id = ?", Long.class, id))
                 .isEqualTo(1L);
         assertThat(Objects.requireNonNull(this.jobs.get(id, 1)).processed()).isEqualTo(1L);
     }

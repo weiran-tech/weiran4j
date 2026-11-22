@@ -1,7 +1,7 @@
 # 集成测试配置：数据源由 Testcontainers 的 @ServiceConnection 注入，这里不写 URL。
 spring:
   flyway:
-    locations: classpath:db/migration,classpath:db/app-demo
+    locations: classpath:db/migration,classpath:db/app-demo,classpath:db/test-fixtures
     fail-on-missing-locations: false
 
 weiran:

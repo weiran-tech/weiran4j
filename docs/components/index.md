@@ -17,3 +17,5 @@
 | [NavListItem](/components/nav-list-item) | 普通与选中条目 |
 
 使用前请按[版本发布](/releases)从 npmjs.org 安装固定版本，页面同时导入 `@weiran-tech/semi-components/style.css`。组件包不调用后台接口；实际上传由下游传入 `upload` 回调。
+
+演示源码集中在 `docs/examples/`，与实际组件保持单向依赖。新增或维护演示见[演示开发约定](/examples/)。

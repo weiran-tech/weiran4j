@@ -7,7 +7,7 @@
 | 表 | `sys_sequence` |
 | 模块 | `weiran-system` |
 | 对外能力 | `SequenceService.next(type)` |
-| 演示页面 | `/demo/sequence`（仅 local/test，输入标识并显示类型 ID 与本次序号） |
+| 演示页面 | docs `/backoffice-examples`（本地模拟；真实语义由后端测试验证） |
 
 ## 1. 列表
 
@@ -34,6 +34,10 @@
 无。
 
 ## 7. changelog
+
+**2026-11-23**
+
+- `extract-runtime-examples` 将展示迁入 docs，真实后端流程继续由测试夹具验证，运行时移除示例装配。
 
 **2026-10-24**
 

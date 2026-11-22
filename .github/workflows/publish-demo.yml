@@ -1,4 +1,4 @@
-name: 发布完整 Demo 镜像
+name: 发布后台体验镜像
 
 on:
   push:
@@ -23,7 +23,6 @@ jobs:
         run: |
           version="${GITHUB_REF_NAME#demo-v}"
           [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'tag 必须形如 demo-v1.2.3'; exit 1; }
-          test -f packages/server/weiran-demo/build.gradle.kts || { echo '完整 Demo 需要 weiran-demo 模块'; exit 1; }
           echo "value=$version" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-java@v6
         with:
@@ -33,14 +32,16 @@ jobs:
       - name: 后端门禁
         working-directory: packages/server
         run: ./gradlew check --no-daemon
-      - name: 验证 Demo bootJar 包含演示模块与演示迁移
+      - name: 验证后台 bootJar 不含测试夹具
         working-directory: packages/server
         run: |
-          ./gradlew :weiran-app:bootJar --no-daemon -Pweiran.demo.image=true -PdemoVersion=${{ steps.version.outputs.value }}
+          ./gradlew :weiran-app:bootJar --no-daemon -PdemoVersion=${{ steps.version.outputs.value }}
           jar_file="weiran-app/build/libs/weiran-app-${{ steps.version.outputs.value }}.jar"
-          unzip -Z1 "$jar_file" | grep -Fx 'BOOT-INF/lib/weiran-demo-${{ steps.version.outputs.value }}.jar'
-          unzip -p "$jar_file" 'BOOT-INF/lib/weiran-demo-${{ steps.version.outputs.value }}.jar' > "$RUNNER_TEMP/weiran-demo.jar"
-          unzip -Z1 "$RUNNER_TEMP/weiran-demo.jar" | grep '^db/app-demo/' > /dev/null
+          if unzip -Z1 "$jar_file" | grep -E 'BOOT-INF/(lib/weiran-demo-|classes/com/wulicode/weiran/app/fixtures/)'; then
+            echo '后台发布物不得包含示例模块或测试夹具'
+            exit 1
+          fi
+          unzip -Z1 "$jar_file" | grep -Fx 'BOOT-INF/classes/db/app-demo/V202610221801__app_components_demo.sql'
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
       - uses: actions/setup-node@v7
         with:
@@ -49,6 +50,7 @@ jobs:
       - name: OpenSpec 结构检查
         run: node openspec/check.mjs
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @weiran-tech/semi-components build
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm build
@@ -65,7 +67,6 @@ jobs:
           file: ./packages/server/Dockerfile
           load: true
           build-args: |
-            WEIRAN_DEMO_IMAGE=true
             WEIRAN_DEMO_VERSION=${{ steps.version.outputs.value }}
           tags: ghcr.io/weiran-tech/weiran4j-demo-backend:${{ steps.version.outputs.value }}
       - name: 构建前端镜像
@@ -75,7 +76,7 @@ jobs:
           file: ./packages/manage/Dockerfile
           load: true
           tags: ghcr.io/weiran-tech/weiran4j-demo-web:${{ steps.version.outputs.value }}
-      - name: 启动完整 Demo 并检查演示菜单
+      - name: 启动后台体验版并检查示例已移除
         env:
           WEIRAN_DEMO_VERSION: ${{ steps.version.outputs.value }}
           WEIRAN_DB_PASSWORD: ci-demo-password
@@ -90,8 +91,8 @@ jobs:
           curl -fsS http://localhost:5202/api-backend/n/health
           demo_menu_count="$(docker compose -f deploy/demo/compose.yml exec -T mysql \
             mysql -u root -p"$WEIRAN_DB_PASSWORD" -D weiran4j_demo -N \
-            -e 'select count(*) from sys_menu where id = 14')"
-          test "$demo_menu_count" = 1
+            -e 'select count(*) from sys_menu where id between 14 and 22')"
+          test "$demo_menu_count" = 0
       - name: 清理 Demo 验证容器
         if: always()
         env:
@@ -107,7 +108,6 @@ jobs:
           file: ./packages/server/Dockerfile
           push: true
           build-args: |
-            WEIRAN_DEMO_IMAGE=true
             WEIRAN_DEMO_VERSION=${{ steps.version.outputs.value }}
           tags: ghcr.io/weiran-tech/weiran4j-demo-backend:${{ steps.version.outputs.value }}
       - name: 发布前端镜像
