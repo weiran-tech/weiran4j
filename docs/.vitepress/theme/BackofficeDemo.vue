@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import type { BackofficePage } from '../../examples/backoffice-pages';
+
+const props = defineProps<{ page: BackofficePage }>();
 
 const container = ref<HTMLElement | null>(null);
 let dispose: (() => void) | undefined;
+let update: ((page: BackofficePage) => void) | undefined;
 let mounted = true;
 let restoreTheme: (() => void) | undefined;
 
@@ -20,9 +24,12 @@ onMounted(async () => {
     ]);
     if (!mounted || !container.value) return;
     const root = createRoot(container.value);
-    root.render(createElement(BackofficeDemo));
+    update = (page) => root.render(createElement(BackofficeDemo, { key: page, page }));
+    update(props.page);
     dispose = () => root.unmount();
 });
+
+watch(() => props.page, (page) => update?.(page));
 
 onBeforeUnmount(() => {
     mounted = false;

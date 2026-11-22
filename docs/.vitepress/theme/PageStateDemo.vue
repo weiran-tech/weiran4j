@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import type { PageStateScene } from '../../examples/page-state-scenes';
+
+const props = defineProps<{ scene: PageStateScene }>();
 
 const container = ref<HTMLElement | null>(null);
 let dispose: (() => void) | undefined;
+let update: ((scene: PageStateScene) => void) | undefined;
 let mounted = true;
 let restoreTheme: (() => void) | undefined;
 
@@ -20,9 +24,12 @@ onMounted(async () => {
     ]);
     if (!mounted || !container.value) return;
     const root = createRoot(container.value);
-    root.render(createElement(PageStateDemo));
+    update = (scene) => root.render(createElement(PageStateDemo, { key: scene, scene }));
+    update(props.scene);
     dispose = () => root.unmount();
 });
+
+watch(() => props.scene, (scene) => update?.(scene));
 
 onBeforeUnmount(() => {
     mounted = false;

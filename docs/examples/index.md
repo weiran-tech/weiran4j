@@ -34,7 +34,7 @@ packages/
 1. 在本目录增加场景，复用实际组件，注入本地数据或模拟动作。
 2. 按组件能力展示正常、加载、成功空结果、首次失败、缓存失败与重试、禁用和权限变化。模拟保存应明确标注，不提示已写入数据库。
 3. 上传示例使用浏览器临时 URL，离开后释放；演示不依赖登录、真实业务接口或生产数据。
-4. 在对应 Markdown 页面加入入口。优先扩展现有挂载器；独立入口才增加主题中的 Vue 挂载组件。
+4. 页面状态场景在 `page-state-scenes.ts` 登记导航，再新增 `docs/page-states/<场景>.md`，通过 `<PageStateDemo scene="场景" />` 独立挂载；后台页面示例对应 `backoffice-pages.ts`、`docs/backoffice-examples/<页面>.md` 与 `<BackofficeDemo page="页面" />`。它们共用“演示”入口下的两组侧栏，不再加入场景或页面下拉框。其他演示优先复用现有挂载器，确需新挂载协议时才增加主题中的 Vue 组件。
 5. 执行 `pnpm build:docs`，它会先检查演示的 TypeScript 类型再构建文档；如果修改了业务组件，同时执行其适用的 lint、测试和构建。浏览器中检查交互及宽窄屏表现。
 
 本地启动：`pnpm dev:docs`，访问 `http://localhost:5209`。演示无需启动后端。

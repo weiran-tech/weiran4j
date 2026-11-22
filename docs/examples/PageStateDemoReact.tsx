@@ -1,3 +1,4 @@
+import { pageStateScenes } from './page-state-scenes';
 import { ConfigFeedbackDemo, SecurityDrawerDemo } from './ConfigRecoveryDemos';
 import { MediaLibraryStyleDemo } from './MediaLibraryStyleDemo';
 import { useDebouncedCallback } from '../../packages/manage/src/hooks/useActionGuard';
@@ -22,8 +23,8 @@ import { SecuritySettingsSummary } from '../../packages/manage/src/pages/system/
 import { UploadSettingsFields, fromSettings } from '../../packages/manage/src/pages/system/upload-settings/UploadSettingsPage';
 
 type Mode = 'success' | 'loading' | 'error' | 'cached-error' | 'retrying';
-type Scene = 'config-feedback' | 'security-close' | 'media' | 'actions' | 'authorization' | 'menu-conflict' | 'conflict' | 'throttle' | 'permissions' | 'security' | 'upload' | 'sync' | 'recovery' | 'search' | 'forms' | 'lists' | 'detail';
-const SCENES: Record<Scene, string> = { 'config-feedback': '配置读取恢复', 'security-close': '安全抽屉关闭保护', media: '资源列表风格', actions: '操作防抖', authorization: '授权校准', 'menu-conflict': '菜单编辑冲突', conflict: '编辑冲突', throttle: '认证限流', permissions: '权限分配', security: '安全设置', upload: '上传设置', sync: '权限同步', recovery: '异常恢复', search: '窄屏搜索', forms: '编辑保护', lists: '列表反馈', detail: '日志详情' };
+type Scene = import('./page-state-scenes').PageStateScene;
+const SCENES = Object.fromEntries(pageStateScenes.map((scene) => [scene.id, scene.title]));
 const MODES: Record<Mode, string> = { success: '读取成功', loading: '首次加载中', error: '首次读取失败', 'cached-error': '缓存刷新失败', retrying: '正在重试' };
 function query(mode: Mode): ReadableQuery {
     return { data: mode === 'success' || mode === 'cached-error' ? {} : undefined, isSuccess: mode === 'success', isError: mode === 'error' || mode === 'cached-error', isFetching: mode === 'loading' || mode === 'retrying' };
@@ -154,10 +155,8 @@ function SearchDemo() {
     </section>;
 }
 
-export function PageStateDemo() {
-    const [scene, setScene] = useState<Scene>('permissions');
+export function PageStateDemo({ scene }: { scene: Scene }) {
     return <div className="page-state-demo">
-        <label>选择场景<select aria-label="选择场景" value={scene} onChange={(event) => setScene(event.target.value as Scene)}>{Object.entries(SCENES).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
         {scene === 'config-feedback' ? <ConfigFeedbackDemo /> : scene === 'security-close' ? <SecurityDrawerDemo /> : scene === 'media' ? <MediaLibraryStyleDemo /> : scene === 'actions' ? <ActionGuardDemo /> : scene === 'authorization' ? <AuthorizationCalibrationDemo /> : scene === 'menu-conflict' ? <EditBoundaryDemo kind="menu" /> : scene === 'conflict' ? <EditBoundaryDemo /> : scene === 'throttle' ? <PasswordAttemptDemo /> : scene === 'forms' ? <FormProtectionDemo /> : scene === 'lists' ? <ReadRecoveryDemo /> : scene === 'detail' ? <ReadRecoveryDemo detail /> : scene === 'sync' ? <SyncDemo /> : scene === 'recovery' ? <RecoveryDemo /> : scene === 'search' ? <SearchDemo /> : <ReadDemo key={scene} scene={scene} />}
     </div>;
 }

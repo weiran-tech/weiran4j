@@ -1,6 +1,20 @@
+import { backofficePages } from '../examples/backoffice-pages'
+import { pageStateScenes } from '../examples/page-state-scenes'
 import { fileURLToPath } from 'node:url'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import managePostcss from '../../packages/manage/postcss.config.js'
+
+const demoSidebar = [
+  { text: '页面状态演示', collapsed: false, items: [
+    { text: '场景总览', link: '/page-states' },
+    ...pageStateScenes.map((scene) => ({ text: scene.title, link: `/page-states/${scene.id}` })),
+  ] },
+  { text: '后台页面示例', collapsed: false, items: [
+    { text: '示例总览', link: '/backoffice-examples' },
+    ...backofficePages.map((page) => ({ text: page.title, link: `/backoffice-examples/${page.id}` })),
+  ] },
+  { text: '演示开发约定', link: '/examples/' },
+]
 
 const config = withMermaid({
   vite: { css: { postcss: managePostcss }, resolve: { alias: { '@': fileURLToPath(new URL('../../packages/manage/src', import.meta.url)) } } },
@@ -16,12 +30,16 @@ const config = withMermaid({
       { text: '架构说明', link: '/architecture' },
       { text: '系统配置', link: '/configuration' },
       { text: '公共组件', link: '/components/' },
-      { text: '页面状态', link: '/page-states' },
+      { text: '演示', link: '/page-states', activeMatch: '^/(?:page-states|backoffice-examples|examples)(?:/|$)' },
       { text: 'OpenAPI', link: '/openapi' },
       { text: '测试', link: '/testing/' },
       { text: '部署与运维', link: '/deployment' },
     ],
-    sidebar: [
+    sidebar: {
+      '/page-states': demoSidebar,
+      '/backoffice-examples': demoSidebar,
+      '/examples/': demoSidebar,
+      '/': [
       {
         text: '项目文档',
         items: [
@@ -43,9 +61,6 @@ const config = withMermaid({
             { text: 'NavListPanel', link: '/components/nav-list-panel' },
             { text: 'NavListItem', link: '/components/nav-list-item' },
           ] },
-          { text: '页面状态演示', link: '/page-states' },
-          { text: '后台页面示例', link: '/backoffice-examples' },
-          { text: '演示开发约定', link: '/examples/' },
           { text: 'OpenAPI 与 Swagger UI', link: '/openapi' },
           { text: '测试框架基线', link: '/testing/', items: [
             { text: '项目测试入口', link: '/testing' },
@@ -70,7 +85,8 @@ const config = withMermaid({
           { text: '关键设计决策', link: '/design-decisions' },
         ],
       },
-    ],
+      ],
+    },
     search: {
       provider: 'local',
     },
