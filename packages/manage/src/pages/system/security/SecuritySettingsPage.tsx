@@ -1,11 +1,13 @@
+/** @jsxRuntime automatic */
 import { useSingleFlightCallback } from '@/hooks/useActionGuard';
-import { Button, Checkbox, InputNumber, SideSheet, Toast } from '@douyinfe/semi-ui';
+import { Button, Checkbox, Divider, InputNumber, SideSheet, Toast } from '@douyinfe/semi-ui';
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { queriesReady, QueryReadiness } from '@/components/QueryReadiness';
 import { PageContainer } from '@/components/PageContainer';
 import { Permission } from '@/components/Permission';
 import { useSecuritySettings, useUpdateMfaSettings, useUpdatePasswordRules } from '@/hooks/queries/security';
-import type { PasswordRulesUpdateRequest } from '@/types/api';
+import type { PasswordRulesUpdateRequest, SecuritySettingsView } from '@/types/api';
 import './SecuritySettingsPage.css';
 
 type Panel = 'password' | 'mfa' | null;
@@ -19,6 +21,29 @@ const CHARACTER_TYPES = [
 
 function SettingsLine({ label, value }: { label: string; value: string }) {
     return <div className="security-settings__line"><span>{label}</span><strong>{value}</strong></div>;
+}
+
+export function SecuritySettingsSummary({ data, passwordAction, mfaAction }: {
+    data: SecuritySettingsView;
+    passwordAction: ReactNode;
+    mfaAction: ReactNode;
+}) {
+    const types = CHARACTER_TYPES.filter(([key]) => data[key]).map(([, label]) => label).join('、') || '未设置';
+    return <div className="security-settings">
+        <section className="security-settings__section">
+            <header><h3>密码策略</h3>{passwordAction}</header>
+            <SettingsLine label="密码长度" value={`${data.passwordMinLength}–${data.passwordMaxLength} 个字符`} />
+            <SettingsLine label="密码要包含的字符类型" value={types} />
+        </section>
+        <Divider margin="0" />
+        <section className="security-settings__section">
+            <header><h3>多因素认证</h3>{mfaAction}</header>
+            <SettingsLine label="手机多因素认证" value={data.mfaEnabled ? '已启用' : '未启用'} />
+            <SettingsLine label="认证设备" value="安全手机号" />
+            <SettingsLine label="记住验证状态" value={data.mfaRememberDays === 0 ? '每次登录均验证' : `${data.mfaRememberDays} 天`} />
+            <p className="security-settings__note">启用后，已绑定手机号的用户登录时需完成短信验证；未绑定手机号的账号暂时免验。</p>
+        </section>
+    </div>;
 }
 
 export default function SecuritySettingsPage() {
@@ -54,7 +79,7 @@ export default function SecuritySettingsPage() {
         setPanel(null);
     });
 
-    if (!data) return <PageContainer title="安全设置"><QueryReadiness query={query} label="安全设置" onRetry={() => query.refetch()} /></PageContainer>;
+    if (!data) return <PageContainer><QueryReadiness query={query} label="安全设置" onRetry={() => query.refetch()} /></PageContainer>;
 
     const openPassword = () => {
         if (!ready) return;
@@ -75,24 +100,14 @@ export default function SecuritySettingsPage() {
         setPanel('mfa');
     };
 
-    const types = CHARACTER_TYPES.filter(([key]) => data[key]).map(([, label]) => label).join('、') || '未设置';
     return <>
-        <PageContainer title="安全设置">
+        <PageContainer>
             <QueryReadiness query={query} label="安全设置" onRetry={() => query.refetch()} />
-            <div className="security-settings">
-                <section className="security-settings__section">
-                    <header><h3>密码策略</h3><Permission code="system:security:update"><Button theme="borderless" type="primary" disabled={!ready} onClick={openPassword}>修改</Button></Permission></header>
-                    <SettingsLine label="密码长度" value={`${data.passwordMinLength}–${data.passwordMaxLength} 个字符`} />
-                    <SettingsLine label="密码要包含的字符类型" value={types} />
-                </section>
-                <section className="security-settings__section">
-                    <header><h3>多因素认证</h3><Permission code="system:security:update"><Button theme="borderless" type="primary" disabled={!ready} onClick={openMfa}>修改</Button></Permission></header>
-                    <SettingsLine label="手机多因素认证" value={data.mfaEnabled ? '已启用' : '未启用'} />
-                    <SettingsLine label="认证设备" value="安全手机号" />
-                    <SettingsLine label="记住验证状态" value={data.mfaRememberDays === 0 ? '每次登录均验证' : `${data.mfaRememberDays} 天`} />
-                    <p className="security-settings__note">启用后，已绑定手机号的用户登录时需完成短信验证；未绑定手机号的账号暂时免验。</p>
-                </section>
-            </div>
+            <SecuritySettingsSummary
+                data={data}
+                passwordAction={<Permission code="system:security:update"><Button theme="borderless" type="primary" disabled={!ready} onClick={openPassword}>修改</Button></Permission>}
+                mfaAction={<Permission code="system:security:update"><Button theme="borderless" type="primary" disabled={!ready} onClick={openMfa}>修改</Button></Permission>}
+            />
         </PageContainer>
 
         <SideSheet visible={panel !== null} title={panel === 'password' ? '修改密码策略' : '修改多因素认证'} width={560} onCancel={() => setPanel(null)} footer={<div className="security-settings__footer"><Button onClick={() => setPanel(null)}>取消</Button><Button type="primary" theme="solid" disabled={!ready} loading={savePassword.isPending || saveMfa.isPending} onClick={() => void submit().catch(() => undefined)}>保存</Button></div>}>

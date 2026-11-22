@@ -19,6 +19,65 @@ const multiFileConfig: ConfigView = {
     updatedAt: '2026-10-22 00:00:00',
 };
 
+const localTemplate: ConfigView = {
+    ...multiFileConfig,
+    configKey: 'sms.system_tpl.captcha_local',
+    configValue: '前文 后文',
+    configType: 'string',
+    groupKey: 'system_tpl',
+    fieldType: 'textarea',
+    description: '本地验证码模板',
+};
+
+it.each([
+    [3, 3, '前文 ${code}后文'],
+    [0, 2, '${code} 后文'],
+])('验证码变量按光标/选区插入并进入真实表单保存：%s–%s', async (start, end, expected) => {
+    mockFetch({});
+    const onSave = vi.fn();
+    const { container } = renderWithProviders(<SystemConfigGroupForm records={[localTemplate]} canEdit showSettings={false} onEdit={() => undefined} onSave={onSave} />);
+    const input = container.querySelector('textarea')!;
+    fireEvent.focus(input);
+    input.setSelectionRange(start, end);
+    fireEvent.click(screen.getByRole('button', { name: '插入验证码变量' }));
+    await waitFor(() => {
+        expect(input).toHaveValue(expected);
+        expect(input).toHaveFocus();
+        expect(input.selectionStart).toBe(start + '${code}'.length);
+        expect(input.selectionEnd).toBe(input.selectionStart);
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存本组' }));
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith([expect.objectContaining({ configValue: expected })]));
+});
+
+it('未定位光标时追加变量，空模板也可插入，按钮不会提交表单', async () => {
+    mockFetch({});
+    const onSave = vi.fn();
+    const { container } = renderWithProviders(<SystemConfigGroupForm records={[localTemplate]} canEdit showSettings={false} onEdit={() => undefined} onSave={onSave} />);
+    const input = container.querySelector('textarea')!;
+    const button = screen.getByRole('button', { name: '插入验证码变量' });
+    expect(button).toHaveAttribute('type', 'button');
+    fireEvent.click(button);
+    await waitFor(() => expect(input).toHaveValue('前文 后文${code}'));
+    fireEvent.change(input, { target: { value: '' } });
+    fireEvent.click(button);
+    await waitFor(() => expect(input).toHaveValue('${code}'));
+    expect(onSave).not.toHaveBeenCalled();
+});
+
+it('本地模板只读时禁止插入，其他模板不显示变量操作', () => {
+    mockFetch({});
+    const { container } = renderWithProviders(<SystemConfigGroupForm records={[localTemplate, {
+        ...localTemplate, id: 43, configKey: 'sms.system_tpl.captcha_aliyun', description: '阿里云验证码模板', fieldType: 'input',
+    }]} canEdit={false} showSettings={false} onEdit={() => undefined} />);
+    const button = screen.getByRole('button', { name: '插入验证码变量' });
+    expect(button).toBeDisabled();
+    expect(container.querySelector('textarea')).toBeDisabled();
+    fireEvent.click(button);
+    expect(container.querySelector('textarea')).toHaveValue(localTemplate.configValue);
+    expect(screen.getAllByRole('button', { name: '插入验证码变量' })).toHaveLength(1);
+});
+
 it('将旧演示 JSON 字段显示为多文件上传并保存 URL 数组', async () => {
     mockFetch({});
     const onSave = vi.fn();

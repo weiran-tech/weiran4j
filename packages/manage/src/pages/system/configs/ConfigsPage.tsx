@@ -449,7 +449,7 @@ export default function ConfigsPage({ domain = 'config_system' }: { domain?: Con
                 }
                 extra={
                     <Permission code="system:config:create">
-                        <Button type="primary" theme="solid" icon={<Plus size={16} />} onClick={() => setEditing(null)}>
+                        <Button type="primary" theme="solid" onClick={() => setEditing(null)}>
                             新增配置项
                         </Button>
                     </Permission>

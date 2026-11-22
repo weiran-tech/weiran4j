@@ -1,13 +1,75 @@
+/** @jsxRuntime automatic */
 import { useSingleFlightCallback } from '@/hooks/useActionGuard';
 import { Button, Form, Space, Tag, Toast } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
+import { useFormApi } from '@douyinfe/semi-ui/lib/es/form';
 import { Settings } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { ALL_UPLOAD_TYPES, FileUpload, type UploadType } from '@/components/FileUpload';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { SystemImageUpload } from '@/components/SystemImageUpload';
 import { useSaveConfig } from '@/hooks/queries/configs';
 import type { ConfigSaveRequest, ConfigView } from '@/types/api';
+
+/** 本地短信正文与变量插入，共用 Semi Form 的值和校验。 */
+export function LocalSmsTemplateField({ field, label, disabled = false, required = false, multiline = true }: {
+    field: string;
+    label: ReactNode;
+    disabled?: boolean;
+    required?: boolean;
+    multiline?: boolean;
+}) {
+    const form = useFormApi<Record<string, unknown>>();
+    const container = useRef<HTMLDivElement>(null);
+    const focused = useRef(false);
+    const TextField = multiline ? Form.TextArea : Form.Input;
+    const insertCode = () => {
+        const input = container.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>('textarea, input');
+        if (disabled || !input) return;
+        const start = focused.current ? (input.selectionStart ?? input.value.length) : input.value.length;
+        const end = focused.current ? (input.selectionEnd ?? start) : input.value.length;
+        const value = input.value.slice(0, start) + '${code}' + input.value.slice(end);
+        if (value.length > 65535) {
+            Toast.warning('模板最多 65535 个字符，请先缩短正文');
+            return;
+        }
+        form.setValue(field, value);
+        requestAnimationFrame(() => {
+            if (!input.isConnected) return;
+            input.focus();
+            input.setSelectionRange(start + '${code}'.length, start + '${code}'.length);
+        });
+    };
+    return <div ref={container}>
+        <TextField
+            field={field}
+            fieldStyle={{ padding: 0 }}
+            label={label}
+            disabled={disabled}
+            {...(multiline ? { rows: 3 } : {})}
+            maxLength={65535}
+            rules={required ? [{ required: true, message: '此项必填' }] : []}
+            onFocus={() => { focused.current = true; }}
+            extraText={<div>
+                <div>变量格式为 {'${变量名}'}，模板须包含 {'${code}'}，发送时替换为 6 位验证码。</div>
+                <Space spacing={4} wrap>
+                    <span>点击插入：</span>
+                    <Button
+                        size="small"
+                        theme="borderless"
+                        htmlType="button"
+                        disabled={disabled}
+                        aria-label="插入验证码变量"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={insertCode}
+                    >验证码 {'${code}'}</Button>
+                    <span>插入光标处，选中文字时替换选中内容。</span>
+                </Space>
+            </div>}
+        />
+    </div>;
+}
 
 export function parseConfigFieldOptions(value: string): Array<{ label: string; value: string }> {
     if (!value.trim()) return [];
@@ -217,7 +279,7 @@ export function SystemConfigGroupForm({
             initValues={initValues}
             labelPosition="top"
         >
-            <Space vertical align="start" style={{ width: '100%' }} spacing={20}>
+            <Space vertical align="start" style={{ width: '100%' }} spacing={16}>
                 {records.map((record) => {
                     const field = String(record.id);
                     const label = (
@@ -243,12 +305,15 @@ export function SystemConfigGroupForm({
                     const common = {
                         field,
                         label,
+                        fieldStyle: { padding: 0 },
                         disabled: !canEdit,
                         rules: record.required ? [{ required: true, message: '此项必填' }] : [],
                     };
                     return (
                         <div key={record.id} style={{ width: '100%' }}>
-                            {record.fieldType === 'textarea' ? (
+                            {record.configKey === 'sms.system_tpl.captcha_local' && (record.fieldType === 'textarea' || record.fieldType === 'input') ? (
+                                <LocalSmsTemplateField field={field} label={label} disabled={!canEdit} required={record.required} multiline={record.fieldType === 'textarea'} />
+                            ) : record.fieldType === 'textarea' ? (
                                 <Form.TextArea {...common} rows={3} maxLength={65535} />
                             ) : record.fieldType === 'number' ? (
                                 <Form.Input {...common} type="number" />

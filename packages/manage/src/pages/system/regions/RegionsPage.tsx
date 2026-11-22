@@ -189,7 +189,7 @@ export default function RegionsPage() {
         { key: 'edit', label: '编辑', permission: 'region:update', onClick: () => setTarget({ mode: 'edit', record }) },
         {
             key: record.status === 'enabled' ? 'disable' : 'enable',
-            label: record.status === 'enabled' ? '停用' : '启用',
+            label: record.status === 'enabled' ? '禁用' : '启用',
             permission: 'region:update',
             onClick: () => {
                 const body: RegionSaveRequest = {
@@ -202,7 +202,7 @@ export default function RegionsPage() {
                 };
                 saveRegion.mutate(
                     { id: record.id, body },
-                    { onSuccess: () => Toast.success(record.status === 'enabled' ? '已停用' : '已启用') },
+                    { onSuccess: () => Toast.success(record.status === 'enabled' ? '已禁用' : '已启用') },
                 );
             },
         },

@@ -8,6 +8,7 @@ import { ListEmptyState, ListFeedback } from '@/components/ListFeedback';
 import { NavListItem, NavListPanel } from '@/components/NavListPanel';
 import { useActionsColumn, type TableAction } from '@/components/TableActions';
 import { PageContainer } from '@/components/PageContainer';
+import { SearchToolbar } from '@/components/SearchToolbar';
 import { StatusTag } from '@/components/StatusTag';
 import { useDeleteDict, useDeleteDictItem, useDictItems, useDictList } from '@/hooks/queries/dicts';
 import { usePermission } from '@/hooks/usePermission';
@@ -61,15 +62,12 @@ function DictItemsPanel({ dict }: { dict: DictView }) {
     return (
         <PageContainer
             title={`字典项：${dict.name}（${dict.code}）`}
-            extra={<>
-                <Button aria-label="刷新字典项" loading={isFetching} onClick={() => { void refresh().catch(() => undefined); }}>刷新</Button>
-                {canEdit && (
-                    <Button type="primary" theme="solid" icon={<Plus size={14} />} onClick={() => setEditing(null)}>
-                        新增字典项
-                    </Button>
-                )}
-            </>}
         >
+            <SearchToolbar
+                leading={canEdit ? <Button type="primary" theme="solid" onClick={() => setEditing(null)}>新增字典项</Button> : undefined}
+                onRefresh={() => refresh()}
+                refreshing={isFetching}
+            />
             {isError && <ListFeedback label="字典项加载失败" hasData={data !== undefined} retrying={isFetching} onRetry={() => void refetch()} />}
             <Table<DictItemView>
                 {...tableProps}
@@ -146,7 +144,7 @@ export default function DictsPage() {
                     )}
                     {dict.status === 'disabled' && (
                         <Tag size="small" color="grey">
-                            停用
+                            禁用
                         </Tag>
                     )}
                 </>

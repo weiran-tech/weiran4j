@@ -1,8 +1,9 @@
+/** @jsxRuntime automatic */
 import { useDebouncedCallback } from '@/hooks/useActionGuard';
 import { formatPaginationTotal } from '@/utils/pagination';
 import { Button, Input, Modal, Progress, Select, Table, Tabs, Tag, Toast, Typography } from '@douyinfe/semi-ui';
 import type { ColumnProps } from '@douyinfe/semi-ui/lib/es/table';
-import { Copy, Download, Eye, FilePlus2, Play, RefreshCw, Trash2 } from 'lucide-react';
+import { Copy, Download, Eye, Play, RefreshCw, Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useColumnSettings } from '@/components/ColumnSettings';
 import { FileTypeIcon, isPdfFile } from '@/components/FileTypeIcon';
@@ -10,6 +11,8 @@ import { DEFAULT_UPLOAD_SETTINGS, fileUploadError, uploadLimitsLabel } from '@/c
 import { PdfPreview } from '@/components/PdfPreview';
 import { VideoPreview } from '@/components/VideoPreview';
 import { PageContainer } from '@/components/PageContainer';
+import { ListEmptyState, ListFeedback } from '@/components/ListFeedback';
+import { QueryReadiness, queriesReady } from '@/components/QueryReadiness';
 import { SearchToolbar, type SearchCondition } from '@/components/SearchToolbar';
 import { useActionsColumn, type TableAction } from '@/components/TableActions';
 import { useDeleteSystemMediaFile, useSystemMediaFiles, useUploadSettings, useUploadSystemFile } from '@/hooks/queries/system-media';
@@ -42,6 +45,24 @@ function formatBytes(size: number): string {
     return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/** 资源列表与 docs 共用的列定义；弹性列按 180px 计入滚动预算。 */
+export function mediaLibraryColumns(): ColumnProps<SystemMediaFileView>[] {
+    return [
+        { title: 'ID', dataIndex: 'id', width: 160 },
+        { title: '文件', dataIndex: 'originalName', render: (_: unknown, row) => <div className="media-library__file-cell">
+            {row.category === 'image' ? <img src={row.url} alt="" loading="lazy" /> : <FileTypeIcon name={row.originalName} size={40} />}
+            <span className="media-library__filename" title={row.originalName}>{row.originalName}</span>
+        </div> },
+        { title: '类型', dataIndex: 'category', width: 80, render: (value: string) => CATEGORY_OPTIONS.find((option) => option.value === value)?.label ?? value },
+        { title: '大小', dataIndex: 'size', width: 96, render: (value: number) => formatBytes(value) },
+        { title: '引用位置', dataIndex: 'references', render: (_: unknown, row) => row.references.length
+            ? <div className="media-library__references">{row.references.map((location) => <Tag key={location}>{location}</Tag>)}</div>
+            : <Typography.Text type="tertiary">未发现引用</Typography.Text> },
+        { title: '上传时间', dataIndex: 'createdAt', width: 158, className: 'media-library__time' },
+        { title: '操作', dataIndex: 'actions', width: 210, fixed: 'right' },
+    ];
+}
+
 function MediaLibraryTab() {
     const inputRef = useRef<HTMLInputElement>(null);
     const { tableProps, pageSize: initialPageSize, pageSizeOpts } = useTableDefaults();
@@ -61,6 +82,7 @@ function MediaLibraryTab() {
     const settingsQuery = useUploadSettings();
     const settings = settingsQuery.data ?? DEFAULT_UPLOAD_SETTINGS;
     const remove = useDeleteSystemMediaFile();
+    const uploadReady = queriesReady(settingsQuery);
 
     const { schedule: search, cancel: cancelSearch } = useDebouncedCallback(() => { setKeyword(draftKeyword.trim()); setCategory(draftCategory); setPage(1); });
     const reset = () => {
@@ -72,7 +94,7 @@ function MediaLibraryTab() {
 
     const uploadOne = async (item: UploadItem) => {
         setUploads((current) => current.map((row) => row.key === item.key ? { ...row, state: 'uploading', error: undefined, progress: 0 } : row));
-        if (!settingsQuery.data) {
+        if (!queriesReady(settingsQuery) || !settingsQuery.data) {
             setUploads((current) => current.map((row) => row.key === item.key ? { ...row, state: 'error', error: '上传配置尚未加载' } : row));
             return;
         }
@@ -108,20 +130,7 @@ function MediaLibraryTab() {
         } catch (cause) { Toast.error(cause instanceof Error ? cause.message : '删除失败'); }
     };
 
-    const columns: ColumnProps<SystemMediaFileView>[] = [
-        { title: 'ID', dataIndex: 'id', width: 90 },
-        { title: '文件', dataIndex: 'originalName', width: 320, render: (_: unknown, row) => <div className="media-library__file-cell">
-            {row.category === 'image' ? <img src={row.url} alt="" loading="lazy" /> : <FileTypeIcon name={row.originalName} size={40} />}
-            <span className="media-library__filename" title={row.originalName}>{row.originalName}</span>
-        </div> },
-        { title: '类型', dataIndex: 'category', width: 90, render: (value: string) => CATEGORY_OPTIONS.find((option) => option.value === value)?.label ?? value },
-        { title: '大小', dataIndex: 'size', width: 110, render: (value: number) => formatBytes(value) },
-        { title: '引用位置', dataIndex: 'references', width: 290, render: (_: unknown, row) => row.references.length
-            ? <div className="media-library__references">{row.references.map((location) => <Tag key={location}>{location}</Tag>)}</div>
-            : <Typography.Text type="tertiary">未发现引用</Typography.Text> },
-        { title: '上传时间', dataIndex: 'createdAt', width: 190 },
-        { title: '操作', dataIndex: 'actions', width: 210, fixed: 'right' },
-    ];
+    const columns = mediaLibraryColumns();
     const actionsOf = (row: SystemMediaFileView): TableAction[] => [
         { key: 'open', label: row.category === 'image' || isPdfFile(row.originalName) ? '预览' : row.category === 'video' ? '播放' : '下载', icon: row.category === 'image' || isPdfFile(row.originalName) ? <Eye size={14} /> : row.category === 'video' ? <Play size={14} /> : <Download size={14} />, onClick: () => row.category === 'image' ? setPreview(row) : isPdfFile(row.originalName) ? setPdfPreview(row) : row.category === 'video' ? setVideoPreview(row) : openFileUrl(row.url) },
         { key: 'copy', label: '复制链接', icon: <Copy size={14} />, onClick: () => void copyUrl(row.url) },
@@ -138,13 +147,13 @@ function MediaLibraryTab() {
             onRefresh={() => query.refetch()}
             refreshing={query.isFetching}
             conditions={conditions}
-            actions={<Button type="primary" theme="solid" icon={<FilePlus2 size={16} />} disabled={!settingsQuery.data} onClick={() => inputRef.current?.click()}>上传文件</Button>}
+            leading={<Button type="primary" theme="solid" disabled={!uploadReady} onClick={() => inputRef.current?.click()}>上传文件</Button>}
         >
             <Input placeholder="按文件名搜索" value={draftKeyword} onChange={setDraftKeyword} onEnterPress={search} showClear style={{ width: 210 }} />
             <Select placeholder="文件类型" value={draftCategory} onChange={(value) => setDraftCategory(value as Category)} optionList={CATEGORY_OPTIONS} showClear style={{ width: 130 }} />
         </SearchToolbar>
-        <input ref={inputRef} type="file" multiple hidden disabled={!settingsQuery.data} aria-label="选择文件" accept={[...new Set([...settings.imageFormats, ...settings.videoFormats, ...settings.fileFormats])].map((format) => `.${format}`).join(',')} onChange={(event) => { const files = Array.from(event.currentTarget.files ?? []); event.currentTarget.value = ''; chooseFiles(files); }} />
-        {settingsQuery.isError && <Button size="small" onClick={() => void settingsQuery.refetch()}>上传配置加载失败，重试</Button>}
+        <input ref={inputRef} type="file" multiple hidden disabled={!uploadReady} aria-label="选择文件" accept={[...new Set([...settings.imageFormats, ...settings.videoFormats, ...settings.fileFormats])].map((format) => `.${format}`).join(',')} onChange={(event) => { const files = Array.from(event.currentTarget.files ?? []); event.currentTarget.value = ''; chooseFiles(files); }} />
+        <QueryReadiness query={settingsQuery} label="上传配置" onRetry={() => settingsQuery.refetch()} />
         {uploads.length > 0 && <section className="media-library__uploads" aria-label="上传结果">
             <div className="media-library__uploads-title">本次上传 · {uploadLimitsLabel(settings)}</div>
             {uploads.map((item) => <div className="media-library__upload-row" key={item.key}>
@@ -156,16 +165,17 @@ function MediaLibraryTab() {
                         : <><Typography.Text type="danger">{item.error}</Typography.Text><Button size="small" icon={<RefreshCw size={14} />} onClick={() => void uploadOne(item)}>重试</Button></>}
             </div>)}
         </section>}
+        {query.isError && <ListFeedback label="资源列表加载失败" hasData={query.data !== undefined} retrying={query.isFetching} onRetry={() => query.refetch()} />}
         <Table<SystemMediaFileView>
             {...tableProps}
             rowKey="id"
             columns={tableColumns}
             dataSource={query.data?.list ?? []}
             loading={query.isFetching}
-            scroll={{ x: tableScrollX(tableColumns) }}
+            scroll={{ x: tableScrollX(tableColumns, 180) }}
+            empty={query.isFetching || query.isError ? <span aria-hidden="true" /> : <ListEmptyState filtered={Boolean(keyword || category)} onReset={reset} />}
             pagination={{ currentPage: page, pageSize, pageSizeOpts, total: query.data?.total ?? 0, showSizeChanger: true, showTotal: true, formatPageText: formatPaginationTotal, onChange: (nextPage, nextSize) => { setPage(nextPage); setPageSize(nextSize); } }}
         />
-        {query.isError && <Button onClick={() => void query.refetch()}>加载失败，点击重试</Button>}
         <Modal visible={preview !== null} title={preview?.originalName ?? '图片预览'} footer={null} onCancel={() => setPreview(null)}>
             {preview && <img className="media-library__preview-image" src={preview.url} alt={preview.originalName} />}
         </Modal>

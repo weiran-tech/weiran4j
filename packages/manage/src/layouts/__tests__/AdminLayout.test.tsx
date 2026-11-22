@@ -148,7 +148,8 @@ describe('AdminLayout', () => {
         expect(security.compareDocumentPosition(preferences) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
         fireEvent.click(security);
-        expect(await screen.findByText('安全设置', { selector: '.page-container__title' })).toBeInTheDocument();
+        expect(await screen.findByRole('heading', { name: '密码策略', level: 3 })).toBeInTheDocument();
+        expect(screen.queryByText('安全设置', { selector: '.page-container__title' })).not.toBeInTheDocument();
     });
 
     it('直接打开个人中心时混合导航选择一个有侧边栏的分组', async () => {

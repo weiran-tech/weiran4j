@@ -1,3 +1,4 @@
+/** @jsxRuntime automatic */
 import { useSingleFlightCallback } from '@/hooks/useActionGuard';
 import { Button, Divider, Input, Select, Toast } from '@douyinfe/semi-ui';
 import { Fragment, useState } from 'react';
@@ -17,7 +18,7 @@ const GROUPS: Array<{ key: GroupKey; title: string; hint: string; choices?: stri
     { key: 'file', title: '普通文件', hint: '输入扩展名后添加；不能与图片、视频格式重复', maximum: 1024 },
 ];
 
-function fromSettings(settings: SystemMediaUploadSettings): Draft {
+export function fromSettings(settings: SystemMediaUploadSettings): Draft {
     return {
         image: { formats: settings.imageFormats, maxSizeMb: String(settings.imageMaxSizeMb) },
         video: { formats: settings.videoFormats, maxSizeMb: String(settings.videoMaxSizeMb) },
@@ -27,6 +28,48 @@ function fromSettings(settings: SystemMediaUploadSettings): Draft {
 
 function configKey(group: GroupKey, field: 'formats' | 'maxSizeMb'): string {
     return `system.upload.${group === 'file' ? 'file' : group}_${field === 'formats' ? 'formats' : 'max_size_mb'}`;
+}
+
+/** 上传配置页面与 docs 共用的分组字段，不发起请求。 */
+export function UploadSettingsFields({ draft, disabled, onChange, onFileFormatsChange }: {
+    draft: Draft;
+    disabled: boolean;
+    onChange: (key: GroupKey, value: Draft[GroupKey]) => void;
+    onFileFormatsChange: (formats: string[]) => void;
+}) {
+    return <> {GROUPS.map((group, index) => {
+                const value = draft[group.key];
+                return <Fragment key={group.key}>
+                    {index > 0 && <Divider margin="0" />}
+                    <section className="upload-settings__group">
+                    <h3>{group.title}</h3>
+                    <p>{group.hint}</p>
+                    <label className="upload-settings__label">支持的格式</label>
+                    {group.choices ? <Select
+                        multiple
+                        disabled={disabled}
+                        value={value.formats}
+                        optionList={group.choices.map((format) => ({ label: format, value: format }))}
+                        onChange={(formats) => onChange(group.key, { ...value, formats: formats as string[] })}
+                        style={{ width: '100%' }}
+                    /> : <Select
+                        filter
+                        allowCreate
+                        multiple
+                        disabled={disabled}
+                        value={value.formats}
+                        optionList={value.formats.map((format) => ({ label: format, value: format }))}
+                        onChange={(formats) => onFileFormatsChange(formats as string[])}
+                        placeholder="输入扩展名并回车创建"
+                        style={{ width: '100%' }}
+                    />}
+                    <label className="upload-settings__label" htmlFor={`${group.key}-size`}>单文件大小上限（MB）</label>
+                    <Input id={`${group.key}-size`} type="number" min={1} max={group.maximum} value={value.maxSizeMb} disabled={disabled}
+                        onChange={(maxSizeMb) => onChange(group.key, { ...value, maxSizeMb })} />
+                    <small>范围：1～{group.maximum} MB</small>
+                    </section>
+                </Fragment>;
+            })}</>;
 }
 
 export default function UploadSettingsTab() {
@@ -112,39 +155,7 @@ export default function UploadSettingsTab() {
             <p className="upload-settings__intro">上传时按扩展名匹配分组，并采用该分组的大小限制。配置对资源管理、文件上传组件和富文本编辑器生效。</p>
             <QueryReadiness query={settingsQuery} label="上传规则" onRetry={() => settingsQuery.refetch()} />
             <QueryReadiness query={configsQuery} label="配置列表" onRetry={() => configsQuery.refetch()} />
-            {!draft ? null : GROUPS.map((group, index) => {
-                const value = draft[group.key];
-                return <Fragment key={group.key}>
-                    {index > 0 && <Divider />}
-                    <section className="upload-settings__group">
-                    <h3>{group.title}</h3>
-                    <p>{group.hint}</p>
-                    <label className="upload-settings__label">支持的格式</label>
-                    {group.choices ? <Select
-                        multiple
-                        disabled={!canEdit || !ready}
-                        value={value.formats}
-                        optionList={group.choices.map((format) => ({ label: format, value: format }))}
-                        onChange={(formats) => setGroup(group.key, { ...value, formats: formats as string[] })}
-                        style={{ width: '100%' }}
-                    /> : <Select
-                        filter
-                        allowCreate
-                        multiple
-                        disabled={!canEdit || !ready}
-                        value={value.formats}
-                        optionList={value.formats.map((format) => ({ label: format, value: format }))}
-                        onChange={(formats) => setFileFormats(formats as string[])}
-                        placeholder="输入扩展名并回车创建"
-                        style={{ width: '100%' }}
-                    />}
-                    <label className="upload-settings__label" htmlFor={`${group.key}-size`}>单文件大小上限（MB）</label>
-                    <Input id={`${group.key}-size`} type="number" min={1} max={group.maximum} value={value.maxSizeMb} disabled={!canEdit || !ready}
-                        onChange={(maxSizeMb) => setGroup(group.key, { ...value, maxSizeMb })} />
-                    <small>范围：1～{group.maximum} MB</small>
-                    </section>
-                </Fragment>;
-            })}
+            {draft && <UploadSettingsFields draft={draft} disabled={!canEdit || !ready} onChange={setGroup} onFileFormatsChange={setFileFormats} />}
             {canEdit && <Button type="primary" theme="solid" loading={save.isPending} disabled={!ready || !draft || !configs} onClick={() => void submit()}>保存上传配置</Button>}
         </div>;
 }

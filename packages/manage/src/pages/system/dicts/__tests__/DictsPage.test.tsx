@@ -50,13 +50,13 @@ const listItem = (name: string) => screen.getByText(name).closest('.nav-list-ite
 describe('DictsPage 左侧字典列表（NavListPanel，同 mono4ts）', () => {
     afterEach(() => vi.unstubAllGlobals());
 
-    it('每项「名称 · 编码」+ 创建时间，停用 / 内置带标签；默认选中第一项并加载其字典项', async () => {
+    it('每项「名称 · 编码」+ 创建时间，禁用 / 内置带标签；默认选中第一项并加载其字典项', async () => {
         setup();
         expect(await screen.findByText('professional_title_level')).toBeInTheDocument();
         const first = listItem('职称级别');
         expect(within(first).getByText('2026-09-27 14:18:50')).toBeInTheDocument();
         expect(first).toHaveClass('nav-list-item--active');
-        expect(within(listItem('政治面貌')).getByText('停用')).toBeInTheDocument();
+        expect(within(listItem('政治面貌')).getByText('禁用')).toBeInTheDocument();
         expect(listItem('政治面貌')).toHaveClass('nav-list-item--disabled');
         expect(within(listItem('性别')).getByText('内置')).toBeInTheDocument();
         expect(await screen.findByText('高级')).toBeInTheDocument();

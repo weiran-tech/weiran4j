@@ -18,15 +18,12 @@
 - **#28 ⚠️ P3 七份既有主规格未通过 CLI 全量严格校验**
   症状：执行 `openspec validate --specs --strict --no-interactive` 时，admin-foundation、deployment、observability、system-file-storage、system-site-config、system-sms-sender 的需求正文超过 500 字符，system-media-library 的 Purpose 过短；普通警告在 strict 模式使全量命令返回 1。2026-11-15 归档 import-test-workflow-framework 时，在未改动的 HEAD 基线隔离副本复现相同 7 项；本次涉及的 test-workflows 和 continuous-integration 均通过，仓库 `node openspec/check.mjs` 通过。后续应在保留需求语义和场景标题的前提下整理正文，不通过关闭 strict 掩盖。证据见该归档的 exec/evidence/baseline-spec-validation.log 与 archive-spec-validation.log。
 
-
 - **#01 ⚠️ P3 Gradle 配置缓存被迫关闭**
   症状:冷构建配置阶段慢几秒,所有开发者都受影响。
   Spotless 的 palantir-java-format 在配置缓存恢复的类加载器里拿不到 `--add-exports` 的模块开放,
   `IllegalAccessError` 被包成 `palantir-java-format(InvocationTargetException)` 随机报错
   (实测记录见 `packages/server/gradle.properties`)。
   关闭条件:Spotless 修复配置缓存兼容性,或改用不依赖 javac 内部 API 的格式化器。(原全局编号待办的第 1 条,随全局编号废止改为本编号)
-
-
 
 - **#06 ⚠️ P3 前端产物未分包**
   症状:首屏需加载约 2.2 MB 静态资源(Semi UI 全量),弱网下登录页白屏时间长。
@@ -102,8 +99,12 @@
 - **#25 ⚠️ P2 短信登录、MFA 与手机号绑定挑战状态仅保存在单进程内**
   症状：`PhoneLoginApplicationService`、`MfaLoginApplicationService` 和 `PhoneBindingApplicationService` 使用进程内 Map 保存挑战及节流状态；验证码在 A 实例创建后，请求被分配到 B 实例可能被判无效，实例重启也会丢失未过期挑战，发送频控无法跨节点累加。`AuthSnapshotCache` 的权限失效也只作用于本节点（另见本文件 #02）。建议先明确单实例运行约束；有多实例需求时，为挑战与频控定义共享存储端口、原子消费和过期语义，并单独处理权限失效传播。2026-11-14 静态复查，未进行双实例验证。
 
-
 ## changelog
+
+**2026-11-22**
+
+- **#32 ✅ P3 设置与主从页面的视觉约定已统一**
+  由 `unify-admin-page-style` 解决：上传配置与安全设置统一 16px h3、16px 分区间距和零外边距分割线；字典项刷新接入 SearchToolbar，字典项与配置项新增按钮统一纯文字。文档演示复用实际字段与工具栏样式，隔离 VitePress 正文样式，覆盖读取、失败重试与权限变化。
 
 **2026-11-15**
 
@@ -121,7 +122,6 @@
 
 - **#26 ✅ P2 其它会话改权已有前端校准与恢复**
   由 harden-menu-and-authorization-contracts 解决：单一身份/菜单快照，前台在线每 30 秒及恢复前台/联网校准；403/100102 去重校准不重放，100103 排除。失败保留旧快照并持续提示重试；旧会话响应不能清理或覆盖新会话。单测与 docs 浏览器通过，网络故障不承诺界面完成时限。
-
 
 - **#27 ✅ P1 密码认证与锁屏已有共享尝试边界**
   harden-password-and-edit-boundaries：MySQL 双桶原子预占及用户锁屏额度，成功/失败均计数，可信来源、固定窗口、硬容量与有界清理，存储/锁等待失败拒绝 BCrypt。双适配器并发、重启、过期、容量、故障与真实 HTTP 429 会话保留已回归；不代表 #25 的短信/MFA 内存状态已解决。

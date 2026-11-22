@@ -7,5 +7,6 @@
 .media-library__file-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .media-library__file-cell img { width: 40px; height: 40px; flex: none; object-fit: contain; border-radius: 4px; background: var(--semi-color-fill-0); }
 .media-library__filename { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.media-library__time { white-space: nowrap; }
 .media-library__references { display: flex; flex-wrap: wrap; gap: 4px; max-height: 80px; overflow: auto; }
 .media-library__preview-image { display: block; max-width: 100%; max-height: 70vh; margin: 0 auto; object-fit: contain; }

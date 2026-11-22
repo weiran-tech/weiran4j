@@ -1,0 +1,243 @@
+.search-toolbar-wrap {
+    margin-bottom: 12px;
+}
+
+.search-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* 搜索栏里的按钮与筛选控件字号与列表一致（表格 13px；Semi 控件默认 14px，没有公共变量可改，只能在此范围内覆盖） */
+.search-toolbar
+    :is(
+        .semi-button,
+        .semi-input-wrapper,
+        .semi-input,
+        .semi-select,
+        .semi-select-selection,
+        .semi-select-selection-text,
+        .semi-select-selection-placeholder,
+        .semi-tree-select,
+        .semi-datepicker,
+        .semi-datepicker-range-input,
+        .semi-datepicker-range-input-wrapper,
+        .semi-datepicker-range-input-wrapper input
+    ) {
+    font-size: 13px;
+}
+
+/* 便捷搜索不产生盒子；有高级筛选时窄屏隐藏整组，改用高级筛选面板 */
+.search-toolbar__quick,
+.search-toolbar__controls {
+    display: contents;
+}
+
+@media (--lg-down) {
+    .search-toolbar__quick {
+        display: none;
+    }
+}
+
+/* 右侧工具按钮（列设置 / 刷新等）：白底描边的方形图标按钮（设计稿「用户列表」） */
+.search-toolbar__tools .semi-button-tertiary.semi-button-with-icon-only {
+    background: var(--semi-color-bg-0);
+    border: 1px solid var(--semi-color-border);
+    color: var(--semi-color-text-1);
+}
+
+.search-toolbar__tools .semi-button-tertiary.semi-button-with-icon-only:hover {
+    background: var(--semi-color-fill-0);
+}
+
+/* 高级筛选开关：收起时白底描边，展开时浅主色底 + 主色描边
+   （Semi 按钮自带 .semi-button-primary.semi-button-light 的底色，要用更高优先级覆盖，悬停也一并处理） */
+.search-toolbar .search-toolbar__advanced-toggle.semi-button,
+.search-toolbar .search-toolbar__advanced-toggle.semi-button:hover {
+    background: var(--semi-color-bg-0);
+    border: 1px solid var(--semi-color-border);
+    color: var(--semi-color-text-1);
+}
+
+.search-toolbar .search-toolbar__advanced-toggle.semi-button:hover {
+    background: var(--semi-color-fill-0);
+}
+
+.search-toolbar .search-toolbar__advanced-toggle--open.semi-button,
+.search-toolbar .search-toolbar__advanced-toggle--open.semi-button:hover {
+    background: var(--semi-color-primary-light-default);
+    border-color: var(--semi-color-primary);
+    color: var(--semi-color-primary);
+}
+
+.search-toolbar__spin {
+    animation: search-toolbar-spin 0.8s linear infinite;
+}
+
+@keyframes search-toolbar-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 高级筛选面板：4 列栅格，字段标签在上、控件在下，底部「搜索 / 重置」 */
+.search-advanced {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 12px;
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--semi-color-bg-0);
+}
+
+.search-advanced__fields {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+@media (--lg-down) {
+    .search-advanced__fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (--sm-down) {
+    .search-advanced__fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* 高级面板的操作行（搜索 / 重置 + 窄屏的展开 / 收起）：在字段区之外，吸在内容区底部，面板比一屏高时仍可点 */
+.search-advanced__actions {
+    position: sticky;
+    /* 抵消 .admin-content 的 12px 底部内边距：否则吸底后下面露出一截正在滚动的字段 */
+    bottom: -12px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 -20px -20px;
+    padding: 12px 20px 20px;
+    border-radius: 0 0 8px 8px;
+    background: var(--semi-color-bg-0);
+}
+
+/* 展开 / 收起只在窄屏出现（宽屏字段区不限高） */
+.search-advanced__more {
+    display: none !important;
+}
+
+/* 窄屏（与便捷搜索隐藏同一断点）：字段区限高只露两行——每项 58（标签 20 + 间距 8 + 控件 32 取整后实测）+ 行间距 16；
+   收起时字段区内可纵向滚动（键盘 Tab 到下面的字段也会自动滚进来），「展开」则去掉限高 */
+@media (--lg-down) {
+    .search-advanced:not(.search-advanced--expanded) .search-advanced__fields {
+        max-height: calc(58px * 2 + 16px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .search-advanced__more {
+        display: inline-flex !important;
+    }
+}
+
+.search-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.search-field__label {
+    font-size: 13px;
+    color: var(--semi-color-text-0);
+}
+
+/* 面板里的控件撑满栅格列（Semi 的下拉 / 树下拉自带固定宽度，要覆盖） */
+.search-field__control > * {
+    width: 100% !important;
+}
+
+.search-advanced :is(.semi-button, .semi-input-wrapper, .semi-input, .semi-select, .semi-select-selection, .semi-tree-select) {
+    font-size: 13px;
+}
+
+/* 已生效的查询条件（SearchToolbar 的 conditions）：工具栏下方一行胶囊标签（设计稿「已选条件」） */
+.search-conditions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    margin-top: 10px;
+}
+
+/* 整行与表格里的小号标签同为 12px；标签 22px 高（表格 Tag 20px，多 2px 给 × 留点击区） */
+.search-conditions__label {
+    font-size: 12px;
+    color: var(--semi-color-text-2);
+}
+
+.search-conditions__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 22px;
+    max-width: 280px;
+    padding: 0 4px 0 10px;
+    border: 1px solid var(--semi-color-primary-light-hover);
+    border-radius: 999px;
+    background: var(--semi-color-primary-light-default);
+    color: var(--semi-color-primary);
+    font-size: 12px;
+    line-height: 20px;
+}
+
+.search-conditions__text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.search-conditions__remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.search-conditions__remove:hover {
+    background: var(--semi-color-primary-light-hover);
+}
+
+.search-conditions__clear {
+    height: 22px;
+    padding: 0 10px;
+    border: 1px solid var(--semi-color-border);
+    border-radius: 999px;
+    background: var(--semi-color-bg-0);
+    color: var(--semi-color-text-1);
+    font: inherit;
+    font-size: 12px;
+    line-height: 20px;
+    cursor: pointer;
+}
+
+.search-conditions__clear:hover {
+    background: var(--semi-color-fill-0);
+}
+

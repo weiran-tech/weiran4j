@@ -8,3 +8,13 @@
 .page-state-demo .semi-button-primary.semi-button-solid { background-color: #0064fa; }
 
 .page-state-demo label.semi-checkbox { display: inline-flex; align-items: center; gap: 0; }
+
+/* VitePress 1.x 的正文表格规则没有 raw 排除项；交互演示恢复 Semi 的表格布局与主题。 */
+.vp-doc .page-state-demo .semi-table { display: table; margin: 0; overflow: visible; border-collapse: separate; border-spacing: 0; }
+.vp-doc .page-state-demo .semi-table tr { background: var(--semi-color-bg-2); border-top: 0; transition: none; }
+.vp-doc .page-state-demo .semi-table th,
+.vp-doc .page-state-demo .semi-table td { border: 0; padding: 12px; font-size: 13px; }
+.vp-doc .page-state-demo .semi-table th { background: var(--semi-color-fill-0); color: var(--semi-color-text-0); }
+.vp-doc .page-state-demo .semi-table td { color: var(--semi-color-text-0); }
+
+.vp-doc .page-state-demo .semi-table .semi-button-borderless.semi-button-size-small { padding-left: 6px; padding-right: 6px; }

@@ -94,6 +94,11 @@
 
 ## 7. changelog
 
+**2026-11-22**
+
+- **#03 ✅ P3 地区禁用状态操作文案已统一**
+  由 `unify-admin-page-style` 解决：按钮与成功提示统一为“禁用 / 已禁用”，与筛选和标签一致，保持 enabled/disabled 数据值。字典导航中的同类状态也统一为“禁用”。
+
 新条目插在本节最上方（日期倒序）。
 
 **2026-11-14**（`improve-admin-interaction-recovery`）

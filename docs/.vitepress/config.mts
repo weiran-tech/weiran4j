@@ -1,8 +1,9 @@
 import { fileURLToPath } from 'node:url'
 import { withMermaid } from 'vitepress-plugin-mermaid'
+import managePostcss from '../../packages/manage/postcss.config.js'
 
 const config = withMermaid({
-  vite: { resolve: { alias: { '@': fileURLToPath(new URL('../../packages/manage/src', import.meta.url)) } } },
+  vite: { css: { postcss: managePostcss }, resolve: { alias: { '@': fileURLToPath(new URL('../../packages/manage/src', import.meta.url)) } } },
   base: '/',
   sitemap: { hostname: 'https://weiran4j.wulicode.com' },
   lang: 'zh-CN',

@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Button, Form, Modal, Space, Table } from '@douyinfe/semi-ui';
+import { Button, Form, Modal, Table } from '@douyinfe/semi-ui';
 import type { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import { useFormCloseGuard } from '../../../packages/manage/src/hooks/useFormCloseGuard';
 import { ListEmptyState, ListFeedback } from '../../../packages/manage/src/components/ListFeedback';
 import { OperationLogDetails } from '../../../packages/manage/src/components/OperationLogDetails';
+import { SearchToolbar } from '../../../packages/manage/src/components/SearchToolbar';
 import { formatPaginationTotal } from '../../../packages/manage/src/utils/pagination';
 import type { OperationLogView } from '../../../packages/manage/src/types/api';
 
@@ -32,7 +33,7 @@ export function ReadRecoveryDemo({ detail = false }: { detail?: boolean }) {
         <section className="page-state-demo__preview" aria-label={detail ? '日志详情预览' : '列表反馈预览'}>
             {detail ? <OperationLogDetails query={{ data: hasData ? log : undefined, isSuccess: mode === 'success', isError, isFetching }} onRetry={() => setMode('retrying')} /> : <>
                 <h3>{kind}列表</h3>
-                <Space wrap><Button onClick={() => { setFiltered(true); setKeyword('示例条件'); setMode('empty'); }}>模拟筛选无结果</Button><Button loading={isFetching} onClick={() => setMode('retrying')}>刷新</Button></Space>
+                <SearchToolbar leading={<Button onClick={() => { setFiltered(true); setKeyword('示例条件'); setMode('empty'); }}>模拟筛选无结果</Button>} onRefresh={() => setMode('retrying')} refreshing={isFetching} />
                 <p>已生效条件：{keyword || '无'} · 第 1 页</p>
                 {isError && <ListFeedback hasData={hasData} retrying={isFetching} onRetry={() => setMode('retrying')} />}
                 <Table rowKey="id" size="small" columns={[{ title: 'ID', dataIndex: 'id', width: 80 }, { title: '名称', dataIndex: 'name' }]} dataSource={hasData ? [{ id: 42, name: `${kind}示例记录` }] : []} loading={isFetching} pagination={{ pageSize: 10, total: hasData ? 1 : 0, showTotal: true, formatPageText: formatPaginationTotal }}

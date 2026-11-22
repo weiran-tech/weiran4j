@@ -178,7 +178,7 @@ describe('RegionsPage', () => {
         await screen.findByText('北京市');
 
         const beijingRow = screen.getByText('北京市').closest('tr') as HTMLElement;
-        fireEvent.click(within(beijingRow).getByRole('button', { name: '停用' }));
+        fireEvent.click(within(beijingRow).getByRole('button', { name: '禁用' }));
         await waitFor(() => expect(calls.some((call) => call.method === 'PUT' && call.path === '/api-backend/region/area/update/10')).toBe(true));
         expect(calls.find((call) => call.method === 'PUT')?.body).toMatchObject({ code: '110000', status: 'disabled' });
     });

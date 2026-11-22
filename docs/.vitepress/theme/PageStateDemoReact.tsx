@@ -1,3 +1,4 @@
+import { MediaLibraryStyleDemo } from './MediaLibraryStyleDemo';
 import { useDebouncedCallback } from '../../../packages/manage/src/hooks/useActionGuard';
 import { ActionGuardDemo } from './ActionGuardDemo';
 import '@douyinfe/semi-ui/react19-adapter';
@@ -14,20 +15,22 @@ import { FormProtectionDemo, ReadRecoveryDemo } from './AdminRecoveryDemos';
 import './page-state-demo.css';
 import { EditBoundaryDemo, PasswordAttemptDemo } from './EditBoundaryDemos';
 import { AuthorizationCalibrationDemo } from './AuthorizationCalibrationDemo';
+import { SecuritySettingsSummary } from '../../../packages/manage/src/pages/system/security/SecuritySettingsPage';
+import { UploadSettingsFields, fromSettings } from '../../../packages/manage/src/pages/system/upload-settings/UploadSettingsPage';
 
 type Mode = 'success' | 'loading' | 'error' | 'cached-error' | 'retrying';
-type Scene = 'actions' | 'authorization' | 'menu-conflict' | 'conflict' | 'throttle' | 'permissions' | 'security' | 'upload' | 'sync' | 'recovery' | 'search' | 'forms' | 'lists' | 'detail';
-const SCENES: Record<Scene, string> = { actions: '操作防抖', authorization: '授权校准', 'menu-conflict': '菜单编辑冲突', conflict: '编辑冲突', throttle: '认证限流', permissions: '权限分配', security: '安全设置', upload: '上传设置', sync: '权限同步', recovery: '异常恢复', search: '窄屏搜索', forms: '编辑保护', lists: '列表反馈', detail: '日志详情' };
+type Scene = 'media' | 'actions' | 'authorization' | 'menu-conflict' | 'conflict' | 'throttle' | 'permissions' | 'security' | 'upload' | 'sync' | 'recovery' | 'search' | 'forms' | 'lists' | 'detail';
+const SCENES: Record<Scene, string> = { media: '资源列表风格', actions: '操作防抖', authorization: '授权校准', 'menu-conflict': '菜单编辑冲突', conflict: '编辑冲突', throttle: '认证限流', permissions: '权限分配', security: '安全设置', upload: '上传设置', sync: '权限同步', recovery: '异常恢复', search: '窄屏搜索', forms: '编辑保护', lists: '列表反馈', detail: '日志详情' };
 const MODES: Record<Mode, string> = { success: '读取成功', loading: '首次加载中', error: '首次读取失败', 'cached-error': '缓存刷新失败', retrying: '正在重试' };
 function query(mode: Mode): ReadableQuery {
     return { data: mode === 'success' || mode === 'cached-error' ? {} : undefined, isSuccess: mode === 'success', isError: mode === 'error' || mode === 'cached-error', isFetching: mode === 'loading' || mode === 'retrying' };
 }
 
-function ReadDemo({ scene }: { scene: Exclude<Scene, 'actions' | 'authorization' | 'menu-conflict' | 'conflict' | 'throttle' | 'sync' | 'recovery' | 'search' | 'forms' | 'lists' | 'detail'> }) {
+function ReadDemo({ scene }: { scene: Exclude<Scene, 'media' | 'actions' | 'authorization' | 'menu-conflict' | 'conflict' | 'throttle' | 'sync' | 'recovery' | 'search' | 'forms' | 'lists' | 'detail'> }) {
     const labels = scene === 'permissions' ? ['菜单树', '角色详情'] : scene === 'upload' ? ['上传规则', '配置列表'] : ['安全设置'];
     const [modes, setModes] = useState<Mode[]>(labels.map(() => 'success'));
     const [selected, setSelected] = useState(true);
-    const [size, setSize] = useState('20');
+    const [uploadDraft, setUploadDraft] = useState(() => fromSettings({ imageFormats: ['jpg', 'png'], imageMaxSizeMb: 20, videoFormats: ['mp4'], videoMaxSizeMb: 100, fileFormats: ['pdf'], fileMaxSizeMb: 10 }));
     const [length, setLength] = useState('12');
     const [saved, setSaved] = useState('');
     const states = modes.map(query);
@@ -48,20 +51,25 @@ function ReadDemo({ scene }: { scene: Exclude<Scene, 'actions' | 'authorization'
         </label>)}</div>
         {states.map((state, index) => <QueryReadiness key={labels[index]} query={state} label={labels[index]!} onRetry={() => setMode(index, 'retrying')} />)}
         <section className="page-state-demo__preview" aria-label="页面预览">
-            <h3>{SCENES[scene]}</h3>
+            {scene !== 'security' && scene !== 'upload' && <h3>{SCENES[scene]}</h3>}
             {scene === 'permissions' && <>
                 <p>演示角色：内容编辑 · 已选 {selected ? 1 : 0} 项</p>
                 <Checkbox disabled={!ready} checked={selected} onChange={(event) => setSelected(event.target.checked ?? false)}>用户管理</Checkbox>
                 <p><Button size="small" disabled={!ready} onClick={() => setSelected(false)}>清空</Button></p>
             </>}
             {scene === 'security' && <>
-                <p>示例密码策略：12–64 个字符，小写字母和数字。</p>
+                <SecuritySettingsSummary
+                    data={{ passwordMinLength: 12, passwordMaxLength: 64, requireLower: true, requireUpper: false, requireDigit: true, requireSymbol: false, mfaEnabled: false, mfaRememberDays: 7, revision: 1 }}
+                    passwordAction={<Button theme="borderless" type="primary" disabled={!ready} onClick={() => setSaved('修改下方密码最小长度后保存（本地演示）。')}>修改</Button>}
+                    mfaAction={<Button theme="borderless" type="primary" disabled={!ready} onClick={() => setSaved('实际页面从此处打开多因素认证设置抽屉。')}>修改</Button>}
+                />
                 <label>密码最小长度<Input type="number" aria-label="演示密码最小长度" value={length} disabled={!ready} onChange={setLength} /></label>
             </>}
-            {scene === 'upload' && <>
-                <p>图片格式：jpg、png · 调整大小后模拟失败再重试，草稿保留。</p>
-                <label>图片大小上限（MB）<Input type="number" aria-label="演示图片大小" value={size} disabled={!ready} onChange={setSize} /></label>
-            </>}
+            {scene === 'upload' && <div className="upload-settings">
+                <UploadSettingsFields draft={uploadDraft} disabled={!ready}
+                    onChange={(key, value) => setUploadDraft(old => ({ ...old, [key]: value }))}
+                    onFileFormatsChange={formats => setUploadDraft(old => ({ ...old, file: { ...old.file, formats } }))} />
+            </div>}
             <p><Button theme="solid" type="primary" disabled={!ready} onClick={() => { if (ready) setSaved(scene === 'permissions' ? `已保存 ${selected ? 1 : 0} 项权限（本地演示）` : '设置已保存（本地演示）'); }}>保存</Button></p>
             <p role="status">{saved || (ready ? '必要数据已就绪，可以编辑和保存。' : '必要数据未就绪，编辑和保存已禁用。')}</p>
         </section>
@@ -139,6 +147,6 @@ export function PageStateDemo() {
     const [scene, setScene] = useState<Scene>('permissions');
     return <div className="page-state-demo">
         <label>选择场景<select aria-label="选择场景" value={scene} onChange={(event) => setScene(event.target.value as Scene)}>{Object.entries(SCENES).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-        {scene === 'actions' ? <ActionGuardDemo /> : scene === 'authorization' ? <AuthorizationCalibrationDemo /> : scene === 'menu-conflict' ? <EditBoundaryDemo kind="menu" /> : scene === 'conflict' ? <EditBoundaryDemo /> : scene === 'throttle' ? <PasswordAttemptDemo /> : scene === 'forms' ? <FormProtectionDemo /> : scene === 'lists' ? <ReadRecoveryDemo /> : scene === 'detail' ? <ReadRecoveryDemo detail /> : scene === 'sync' ? <SyncDemo /> : scene === 'recovery' ? <RecoveryDemo /> : scene === 'search' ? <SearchDemo /> : <ReadDemo key={scene} scene={scene} />}
+        {scene === 'media' ? <MediaLibraryStyleDemo /> : scene === 'actions' ? <ActionGuardDemo /> : scene === 'authorization' ? <AuthorizationCalibrationDemo /> : scene === 'menu-conflict' ? <EditBoundaryDemo kind="menu" /> : scene === 'conflict' ? <EditBoundaryDemo /> : scene === 'throttle' ? <PasswordAttemptDemo /> : scene === 'forms' ? <FormProtectionDemo /> : scene === 'lists' ? <ReadRecoveryDemo /> : scene === 'detail' ? <ReadRecoveryDemo detail /> : scene === 'sync' ? <SyncDemo /> : scene === 'recovery' ? <RecoveryDemo /> : scene === 'search' ? <SearchDemo /> : <ReadDemo key={scene} scene={scene} />}
     </div>;
 }

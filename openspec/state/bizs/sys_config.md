@@ -87,7 +87,10 @@
 
 ## 5. 说明与建议
 
+设置分组采用 16px h3、16px 分区间距与零外边距分割线；配置项新增按钮为纯文字。上传配置演示复用实际分组字段。
+
 - 安全设置与上传设置使用 `QueryReadiness` 区分加载、失败及后台刷新；错误可单独重试。上传规则与配置列表均成功且未刷新时开放编辑和保存，本地草稿在重试后保留。相关交互见 docs/page-states.md。
+- 安全设置卡片不重复显示页面标题；“密码策略”和“多因素认证”均使用 h3 标题，两个完整区块之间带分割线，修改入口保留在标题同行。docs 复用 `SecuritySettingsSummary` 展示实际分区样式。
 
 - 配置写入后没有缓存层，公开接口每次查库。
 - 配置保存和删除时，在同一事务同步替换 `sys_media_reference` 中的 `system_config` 引用；资源库仍通过实时检查器核对历史配置值。
@@ -96,6 +99,7 @@
 - 安全设置独占内部键 `system.security.settings`（`group_key=security`）：单条 JSON 保存密码最小/最大长度、必需字符类型、MFA 开关、设备免验天数与 `revision`。该组不登记 `sys_group`，通用配置列表、分页和详情不返回它，通用新增/编辑/删除及分组管理也不得触及；只有安全设置接口读写。保存时按 JSON 修订号乐观并发更新，修订号变化使旧设备信任凭据失效。旧 `sys_security_settings` 表在迁移保留值后删除。
 - 短信配置由 `/system/sms` 菜单进入共用的 `ConfigsPage`，传入 `config_sms` 后只呈现短信域分组及 `sms.*` 配置项：`sms.general.sign_name` 位于 `general` 组，`sms.system_tpl.captcha_local` 与 `sms.system_tpl.captcha_aliyun` 位于 `system_tpl` 组。分组与配置项管理共用同一页面流程，分组写接口按配置域定位。
 - 登录页通过公开 `/api-backend/n/system/auth/listProviders` 获取手机号登录状态；后端只有在 `system.user.enable_phone_login=true`、短信发送模式可用且当前模式的验证码模板有效时才返回 `phoneLoginEnabled=true`。`local` 模式的 `sms.system_tpl.captcha_local` 是短信正文，必须包含 `${code}`；发码时替换并写入应用日志。`aliyun` 模式的 `sms.system_tpl.captcha_aliyun` 是已审核模板 CODE。
+- 本地验证码模板的文本字段显示 `${变量名}` / `${code}` 说明，点击验证码变量在当前光标处插入，或替换选中文字并恢复光标；首次未定位时追加到末尾。无编辑权限时正文和按钮同时禁用；阿里云模板不显示变量插入。交互演示见 docs/configuration.md。
 - 站点标题仍取自构建期环境变量 `VITE_APP_TITLE`（见 #02）；`packages/manage/src` 不直接调用公开配置接口。
 - 内置配置只保护「键不可改、不可删」，值与表单配置都可以改。
 - [系统配置说明](../../../docs/configuration.md)记录了分组和表单字段的使用方式。
