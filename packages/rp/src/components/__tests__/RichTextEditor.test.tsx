@@ -1,0 +1,152 @@
+import { RichTextEditor as PackageRichTextEditor } from '@weiran-tech/semi-components';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { mockFetch, renderWithProviders } from '@/test/helpers';
+import { RichTextEditor } from '../RichTextEditor';
+
+describe('RichTextEditor', () => {
+    afterEach(() => vi.unstubAllGlobals());
+
+    const settings = {
+        imageFormats: ['png'], imageMaxSizeMb: 2,
+        videoFormats: ['mp4'], videoMaxSizeMb: 5,
+        fileFormats: ['pdf'], fileMaxSizeMb: 3,
+    };
+
+    it('选中图片后设置百分比宽度与位置，保存并重新加载布局', async () => {
+        const onChange = vi.fn();
+        const upload = vi.fn(() => Promise.resolve('/image.png'));
+        const { container, unmount } = render(<PackageRichTextEditor
+            value={'<p>正文</p><img src="/image.png" width="400">'} onChange={onChange} settings={settings} upload={upload} />);
+        const image = await waitFor(() => {
+            const node = container.querySelector('.ProseMirror img');
+            expect(node).not.toBeNull();
+            return node!;
+        });
+        expect(image).toHaveAttribute('data-media-width', '400px');
+        fireEvent.click(image);
+        expect(await screen.findByRole('group', { name: '图片布局' })).toBeInTheDocument();
+        fireEvent.change(screen.getByRole('combobox', { name: '宽度单位' }), { target: { value: '%' } });
+        fireEvent.change(screen.getByRole('spinbutton', { name: '媒体宽度' }), { target: { value: '50' } });
+        fireEvent.blur(screen.getByRole('spinbutton', { name: '媒体宽度' }));
+        fireEvent.change(screen.getByRole('combobox', { name: '媒体位置' }), { target: { value: 'center' } });
+        const html = onChange.mock.lastCall?.[0] as string;
+        expect(html).toContain('data-media-width="50%"');
+        expect(html).toContain('data-media-align="center"');
+        expect(html).toContain('width: 50%');
+        unmount();
+        const reloaded = render(<PackageRichTextEditor value={html} onChange={onChange} settings={settings} upload={upload} />);
+        expect(reloaded.container.querySelector('.ProseMirror img')).toHaveAttribute('data-media-width', '50%');
+    });
+
+    it('选中视频后设置像素宽度与右侧位置', async () => {
+        const onChange = vi.fn();
+        const { container } = render(<PackageRichTextEditor
+            value={'<p>正文</p><video src="/clip.mp4" controls></video>'}
+            onChange={onChange} settings={settings} upload={vi.fn(() => Promise.resolve('/clip.mp4'))} />);
+        const video = await waitFor(() => {
+            const node = container.querySelector('.ProseMirror video');
+            expect(node).not.toBeNull();
+            return node!;
+        });
+        fireEvent.click(video);
+        expect(await screen.findByRole('group', { name: '视频布局' })).toBeInTheDocument();
+        fireEvent.change(screen.getByRole('combobox', { name: '宽度单位' }), { target: { value: 'px' } });
+        fireEvent.change(screen.getByRole('spinbutton', { name: '媒体宽度' }), { target: { value: '320' } });
+        fireEvent.blur(screen.getByRole('spinbutton', { name: '媒体宽度' }));
+        fireEvent.change(screen.getByRole('combobox', { name: '媒体位置' }), { target: { value: 'right' } });
+        const html = onChange.mock.lastCall?.[0] as string;
+        expect(html).toContain('data-media-width="320px"');
+        expect(html).toContain('data-media-align="right"');
+        expect(html).toContain('width: 320px');
+    });
+
+    it('上传视频后插入可播放的 video HTML', async () => {
+        mockFetch({
+            'GET /api-backend/system/media/getDirectUploadAuthorization': null,
+            'GET /api-backend/system/media/getUploadSettings': {
+                imageFormats: ['png'], imageMaxSizeMb: 2, videoFormats: ['mp4', 'webm', 'mov'], videoMaxSizeMb: 5, fileFormats: ['pdf'], fileMaxSizeMb: 3,
+            },
+            'POST /api-backend/system/media/uploadFile': {
+                url: '/system-uploads/clip.mp4', name: 'clip.mp4', path: 'clip.mp4', size: 1,
+            },
+        });
+        const onChange = vi.fn();
+        const { container } = renderWithProviders(<RichTextEditor value="<p>正文</p>" onChange={onChange} />);
+        const videoButton = await screen.findByRole('button', { name: '上传并插入视频' });
+        await waitFor(() => expect(videoButton).toBeEnabled());
+        fireEvent.click(videoButton);
+        const input = container.querySelector('input[type="file"][accept=".mp4,.webm,.mov"]');
+        expect(input).not.toBeNull();
+        fireEvent.change(input!, { target: { files: [new File(['video'], 'clip.mp4', { type: 'video/mp4' })] } });
+        expect(await screen.findByRole('status')).toHaveTextContent('视频上传中（1 个）');
+        expect(onChange).not.toHaveBeenCalledWith(expect.stringContaining('视频上传中'));
+        await waitFor(() => expect(onChange).toHaveBeenCalledWith(expect.stringContaining('<video')));
+        expect(screen.queryByRole('status')).toBeNull();
+        expect(onChange.mock.lastCall?.[0]).toContain('src="/system-uploads/clip.mp4"');
+        expect(onChange.mock.lastCall?.[0]).toContain('controls');
+    });
+
+    it('图片和视频分别禁用自己的按钮，表单等待全部上传完成', async () => {
+        mockFetch({
+            'GET /api-backend/system/media/getDirectUploadAuthorization': null,
+            'GET /api-backend/system/media/getUploadSettings': {
+                imageFormats: ['png'], imageMaxSizeMb: 2, videoFormats: ['mp4', 'webm', 'mov'], videoMaxSizeMb: 5, fileFormats: ['pdf'], fileMaxSizeMb: 3,
+            },
+            'POST /api-backend/system/media/uploadFile': {
+                url: '/system-uploads/clip.mp4', name: 'clip.mp4', path: 'clip.mp4', size: 1,
+            },
+        });
+        let resolveImage!: (url: string) => void;
+        const onUploadImage = vi.fn(() => new Promise<string>((resolve) => { resolveImage = resolve; }));
+        const onUploadingChange = vi.fn();
+        const { container } = renderWithProviders(<RichTextEditor value="<p>正文</p>" onChange={() => undefined} onUploadImage={onUploadImage} onUploadingChange={onUploadingChange} />);
+        const imageButton = await screen.findByRole('button', { name: '上传并插入图片' });
+        const videoButton = screen.getByRole('button', { name: '上传并插入视频' });
+        const imageInput = await waitFor(() => {
+            const input = container.querySelector('input[type="file"][accept=".png"]');
+            expect(input).not.toBeNull();
+            return input;
+        });
+        const videoInput = container.querySelector('input[type="file"][accept=".mp4,.webm,.mov"]');
+        expect(imageInput).not.toBeNull();
+        expect(videoInput).not.toBeNull();
+
+        fireEvent.change(imageInput!, { target: { files: [new File(['image'], 'cover.png', { type: 'image/png' })] } });
+        await waitFor(() => expect(imageButton).toBeDisabled());
+        expect(screen.getByRole('status')).toHaveTextContent('图片上传中（1 张）');
+        expect(videoButton).toBeEnabled();
+        expect(onUploadingChange).toHaveBeenCalledWith(true);
+
+        fireEvent.change(videoInput!, { target: { files: [new File(['video'], 'clip.mp4', { type: 'video/mp4' })] } });
+        await waitFor(() => expect(videoButton).toBeEnabled());
+        expect(imageButton).toBeDisabled();
+        expect(onUploadingChange).toHaveBeenCalledTimes(1);
+
+        act(() => { resolveImage('/system-uploads/cover.png'); });
+        await waitFor(() => expect(imageButton).toBeEnabled());
+        expect(screen.queryByRole('status')).toBeNull();
+        expect(onUploadingChange).toHaveBeenLastCalledWith(false);
+    });
+
+    it('图片上传失败后清除占位提示', async () => {
+        mockFetch({
+            'GET /api-backend/system/media/getUploadSettings': {
+                imageFormats: ['png'], imageMaxSizeMb: 2, videoFormats: ['mp4', 'webm', 'mov'], videoMaxSizeMb: 5, fileFormats: ['pdf'], fileMaxSizeMb: 3,
+            },
+        });
+        let rejectImage!: (error: Error) => void;
+        const onUploadImage = vi.fn(() => new Promise<string>((_resolve, reject) => { rejectImage = reject; }));
+        const { container } = renderWithProviders(<RichTextEditor value="<p>正文</p>" onChange={() => undefined} onUploadImage={onUploadImage} />);
+        const input = await waitFor(() => {
+            const element = container.querySelector('input[type="file"][accept=".png"]');
+            expect(element).not.toBeNull();
+            return element;
+        });
+        fireEvent.change(input!, { target: { files: [new File(['image'], 'cover.png', { type: 'image/png' })] } });
+        expect(await screen.findByRole('status')).toHaveTextContent('图片上传中（1 张）');
+        act(() => rejectImage(new Error('上传失败')));
+        await waitFor(() => expect(screen.queryByRole('status')).toBeNull());
+        expect(container.querySelector('.ProseMirror img')).toBeNull();
+    });
+});

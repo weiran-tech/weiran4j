@@ -13,6 +13,7 @@
 | [TextAvatar](/components/text-avatar) | 自定义、回退、小尺寸 |
 | [IconPicker](/components/icon-picker) | 选择、清空、禁用 |
 | [OptionSelect](/components/option-select) | 选择、禁用、加载 |
+| [NavLogo](/components/nav-logo) | 完整、仅徽标、仅标题、禁用 |
 | [NavListPanel](/components/nav-list-panel) | 数据列表、空列表 |
 | [NavListItem](/components/nav-list-item) | 普通与选中条目 |
 

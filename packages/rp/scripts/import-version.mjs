@@ -1,0 +1,8 @@
+import { readFile, writeFile } from 'node:fs/promises';
+import { mergeTransfer } from '../prototype/transfer.mjs';
+const file = process.argv[2]; if (!file) throw new Error('用法：pnpm version:import <交接包.json>');
+const catalog = JSON.parse(await readFile('prototype/releases.json', 'utf8'));
+const result = mergeTransfer(JSON.parse(await readFile(file, 'utf8')), catalog);
+if (result.conflicts.length) throw new Error(`存在冲突，先在网页逐项合并后导出：${result.conflicts.map((item) => item.path).join('、')}`);
+await writeFile('prototype/releases.json', JSON.stringify(result.catalog, null, 2) + '\n');
+console.log('已合并本版说明，请将页面代码与说明一起提交 PR。');

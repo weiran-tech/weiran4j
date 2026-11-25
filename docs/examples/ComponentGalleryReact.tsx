@@ -1,3 +1,6 @@
+import navLogoImage from './assets/nav-logo.svg?no-inline';
+import { NavLogo } from '../../packages/manage/src/components/NavLogo';
+import editorImage from './assets/editor-image.svg?no-inline';
 import '@douyinfe/semi-ui/react19-adapter';
 import '@weiran-tech/semi-components/style.css';
 import {
@@ -10,6 +13,7 @@ import React, { useEffect, useRef, useState, type ReactNode } from 'react';
 import './component-gallery.css';
 
 const ITEMS = [
+    { key: 'nav-logo', label: 'NavLogo', note: '导航品牌入口' },
     { key: 'image', label: 'ImageUpload', note: '单图上传' },
     { key: 'file', label: 'FileUpload', note: '单文件、多文件' },
     { key: 'editor', label: 'RichTextEditor', note: '富文本与媒体' },
@@ -51,7 +55,8 @@ export function ComponentGallery({ component: selected }: { component: ItemKey }
     const [image, setImage] = useState('');
     const [file, setFile] = useState('');
     const [files, setFiles] = useState<string[]>([]);
-    const [html, setHtml] = useState('<p>选中图片或视频后，可设置宽度和位置。</p>');
+    const [html, setHtml] = useState(`<p>选中文字设置链接，或上传 PDF 文件。点击图片或视频，拖动图片四角缩放，或在 Popup 中点击位置图标。</p><img src="${editorImage}" alt="图片布局示例" data-media-width="50%">`);
+    const [failUpload, setFailUpload] = useState(false);
     const [mediaUrl, setMediaUrl] = useState('');
     const [preview, setPreview] = useState<'video' | 'pdf' | null>(null);
     const [icon, setIcon] = useState('House');
@@ -64,6 +69,17 @@ export function ComponentGallery({ component: selected }: { component: ItemKey }
 
     const examples = () => {
         switch (selected) {
+            case 'nav-logo':
+                return <>
+                    <Example title="徽标与标题"><NavLogo onClick={() => setError('已点击导航品牌入口')} /></Example>
+                    <Example title="Logo 图片"><NavLogo logoSrc={navLogoImage} /></Example>
+                    <Example title="Logo 图标"><NavLogo icon={<House size={18} />} /></Example>
+                    <Example title="文字徽标"><NavLogo textIcon="微" title="微然管理" /></Example>
+                    <Example title="图片失败 / 回退文字"><NavLogo logoSrc="/missing-nav-logo.svg" textIcon="微" /></Example>
+                    <Example title="仅徽标 / 折叠导航"><NavLogo showTitle={false} size={26} /></Example>
+                    <Example title="仅标题"><NavLogo title="应用导航" showLogo={false} /></Example>
+                    <Example title="禁用"><NavLogo disabled /></Example>
+                </>;
             case 'image':
                 return <>
                     <Example title="默认 / 上传后预览"><ImageUpload value={image} onChange={setImage}
@@ -84,8 +100,13 @@ export function ComponentGallery({ component: selected }: { component: ItemKey }
                 </>;
             case 'editor':
                 return <>
-                    <Example title="可编辑 / 图片和视频宽度与位置"><RichTextEditor value={html} onChange={setHtml}
-                        settings={DEFAULT_UPLOAD_SETTINGS} upload={upload} /></Example>
+                    <Example title="可编辑 / 文件上传、链接与媒体布局"><RichTextEditor value={html} onChange={setHtml}
+                        settings={DEFAULT_UPLOAD_SETTINGS} upload={async (file, progress) => {
+                            if (failUpload) throw new Error('模拟上传失败');
+                            return upload(file, progress);
+                        }} /></Example>
+                    <label><input type="checkbox" checked={failUpload} onChange={(event) => setFailUpload(event.target.checked)} />模拟上传失败（取消勾选后重新上传）</label>
+                    <Example title="空内容 / 上传配置加载中"><RichTextEditor value="" onChange={() => undefined} upload={upload} /></Example>
                     <Example title="只读"><RichTextEditor value={html} onChange={() => undefined} disabled
                         settings={DEFAULT_UPLOAD_SETTINGS} upload={upload} /></Example>
                     <details><summary>查看当前 HTML</summary><pre>{html}</pre></details>
@@ -147,7 +168,7 @@ export function ComponentGallery({ component: selected }: { component: ItemKey }
 
     return <div className="component-gallery">
         <div className="component-gallery__content">
-            <p>{current.note}。示例直接使用组件包的公开导出。
+            <p>{current.note}。{selected === 'nav-logo' ? '示例复用后台导航组件。' : '示例直接使用组件包的公开导出。'}
                 {['image', 'file', 'editor'].includes(selected) && ' 上传仅生成浏览器临时 URL。'}</p>
             {error && <p role="alert" className="component-gallery__error">{error}</p>}
             {examples()}

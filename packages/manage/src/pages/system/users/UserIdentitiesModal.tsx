@@ -38,7 +38,7 @@ export function UserIdentitiesModal({ user, onClose }: Props) {
     });
 
     const columns: ColumnProps<UserIdentityView>[] = [
-        { title: 'ID', dataIndex: 'id', width: 180 },
+        { title: 'ID', dataIndex: 'id', width: 100 },
         { title: '提供方', dataIndex: 'providerName', width: 110 },
         { title: '外部标识', dataIndex: 'externalId' },
         { title: '显示名', dataIndex: 'displayName', width: 110, render: (v: string | null) => v || '—' },

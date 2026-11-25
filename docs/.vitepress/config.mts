@@ -58,6 +58,7 @@ const config = withMermaid({
             { text: 'TextAvatar', link: '/components/text-avatar' },
             { text: 'IconPicker', link: '/components/icon-picker' },
             { text: 'OptionSelect', link: '/components/option-select' },
+            { text: 'NavLogo', link: '/components/nav-logo' },
             { text: 'NavListPanel', link: '/components/nav-list-panel' },
             { text: 'NavListItem', link: '/components/nav-list-item' },
           ] },

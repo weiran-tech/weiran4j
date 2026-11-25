@@ -122,7 +122,7 @@ export default function RegionsPage() {
     ];
 
     const columns: ColumnProps<RegionNode>[] = [
-        { title: 'ID', dataIndex: 'id', width: 180, useFullRender: true },
+        { title: 'ID', dataIndex: 'id', width: 100, useFullRender: true },
         {
             title: '地区名称',
             dataIndex: 'name',

@@ -36,7 +36,7 @@ export function ReadRecoveryDemo({ detail = false }: { detail?: boolean }) {
                 <SearchToolbar leading={<Button onClick={() => { setFiltered(true); setKeyword('示例条件'); setMode('empty'); }}>模拟筛选无结果</Button>} onRefresh={() => setMode('retrying')} refreshing={isFetching} />
                 <p>已生效条件：{keyword || '无'} · 第 1 页</p>
                 {isError && <ListFeedback hasData={hasData} retrying={isFetching} onRetry={() => setMode('retrying')} />}
-                <Table rowKey="id" size="small" columns={[{ title: 'ID', dataIndex: 'id', width: 80 }, { title: '名称', dataIndex: 'name' }]} dataSource={hasData ? [{ id: 42, name: `${kind}示例记录` }] : []} loading={isFetching} pagination={{ pageSize: 10, total: hasData ? 1 : 0, showTotal: true, formatPageText: formatPaginationTotal }}
+                <Table rowKey="id" size="small" columns={[{ title: 'ID', dataIndex: 'id', width: 100 }, { title: '名称', dataIndex: 'name' }]} dataSource={hasData ? [{ id: 42, name: `${kind}示例记录` }] : []} loading={isFetching} pagination={{ pageSize: 10, total: hasData ? 1 : 0, showTotal: true, formatPageText: formatPaginationTotal }}
                     empty={isFetching || isError ? <span aria-hidden="true" /> : <ListEmptyState filtered={filtered} onReset={() => { setFiltered(false); setKeyword(''); setMode('success'); }} />} />
             </>}
         </section>

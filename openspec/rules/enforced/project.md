@@ -55,7 +55,7 @@
 业务模块根目录若有 `build.gradle.kts`，同名对外入口项目也会被 include；没有则不创建。
 新增其余**非业务**模块（如 `weiran-xxx-starter`）仍在 `include(...)` 块里追加——这部分仍是**全仓单点**，并行追加极易冲突；
 改发现逻辑本身同理。
-`weiran-demo` 已拆除；Excel/ZIP 处理器与序号接口只作为 `weiran-app` 测试夹具，页面演示位于 `docs/examples/`。
+`weiran-demo` 是可选的历史单模块演示库，由 settings 显式按存在性 include，不纳入五层业务模块发现；仅 local/test 装配，集成测试直接复用，页面演示仍位于 `docs/examples/`。
 
 ### SL-2 · `weiran-dependencies/build.gradle.kts`
 
@@ -74,7 +74,7 @@
 **前端路由由后端 `sys_menu` 驱动**（`/api-backend/system/auth/listCurrentMenus`），`packages/manage/src/App.tsx` 不再逐页登记 `<Route>`。
 新增页面必须**追加一个 Flyway 迁移**往 `sys_menu` 插入菜单行（`component` = 相对 `packages/manage/src/pages` 的路径，无 `.tsx`），
 并按需插入按钮权限行与 `sys_role_menu` 绑定。菜单 id 是全局序号：并行的两个 change 各插一个 id，会撞主键。基座占 `1`–`999`，业务模块从 `1000` 起按 `packages/server/docs/business-modules.md` 登记的段取（宪法 CP-15）。
-历史演示菜单迁移保留校验和；追加迁移清理菜单 id 14–22、演示配置与结果表，运行时不再注册演示页面。
+历史演示菜单迁移保留校验和；追加迁移清理菜单 id 14–22、演示配置与结果表，local/test 再通过 V202611251600 追加迁移恢复历史菜单与配置，页面位于 packages/manage/src/pages/demo/。
 
 ### SL-5 · `packages/manage/src/pages/**` 与 `packages/manage/src/utils/page-registry.ts`
 

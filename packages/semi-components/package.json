@@ -1,6 +1,6 @@
 {
   "name": "@weiran-tech/semi-components",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Reusable React components for Weiran admin applications",
   "type": "module",
   "repository": {

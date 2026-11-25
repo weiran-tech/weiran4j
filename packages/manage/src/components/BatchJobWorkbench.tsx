@@ -76,7 +76,7 @@ function BatchDetailTable({ data, loading, page, onPageChange }: {
 }) {
     const { tableProps } = useTableDefaults();
     const columns = [
-        { title: 'ID', dataIndex: 'id', width: 90 },
+        { title: 'ID', dataIndex: 'id', width: 100 },
         { title: '序号', dataIndex: 'itemNo', width: 90 },
         { title: '处理项', dataIndex: 'itemName', width: 180 },
         { title: '源位置', dataIndex: 'sourceLocation', width: 190 },

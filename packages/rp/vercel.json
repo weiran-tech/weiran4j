@@ -1,0 +1,79 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm build:deploy",
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/mobile",
+      "destination": "/mobile/",
+      "permanent": true
+    },
+    {
+      "source": "/versions/:version/mobile",
+      "destination": "/versions/:version/mobile/",
+      "permanent": true
+    },
+    {
+      "source": "/versions/:version(v[0-9A-Za-z_.-]+)",
+      "destination": "/versions/:version/rp",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/versions",
+      "destination": "/"
+    },
+    {
+      "source": "/versions/:version/rp/:path*",
+      "destination": "/versions/:version/rp/"
+    },
+    {
+      "source": "/versions/:version/mobile/((?!assets(?:/|$)|.*\\.[^/]+$).*)",
+      "destination": "/versions/:version/mobile/"
+    },
+    {
+      "source": "/versions/:version/((?!assets(?:/|$)|.*\\.[^/]+$).*)",
+      "destination": "/versions/:version/"
+    },
+    {
+      "source": "/releases/:version/mobile/:path*",
+      "destination": "/releases/:version/mobile/"
+    },
+    {
+      "source": "/releases/:version/:path*",
+      "destination": "/releases/:version/"
+    },
+    {
+      "source": "/mobile/:path*",
+      "destination": "/mobile/"
+    },
+    {
+      "source": "/((?!docs/assets(?:/|$)|releases(?:/|$)|versions(?:/|$)|mobile(?:/|$)|assets(?:/|$)).*)",
+      "destination": "/"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/releases/index.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/versions/index.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    }
+  ]
+}

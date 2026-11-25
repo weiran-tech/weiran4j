@@ -66,7 +66,7 @@ export default function DemoListPage() {
         row.name.includes(filters.keyword) && (!filters.status || row.status === filters.status),
     );
     const columns: ColumnProps<DemoRow>[] = [
-        { title: 'ID', dataIndex: 'id', width: 180 },
+        { title: 'ID', dataIndex: 'id', width: 100 },
         { title: '名称', dataIndex: 'name', width: 150 },
         { title: '说明', dataIndex: 'description' },
         { title: '性别字典', dataIndex: 'gender', width: 100, render: (value: string) => <DictTag dictCode="sys_user_gender" value={value} /> },

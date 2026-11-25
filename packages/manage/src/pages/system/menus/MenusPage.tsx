@@ -71,7 +71,7 @@ export default function MenusPage() {
     const allExpanded = allKeys.length > 0 && allKeys.every((k) => currentExpanded.includes(k));
 
     const columns: ColumnProps<MenuNode>[] = [
-        { title: 'ID', dataIndex: 'id', width: 180 },
+        { title: 'ID', dataIndex: 'id', width: 100 },
         {
             title: '菜单名称',
             dataIndex: 'title',

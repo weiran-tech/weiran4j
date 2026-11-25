@@ -1,0 +1,387 @@
+/* 商户后台示例的共用样式：KPI 卡片、页签、两行单元格、统计口径折叠条。
+   颜色一律走 global.css 的 --color-* 变量，深浅主题各取一套，不在组件里写死白底。 */
+
+.biz-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.biz-kpi {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 13px 15px;
+    min-width: 0;
+}
+
+.biz-kpi--alert {
+    border-color: rgba(240, 160, 40, 0.55);
+    background: rgba(240, 160, 40, 0.06);
+}
+
+.biz-kpi__k {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.biz-kpi__v {
+    margin-top: 6px;
+    font-size: 24px;
+    font-weight: 650;
+    line-height: 1.2;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.biz-kpi__v small {
+    font-size: 12px;
+    font-weight: 400;
+    margin-left: 4px;
+    color: var(--color-text-secondary);
+}
+
+.biz-kpi__d {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+}
+
+/* 页签：紧贴表格上沿的一条，带计数 */
+.biz-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.biz-tabs__item {
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.biz-tabs__item:hover {
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+.biz-tabs__item--on {
+    background: var(--color-sidebar-active);
+    color: var(--color-sidebar-text-active);
+    font-weight: 600;
+}
+
+.biz-tabs__n {
+    font-size: 11px;
+    font-style: normal;
+    padding: 0 5px;
+    border-radius: 8px;
+    background: var(--semi-color-fill-0);
+    color: var(--color-text-secondary);
+}
+
+.biz-tabs__hint {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+}
+
+/* 两行单元格：主值 + 一行小字说明。列表里大量用，统一行高避免表格忽高忽低 */
+.biz-cell__main {
+    display: block;
+    line-height: 18px;
+}
+
+.biz-cell__sub {
+    display: block;
+    font-size: 11px;
+    line-height: 16px;
+    color: var(--color-text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.biz-mono {
+    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.biz-num {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.biz-dim {
+    color: var(--color-text-secondary);
+}
+
+.biz-danger {
+    color: var(--color-semi-red-5, #d93026);
+}
+
+.biz-warn {
+    color: #9a6212;
+}
+
+/* 统计口径：默认收起，展开是一列说明 */
+.biz-rules {
+    margin: 0 0 14px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    border: 1px dashed var(--color-border);
+    border-radius: 6px;
+    padding: 7px 11px;
+    background: var(--semi-color-fill-0);
+}
+
+.biz-rules > summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+}
+
+.biz-rules > summary::-webkit-details-marker {
+    display: none;
+}
+
+.biz-rules > summary::before {
+    content: '▸';
+    font-size: 10px;
+    transition: transform 0.15s;
+}
+
+.biz-rules[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+.biz-rules ul {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    line-height: 1.85;
+}
+
+.biz-rules li + li {
+    margin-top: 2px;
+}
+
+/* 表单栅格：收付规则页用 */
+.biz-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 16px;
+}
+
+.biz-form-grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.biz-calc {
+    margin-top: 10px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    background: var(--semi-color-fill-0);
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+}
+
+.biz-calc--bad {
+    color: var(--color-semi-red-5, #d93026);
+}
+
+/* 详情弹窗里的定义列表 */
+.biz-dl {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 6px 12px;
+    font-size: 13px;
+    align-items: baseline;
+}
+
+.biz-dl > dt {
+    color: var(--color-text-secondary);
+    font-size: 12px;
+}
+
+.biz-dl > dd {
+    margin: 0;
+    color: var(--color-text);
+    word-break: break-all;
+}
+
+.biz-section-title {
+    font-size: 13px;
+    font-weight: 650;
+    margin: 16px 0 8px;
+    color: var(--color-text);
+}
+
+@media (max-width: 1200px) {
+    .biz-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .biz-form-grid,
+    .biz-form-grid--3 {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .biz-kpis {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+}
+
+/* 路由分流：一个支付方式一个池子，顶部是按权重算出的承接占比条 */
+.biz-pool {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.biz-pool__h {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    flex-wrap: wrap;
+}
+
+.biz-pool__bar {
+    display: flex;
+    height: 26px;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.biz-pool__seg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #fff;
+    overflow: hidden;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.biz-pool__row {
+    display: grid;
+    grid-template-columns: minmax(160px, 220px) minmax(0, 1fr) 84px 72px 64px;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    font-size: 12px;
+    border-top: 1px solid var(--color-border);
+}
+
+.biz-pool__row:first-of-type {
+    border-top: 0;
+}
+
+.biz-pool__th {
+    color: var(--color-text-secondary);
+    font-size: 11px;
+    background: var(--color-table-head-bg);
+}
+
+.biz-pool__foot {
+    padding: 7px 14px;
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 900px) {
+    .biz-pool__row {
+        grid-template-columns: minmax(0, 1fr) 70px 60px;
+    }
+    .biz-pool__row > :nth-child(2) {
+        display: none;
+    }
+}
+
+/* ---------- 订单详情 · 资金明细与账户块（2026-11-16） ---------- */
+
+/* 资金明细：逐项列，不给合计 —— 三笔性质不同的钱合起来写一行，事后没人能回答「通道费涨了多少」 */
+.biz-money {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.biz-money-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 12px;
+    font-size: 12.5px;
+    border-top: 1px solid var(--color-border);
+}
+
+.biz-money-row:first-child {
+    border-top: 0;
+}
+
+/* 最后一行是结果（卖家预计实收），底色区分开 */
+.biz-money-row:last-child {
+    background: var(--color-table-head-bg);
+    font-weight: 600;
+}
+
+.biz-money-row > span:first-child {
+    color: var(--color-text-secondary);
+}
+
+/* 账户块：主体 / 账户 / 类型 / 状态四行 —— 异常时整块转红，扫一眼就知道这条号不能用 */
+.biz-acct-card {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    background: var(--color-surface);
+}
+
+.biz-acct-card--bad {
+    border-color: var(--color-semi-red-3, #f5b0b0);
+    background: var(--color-semi-red-light-default, #fef3f2);
+}
+
+.biz-acct-card__row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    line-height: 1.9;
+}
+
+.biz-acct-card__row > span:first-child {
+    width: 44px;
+    flex: 0 0 44px;
+    color: var(--color-text-secondary);
+}

@@ -1,0 +1,336 @@
+{
+  "v0.2": {
+    "sourceCommit": "34f7252062adc573db7517fa4fa812b6f52e662d",
+    "pages": [
+      {
+        "platform": "manage",
+        "pageId": "collaboration-home",
+        "title": "工作台",
+        "path": "/dashboard",
+        "group": ""
+      },
+      {
+        "platform": "manage",
+        "pageId": "prototype-versions",
+        "title": "版本中心",
+        "path": "/prototype/versions",
+        "group": "原型协作"
+      },
+      {
+        "platform": "manage",
+        "pageId": "mobile-preview",
+        "title": "手机端预览",
+        "path": "/prototype/mobile",
+        "group": "原型协作"
+      },
+      {
+        "platform": "manage",
+        "pageId": "prototype-refund",
+        "title": "退款交互示例",
+        "path": "/prototype/refund",
+        "group": "原型协作"
+      },
+      {
+        "platform": "manage",
+        "pageId": "biz-pay-accounts",
+        "title": "账户管理",
+        "path": "/biz/accounts",
+        "group": "收付管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "biz-pay-payoutaccounts",
+        "title": "出款账户",
+        "path": "/biz/payout-accounts",
+        "group": "收付管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "biz-pay-merchants",
+        "title": "收款商户",
+        "path": "/biz/merchants",
+        "group": "收付管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "biz-pay-routes",
+        "title": "路由分流",
+        "path": "/biz/routes",
+        "group": "收付管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "biz-pay-traderules",
+        "title": "交易规则",
+        "path": "/biz/trade-rules",
+        "group": "收付管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "biz-pay-payrules",
+        "title": "提现规则",
+        "path": "/biz/pay-rules",
+        "group": "收付管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "biz-finance-payflows",
+        "title": "支付流水",
+        "path": "/biz/pay-flows",
+        "group": "财务管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "biz-finance-refunds",
+        "title": "退款管理",
+        "path": "/biz/refunds",
+        "group": "财务管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "biz-finance-withdrawals",
+        "title": "提现管理",
+        "path": "/biz/withdrawals",
+        "group": "财务管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "biz-finance-unwithdrawn",
+        "title": "未提现订单",
+        "path": "/biz/unwithdrawn",
+        "group": "财务管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "biz-finance-vouchers",
+        "title": "财务凭证",
+        "path": "/biz/vouchers",
+        "group": "财务管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "biz-finance-exportjobs",
+        "title": "导出管理",
+        "path": "/biz/exports",
+        "group": "财务管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "ops-goods-goods",
+        "title": "商品管理",
+        "path": "/ops-goods/goods",
+        "group": "商品与订单"
+      },
+      {
+        "platform": "manage",
+        "pageId": "ops-orders-orders",
+        "title": "订单管理",
+        "path": "/ops-goods/orders",
+        "group": "商品与订单"
+      },
+      {
+        "platform": "manage",
+        "pageId": "ops-invite-invite",
+        "title": "邀请注册",
+        "path": "/ops-rebate/invite",
+        "group": "邀请返利"
+      },
+      {
+        "platform": "manage",
+        "pageId": "ops-rebate-config-rebateconfig",
+        "title": "返利配置",
+        "path": "/ops-rebate/config",
+        "group": "邀请返利"
+      },
+      {
+        "platform": "manage",
+        "pageId": "ops-rebates-rebates",
+        "title": "返利明细",
+        "path": "/ops-rebate/list",
+        "group": "邀请返利"
+      },
+      {
+        "platform": "manage",
+        "pageId": "ops-users-opsusers",
+        "title": "用户管理",
+        "path": "/ops-users",
+        "group": ""
+      },
+      {
+        "platform": "manage",
+        "pageId": "system-users-users",
+        "title": "系统用户",
+        "path": "/system/users",
+        "group": "系统管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "system-roles-roles",
+        "title": "角色管理",
+        "path": "/system/roles",
+        "group": "系统管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "system-menus-menus",
+        "title": "菜单管理",
+        "path": "/system/menus",
+        "group": "系统管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "system-dicts-dicts",
+        "title": "字典管理",
+        "path": "/system/dicts",
+        "group": "系统管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "system-configs-configs",
+        "title": "系统配置",
+        "path": "/system/configs",
+        "group": "系统管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "system-sms-smsconfigs",
+        "title": "短信配置",
+        "path": "/system/sms",
+        "group": "系统管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "system-security-securitysettings",
+        "title": "安全设置",
+        "path": "/system/security",
+        "group": "系统管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "system-upload-settings-uploadsettings",
+        "title": "上传设置",
+        "path": "/system/upload-settings",
+        "group": "系统管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "system-media-library",
+        "title": "资源库",
+        "path": "/system/media-library",
+        "group": "系统管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "system-regions-regions",
+        "title": "行政区划",
+        "path": "/system/regions",
+        "group": "系统管理"
+      },
+      {
+        "platform": "manage",
+        "pageId": "logs-loginlogs",
+        "title": "登录日志",
+        "path": "/logs/login",
+        "group": "审计日志"
+      },
+      {
+        "platform": "manage",
+        "pageId": "logs-operationlogs",
+        "title": "操作日志",
+        "path": "/logs/operation",
+        "group": "审计日志"
+      },
+      {
+        "platform": "manage",
+        "pageId": "im-chats",
+        "title": "会话与群",
+        "path": "/im/chats",
+        "group": "IM 与客服"
+      },
+      {
+        "platform": "manage",
+        "pageId": "im-staff",
+        "title": "客服列表",
+        "path": "/im/staff",
+        "group": "IM 与客服"
+      },
+      {
+        "platform": "manage",
+        "pageId": "im-routing",
+        "title": "客服分组与分流",
+        "path": "/im/routing",
+        "group": "IM 与客服"
+      },
+      {
+        "platform": "manage",
+        "pageId": "im-config",
+        "title": "客服配置",
+        "path": "/im/config",
+        "group": "IM 与客服"
+      },
+      {
+        "platform": "manage",
+        "pageId": "demo-demolist",
+        "title": "列表与表格",
+        "path": "/demo/list",
+        "group": "原型演示"
+      },
+      {
+        "platform": "manage",
+        "pageId": "demo-demofields",
+        "title": "表单与组件",
+        "path": "/demo/fields",
+        "group": "原型演示"
+      },
+      {
+        "platform": "manage",
+        "pageId": "demo-democonfig",
+        "title": "动态配置",
+        "path": "/demo/config",
+        "group": "原型演示"
+      },
+      {
+        "platform": "manage",
+        "pageId": "demo-demonavigation",
+        "title": "导航与布局",
+        "path": "/demo/navigation",
+        "group": "原型演示"
+      },
+      {
+        "platform": "manage",
+        "pageId": "demo-demoaccess",
+        "title": "权限展示",
+        "path": "/demo/access",
+        "group": "原型演示"
+      },
+      {
+        "platform": "manage",
+        "pageId": "demo-demobatch",
+        "title": "批处理工作台",
+        "path": "/demo/batch",
+        "group": "原型演示"
+      },
+      {
+        "platform": "manage",
+        "pageId": "demo-demosequence",
+        "title": "自增序号",
+        "path": "/demo/sequence",
+        "group": "原型演示"
+      },
+      {
+        "platform": "mobile",
+        "pageId": "mobile-orders",
+        "title": "订单列表",
+        "path": "/mobile/#/orders",
+        "group": "订单与退款"
+      },
+      {
+        "platform": "mobile",
+        "pageId": "mobile-order-detail",
+        "title": "订单详情",
+        "path": "/mobile/#/orders/demo-001",
+        "group": "订单与退款"
+      }
+    ]
+  }
+}

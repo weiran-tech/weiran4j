@@ -3,13 +3,26 @@
   "ui": "tui",
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".vitepress/dist/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".vitepress/dist/**"
+      ]
     },
     "dev": {
       "cache": false,
       "persistent": true,
-      "passThroughEnv": ["JAVA_HOME", "JAVA_HOME_21", "WEIRAN_*", "SERVER_PORT", "SPRING_*"]
+      "passThroughEnv": [
+        "JAVA_HOME",
+        "JAVA_HOME_21",
+        "WEIRAN_*",
+        "SERVER_PORT",
+        "SPRING_*",
+        "VITE_PROTOTYPE_*",
+        "VITE_APP_TITLE"
+      ]
     },
     "//#test:flows:unit": {
       "cache": false
@@ -17,6 +30,22 @@
     "preview": {
       "cache": false,
       "persistent": true
+    },
+    "@weiran/rp#build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".prototype-data/web-build/**"
+      ],
+      "env": [
+        "VITE_PROTOTYPE_BASE",
+        "VITE_PROTOTYPE_VERSION",
+        "VITE_PROTOTYPE_ARCHIVE_ID",
+        "VITE_PROTOTYPE_KIND",
+        "VITE_PROTOTYPE_FINGERPRINT",
+        "VITE_APP_TITLE"
+      ]
     }
   }
 }

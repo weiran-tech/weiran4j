@@ -43,8 +43,8 @@ packages/
 
 七类原后台示例已移入本目录的 `backoffice/`，统一通过[后台页面示例](/backoffice-examples)访问。它们复用实际组件，使用隔离的 QueryClient、本地字典和上传配置；配置保存只在当前页面生效，上传使用浏览器临时 URL。
 
-业务后台已移除 `pages/demo/` 和序号示例 hook，后端不再装配 `weiran-demo`。真实 Excel/ZIP 处理器与序号接口移入 `weiran-app/src/test/java/.../fixtures/`，仅由集成测试显式导入。批处理工作台通过可注入的 `BatchJobDataSource` 复用；文档不请求业务接口。
+业务后台已恢复历史 `pages/demo/` 和序号示例 hook，可选后端 `weiran-demo` 仅在 local/test 装配，提供真实 Excel/ZIP 处理器与序号接口，集成测试复用同一模块，普通生产 bootJar 不包含演示模块。批处理工作台通过可注入的 `BatchJobDataSource` 复用；文档不请求业务接口。
 
-已发布的 Flyway 文件原样保存在应用 `db/app-demo`，仍仅 local/test 加载，避免已有数据库校验失败。新迁移清理旧菜单 id 14–22、`system.demo.*` 配置及旧结果表；不删除曾上传到资源库的真实文件。测试结果使用独立的 `test_batch_item` 夹具表，该表只在 test profile 创建，不进入发布物。
+已发布的 Flyway 文件原样保存在应用 `db/app-demo`，仍仅 local/test 加载，避免已有数据库校验失败。新迁移清理旧菜单 id 14–22、`system.demo.*` 配置及旧结果表；不删除曾上传到资源库的真实文件。可选演示模块通过 `db/demo-runtime` 追加迁移恢复菜单 id 14–22、演示配置与 `demo_batch_item`，local/test 使用同一结果表验证真实处理器；历史测试夹具迁移保留，不再维护重复 Java 处理器。
 
 下游仅部署后台可省略整个 `docs/`，无需再清理示例页面或演示模块。`demo-v*` 发布流程保留为后台体验镜像，发布物不包含测试夹具或业务示例。

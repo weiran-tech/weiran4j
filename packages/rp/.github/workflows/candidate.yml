@@ -1,0 +1,58 @@
+name: Build review candidate
+on:
+  workflow_dispatch:
+permissions:
+  issues: read
+  discussions: read
+  contents: write
+concurrency:
+  group: prototype-candidate
+  cancel-in-progress: false
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
+        with:
+          version: 12.15.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm version:check && pnpm lint && pnpm test
+      - run: pnpm candidate
+      - name: Candidate identity
+        id: identity
+        run: node --input-type=module -e 'import fs from "node:fs";import cp from "node:child_process";const c=JSON.parse(fs.readFileSync("prototype/releases.json"));const id=c.current+"-rc-"+cp.execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim();fs.appendFileSync(process.env.GITHUB_OUTPUT,"id="+id+"\n");'
+      - name: Publish immutable candidate
+        run: node scripts/publish-archive.mjs "$CANDIDATE_ID"
+        env:
+          CANDIDATE_ID: ${{ steps.identity.outputs.id }}
+          GH_TOKEN: ${{ github.token }}
+      - name: Assemble shared site
+        run: |
+          rm -rf .prototype-archives
+          node scripts/restore-snapshots.mjs
+          pnpm handoff:sync
+          pnpm build:site
+          pnpm check:site
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: prototype-site
+          path: dist/
+          retention-days: 30
+      - name: Deploy verified static artifact
+        run: node scripts/deploy-static.mjs
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      - run: node scripts/trigger-deploy.mjs
+        env:
+          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}

@@ -97,10 +97,10 @@ duoli-weiran4j/                  # git 仓库根 = pnpm 工作区根 = openspec 
 ### 页面与组件演示
 
 页面和组件演示统一位于 `docs/examples/`，入口见 `docs/backoffice-examples.md`、`docs/page-states.md` 与 `docs/components/`。
-业务后台不含 `pages/demo/`，应用不装配 `weiran-demo`；下游仅部署后台时可整体省略 `docs/`，无需再手工清理示例。
+后台 `pages/demo/` 恢复历史演示页面，菜单和配置仅由 local/test 的追加迁移登记；可选 `weiran-demo` 仅在 local/test 装配，普通生产 bootJar 不包含它；下游仅部署后台时可整体省略 `docs/`，无需再手工清理示例。
 通用批处理工作台 `packages/manage/src/components/BatchJobWorkbench.tsx` 保留，业务页传入处理类型和结果组件，
 后端实现 `weiran-system-api` 的 `BatchProcessor`，接入步骤见 `docs/batch-processing.md`。
-Excel/ZIP 处理器与序号测试接口位于 `weiran-app/src/test/java/.../fixtures/`，只在集成测试显式导入，不进入 bootJar。
+Excel/ZIP 处理器与序号演示接口由 `weiran-demo` 提供，集成测试直接复用该模块，不再维护重复 Java 夹具。模块通过 `developmentOnly` 与 `testRuntimeOnly` 接入，自动配置限定 local/test；`db/demo-runtime` 仅在这两个 profile 加载，追加迁移恢复历史清理掉的结果表。
 已发布的演示 Flyway 文件原样保存在 `weiran-app/src/main/resources/db/app-demo/`，仍仅 local/test 加载以校验旧数据库历史；
 追加的清理迁移删除菜单、配置和旧结果表，不删除真实媒体资源。不要删除或修改这些历史脚本（CP-7）。
 
@@ -260,7 +260,7 @@ Excel/ZIP 处理器与序号测试接口位于 `weiran-app/src/test/java/.../fix
 - 新增或修改页面、组件及其交互状态时，**同步更新对应的 docs 演示**，按实际能力展示正常、加载中、空数据、失败与重试、禁用及权限变化等状态。
 - 演示复用实际组件与交互逻辑，使用本地示例数据或模拟接口，不依赖登录账号、真实业务数据或生产服务；React 交互演示沿用文档站现有的 `ClientOnly` 与 Vue/React 挂载方式。
 - 依赖方向为 `docs/examples → packages`，业务应用与组件包不得反向导入演示。仅部署后台的下游可整体省略 `docs/`；使用组件包时无需复制本仓演示。
-- 不在业务目录新增示例页面、演示模块、菜单与种子。真实后端流程由测试夹具和集成测试验证；已发布 Flyway 脚本保持不变。
+- 新演示仍统一放在 docs/examples；历史 pages/demo 页面按用户要求保留，菜单与配置仅 local/test 恢复。真实后端流程由 weiran-demo 与集成测试验证；已发布 Flyway 脚本保持不变。
 - 本节约定的是**演示内容的归属**；实际业务页面和可复用组件的实现仍遵循原有目录与模块边界。
 
 ## 前端测试

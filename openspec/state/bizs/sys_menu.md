@@ -33,7 +33,7 @@
 | 后端模块 | `weiran-system`；`MenuController` → `MenuApplicationService` → `MybatisMenuRepository` |
 | 接口前缀 | `/api/menus`（管理）；`/api/auth/menus`（当前用户可见菜单树，`AuthController`） |
 | 权限码 | `system:menu:list` · `system:menu:create` · `system:menu:update` · `system:menu:delete` |
-| 种子 | 通用菜单 id 1–13 固定，id 13 为「文件系统」；可选 local/test 演示 id 14–20；安全设置 id 23 为隐藏路由；按钮 id 100–129；前端与测试按 ID 引用 |
+| 种子 | 通用菜单 id 1–13 固定，id 13 为「文件系统」；可选 local/test 演示 id 14–22；安全设置 id 23 为隐藏路由；按钮 id 100–129；前端与测试按 ID 引用 |
 
 ## 1. 列表
 
@@ -124,9 +124,12 @@
 
 ## 7. changelog
 
+**2026-11-25**
+- 恢复 V202611230100 已执行的原文（checksum -1079643580）；授权修订号递增移至新增 V202611251315，避免已运行过清理迁移的数据库启动时校验失败。
+
 **2026-11-23**
 
-- `extract-runtime-examples` 追加 V202611230100，删除旧演示菜单 id 14–22 及角色关联；页面已迁入 docs，后台与体验镜像不再注册示例菜单。
+- `extract-runtime-examples` 追加 V202611230100，删除旧演示菜单 id 14–22 及角色关联；当时页面迁入 docs；2026-11-25 已按用户要求通过可选演示模块追加迁移恢复 local/test 菜单。
 
 新条目插在本节最上方（按日期倒序，新在上）。
 
@@ -177,3 +180,6 @@
 **2026-09-26**
 - **#04 ✅ P? D-008 框架重写时建立本文件**
   按 `e23c511` 的代码首次盘点 `sys_menu` 的列表、表单、菜单驱动路由与已知问题。
+
+
+2026-11-25：恢复历史后台组件演示页面；local/test 的 `V202611251600` 追加迁移恢复菜单 14–22、管理员授权和 system.demo.* 配置，并递增权限版本。生产包不加载此迁移。

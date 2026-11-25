@@ -1,0 +1,643 @@
+/* Weiran Admin —— 飞书风格 compact sleek（设计变量与全局样式移植自 mono4ts） */
+
+/*
+ * 主色不在这里写死：lib/theme-color.ts 的 applyThemeColor() 把 --color-primary / --semi-color-primary*
+ * 以内联样式写到 html 与 body 上（默认 #0064FA）。这里的 --color-primary 只是 JS 执行前的兜底。
+ */
+:root {
+    --sidebar-width: 216px;
+    --sidebar-collapsed-width: 48px;
+    --header-height: 60px;
+    --color-bg: #f0f1f5;
+    --color-surface: #ffffff;
+    --color-layout-bg: var(--color-surface);
+    --color-layout-hover: var(--color-bg);
+    --color-sidebar-bg: #ffffff;
+    --color-sidebar-hover: rgba(0, 0, 0, 0.04);
+    --color-sidebar-active: rgba(0, 100, 250, 0.1);
+    --color-sidebar-text: #646a73;
+    --color-sidebar-title: #1f2329;
+    --color-sidebar-text-active: #0064fa;
+    --color-primary: #0064fa;
+    --color-text: #1f2329;
+    --color-text-secondary: #646a73;
+    --color-border: #e1e3e6;
+    /* 表头背景：必须不透明——横向滚动时，固定在右侧的「操作」列表头下面不能透出数据 */
+    --color-table-head-bg: #f5f6f8;
+    --radius: 6px;
+    --topbar-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+/* 深色模式变量（Semi 官方入口：body[theme-mode='dark']，由 lib/theme.ts 切换） */
+body[theme-mode='dark'] {
+    --color-bg: #0d0f14;
+    --color-surface: #1a1d24;
+    --color-sidebar-bg: #232429;
+    --color-layout-bg: var(--color-sidebar-bg);
+    --color-layout-hover: rgba(255, 255, 255, 0.08);
+    --color-sidebar-hover: rgba(255, 255, 255, 0.08);
+    --color-sidebar-active: rgba(0, 100, 250, 0.25);
+    --color-sidebar-text: rgba(255, 255, 255, 0.65);
+    --color-sidebar-title: #ffffff;
+    --color-sidebar-text-active: #ffffff;
+    --color-text: #e8eaed;
+    --color-text-secondary: #8f96a3;
+    --color-border: #2e3340;
+    --color-table-head-bg: #22252d;
+    --topbar-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
+}
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 13px 紧凑字号 */
+html {
+    font-size: 13px;
+    color-scheme: light;
+}
+
+/* 主题切换平滑过渡 */
+body,
+.admin-header,
+.admin-sidebar,
+.admin-content,
+.admin-layout {
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+    color: var(--semi-color-text-0);
+    background-color: var(--semi-color-bg-0);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+}
+
+#root {
+    min-height: 100vh;
+}
+
+/* ===== Semi 覆盖：紧凑与主题色跟随 ===== */
+
+/* Tabs 选中文字跟随主题色 */
+.semi-tabs-bar .semi-tabs-tab-active,
+.semi-tabs-bar .semi-tabs-tab-active:hover {
+    color: var(--semi-color-primary);
+}
+
+.semi-card {
+    border-radius: var(--semi-border-radius-medium);
+    background: var(--semi-color-bg-1);
+}
+
+.semi-modal-content {
+    background: var(--color-layout-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+}
+
+.semi-modal-header,
+.semi-modal-body,
+.semi-modal-footer {
+    background: transparent;
+}
+
+.semi-modal-header {
+    border-bottom-color: var(--color-border);
+}
+
+.semi-modal-footer {
+    border-top-color: var(--color-border);
+}
+
+/* footer={null} 时 Semi Modal 底部间距缺失（默认由 footer 的 margin 提供），body 为最后一个元素时补齐 */
+.semi-modal-content > .semi-modal-body:last-child {
+    padding-bottom: 20px;
+}
+
+/*
+ * 输入框前缀为非 Semi 图标（如 lucide）时 Semi 不加任何间距（只有 -text / -icon 两种前缀有 margin），
+ * 而带前缀的 input 自身 padding-left 为 0，图标会紧贴左边框、与占位文字挤在一起。这里补上与 -icon 一致的间距。
+ */
+.semi-input-prefix:not(.semi-input-prefix-text):not(.semi-input-prefix-icon) {
+    margin: 0 8px 0 12px;
+    color: var(--semi-color-text-2);
+}
+
+/*
+ * 内容区表格紧凑化：13px 字号、左右 12px 内边距，操作列里的小号文字按钮收窄。
+ * 各列表页的列宽与 scroll.x 按这套尺寸计算（1440 宽桌面下内容区约 1160px，全部列不出横向滚动）；
+ * 加 .admin-content 前缀是因为 Semi 的表格样式随页面分包后加载，同权重会盖过这里。
+ */
+.admin-content .semi-table,
+.admin-content .semi-table-thead > .semi-table-row > .semi-table-row-head,
+.admin-content .semi-table-tbody > .semi-table-row > .semi-table-row-cell {
+    font-size: 13px;
+}
+
+.admin-content .semi-table-thead > .semi-table-row > .semi-table-row-head,
+.admin-content .semi-table-tbody > .semi-table-row > .semi-table-row-cell {
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+/* 表头与表体区分：表头加背景（含固定列的表头单元格） */
+.admin-content .semi-table-thead > .semi-table-row > .semi-table-row-head {
+    background: var(--color-table-head-bg);
+}
+
+.admin-content .semi-table .semi-button-borderless.semi-button-size-small {
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+/* 斑马纹（偏好 tableStriped；Semi Table 没有 striped 属性，className 由 hooks/useTableDefaults 给出） */
+.weiran-table--striped .semi-table-tbody > .semi-table-row:nth-child(even) > .semi-table-row-cell {
+    background: var(--semi-color-fill-0);
+}
+
+/* 窄屏分页：隐藏「显示第 x 条…」与「总页数」文案，只留页码，避免被挤成多行 */
+@media (--md-down) {
+    .semi-table-pagination-info,
+    .semi-page-total {
+        display: none;
+    }
+
+    .semi-table-pagination-outer {
+        justify-content: center;
+    }
+}
+
+/* 面包屑链接悬浮时使用主题色 */
+.semi-breadcrumb-item-link:hover .semi-breadcrumb-item-title {
+    color: var(--semi-color-primary);
+}
+
+/*
+ * SideSheet 内表格色阶修正：Semi SideSheet 默认底色是 bg-2（暗色 #35363c），
+ * 而 Table 行默认 bg-1（暗色 #232429），抽屉里的表格看起来偏深。亮色下两者都是白色，不受影响。
+ */
+.semi-sidesheet-inner {
+    background-color: var(--semi-color-bg-1);
+}
+
+/* 窄屏 Modal / SideSheet 宽度自适应，防止溢出屏幕 */
+@media (--sm-down) {
+    .semi-modal-wrap .semi-modal {
+        max-width: 95vw !important;
+        width: 95vw !important;
+        margin: 0 auto;
+    }
+}
+
+@media (--lg-down) {
+    .semi-sidesheet-inner {
+        max-width: 95vw !important;
+    }
+}
+
+@media (--xs-down) {
+    .semi-sidesheet-inner {
+        width: 100vw !important;
+        max-width: 100vw !important;
+    }
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.25);
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+body[theme-mode='dark'] ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+body[theme-mode='dark'] ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* ===== 页面骨架 ===== */
+
+.page-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 240px;
+}
+
+.page-loading--full {
+    min-height: 100vh;
+}
+
+/* 内容区卡片（PageContainer） */
+.page-container {
+    background: var(--semi-color-bg-1);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 12px 16px;
+}
+
+.page-container + .page-container {
+    margin-top: 12px;
+}
+
+.page-container__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.page-container__title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--semi-color-text-0);
+}
+
+@media (--xs-down) {
+    .page-container {
+        padding: 10px;
+    }
+
+    .page-container + .page-container {
+        margin-top: 8px;
+    }
+}
+
+.search-toolbar-wrap {
+    margin-bottom: 12px;
+}
+
+.search-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* 搜索栏里的按钮与筛选控件字号与列表一致（表格 13px；Semi 控件默认 14px，没有公共变量可改，只能在此范围内覆盖） */
+.search-toolbar
+    :is(
+        .semi-button,
+        .semi-input-wrapper,
+        .semi-input,
+        .semi-select,
+        .semi-select-selection,
+        .semi-select-selection-text,
+        .semi-select-selection-placeholder,
+        .semi-tree-select,
+        .semi-datepicker,
+        .semi-datepicker-range-input,
+        .semi-datepicker-range-input-wrapper,
+        .semi-datepicker-range-input-wrapper input
+    ) {
+    font-size: 13px;
+}
+
+/* 便捷搜索不产生盒子；有高级筛选时窄屏隐藏整组，改用高级筛选面板 */
+.search-toolbar__quick,
+.search-toolbar__controls {
+    display: contents;
+}
+
+@media (--lg-down) {
+    .search-toolbar__quick {
+        display: none;
+    }
+}
+
+/* 右侧工具按钮（列设置 / 刷新等）：白底描边的方形图标按钮（设计稿「用户列表」） */
+.search-toolbar__tools .semi-button-tertiary.semi-button-with-icon-only {
+    background: var(--semi-color-bg-0);
+    border: 1px solid var(--semi-color-border);
+    color: var(--semi-color-text-1);
+}
+
+.search-toolbar__tools .semi-button-tertiary.semi-button-with-icon-only:hover {
+    background: var(--semi-color-fill-0);
+}
+
+/* 高级筛选开关：收起时白底描边，展开时浅主色底 + 主色描边
+   （Semi 按钮自带 .semi-button-primary.semi-button-light 的底色，要用更高优先级覆盖，悬停也一并处理） */
+.search-toolbar .search-toolbar__advanced-toggle.semi-button,
+.search-toolbar .search-toolbar__advanced-toggle.semi-button:hover {
+    background: var(--semi-color-bg-0);
+    border: 1px solid var(--semi-color-border);
+    color: var(--semi-color-text-1);
+}
+
+.search-toolbar .search-toolbar__advanced-toggle.semi-button:hover {
+    background: var(--semi-color-fill-0);
+}
+
+.search-toolbar .search-toolbar__advanced-toggle--open.semi-button,
+.search-toolbar .search-toolbar__advanced-toggle--open.semi-button:hover {
+    background: var(--semi-color-primary-light-default);
+    border-color: var(--semi-color-primary);
+    color: var(--semi-color-primary);
+}
+
+.search-toolbar__spin {
+    animation: search-toolbar-spin 0.8s linear infinite;
+}
+
+@keyframes search-toolbar-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 高级筛选面板：4 列栅格，字段标签在上、控件在下，底部「搜索 / 重置」 */
+.search-advanced {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 12px;
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--semi-color-bg-0);
+}
+
+.search-advanced__fields {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+@media (--lg-down) {
+    .search-advanced__fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (--sm-down) {
+    .search-advanced__fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* 高级面板的操作行（搜索 / 重置 + 窄屏的展开 / 收起）：在字段区之外，吸在内容区底部，面板比一屏高时仍可点 */
+.search-advanced__actions {
+    position: sticky;
+    /* 抵消 .admin-content 的 12px 底部内边距：否则吸底后下面露出一截正在滚动的字段 */
+    bottom: -12px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 -20px -20px;
+    padding: 12px 20px 20px;
+    border-radius: 0 0 8px 8px;
+    background: var(--semi-color-bg-0);
+}
+
+/* 展开 / 收起只在窄屏出现（宽屏字段区不限高） */
+.search-advanced__more {
+    display: none !important;
+}
+
+/* 窄屏（与便捷搜索隐藏同一断点）：字段区限高只露两行——每项 58（标签 20 + 间距 8 + 控件 32 取整后实测）+ 行间距 16；
+   收起时字段区内可纵向滚动（键盘 Tab 到下面的字段也会自动滚进来），「展开」则去掉限高 */
+@media (--lg-down) {
+    .search-advanced:not(.search-advanced--expanded) .search-advanced__fields {
+        max-height: calc(58px * 2 + 16px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .search-advanced__more {
+        display: inline-flex !important;
+    }
+}
+
+.search-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.search-field__label {
+    font-size: 13px;
+    color: var(--semi-color-text-0);
+}
+
+/* 面板里的控件撑满栅格列（Semi 的下拉 / 树下拉自带固定宽度，要覆盖） */
+.search-field__control > * {
+    width: 100% !important;
+}
+
+.search-advanced :is(.semi-button, .semi-input-wrapper, .semi-input, .semi-select, .semi-select-selection, .semi-tree-select) {
+    font-size: 13px;
+}
+
+/* 已生效的查询条件（SearchToolbar 的 conditions）：工具栏下方一行胶囊标签（设计稿「已选条件」） */
+.search-conditions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    margin-top: 10px;
+}
+
+/* 整行与表格里的小号标签同为 12px；标签 22px 高（表格 Tag 20px，多 2px 给 × 留点击区） */
+.search-conditions__label {
+    font-size: 12px;
+    color: var(--semi-color-text-2);
+}
+
+.search-conditions__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 22px;
+    max-width: 280px;
+    padding: 0 4px 0 10px;
+    border: 1px solid var(--semi-color-primary-light-hover);
+    border-radius: 999px;
+    background: var(--semi-color-primary-light-default);
+    color: var(--semi-color-primary);
+    font-size: 12px;
+    line-height: 20px;
+}
+
+.search-conditions__text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.search-conditions__remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.search-conditions__remove:hover {
+    background: var(--semi-color-primary-light-hover);
+}
+
+.search-conditions__clear {
+    height: 22px;
+    padding: 0 10px;
+    border: 1px solid var(--semi-color-border);
+    border-radius: 999px;
+    background: var(--semi-color-bg-0);
+    color: var(--semi-color-text-1);
+    font: inherit;
+    font-size: 12px;
+    line-height: 20px;
+    cursor: pointer;
+}
+
+.search-conditions__clear:hover {
+    background: var(--semi-color-fill-0);
+}
+
+/* 统计卡片 */
+.stat-card {
+    background: var(--semi-color-bg-1);
+    border-radius: 8px;
+    padding: 16px 20px;
+    border: 1px solid var(--color-border);
+}
+
+.stat-card__value {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--color-text);
+    line-height: 1.2;
+}
+
+.stat-card__label {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-top: 4px;
+}
+
+/* 字典与系统配置：共享双栏列表布局，左栏列表骨架保持一致。 */
+.dicts-layout,
+.config-groups-layout {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+}
+
+.dicts-layout__master,
+.config-groups-layout__master {
+    display: flex;
+    flex-direction: column;
+}
+
+.config-groups-layout .page-container {
+    min-width: 0;
+    margin-top: 0;
+}
+
+.config-field-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.config-field-title__edit.semi-button {
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background: transparent;
+}
+
+.config-field-title__edit.semi-button:hover {
+    background: transparent;
+}
+
+.config-metadata-modal__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* 左栏样式共享，确保配置分组与字典列表保持一致。 */
+.dicts-layout__master,
+.config-groups-layout__master {
+    position: sticky;
+    top: 0;
+    max-height: calc(100dvh - var(--header-height) - 72px);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--semi-color-bg-1);
+}
+
+.dicts-layout .page-container + .page-container {
+    margin-top: 0;
+}
+
+/* 停用的字典半透明（同 mono4ts） */
+.nav-list-item--disabled {
+    opacity: 0.55;
+}
+
+@media (--lg-down) {
+    .dicts-layout,
+    .config-groups-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .dicts-layout__master,
+    .config-groups-layout__master {
+        position: static;
+        max-height: 420px;
+    }
+}
+
+.code-block {
+    margin: 0;
+    padding: 12px;
+    max-height: 360px;
+    overflow: auto;
+    border-radius: 6px;
+    background: var(--semi-color-fill-0);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-break: break-all;
+}

@@ -18,10 +18,12 @@ val businessModules = gradle.extra["weiran.businessModules"] as List<String>
  * 覆盖率在这里跨模块聚合考核：各模块自己的 jacoco 门禁对这些层关闭（见各模块 build 脚本），
  * 由本模块的 Testcontainers 集成测试产生的执行数据统一度量。
  */
+val demoProject = findProject(":weiran-demo")
+
 val aggregatedCoverageProjects = listOf(":weiran-framework") +
     businessModules.flatMap { module ->
         listOf("application", "infrastructure", "adapter").map { layer -> ":$module-$layer" }
-    }
+    } + listOfNotNull(demoProject?.path)
 
 weiranConventions {
     // 聚合口径：本模块自身只有启动类，数字几乎全部来自上面列出的模块。
@@ -40,12 +42,17 @@ dependencies {
     runtimeOnly("com.mysql:mysql-connector-j")
     developmentOnly(platform(project(":weiran-dependencies")))
     developmentOnly("org.springframework.boot:spring-boot-devtools")
+    // 可选演示只在本地开发和测试类路径出现，普通 bootJar 不包含它。
+    if (demoProject != null) {
+        developmentOnly(project(demoProject.path))
+        testRuntimeOnly(project(demoProject.path))
+    }
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:mysql")
     // 操作日志异步落库，断言时需要轮询等待。
     testImplementation("org.awaitility:awaitility")
-    // Excel/ZIP 处理器只作为真实 worker 集成测试夹具。
+    // 集成测试生成真实 Excel 输入，处理器由可选 weiran-demo 提供。
     testImplementation("org.apache.poi:poi-ooxml")
     // 集成测试直接用 JdbcTemplate 查库断言：走 Mapper 断言会让「断言」和「被测逻辑」
     // 共用同一条实现路径，实现整体写错时测试照样绿。
@@ -77,7 +84,7 @@ aggregatedCoverageProjects.forEach { path ->
 val runtimeProjectPaths = listOf(":weiran-framework") +
     businessModules.flatMap { module ->
         listOf("api", "domain", "application", "infrastructure", "adapter").map { layer -> ":$module-$layer" }
-    }
+    } + listOfNotNull(demoProject?.path)
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
     systemProperty("spring.config.additional-location", "optional:file:$rootDir/config/")
     systemProperty("spring.profiles.active", (findProperty("profile") as String?) ?: "local")

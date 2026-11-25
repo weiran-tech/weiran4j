@@ -1,0 +1,225 @@
+import { CSRF_COOKIE } from '@/utils/session';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { Route, Routes, useLocation } from 'react-router-dom';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { mockFetch, renderWithProviders, stubLocationAssign } from '@/test/helpers';
+import { getSession } from '@/utils/session';
+import LoginPage from '../LoginPage';
+
+/** 把当前路由的查询串渲染出来，断言 ssoError 已从地址栏清掉 */
+function SearchProbe() {
+    return <div data-testid="search">{useLocation().search}</div>;
+}
+
+function renderLogin(route = '/manage/login') {
+    return renderWithProviders(
+        <Routes>
+            <Route
+                path="/manage/login"
+                element={
+                    <>
+                        <LoginPage />
+                        <SearchProbe />
+                    </>
+                }
+            />
+            <Route path="*" element={<div>已跳转</div>} />
+        </Routes>,
+        { route },
+    );
+}
+
+function fill(username: string, password: string) {
+    fireEvent.change(screen.getByPlaceholderText('请输入用户名'), { target: { value: username } });
+    fireEvent.change(screen.getByPlaceholderText('请输入密码'), { target: { value: password } });
+}
+
+describe('LoginPage', () => {
+    afterEach(() => vi.unstubAllGlobals());
+
+    it('渲染标题与表单', () => {
+        mockFetch({});
+        renderLogin();
+        expect(screen.getByText('Weiran Prototype')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('请输入用户名')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: '登录' })).toBeInTheDocument();
+    });
+
+    it('登录成功建立会话并跳到 redirect', async () => {
+        const { calls } = mockFetch({
+            'POST /api-backend/n/system/auth/login': () => {
+                // 模拟浏览器处理响应里的 Set-Cookie：令牌在 HttpOnly Cookie（JS 不可见），前端只看得到 prototype_csrf
+                document.cookie = `${CSRF_COOKIE}=1.x; path=/`;
+                return Response.json({ code: 0, message: 'ok', data: { tokenType: 'Bearer', expiresIn: 43200, userId: 1 } });
+            },
+        });
+        renderLogin('/manage/login?redirect=%2Fsystem%2Fusers');
+        fill(' admin ', 'admin123');
+        fireEvent.click(screen.getByRole('button', { name: '登录' }));
+
+        await waitFor(() => expect(screen.getByText('已跳转')).toBeInTheDocument());
+        expect(getSession()).toBe('1.x');
+        // 登录页挂载时还会拉一次 /api-backend/n/system/auth/listProviders，按路径找登录请求
+        expect(calls.find((c) => c.path === '/api-backend/n/system/auth/login')).toMatchObject({ method: 'POST', body: { username: 'admin', password: 'admin123' } });
+    });
+
+    it('在密码框按回车提交登录表单', async () => {
+        const { calls } = mockFetch({
+            'POST /api-backend/n/system/auth/login': { tokenType: 'Bearer', expiresIn: 43200, userId: 1 },
+        });
+        renderLogin();
+        fill('admin', 'admin123');
+        fireEvent.keyDown(screen.getByPlaceholderText('请输入密码'), { key: 'Enter', code: 'Enter' });
+
+        await waitFor(() => expect(screen.getByText('已跳转')).toBeInTheDocument());
+        expect(calls.filter((call) => call.path === '/api-backend/n/system/auth/login')).toHaveLength(1);
+    });
+
+    it('在短信验证码框按回车提交手机号登录', async () => {
+        const { calls } = mockFetch({
+            'GET /api-backend/n/system/auth/listProviders': { passwordLoginEnabled: true, phoneLoginEnabled: true, providers: [] },
+            'POST /api-backend/n/system/auth/loginWithPhoneCode': { tokenType: 'Bearer', expiresIn: 43200, userId: 1 },
+        });
+        renderLogin();
+        fireEvent.click(await screen.findByRole('button', { name: '手机验证码登录' }));
+        fireEvent.change(screen.getByPlaceholderText('请输入手机号'), { target: { value: '13800000000' } });
+        const code = screen.getByPlaceholderText('请输入短信验证码');
+        fireEvent.change(code, { target: { value: '123456' } });
+        fireEvent.keyDown(code, { key: 'Enter', code: 'Enter' });
+
+        await waitFor(() => expect(screen.getByText('已跳转')).toBeInTheDocument());
+        expect(calls.find((call) => call.path === '/api-backend/n/system/auth/loginWithPhoneCode')).toMatchObject({
+            method: 'POST',
+            body: { phone: '13800000000', code: '123456' },
+        });
+        expect(calls.some((call) => call.path === '/api-backend/n/system/auth/sendPhoneCode')).toBe(false);
+    });
+
+    it('在二次验证框按回车完成登录', async () => {
+        const { calls } = mockFetch({
+            'POST /api-backend/n/system/auth/verifyMfa': { tokenType: 'Bearer', expiresIn: 43200, userId: 1 },
+        });
+        renderLogin('/manage/login?mfa=1');
+        const code = screen.getByPlaceholderText('手机验证码');
+        fireEvent.change(code, { target: { value: '123456' } });
+        fireEvent.keyDown(code, { key: 'Enter', code: 'Enter' });
+
+        await waitFor(() => expect(screen.getByText('已跳转')).toBeInTheDocument());
+        expect(calls.find((call) => call.path === '/api-backend/n/system/auth/verifyMfa')).toMatchObject({
+            method: 'POST',
+            body: { code: '123456' },
+        });
+    });
+
+    it('密码错误时展示后端 message，不建立会话', async () => {
+        mockFetch({
+            'POST /api-backend/n/system/auth/login': () =>
+                Response.json({ code: 110101, message: '用户名或密码错误', data: null }, { status: 401 }),
+        });
+        renderLogin();
+        fill('admin', 'wrong');
+        fireEvent.click(screen.getByRole('button', { name: '登录' }));
+
+        expect(await screen.findByText('用户名或密码错误')).toBeInTheDocument();
+        expect(getSession()).toBeNull();
+    });
+
+    it('必填校验：未填写不发请求', async () => {
+        const { calls } = mockFetch({});
+        renderLogin();
+        fireEvent.click(screen.getByRole('button', { name: '登录' }));
+        expect(await screen.findByText('请输入用户名')).toBeInTheDocument();
+        expect(calls.some((c) => c.path === '/api-backend/n/system/auth/login')).toBe(false);
+    });
+
+    it.each([
+        { message: '手机号不存在', code: 110106 },
+        { message: '手机号已禁用', code: 110107 },
+    ])('$message 时显示错误，不提示发送成功或启动倒计时', async ({ message, code }) => {
+        const { calls } = mockFetch({
+            'GET /api-backend/n/system/auth/listProviders': { passwordLoginEnabled: true, phoneLoginEnabled: true, providers: [] },
+            'POST /api-backend/n/system/auth/sendPhoneCode': () =>
+                Response.json({ code, message, data: null }, { status: 400 }),
+        });
+        renderLogin();
+        fireEvent.click(await screen.findByRole('button', { name: '手机验证码登录' }));
+        fireEvent.change(screen.getByPlaceholderText('请输入手机号'), { target: { value: '13800000000' } });
+        fireEvent.click(screen.getByRole('button', { name: '发送验证码' }));
+
+        expect(await screen.findByText(message)).toBeInTheDocument();
+        expect(screen.queryByText('验证码已发送，请查收短信')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: '发送验证码' })).toBeEnabled();
+        expect(calls.find((call) => call.path === '/api-backend/n/system/auth/sendPhoneCode')).toMatchObject({
+            method: 'POST',
+            body: { phone: '13800000000' },
+        });
+    });
+
+    describe('外部身份登录', () => {
+        const keycloak = { id: 'keycloak', type: 'oidc', name: '统一身份' };
+        const cas = { id: 'cas', type: 'cas', name: '校园 CAS' };
+
+        it('没有提供方：与接入前一致，只有密码表单', async () => {
+            const { calls } = mockFetch({ 'GET /api-backend/n/system/auth/listProviders': { passwordLoginEnabled: true, providers: [] } });
+            renderLogin();
+            await waitFor(() => expect(calls.some((c) => c.path === '/api-backend/n/system/auth/listProviders')).toBe(true));
+            expect(screen.getByText('使用账号密码进入管理后台')).toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: /使用 .+ 登录/ })).not.toBeInTheDocument();
+            expect(screen.queryByText('管理员应急登录')).not.toBeInTheDocument();
+            expect(screen.getByPlaceholderText('请输入用户名')).toBeInTheDocument();
+        });
+
+        it('每个提供方一个按钮，点击整页跳到 authorize（带当前 redirect 与 mode=login）', async () => {
+            const assign = stubLocationAssign();
+            mockFetch({ 'GET /api-backend/n/system/auth/listProviders': { passwordLoginEnabled: true, providers: [keycloak, cas] } });
+            renderLogin('/manage/login?redirect=%2Fsystem%2Fusers%3Fa%3D1');
+
+            fireEvent.click(await screen.findByRole('button', { name: '使用 统一身份 登录' }));
+            expect(assign).toHaveBeenCalledWith('/api-backend/n/system/auth/authorizeSso/keycloak?redirect=%2Fsystem%2Fusers%3Fa%3D1&mode=login');
+            expect(screen.getByRole('button', { name: '使用 校园 CAS 登录' })).toBeInTheDocument();
+            // 密码登录开启：表单仍在
+            expect(screen.getByPlaceholderText('请输入用户名')).toBeInTheDocument();
+        });
+
+        it('非法 redirect 按站内根路径处理', async () => {
+            const assign = stubLocationAssign();
+            mockFetch({ 'GET /api-backend/n/system/auth/listProviders': { passwordLoginEnabled: true, providers: [keycloak] } });
+            renderLogin('/manage/login?redirect=https%3A%2F%2Fevil.example.com');
+            fireEvent.click(await screen.findByRole('button', { name: '使用 统一身份 登录' }));
+            expect(assign).toHaveBeenCalledWith('/api-backend/n/system/auth/authorizeSso/keycloak?redirect=%2F&mode=login');
+        });
+
+        it('密码登录关闭：表单默认收起，点「管理员应急登录」展开', async () => {
+            mockFetch({ 'GET /api-backend/n/system/auth/listProviders': { passwordLoginEnabled: false, providers: [keycloak] } });
+            renderLogin();
+            const toggle = await screen.findByRole('button', { name: '管理员应急登录' });
+            expect(screen.queryByPlaceholderText('请输入用户名')).not.toBeInTheDocument();
+
+            fireEvent.click(toggle);
+            expect(screen.getByPlaceholderText('请输入用户名')).toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: '管理员应急登录' })).not.toBeInTheDocument();
+        });
+
+        it.each([
+            ['110102', '外部身份校验失败，请重新登录'],
+            ['110104', '账号未开通，请联系管理员'],
+            ['110103', '账号已禁用'],
+            ['100101', '请先登录'],
+            ['100005', '外部登录失败（错误码 100005）'],
+        ])('ssoError=%s 显示「%s」，并从地址栏清掉该参数（保留 redirect）', async (code, text) => {
+            mockFetch({ 'GET /api-backend/n/system/auth/listProviders': { passwordLoginEnabled: true, providers: [keycloak] } });
+            renderLogin(`/manage/login?redirect=%2Fdashboard&ssoError=${code}`);
+            expect(await screen.findByText(text)).toBeInTheDocument();
+            await waitFor(() => expect(screen.getByTestId('search')).toHaveTextContent(/^\?redirect=%2Fdashboard$/));
+            // 清参数后提示仍在
+            expect(screen.getByText(text)).toBeInTheDocument();
+        });
+
+        it('/providers 失败时按无提供方降级，不弹错误', async () => {
+            mockFetch({});
+            renderLogin();
+            expect(screen.getByPlaceholderText('请输入用户名')).toBeInTheDocument();
+            await waitFor(() => expect(screen.queryByText(/未模拟的接口/)).not.toBeInTheDocument());
+        });
+    });
+});

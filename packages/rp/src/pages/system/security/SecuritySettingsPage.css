@@ -1,0 +1,14 @@
+.security-settings { display: grid; gap: 28px; }
+.security-settings__section { padding: 4px 0 12px; }
+.security-settings__section header { display: flex; align-items: center; gap: 20px; margin-bottom: 16px; }
+.security-settings__section h3 { margin: 0; font-size: 17px; }
+.security-settings__line { display: grid; grid-template-columns: 230px 1fr; gap: 20px; padding: 11px 0; }
+.security-settings__line span { color: var(--color-text-secondary); }
+.security-settings__line strong { font-weight: 400; }
+.security-settings__note, .security-settings__form p { color: var(--color-text-secondary); line-height: 1.6; }
+.security-settings__form { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.security-settings__form > label { margin-top: 12px; font-weight: 600; }
+.security-settings__length, .security-settings__checks { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
+.security-settings__length .semi-input-number { width: 120px; }
+.security-settings__footer { display: flex; justify-content: flex-end; gap: 10px; }
+@media (--md-down) { .security-settings__line { grid-template-columns: 1fr; gap: 4px; } }

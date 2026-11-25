@@ -1,0 +1,8 @@
+# 使用 GitHub Actions 生成的 prototype-site 产物（含历史快照）。
+FROM node:24-alpine
+WORKDIR /app
+COPY dist/ ./
+ENV PORT=5208
+EXPOSE 5208
+USER node
+CMD ["node", "serve.mjs"]

@@ -4,7 +4,7 @@ import type { NavItemPropsWithItems, OnSelectedData, SubNavProps } from '@douyin
 import { ChevronDown, Expand, Lock, LogOut, Menu as MenuIcon, PanelLeftClose, PanelLeftOpen, Settings, ShieldCheck, Shrink, UserRound } from 'lucide-react';
 import { Suspense, useCallback, useEffect, useMemo, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
-import { AppLogo } from '@/components/AppLogo';
+import { NavLogo } from '@/components/NavLogo';
 import { LockScreen } from '@/components/LockScreen';
 import { TextAvatar } from '@/components/TextAvatar';
 import { HOME_PATH, config } from '@/config';
@@ -443,10 +443,7 @@ export function AdminLayout({ menus, routes, authorizationFeedback }: AdminLayou
     );
 
     const brand = (
-        <button type="button" className="admin-sidebar__brand" onClick={goHome}>
-            <AppLogo size={28} />
-            <span className="admin-sidebar__title">{config.appTitle}</span>
-        </button>
+        <NavLogo className="admin-sidebar__brand" titleClassName="admin-sidebar__title" onClick={goHome} />
     );
 
     const stickyClass = prefs.sidebarStickyScroll ? ' admin-sidebar--sticky-nav' : '';
@@ -475,9 +472,7 @@ export function AdminLayout({ menus, routes, authorizationFeedback }: AdminLayou
             >
                 <div className="double-sidebar__rail">
                     {prefs.showLogo && (
-                        <button type="button" className="double-sidebar__logo" aria-label="回到首页" onClick={goHome}>
-                            <AppLogo size={26} />
-                        </button>
+                        <NavLogo className="double-sidebar__logo" size={26} showTitle={false} aria-label="回到首页" onClick={goHome} />
                     )}
                     <nav className="double-sidebar__rail-list" aria-label="分组导航">
                         {navItems.map((item) => {
@@ -583,19 +578,14 @@ export function AdminLayout({ menus, routes, authorizationFeedback }: AdminLayou
                             <button type="button" className="admin-mobile-header__menu" aria-label="打开导航菜单" onClick={() => setMobileNavVisible(true)}>
                                 <MenuIcon size={20} strokeWidth={1.8} />
                             </button>
-                            <button type="button" className="admin-mobile-header__brand" onClick={goHome}>
-                                {prefs.showLogo && <AppLogo size={26} />}
-                                <span className="admin-mobile-header__title">{title ?? config.appTitle}</span>
-                            </button>
+                            <NavLogo className="admin-mobile-header__brand" titleClassName="admin-mobile-header__title"
+                                title={title ?? config.appTitle} size={26} showLogo={prefs.showLogo} onClick={goHome} />
                             {headerActions}
                         </header>
                         <SideSheet
                             className="admin-mobile-nav-sheet"
                             title={
-                                <button type="button" className="admin-mobile-nav-sheet__brand" onClick={goHome}>
-                                    <AppLogo size={26} />
-                                    <span>{config.appTitle}</span>
-                                </button>
+                                <NavLogo className="admin-mobile-nav-sheet__brand" size={26} onClick={goHome} />
                             }
                             visible={mobileNavVisible}
                             onCancel={() => setMobileNavVisible(false)}
@@ -618,10 +608,7 @@ export function AdminLayout({ menus, routes, authorizationFeedback }: AdminLayou
                 {(navLayout === 'horizontal' || navLayout === 'mixed') && (
                     <header className="admin-topbar">
                         {prefs.showLogo && (
-                            <button type="button" className="admin-topbar__brand" onClick={goHome}>
-                                <AppLogo size={28} />
-                                <span className="admin-sidebar__title">{config.appTitle}</span>
-                            </button>
+                            <NavLogo className="admin-topbar__brand" titleClassName="admin-sidebar__title" onClick={goHome} />
                         )}
                         <div className="admin-topbar__nav">
                             <TopNav

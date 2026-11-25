@@ -1,0 +1,9 @@
+.batch-workbench { display: grid; gap: 16px; width: 100%; max-width: 1440px; min-width: 0; margin-inline: auto; }
+.batch-workbench__hint { color: var(--color-text-secondary); font-size: 12px; }
+.batch-workbench__panel { display: grid; gap: 12px; min-width: 0; padding: 20px; background: var(--semi-color-bg-1); border: 1px solid var(--semi-color-border); border-radius: 8px; scroll-margin-top: 16px; }
+.batch-workbench__upload, .batch-workbench__heading { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.batch-workbench__heading { justify-content: space-between; }
+.batch-workbench__steps { overflow-x: auto; padding: 10px 0 16px; border-bottom: 1px solid var(--semi-color-border); }
+.batch-workbench__steps .semi-steps-item-active .semi-steps-item-title-text { border-bottom: 2px solid var(--semi-color-primary); padding-bottom: 4px; }
+.batch-workbench__content { display: grid; gap: 12px; min-width: 0; padding: 16px 0 4px; }
+.batch-workbench__panel p { margin: 0; }

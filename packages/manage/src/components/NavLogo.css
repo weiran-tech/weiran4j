@@ -1,0 +1,4 @@
+.nav-logo { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; font-style: normal; text-align: left; cursor: pointer; }
+.nav-logo__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; font-weight: 600; font-style: normal; }
+.nav-logo:focus-visible { outline: 2px solid var(--semi-color-primary); outline-offset: 3px; border-radius: 4px; }
+.nav-logo:disabled { cursor: not-allowed; opacity: 0.5; }

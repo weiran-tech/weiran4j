@@ -1,0 +1,148 @@
+/* IM 与客服：三个页面共用的局部样式 */
+
+.im-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.im-stats--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (--lg-down) {
+    .im-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.im-staff-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.im-staff-cell__name {
+    font-weight: 500;
+}
+
+.im-staff-cell__code {
+    font-size: 12px;
+    color: var(--semi-color-text-2);
+}
+
+.im-section {
+    margin-top: 20px;
+}
+
+.im-section__head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.im-section__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--semi-color-text-0);
+}
+
+.im-section__desc {
+    font-size: 12px;
+    color: var(--semi-color-text-2);
+}
+
+.im-range {
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+}
+
+.im-kv {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 10px 16px;
+    padding: 14px 16px;
+    border: 1px solid var(--semi-color-border);
+    border-radius: 6px;
+    background: var(--semi-color-fill-0);
+    font-size: 13px;
+}
+
+.im-kv__k {
+    color: var(--semi-color-text-2);
+}
+
+.im-muted {
+    color: var(--semi-color-text-2);
+    font-size: 12px;
+}
+
+.im-config-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    border: 1px solid var(--semi-color-border);
+    border-radius: 6px;
+}
+
+.im-config-row + .im-config-row {
+    margin-top: 10px;
+}
+
+.im-config-row__main {
+    flex: 1;
+    min-width: 0;
+}
+
+.im-config-row__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.im-config-row__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--semi-color-text-2);
+}
+
+.im-config-row__prompt {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--semi-color-text-2);
+}
+
+.im-config-row__ops {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: none;
+}
+
+.im-rule-text {
+    font-weight: 500;
+}
+
+.im-reply-text {
+    line-height: 1.6;
+    word-break: break-word;
+}
+
+.im-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.im-toolbar__spacer {
+    flex: 1;
+}

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360">
+  <rect width="720" height="360" rx="20" fill="#e8f1ff"/>
+  <circle cx="570" cy="90" r="42" fill="#80b3ff"/>
+  <path d="M0 320 190 130 350 290 460 180 720 360H0Z" fill="#0064fa"/>
+  <text x="36" y="65" font-family="sans-serif" font-size="26" fill="#15417d">Image layout demo</text>
+</svg>

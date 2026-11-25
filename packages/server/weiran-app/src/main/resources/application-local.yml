@@ -3,7 +3,7 @@
 # bootRun 会额外加载那里，同名键以那里为准。
 spring:
   flyway:
-    locations: classpath:db/migration,classpath:db/app-demo
+    locations: classpath:db/migration,classpath:db/app-demo,classpath:db/demo-runtime
     fail-on-missing-locations: false
 
 springdoc:

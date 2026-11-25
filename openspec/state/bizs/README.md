@@ -84,6 +84,6 @@
 | 平台能力(weiran-system) | `sys_task` 批处理任务 | [`sys_task.md`](sys_task.md) |
 | 平台能力(weiran-system) | `sys_task_detail` 逐项结果 | [`sys_task_detail.md`](sys_task_detail.md) |
 | 平台能力(weiran-system) | `sys_sequence` 自增序号 | [`sys_sequence.md`](sys_sequence.md) |
-| 历史演示（已移除） | `demo_batch_item` 旧结果表与测试夹具说明 | [`demo_batch_item.md`](demo_batch_item.md) |
+| 可选演示（local/test） | `demo_batch_item` 结果表与真实批处理演示模块 | [`demo_batch_item.md`](demo_batch_item.md) |
 | 平台能力(weiran-system) | `sys_operation_log` 操作日志 | [`sys_operation_log.md`](sys_operation_log.md) |
 | 行政区划(weiran-region) | `region` 行政区划 | [`region.md`](region.md) |

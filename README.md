@@ -22,7 +22,7 @@ pnpm install
 pnpm dev
 ```
 
-后台地址为 http://localhost:5202，项目文档为 http://localhost:5209。更多步骤见 [使用指南](docs/usage.md)。
+Turbo 同时启动后端（5200）、后台（http://localhost:5202）、项目文档（http://localhost:5209）和原型工程（http://localhost:5208）。更多步骤见 [使用指南](docs/usage.md)。
 
 ## 文档
 

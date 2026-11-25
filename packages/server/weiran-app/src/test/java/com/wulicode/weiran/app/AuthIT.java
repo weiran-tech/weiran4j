@@ -66,12 +66,12 @@ class AuthIT extends IntegrationTestSupport {
 
         IntegrationTestSupport.assertOk(response);
         final JsonNode roots = IntegrationTestSupport.data(response);
-        assertThat(AuthIT.ids(roots)).containsExactly(1L, 2L, 9L, 23L);
+        assertThat(AuthIT.ids(roots)).containsExactly(1L, 2L, 9L, 14L, 23L);
         final JsonNode system = roots.get(1);
         assertThat(system.path("type").asText()).isEqualTo("directory");
         assertThat(AuthIT.ids(system.path("children"))).containsExactly(3L, 4L, 5L, 7L, 8L, 12L, 2000L, 13L);
         assertThat(system.path("children").get(7).path("title").asText()).isEqualTo("文件系统");
-        assertThat(roots.get(3).path("visible").asBoolean()).isFalse();
+        assertThat(roots.get(4).path("visible").asBoolean()).isFalse();
         final JsonNode users = system.path("children").get(0);
         assertThat(users.path("component").asText()).isEqualTo("system/users/UsersPage");
         assertThat(users.path("permission").asText()).isEqualTo("system:user:list");
@@ -90,14 +90,10 @@ class AuthIT extends IntegrationTestSupport {
         assertThat(regions.path("permission").asText()).isEqualTo("region:list");
         final Integer demoRows =
                 this.jdbc.queryForObject("SELECT COUNT(*) FROM sys_menu WHERE id BETWEEN 14 AND 22", Integer.class);
-        assertThat(demoRows).isZero();
+        assertThat(demoRows).isEqualTo(9);
         assertThat(this.jdbc.queryForObject(
                         "SELECT COUNT(*) FROM sys_config WHERE config_key LIKE 'system.demo.%'", Integer.class))
-                .isZero();
-        assertThat(this.jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'demo_batch_item'",
-                        Integer.class))
-                .isZero();
+                .isEqualTo(10);
     }
 
     @Test

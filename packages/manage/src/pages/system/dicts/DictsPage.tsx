@@ -28,7 +28,7 @@ function DictItemsPanel({ dict }: { dict: DictView }) {
     const canEdit = hasPermission('system:dict:update');
 
     const columns: ColumnProps<DictItemView>[] = [
-        { title: 'ID', dataIndex: 'id', width: 180 },
+        { title: 'ID', dataIndex: 'id', width: 100 },
         {
             title: '标签',
             dataIndex: 'label',

@@ -83,7 +83,7 @@ export default function LoginLogsPage() {
     ];
 
     const columns: ColumnProps<LoginLogView>[] = [
-        { title: 'ID', dataIndex: 'id', width: 180 },
+        { title: 'ID', dataIndex: 'id', width: 100 },
         { title: '用户名', dataIndex: 'username', width: 120 },
         {
             title: '事件',

@@ -48,7 +48,7 @@ function formatBytes(size: number): string {
 /** 资源列表与 docs 共用的列定义；弹性列按 180px 计入滚动预算。 */
 export function mediaLibraryColumns(): ColumnProps<SystemMediaFileView>[] {
     return [
-        { title: 'ID', dataIndex: 'id', width: 160 },
+        { title: 'ID', dataIndex: 'id', width: 100 },
         { title: '文件', dataIndex: 'originalName', render: (_: unknown, row) => <div className="media-library__file-cell">
             {row.category === 'image' ? <img src={row.url} alt="" loading="lazy" /> : <FileTypeIcon name={row.originalName} size={40} />}
             <span className="media-library__filename" title={row.originalName}>{row.originalName}</span>

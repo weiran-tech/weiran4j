@@ -1,0 +1,59 @@
+name: Refresh prototype site
+on:
+  workflow_dispatch:
+  issues:
+    types: [edited, closed, reopened, assigned, unassigned, labeled, unlabeled]
+  discussion:
+    types: [created, edited, deleted, answered, unanswered, closed, reopened]
+  discussion_comment:
+    types: [created, edited, deleted]
+  issue_comment:
+    types: [created, edited, deleted]
+  workflow_run:
+    workflows: [Freeze prototype version]
+    types: [completed]
+permissions:
+  issues: read
+  discussions: read
+  contents: read
+concurrency:
+  group: prototype-site
+  cancel-in-progress: false
+jobs:
+  assemble:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      # 从默认分支构建当前站点，归档仅取已发布的附件；不运行上游 artifact 中的代码。
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
+        with:
+          version: 12.15.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/restore-snapshots.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - run: pnpm handoff:sync
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - run: pnpm build:site && pnpm check:site
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: prototype-site
+          path: dist/
+          retention-days: 30
+      - name: Deploy verified static artifact
+        run: node scripts/deploy-static.mjs
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      - name: Refresh configured Vercel site
+        run: node scripts/trigger-deploy.mjs
+        env:
+          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}

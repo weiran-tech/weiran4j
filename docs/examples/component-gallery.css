@@ -3,6 +3,7 @@
 .component-gallery__content > h3 { margin: 0; }
 .component-gallery__content > p { margin: 8px 0 18px; color: var(--vp-c-text-2); }
 .component-gallery__example { display: grid; justify-items: start; gap: 10px; padding: 16px 0; border-top: 1px solid var(--vp-c-divider); }
+.component-gallery__example > .rich-text-editor { width: 100%; box-sizing: border-box; }
 .component-gallery__example h4 { margin: 0; font-size: 15px; }
 .component-gallery__example p { margin: 0; }
 .component-gallery__url { min-width: 280px; max-width: 100%; padding: 6px 10px; border: 1px solid var(--vp-c-divider); border-radius: 6px; background: var(--vp-c-bg); }

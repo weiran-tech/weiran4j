@@ -3,8 +3,6 @@ package com.wulicode.weiran.app;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.wulicode.weiran.app.fixtures.batch.DemoBatchAutoConfiguration;
-import com.wulicode.weiran.app.fixtures.sequence.DemoSequenceAutoConfiguration;
 import com.wulicode.weiran.framework.auth.AuthCookies;
 import java.util.Map;
 import java.util.Objects;
@@ -14,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -36,7 +33,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest(classes = WeiranApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Import({DemoBatchAutoConfiguration.class, DemoSequenceAutoConfiguration.class})
 abstract class IntegrationTestSupport {
 
     /** 种子管理员账号。 */

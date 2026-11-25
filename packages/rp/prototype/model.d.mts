@@ -1,0 +1,23 @@
+export type Change = {
+    introduction?: string; remark?: string; id: string; type: string; title: string; platform: string; page: string; pageId?: string; pageTitle?: string;
+    previousPage?: string | null; nextPage?: string | null; location: string;
+    before: string; after: string; rules: string[]; exceptions: string; acceptance: string[];
+};
+export type Release = { platformNotes?: Partial<Record<'manage' | 'mobile', { introduction: string; remark: string }>>; routeSchema?: number; supersededBy?: string; id: string; title: string; status: string; baseline: string | null; date: string; sourceCommit: string | null; goal: string; changes: Change[] };
+export type Catalog = { current: string; releases: Release[] };
+export type Snapshot = { routeSchema?: number; version: string; base: string; commit: string; builtAt: string; kind?: string; prototypeVersion?: string; fingerprint?: string };
+export type PageDiff = { key: string; pageId: string; title: string; platform: string; before: string | null; after: string | null; changes: Change[] };
+export function validPath(value: unknown): boolean;
+export function validateCatalog(value: unknown): string[];
+export function immutableErrors(previous: Catalog, current: Catalog): string[];
+export function parseCatalog(value: unknown, previous?: Catalog): Catalog;
+export function pagePaths(change: Change): { before: string | null; after: string | null };
+export function pageDiffs(release: Release): PageDiff[];
+export type ProductPage = { key: string; platform: string; pageId: string; title: string; path: string; group: string; changedIn: string };
+export function completeProduct(releases: Release[], version: string, baselines?: Record<string, { pages: { platform: string; pageId: string; title: string; path: string; group: string }[] }>): { pages: ProductPage[]; complete: boolean; reason: string };
+export function contextPath(base: string, path: string, version: string, changeId?: string, scenario?: string, review?: boolean): string;
+export function previewTarget(release: Release | undefined, snapshots: Snapshot[], runningVersion: string, runningBase: string, path: string | null, changeId?: string, scenario?: string, review?: boolean): { url: string | null; reason: string; archived: boolean };
+export function mobilePageChanges(release: Release | undefined, path: string, selectedId?: string | null): Change[];
+export function blankChange(index?: number): Change;
+export function blankRelease(id: string, baseline: string | null): Release;
+export function baselinePagePath(releases: Release[], target: Release, page: PageDiff, baselineId: string): { path: string | null; reason: string };

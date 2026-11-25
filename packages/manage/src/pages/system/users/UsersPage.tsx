@@ -221,7 +221,7 @@ export default function UsersPage() {
     // 各固定列已压到「内容 + 24 内边距」：时间 158（156 时小数宽度会把时分秒挤到第二行）；手机 116（Inter 数字不等宽，最宽的 11 位约 91）；
     // 性别 52；ID 160；用户名加宽到 140，减少常见用户名折行。操作列 300 可完整展示四个文字按钮。
     const columns: ColumnProps<UserView>[] = [
-        { title: 'ID', dataIndex: 'id', width: 160 },
+        { title: 'ID', dataIndex: 'id', width: 100 },
         { title: '用户名', dataIndex: 'username', width: 140 },
         { title: '昵称', dataIndex: 'nickname', width: 90 },
         {

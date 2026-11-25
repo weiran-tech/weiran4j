@@ -1,0 +1,15 @@
+import { canDerive, workErrors } from '../prototype/version-work.mjs';
+import { readFile, writeFile } from 'node:fs/promises';
+const [id, title] = process.argv.slice(2).filter((arg) => arg !== '--');
+const path = new URL('../prototype/releases.json', import.meta.url);
+const catalog = JSON.parse(await readFile(path, 'utf8'));
+if (!id || !/^v[\w.-]+$/.test(id) || !title || catalog.releases.some((item) => item.id === id)) throw new Error('用法：pnpm version:new -- v0.5 "版本标题"；编号必须唯一');
+const baseline = catalog.releases.find(canDerive);
+if (!baseline) throw new Error('没有完成评审并定稿的基线，不能派生版本');
+const resolutions = JSON.parse(await readFile(new URL('../prototype/conflict-resolutions.json', import.meta.url), 'utf8'));
+const errors = workErrors(baseline, catalog.releases, resolutions);
+if (errors.length) throw new Error(errors.join('\n'));
+catalog.releases.unshift({ id, routeSchema: 2, title, status: 'draft', baseline: baseline.id, date: new Date().toISOString().slice(0, 10), sourceCommit: null, goal: '请填写版本目标', changes: [] });
+catalog.current = id;
+await writeFile(path, JSON.stringify(catalog, null, 2) + '\n');
+console.log(`已新建 ${id}，请编辑 prototype/releases.json 后提交。`);

@@ -24,6 +24,11 @@ include(
     "weiran-app",
 )
 
+// 可选的历史演示资源模块，不参与五层业务模块自动发现。
+if (file("weiran-demo/build.gradle.kts").isFile) {
+    include("weiran-demo")
+}
+
 // 业务模块的五层按目录聚在 weiran-<模块>/ 下，但项目路径保持扁平（:weiran-system-api）：
 // 嵌套 include 会产生 :weiran-system:weiran-system-api 这种冗长路径，并凭空多出一个
 // 没有构建脚本的中间项目。
