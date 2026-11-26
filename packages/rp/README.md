@@ -77,3 +77,14 @@ pnpm check:site
 所有产品和 AI 页面操作先明确目标版本，执行 `pnpm version:work -- <版本>`。新版本只从已评审定稿版派生；同基线同页冲突须先实际解决并登记内容绑定的证据，未解决会阻止工作与构建。版本详情支持双端介绍、本机评审备注和批量导出；快捷键 Ctrl / Cmd + Shift + E，支持选择或粘贴图片，数据只存本浏览器。
 
 应用源码和工具配置统一位于项目根目录，不再包含嵌套的 packages/manage 包。`pnpm build` / `pnpm build:web` 将双端产物写入 `.prototype-data/web-build/`，`pnpm build:site` 组装完整可部署站点到 `dist/`。在 mono4j 根运行 `pnpm dev` 时由 Turbo 一并启动本原型（5208）；也可在本目录单独运行 `pnpm dev`。
+
+
+## 与独立原型仓库同步
+
+`packages/rp` 使用 Git subtree 推送至 https://github.com/weiran-tech/weiran-rp.git 的 `main`，导出后本目录内容直接位于独立仓库根目录。
+
+主仓 `main` 推送涉及本目录的改动时，GitHub Actions 的「同步原型子树」工作流自动执行；也可在 Actions 页面手动运行。功能分支不会自动更新独立仓库。工作流按顺序同步，使用目标仓库专用的可写部署密钥，私钥保存在主仓 Actions secret `RP_SUBTREE_SSH_KEY`，不写入代码。
+
+也可以从主仓根执行 `pnpm sync:rp` 手动同步或重试，使用当前用户的 GitHub 权限。同步只导出已提交内容；同步失败不撤销主仓提交。若远端出现独立修改，需要先处理 subtree 历史合并，再重试，不使用强制推送覆盖。
+
+本目录内部不维护独立 `.git`；此前嵌套仓库元数据仅作为本地忽略备份保存在 `.prototype-data/git-backup`。

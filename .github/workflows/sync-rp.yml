@@ -1,0 +1,51 @@
+name: 同步原型子树
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/rp/**'
+      - 'scripts/sync-rp.sh'
+      - '.github/workflows/sync-rp.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-rp-main
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 配置目标仓库专用 SSH 密钥
+        env:
+          RP_SUBTREE_SSH_KEY: ${{ secrets.RP_SUBTREE_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$RP_SUBTREE_SSH_KEY" || { echo '缺少 RP_SUBTREE_SSH_KEY secret'; exit 1; }
+          umask 077
+          printf '%s\n' "$RP_SUBTREE_SSH_KEY" > "$RUNNER_TEMP/rp-subtree-key"
+          curl --fail --silent --show-error https://api.github.com/meta \
+            | jq -r '.ssh_keys[] | "github.com " + .' > "$RUNNER_TEMP/rp-known-hosts"
+          test -s "$RUNNER_TEMP/rp-known-hosts"
+          printf 'GIT_SSH_COMMAND=ssh -i "%s/rp-subtree-key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="%s/rp-known-hosts"\n' \
+            "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
+      - name: 推送 packages/rp 到独立仓库 main
+        env:
+          RP_SUBTREE_REPOSITORY: git@github.com:weiran-tech/weiran-rp.git
+        run: sh scripts/sync-rp.sh
+      - name: 清理部署密钥
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/rp-subtree-key" "$RUNNER_TEMP/rp-known-hosts"

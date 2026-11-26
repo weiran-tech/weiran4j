@@ -15,6 +15,7 @@
     "lint": "pnpm --filter @weiran/manage lint",
     "openspec:check": "node openspec/check.mjs",
     "openspec:validate": "openspec validate --strict --changes --no-interactive",
+    "sync:rp": "sh scripts/sync-rp.sh",
     "hooks:install": "git config core.hooksPath .githooks",
     "test:flows": "node tests/framework/cli.mjs",
     "test:flows:unit": "node --test tests/framework/unit/*.test.mjs tests/unit/*.test.mjs",
