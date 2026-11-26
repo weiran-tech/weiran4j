@@ -1,6 +1,6 @@
-import { RichTextEditor as BaseRichTextEditor } from '@weiran-tech/semi-components';
-import type { RichTextEditorProps } from '@weiran-tech/semi-components';
-import '@weiran-tech/semi-components/style.css';
+import { RichTextEditor as BaseRichTextEditor } from '@weiran-tech/manage';
+import type { RichTextEditorProps } from '@weiran-tech/manage';
+import '@weiran-tech/manage/style.css';
 import { useUploadSettings, useUploadSystemFile } from '@/hooks/queries/system-media';
 
 type Props = Omit<RichTextEditorProps, 'settings' | 'upload' | 'settingsError' | 'onRetrySettings'>;

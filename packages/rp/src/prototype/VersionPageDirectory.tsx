@@ -1,7 +1,7 @@
-import { Monitor, Smartphone } from 'lucide-react';
+import { PrototypeEntry, PrototypePageDirectory } from '@weiran-tech/prototype';
 import { namespacePath } from '../../prototype/routes.mjs';
 import { useState, type ReactNode } from 'react';
-import { Button, Input } from '@douyinfe/semi-ui';
+import { Button } from '@douyinfe/semi-ui';
 import { ChangeNotesDrawer } from './ChangeNotesDrawer';
 import { useLocation } from 'react-router-dom';
 import { useMyMenus } from '@/hooks/queries/auth';
@@ -11,8 +11,6 @@ import { useSnapshots } from './useSnapshots';
 
 /** 目录来自所选版本的页面登记；历史页面地址只交给对应快照解析。 */
 export function VersionPageDirectory({ release, platform, full = false, browse = false, technical = false, embedded = false, scopeControls, filters, appearance = 'legacy' }: { release: Release; platform?: 'manage' | 'mobile'; full?: boolean; browse?: boolean; technical?: boolean; embedded?: boolean; scopeControls?: ReactNode; filters?: ReactNode; appearance?: 'legacy' | 'version' }) {
-    const [keyword, setKeyword] = useState('');
-    const [module, setModule] = useState('all');
     const snapshots = useSnapshots();
     const { data: menus = [] } = useMyMenus();
     const location = useLocation();
@@ -46,26 +44,13 @@ export function VersionPageDirectory({ release, platform, full = false, browse =
         return sitePath(`/rp/versions?${params}`);
     }
     if (appearance === 'version') {
-        const visibleGroups = [...groups].filter(([name]) => module === 'all' || module === name).map(([name, items]) => [name, items.filter(page => `${page.title} ${page.pageId} ${page.after || page.before || ''} ${page.changes.map(change => `${change.id} ${change.title}`).join(' ')}`.toLowerCase().includes(keyword.trim().toLowerCase()))] as const).filter(([, items]) => items.length);
-        return <section className="version-directory" aria-label="版本页面目录">
-            <div className="proto-heading"><div><h2>原型页面目录</h2><p className="proto-muted">按业务模块分组展示页面；同一页面可关联多项 CHG。</p></div><div className="version-directory-actions">{filters}<div className="proto-actions">{fullTargets.map(target => {
-                const Icon = target.end === 'mobile' ? Smartphone : Monitor;
-                return target.url ? <a key={target.end} className={`version-prototype-entry version-prototype-entry-${target.end}`} href={target.url} target="_blank" rel="noreferrer" aria-label={`查看 ${release.id} 完整${target.end === 'mobile' ? '手机端' : '管理端'}原型 ↗`}><Icon size={16} aria-hidden="true" />打开{target.end === 'mobile' ? '手机端' : '管理端'} →</a> : <Button key={target.end} disabled title={target.reason}>打开{target.end === 'mobile' ? '手机端' : '管理端'}</Button>;
-            })}</div></div></div>
-            {snapshots.isError && <p role="alert">历史索引读取失败，历史原型不可用。<Button onClick={() => void snapshots.refetch()}>重试</Button></p>}
-            {!snapshots.isPending && fullTargets.every(target => !target.url) && <div className="version-notice">历史版本仅打开固定快照，不使用当前业务实现替代。</div>}
-            {complete && !product.complete && <p role="alert">完整页面清单尚不完整：{product.reason}。</p>}
-            <div className="version-toolbar"><Input aria-label="搜索页面" placeholder="搜索页面、编号或改动项" value={keyword} onChange={setKeyword} showClear /><select aria-label="筛选模块" value={module} onChange={event => setModule(event.target.value)}><option value="all">全部模块</option>{[...groups.keys()].map(name => <option key={name}>{name}</option>)}</select>{scopeControls}</div>
-            {!visibleGroups.length && <div className="version-empty"><h3>{pages.length ? '没有匹配的页面' : '本版暂无改动页面'}</h3><p className="proto-muted">{pages.length ? '请调整搜索关键词或模块筛选。' : '可切换到完整产品查看沿用基线的页面。'}</p></div>}
-            {visibleGroups.map(([name, items]) => <div className="version-module" key={name}><h3>{name}<small>{items.length} 页</small></h3><div className="version-page-grid">{items.map(page => {
-                const removed = !page.after;
-                let path = removed ? page.before : page.after;
-                if (complete && path) { const url = new URL(path, 'https://prototype.invalid'); url.searchParams.set('scope', 'all'); path = url.pathname + url.search + url.hash; }
-                const target = previewTarget(removed ? releases.find(item => item.id === release.baseline) : release, available, currentVersion, siteBase, path, page.changes[0]?.id, scenario, false);
-                return <article className="version-page-row" key={page.key}><div><strong>{page.title}</strong><small>{page.pageId} · {page.after || page.before}</small></div><div className="version-page-footer"><span className="proto-muted">{removed ? '本版已删除' : page.changes.length ? `${page.changes.length} 项变动` : '本版未改动 · 沿用基线'}</span><div className="proto-actions">{page.changes.length > 0 && <Button size="small" theme="borderless" aria-label={`查看 ${page.title} 改动说明`} onClick={() => setNotesPage(page.key)}>{page.changes.map(change => change.id).join(' / ')} · 改动说明</Button>}{target.url ? <a href={target.url} target="_blank" rel="noreferrer">{removed ? '删除前页面' : '打开页面'} →</a> : <span className="proto-muted">{snapshots.isPending ? '检查归档中…' : target.reason}</span>}</div></div></article>;
-            })}</div></div>)}
-            <ChangeNotesDrawer release={release} changes={pages.find(page => page.key === notesPage)?.changes || []} visible={notesPage !== null} onClose={() => setNotesPage(null)} technical={technical} scenario={scenario} />
-        </section>;
+        return <><PrototypePageDirectory version={release.id} full={complete} filters={filters} scopeControls={scopeControls} entries={<div className="proto-actions">{fullTargets.map(target => target.url ? <PrototypeEntry key={target.end} kind={target.end === 'mobile' ? 'mobile' : 'manage'} to={target.url}>打开{target.end === 'mobile' ? '手机端' : '管理端'} →</PrototypeEntry> : <span key={target.end}>{target.end === 'mobile' ? '手机端' : '管理端'}：{snapshots.isPending ? '正在检查归档…' : target.reason}</span>)}</div>} feedback={<>{snapshots.isError && <p role="alert">历史索引读取失败，历史完整原型不可用。<button onClick={() => void snapshots.refetch()}>重试</button></p>}{complete && !product.complete && <p role="alert">完整页面清单尚不完整：{product.reason}</p>}</>} pages={pages.map(page => {
+            const removed = !page.after;
+            let path = removed ? page.before : page.after;
+            if (complete && path) { const url = new URL(path, 'https://prototype.invalid'); url.searchParams.set('scope', 'all'); path = url.pathname + url.search + url.hash; }
+            const target = previewTarget(removed ? releases.find(item => item.id === release.baseline) : release, available, currentVersion, siteBase, path, page.changes[0]?.id, scenario, false);
+            return { id: page.pageId ?? page.key, title: page.title, path: page.after || page.before || '', module: [...groups].find(([, items]) => items.some(item => item.key === page.key))?.[0] ?? '未分组', changes: page.changes, removed, href: target.url, unavailable: snapshots.isPending ? '检查归档中…' : target.reason ?? '待登记构建', onDetails: () => setNotesPage(page.key) };
+        })} /><ChangeNotesDrawer release={release} changes={pages.find(page => page.key === notesPage)?.changes || []} visible={notesPage !== null} onClose={() => setNotesPage(null)} technical={technical} scenario={scenario} /></>;
     }
     return <section className={embedded ? undefined : "proto-card"} aria-label="版本页面目录">
         <div className="proto-heading"><div className="proto-directory-heading">{!embedded && <div><h2>{release.id} · {complete ? '完整页面目录' : '页面目录'}</h2><p>{browse ? '按模块选择页面，直接体验交互。' : complete ? '继承基线全部有效页面，覆盖本版修改并移除删除项；未改动页面继续保留。' : '按业务模块阅读本版涉及的页面，页面关联稳定编号与 CHG；完整流程从此版本的完整原型进入。'}</p></div>}</div>

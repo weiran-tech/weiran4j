@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DEFAULT_UPLOAD_SETTINGS } from '@weiran-tech/semi-components';
+import { DEFAULT_UPLOAD_SETTINGS } from '@weiran-tech/manage';
 import { PermissionContext } from '../../packages/manage/src/hooks/usePermission';
 import { PreferencesContext, defaultPreferences } from '../../packages/manage/src/hooks/usePreferences';
 import { dictKeys } from '../../packages/manage/src/hooks/queries/dicts';

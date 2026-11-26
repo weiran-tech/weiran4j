@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - run: node scripts/prepare-install.mjs && pnpm install --frozen-lockfile
       - run: pnpm version:check && pnpm lint && pnpm test
       - name: Restore published snapshots
         run: node scripts/restore-snapshots.mjs

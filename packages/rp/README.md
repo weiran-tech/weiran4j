@@ -7,7 +7,7 @@ React + Semi UI 管理端与 Vue + Vant 手机端纯前端原型。通过 AI 维
 使用 Node.js 24.x，pnpm 版本由 `packageManager` 固定。在本目录执行：
 
 ```bash
-pnpm install --frozen-lockfile
+node scripts/prepare-install.mjs && pnpm install --frozen-lockfile
 pnpm dev
 pnpm lint
 pnpm test
@@ -41,7 +41,7 @@ Mock 数据与会话仅用于浏览器演示，不代表真实身份与权限安
 - `prototype/`：版本、稳定页面、固定基线与历史资料。
 - `src/pages/help/content/`：同站使用指南。
 
-组件从 npm `@weiran-tech/semi-components` 引用，不复制源码。功能调整同步指南。
+组件从 npm `@weiran-tech/manage` 引用，不复制源码。功能调整同步指南。
 
 `pnpm build` 输出双端产物到 `.prototype-data/web-build/`；`pnpm build:site` 组装可部署站点到 `dist/`，`pnpm check:site` 检查组装结果。上传 `dist/` 即可部署，也可执行 `node dist/serve.mjs` 预览。现有部署配置、固定归档与恢复机制保留，不导入参考项目的 Codeup / ESA 配置。
 
@@ -56,3 +56,5 @@ Mock 数据与会话仅用于浏览器演示，不代表真实身份与权限安
 也可以从主仓根执行 `pnpm sync:rp` 手动同步或重试，使用当前用户的 GitHub 权限。同步只导出已提交内容；同步失败不撤销主仓提交。若远端出现独立修改，需要先处理 subtree 历史合并，再重试，不使用强制推送覆盖。
 
 本目录内部不维护独立 `.git`；此前嵌套仓库元数据仅作为本地忽略备份保存在 `.prototype-data/git-backup`。
+
+独立仓库首次迁移时，`prepare-install.mjs` 会更新旧锁文件，再进行冻结安装；需先将两个新组件包发布到 npm。迁移后提交生成的 `pnpm-lock.yaml`，后续安装保持冻结。完整工作区跳过此步骤，使用根锁文件。

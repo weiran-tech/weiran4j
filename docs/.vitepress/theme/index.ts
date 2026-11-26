@@ -5,6 +5,7 @@ import BackofficeDemo from './BackofficeDemo.vue';
 import PageStateDemo from './PageStateDemo.vue';
 import ComponentGallery from './ComponentGallery.vue';
 import SmsTemplateDemo from './SmsTemplateDemo.vue';
+import PrototypeComponentsDemo from './PrototypeComponentsDemo.vue';
 
 export default {
     extends: DefaultTheme,
@@ -13,5 +14,6 @@ export default {
         app.component('PageStateDemo', PageStateDemo);
         app.component('ComponentGallery', ComponentGallery);
         app.component('SmsTemplateDemo', SmsTemplateDemo);
+        app.component('PrototypeComponentsDemo', PrototypeComponentsDemo);
     },
 } satisfies Theme;

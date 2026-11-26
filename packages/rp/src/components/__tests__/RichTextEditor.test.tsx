@@ -1,4 +1,4 @@
-import { RichTextEditor as PackageRichTextEditor } from '@weiran-tech/semi-components';
+import { RichTextEditor as PackageRichTextEditor } from '@weiran-tech/manage';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mockFetch, renderWithProviders } from '@/test/helpers';
@@ -29,7 +29,7 @@ describe('RichTextEditor', () => {
         fireEvent.change(screen.getByRole('combobox', { name: '宽度单位' }), { target: { value: '%' } });
         fireEvent.change(screen.getByRole('spinbutton', { name: '媒体宽度' }), { target: { value: '50' } });
         fireEvent.blur(screen.getByRole('spinbutton', { name: '媒体宽度' }));
-        fireEvent.change(screen.getByRole('combobox', { name: '媒体位置' }), { target: { value: 'center' } });
+        fireEvent.click(screen.getByRole('button', { name: '居中' }));
         const html = onChange.mock.lastCall?.[0] as string;
         expect(html).toContain('data-media-width="50%"');
         expect(html).toContain('data-media-align="center"');
@@ -54,7 +54,7 @@ describe('RichTextEditor', () => {
         fireEvent.change(screen.getByRole('combobox', { name: '宽度单位' }), { target: { value: 'px' } });
         fireEvent.change(screen.getByRole('spinbutton', { name: '媒体宽度' }), { target: { value: '320' } });
         fireEvent.blur(screen.getByRole('spinbutton', { name: '媒体宽度' }));
-        fireEvent.change(screen.getByRole('combobox', { name: '媒体位置' }), { target: { value: 'right' } });
+        fireEvent.click(screen.getByRole('button', { name: '右对齐' }));
         const html = onChange.mock.lastCall?.[0] as string;
         expect(html).toContain('data-media-width="320px"');
         expect(html).toContain('data-media-align="right"');

@@ -1,3 +1,4 @@
+import { PrototypeTools } from '@/prototype/PrototypeTools';
 import { installVersionNotesShortcut } from '@/prototype/version-notes';
 import { notebookContext } from '@/prototype/notebook-context';
 import { workErrors } from '../prototype/version-work.mjs';
@@ -159,7 +160,7 @@ export function App() {
     const requested = new URLSearchParams(location.search).get('version');
     if (requested && requested !== runtimeVersion && location.pathname.startsWith('/manage/') && location.pathname !== '/manage/login') return <div className="proto-page" role="alert" aria-label="版本不一致"><h1>版本与页面构建不一致</h1><p>当前路径属于 {runtimeVersion}，不能通过参数切换为 {requested} 的业务页面。</p><Link to={`/rp/versions?version=${encodeURIComponent(requested)}`}>打开所选版本目录</Link><p><a href={sitePath('/manage')}>返回当前版本管理端</a></p></div>;
     return (
-        <Suspense fallback={fullPageLoading}>
+        <><PrototypeTools /><Suspense fallback={fullPageLoading}>
             <Routes>
                 <Route element={<PortalLayout />}>
                     <Route path="/" element={<DashboardPage />} />
@@ -176,6 +177,6 @@ export function App() {
                 <Route path="/rp/login" element={isLoggedIn ? <RedirectFromLogin /> : <LoginPage />} />
                 <Route path="*" element={isLoggedIn ? <AuthedApp /> : <RedirectToLogin />} />
             </Routes>
-        </Suspense>
+        </Suspense></>
     );
 }

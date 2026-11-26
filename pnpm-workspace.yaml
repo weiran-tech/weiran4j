@@ -26,3 +26,6 @@ allowBuilds:
   esbuild: true
   # Bruno 的 protobufjs postinstall 仅输出建议，不执行。
   protobufjs: false
+
+# rp 独立导出使用 npm 版本范围；在主仓优先链接同版本的组件源码包。
+linkWorkspacePackages: true

@@ -2,12 +2,12 @@ import navLogoImage from './assets/nav-logo.svg?no-inline';
 import { NavLogo } from '../../packages/manage/src/components/NavLogo';
 import editorImage from './assets/editor-image.svg?no-inline';
 import '@douyinfe/semi-ui/react19-adapter';
-import '@weiran-tech/semi-components/style.css';
+import '@weiran-tech/manage/style.css';
 import {
     FileTypeIcon, FileUpload, IconPicker, ImageUpload, NavListItem, NavListPanel,
     OptionSelect, PdfPreview, RichTextEditor, TextAvatar, VideoPreview,
     DEFAULT_UPLOAD_SETTINGS,
-} from '@weiran-tech/semi-components';
+} from '@weiran-tech/manage';
 import { Heart, House, Settings } from 'lucide-react';
 import React, { useEffect, useRef, useState, type ReactNode } from 'react';
 import './component-gallery.css';

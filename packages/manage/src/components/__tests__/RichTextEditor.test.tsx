@@ -1,6 +1,6 @@
 import type { Editor } from '@tiptap/core';
 import { useState } from 'react';
-import { RichTextEditor as PackageRichTextEditor } from '@weiran-tech/semi-components';
+import { RichTextEditor as PackageRichTextEditor } from '@weiran-tech/manage';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { mockFetch, renderWithProviders } from '@/test/helpers';

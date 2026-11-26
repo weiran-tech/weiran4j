@@ -1,6 +1,6 @@
-import { FileUpload as BaseFileUpload } from '@weiran-tech/semi-components';
-import type { UploadFile, UploadType } from '@weiran-tech/semi-components';
-import '@weiran-tech/semi-components/style.css';
+import { FileUpload as BaseFileUpload } from '@weiran-tech/manage';
+import type { UploadFile, UploadType } from '@weiran-tech/manage';
+import '@weiran-tech/manage/style.css';
 import { Toast } from '@douyinfe/semi-ui';
 import { useUploadSettings, useUploadSystemFile } from '@/hooks/queries/system-media';
 
@@ -8,8 +8,8 @@ export {
     ALL_UPLOAD_TYPES, DEFAULT_MAX_FILES, DEFAULT_UPLOAD_SETTINGS,
     fileUploadError, imageFileError, isImageUrl, ordinaryFileError,
     uploadLimitsLabel, videoFileError,
-} from '@weiran-tech/semi-components';
-export type { UploadSettings, UploadType } from '@weiran-tech/semi-components';
+} from '@weiran-tech/manage';
+export type { UploadSettings, UploadType } from '@weiran-tech/manage';
 
 type Props = {
     disabled?: boolean;

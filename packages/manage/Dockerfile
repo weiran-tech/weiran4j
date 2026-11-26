@@ -9,10 +9,10 @@ RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/manage/package.json packages/manage/package.json
 COPY packages/server/package.json packages/server/package.json
-COPY packages/semi-components/package.json packages/semi-components/package.json
+COPY packages/component-manage/package.json packages/component-manage/package.json
 RUN pnpm install --frozen-lockfile --filter @weiran/manage...
 COPY packages/manage packages/manage
-COPY packages/semi-components packages/semi-components
+COPY packages/component-manage packages/component-manage
 RUN pnpm --filter @weiran/manage... build
 
 # ---- 运行 ----

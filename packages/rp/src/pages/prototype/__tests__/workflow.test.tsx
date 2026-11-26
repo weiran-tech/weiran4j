@@ -1,4 +1,5 @@
-import { fireEvent, screen, within } from '@testing-library/react';
+import { authorsStore } from '@/prototype/ReviewForm';
+import { fireEvent, screen, within, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { webcrypto } from 'node:crypto';
 import { renderWithProviders } from '@/test/helpers';
@@ -27,17 +28,17 @@ it('旧交接与归档入口回到原型目录且保留历史存储', () => {
     expect(screen.queryByRole('button', { name: /编辑交接|版本归档|保存草稿/ })).not.toBeInTheDocument();
     expect(localStorage.getItem('prototype_handoff_v0.8')).toBe('历史交接');
 });
-it('进行中版本可新增并编辑评审，其他版本不混入记录', () => {
+it('进行中版本可新增并编辑评审，其他版本不混入记录', async () => {
+    authorsStore.rememberReviewAuthor('产品');
     renderWithProviders(<VersionsPage />, { route: '/rp/versions?tab=review' });
-    fireEvent.change(screen.getByLabelText('记录人'), { target: { value: '产品' } });
     fireEvent.change(screen.getByLabelText('评审意见'), { target: { value: '失败场景需保留金额' } });
     fireEvent.click(screen.getByRole('button', { name: '保存评审备注' }));
-    expect(screen.getByText('失败场景需保留金额')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '编辑评审记录' }));
+    expect(await screen.findByText('失败场景需保留金额')).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: '编辑评审记录' }));
     const fields = screen.getAllByLabelText('评审意见');
     fireEvent.change(fields.at(-1)!, { target: { value: '已复核失败场景' } });
     fireEvent.click(screen.getByRole('button', { name: '保存修改' }));
-    expect(screen.getByText('已复核失败场景')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('已复核失败场景')).toBeInTheDocument());
     const saved = JSON.parse(localStorage.getItem(VERSION_STORAGE_KEY)!) as { notes: Record<string, unknown[]> };
     expect(Object.keys(saved.notes)).toEqual(['v0.8']);
     expect(saved.notes['v0.8']).toHaveLength(1);

@@ -12,7 +12,7 @@ docs/
   page-states.md         # 页面状态演示入口
 packages/
   manage/                # 实际业务页面与后台组件
-  semi-components/       # 可复用组件包
+  component-manage/       # 可复用组件包
 ```
 
 依赖方向为 `docs/examples → packages`。业务应用和组件包不导入演示；模拟状态、虚构数据和演示专用控制栏不进入业务组件。演示直接复用实际组件与 hook，避免复制一份实现后与业务行为脱节。

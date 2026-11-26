@@ -1,3 +1,4 @@
+import { VersionOverview } from '@weiran-tech/prototype';
 import { useRef, useState } from 'react';
 import { Button, Modal, RadioGroup, Tag } from '@douyinfe/semi-ui';
 import { PortalLink } from '@/prototype/PortalRouter';
@@ -30,9 +31,9 @@ export default function VersionsPage() {
     const pages = pagesForReview(release);
     const entries = notes[version] ?? [];
     const reviewOpen = canReview(release);
-    return <div className="proto-page version-detail">
+    return <div className="proto-page prototype-scope version-detail">
         <header className="proto-heading version-detail-heading"><div><Tag color="blue">{statusLabels[release.status]}</Tag><h1>{release.id} · {release.title}</h1><p className="proto-muted">{release.goal}</p></div></header>
-        <section className="version-summary" aria-label="版本概览"><div><small>固定基线</small>{release.baseline ? <PortalLink href={sitePath('/rp/versions', release.baseline)}>{release.baseline}</PortalLink> : <strong>初始基线</strong>}</div><div><small>说明日期</small><strong>{release.date}</strong></div><div><small>本版改动页面</small><strong>{pageDiffs(original).length} 页</strong></div><div><small>本版变动</small><strong>{release.changes.length} 项</strong></div></section>
+        <VersionOverview baseline={release.baseline ? <PortalLink href={sitePath('/rp/versions', release.baseline)}>{release.baseline}</PortalLink> : <strong>初始基线</strong>} date={release.date} pages={pageDiffs(original).length} changes={release.changes.length} />
         <div className="version-tabs" role="tablist" aria-label="版本内容" onKeyDown={event => {
             if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
             event.preventDefault();
@@ -46,6 +47,6 @@ export default function VersionsPage() {
                 {[...entries].reverse().map(note => <article className="proto-card" key={note.id}><div className="proto-actions"><strong>{note.author}</strong><Tag>{note.pageTitle ?? '版本整体'}</Tag>{note.changeId && <Tag>{note.changeId}</Tag>}<small>{new Date(note.updatedAt ?? note.date).toLocaleString()}</small></div><p style={{ whiteSpace: 'pre-wrap' }}>{note.text}</p><div className="review-images">{reviewImages(note).map((image, index) => <a key={index} href={image} target="_blank" rel="noreferrer"><img src={image} alt={`评审截图 ${index + 1}`} /></a>)}</div>{reviewOpen && <Button onClick={() => setEditing(note)}>编辑评审记录</Button>}</article>)}
             </section>}
         <section className="proto-card"><h2>源码维护版本</h2><p>通过 AI 对话登记版本、页面和 CHG，完结后冻结实现。网页不创建或编辑版本，不连接 GitHub 提交评审。</p><PortalLink href={sitePath('/help/versions')}>查看版本维护指南 →</PortalLink></section>
-        <Modal title="编辑评审记录" visible={Boolean(editing) && reviewOpen} footer={null} onCancel={() => setEditing(null)} destroyOnClose>{editing && <ReviewForm key={editing.id} version={release} pages={pages} initialNote={editing} onSaved={() => setEditing(null)} />}</Modal>
+        <Modal title="编辑评审记录" visible={Boolean(editing) && reviewOpen} footer={null} onCancel={() => setEditing(null)} destroyOnClose>{editing && <ReviewForm key={editing.id} version={release} pages={pages} initialNote={editing} onSaved={() => setEditing(null)} onDeleted={() => setEditing(null)} />}</Modal>
     </div>;
 }

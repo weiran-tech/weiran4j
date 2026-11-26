@@ -16,10 +16,11 @@
     "@tiptap/pm": "3.31.3",
     "@tiptap/react": "3.31.3",
     "@tiptap/starter-kit": "3.31.3",
-    "@weiran-tech/semi-components": "workspace:*",
+    "@weiran-tech/manage": "workspace:*",
     "lucide-react": "^1.61.0",
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "@weiran-tech/prototype": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^19.2.17",

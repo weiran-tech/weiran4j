@@ -1,0 +1,61 @@
+{
+  "name": "@weiran-tech/prototype",
+  "version": "0.1.0",
+  "description": "Reusable source-driven prototype catalog, local reviews and navigation",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weiran-tech/weiran4j.git",
+    "directory": "packages/component-prototype"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./style.css": "./dist/style.css",
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
+    }
+  },
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json && node ../../scripts/clean-component-types.mjs dist",
+    "pack:check": "npm pack --dry-run --json",
+    "test": "vitest run",
+    "lint": "tsc -p tsconfig.build.json --noEmit --emitDeclarationOnly false"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "@douyinfe/semi-ui": "^2.104.0",
+    "lucide-react": "^1.61.0"
+  },
+  "devDependencies": {
+    "@douyinfe/semi-ui": "^2.104.0",
+    "@types/react": "^19.2.17",
+    "@vitejs/plugin-react": "^6.1.2",
+    "react": "^19.3.1",
+    "lucide-react": "^1.61.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.6",
+    "react-dom": "^19.3.1",
+    "@types/react-dom": "^19.2.3",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "vitest": "^5.0.5",
+    "jsdom": "^30.1.3"
+  }
+}

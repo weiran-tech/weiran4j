@@ -67,7 +67,7 @@ artifacts:
       - **Why / What Changes / Scope**:Out of Scope 必须与 interview.md 的「明确不做」一致
       - **Capabilities**:列出将新建或修改的能力,每个对应一个 `specs/<kebab-case>/spec.md`。
         填表前先读 `openspec/specs/README.md`(能力索引)—— 这一节是 proposal 与 specs 之间的契约,必须先调研再填。
-      - **影响的包**:`packages/server` / `packages/manage` / `packages/semi-components` / `docs`
+      - **影响的包**:`packages/server` / `packages/manage` / `packages/component-manage` / `packages/component-prototype` / `docs`
       - **共享层影响**:逐项勾选,来源是 explore.md 的共享层命中表
       - **横切关注点**:权限点、数据范围、多租户、审计日志、字段脱敏、幂等、
         导出/任务中心、工作流绑定 —— **逐项过一遍**

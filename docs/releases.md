@@ -1,33 +1,37 @@
 # 发布线
 
-本仓在同一个 Git 仓库中维护三种互不联动的版本：
+本仓在同一个 Git 仓库中维护四种互不联动的版本：
 
 | tag | 发布物 | 位置 |
 | --- | --- | --- |
 | `lib-v1.2.3` | `com.wulicode.weiran:weiran-dependencies:1.2.3` 与全部库模块 | [GitHub Packages Maven/Gradle 仓库](https://maven.pkg.github.com/weiran-tech/weiran4j) |
 | `demo-v1.2.3` | 前端与后端 Demo 容器镜像、Compose 文件 | GHCR 与 [GitHub Releases](https://github.com/weiran-tech/weiran4j/releases) |
-| `semi-components-v1.2.3` | `@weiran-tech/semi-components` React 组件包 | [npmjs.org](https://www.npmjs.com/package/@weiran-tech/semi-components) |
+| `manage-v1.2.3` | `@weiran-tech/manage` React 组件包 | [npmjs.org](https://www.npmjs.com/package/@weiran-tech/manage) |
 
-三条版本线可以各自递增。Demo 镜像始终由对应 tag 的仓库源码构建，Release 记录提交 SHA、可追溯的最近 Java 组件包 tag 及两个镜像摘要；不能仅凭版本号推断 Demo 一定使用了已发布组件包的相同代码。
+| `prototype-v1.2.3` / `rp-v1.2.3` | `@weiran-tech/prototype` 原型框架包（两个标签前缀指向同一包） | [npmjs.org](https://www.npmjs.com/package/@weiran-tech/prototype) |
+
+四条版本线可以各自递增。Demo 镜像始终由对应 tag 的仓库源码构建，Release 记录提交 SHA、可追溯的最近 Java 组件包 tag 及两个镜像摘要；不能仅凭版本号推断 Demo 一定使用了已发布组件包的相同代码。
 
 ## 发布前端组件包
 
-先将 `packages/semi-components/package.json` 的 `version` 改为 npmjs.org 上尚未发布的版本并提交。待 `main` 的发布提交通过 CI 后，创建并推送与该版本一致的 `semi-components-v<主>.<次>.<修订>` tag。`publish-semi-components.yml` 检查标签、运行前端门禁、构建 JS / 类型声明 / CSS，然后通过 npm 的可信发布机制将公开包发布到 npmjs.org，不使用长期写入令牌。`0.4.0` 已发布到 GitHub Packages；首次发布到 npmjs.org 时，须由拥有 `@weiran-tech` scope 权限的账号登录 npm CLI，手动发布 `0.4.0`。包创建成功后才能配置可信发布，并通过此工作流发布 `0.4.1`。
+- `packages/component-manage` → `@weiran-tech/manage`，标签 `manage-v<版本>`。
+- `packages/component-prototype` → `@weiran-tech/prototype`，标签 `prototype-v<版本>` 或 `rp-v<版本>`；同一版本选其中一个即可。
 
-首次发布 `0.4.0` 后，包管理员需在 [npm 包设置](https://www.npmjs.com/package/@weiran-tech/semi-components/access)的 **Trusted publishing** 中添加 GitHub Actions 发布者：组织 `weiran-tech`，仓库 `weiran4j`，工作流文件 `publish-semi-components.yml`，并允许 **npm publish**。工作流使用 GitHub OIDC（`id-token: write`）与 npm CLI 11.5.1 以上版本；新建的可信发布配置须在两天内完成首次成功发布，否则需要重新创建。
-
-```bash
-git tag semi-components-v0.4.1
-git push origin semi-components-v0.4.1
-```
-
-下游项目直接从 npmjs.org 安装公开包。此前若在 `.npmrc` 中将 `@weiran-tech` 映射到 `npm.pkg.github.com`，需删除该映射，否则安装仍会访问 GitHub Packages。
+先更新目标 package.json 的 version，执行 `pnpm pack:components`、前端及原型门禁，然后将变更合入 main，再推送匹配版本的标签：
 
 ```bash
-pnpm add @weiran-tech/semi-components@0.4.1
+git tag manage-v0.5.0
+git push origin manage-v0.5.0
+# 原型包发布独立递增，以下两种前缀二选一
+git tag prototype-v0.1.0
+git push origin prototype-v0.1.0
 ```
 
-页面按需导入组件，并导入 `@weiran-tech/semi-components/style.css`；React 19、Semi UI 2 和 lucide-react 由下游安装。使用 `RichTextEditor` 时还需安装 Tiptap 3 的 core、extension-image、pm、react 和 starter-kit，版本要求见组件包的 `peerDependencies`。
+[`publish-components.yml`](../.github/workflows/publish-components.yml) 校验目标包、标签版本和 main 来源，构建 JS / 类型 / CSS，执行消费者门禁后发布 npm tarball。预发布版本（如 `prototype-v0.2.0-beta.1`）使用 `next`，正式版本使用 `latest`。同版本已存在时核对完整 tarball integrity；内容一致跳过，内容不同失败，不能覆盖旧发布物。
+
+两个新包分别配置 npm Trusted Publisher：组织 `weiran-tech`、仓库 `weiran4j`、工作流 `publish-components.yml`。原 `@weiran-tech/semi-components` 的权限和 Trusted Publisher 不会自动迁到新包。首次发布可在仓库配置限定 scope/包权限的 `NPM_TOKEN`，待新包创建并配置可信发布后移除，之后使用 OIDC；令牌不进源码。具体权限与 npm CLI 要求见 [npm 官方说明](https://docs.npmjs.com/trusted-publishers/)。
+
+本仓工作区使用本地链接；原型独立导出使用普通 semver，从 npm 安装对应版本。发布两个新包前，独立原型无法从 npm 安装尚不存在的版本，因此应先发布组件，再同步独立原型仓库。旧包不自动撤回或弃用；下游将导入和样式路径改为 `@weiran-tech/manage` 与 `@weiran-tech/manage/style.css`。
 
 ## 发布组件包
 

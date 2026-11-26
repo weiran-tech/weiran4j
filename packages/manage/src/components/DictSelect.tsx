@@ -1,4 +1,4 @@
-import { OptionSelect } from '@weiran-tech/semi-components';
+import { OptionSelect } from '@weiran-tech/manage';
 import type { CSSProperties } from 'react';
 import { useDictOptions } from '@/hooks/queries/dicts';
 

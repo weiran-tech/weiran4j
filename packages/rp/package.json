@@ -60,7 +60,7 @@
     "@tiptap/pm": "3.31.3",
     "@tiptap/react": "3.31.3",
     "@tiptap/starter-kit": "3.31.3",
-    "@weiran-tech/semi-components": "^0.4.1",
+    "@weiran-tech/manage": "^0.5.0",
     "dayjs": "^1.11.21",
     "html2canvas-pro": "^2.6.4",
     "jspdf": "^4.2.1",
@@ -72,6 +72,7 @@
     "react-router-dom": "^7.18.0",
     "remark-gfm": "^4.0.1",
     "vant": "^4.9.0",
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "@weiran-tech/prototype": "^0.1.0"
   }
 }

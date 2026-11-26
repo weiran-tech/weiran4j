@@ -1,0 +1,70 @@
+name: 发布 manage / prototype 组件包到 npm
+
+on:
+  push:
+    tags: ['manage-v*', 'prototype-v*', 'rp-v*']
+
+permissions:
+  contents: read
+  id-token: write
+
+# prototype-v 和 rp-v 是同一包的发布入口，串行执行避免同时发布相同版本。
+concurrency:
+  group: npm-components-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+          scope: '@weiran-tech'
+      - name: 校验标签、包版本及 main 来源
+        id: release
+        shell: bash
+        run: |
+          node scripts/npm-release.mjs "$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+          git merge-base --is-ancestor HEAD origin/main || { echo '发布标签必须指向 main 已合入的提交'; exit 1; }
+      - run: pnpm install --frozen-lockfile
+      - name: 构建并验证两个公共包及消费者
+        run: |
+          pnpm build:components
+          pnpm test:components
+          node scripts/check-component-packs.mjs
+          pnpm lint
+          pnpm test
+          pnpm --filter @weiran/rp lint
+          pnpm --filter @weiran/rp test
+          pnpm --filter @weiran/rp build
+          pnpm build
+          pnpm openspec:check
+      - name: 安装支持可信发布的 npm CLI
+        run: npm install --global npm@^11.5.1
+      - name: 打包发布物
+        id: pack
+        env:
+          PACKAGE_DIRECTORY: ${{ steps.release.outputs.directory }}
+        shell: bash
+        run: |
+          cd "$PACKAGE_DIRECTORY"
+          npm pack --json --pack-destination "$RUNNER_TEMP" > "$RUNNER_TEMP/npm-pack.json"
+          node -e 'const fs=require("fs");const p=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/npm-pack.json"))[0];fs.appendFileSync(process.env.GITHUB_OUTPUT,"tarball="+process.env.RUNNER_TEMP+"/"+p.filename+"\n");'
+      - name: 发布到 npm（OIDC 或首次发布令牌）
+        env:
+          TARBALL: ${{ steps.pack.outputs.tarball }}
+          DIST_TAG: ${{ steps.release.outputs.distTag }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        shell: bash
+        run: |
+          # 新包首次发布或尚未配置 Trusted Publisher 时，可使用受限的 NPM_TOKEN。
+          if [ -n "$NPM_TOKEN" ]; then export NODE_AUTH_TOKEN="$NPM_TOKEN"; fi
+          node scripts/publish-npm.mjs "$TARBALL" "$DIST_TAG"

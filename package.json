@@ -37,7 +37,10 @@
     "test:flows:e2e": "node tests/framework/cli.mjs run --type e2e",
     "test:flows:bruno": "node tests/framework/cli.mjs run --runner bruno",
     "test:flows:list": "node tests/framework/cli.mjs list",
-    "test:flows:report": "node tests/framework/cli.mjs report"
+    "test:flows:report": "node tests/framework/cli.mjs report",
+    "build:components": "pnpm --filter @weiran-tech/manage build && pnpm --filter @weiran-tech/prototype build",
+    "test:components": "node --test scripts/npm-release.test.mjs && pnpm --filter @weiran-tech/prototype test",
+    "pack:components": "pnpm build:components && node scripts/check-component-packs.mjs"
   },
   "devDependencies": {
     "turbo": "^2.11.10",

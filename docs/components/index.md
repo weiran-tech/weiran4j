@@ -1,6 +1,6 @@
 # 公共组件
 
-`@weiran-tech/semi-components` 提供可在独立 React 项目中使用的组件。每个组件有单独的预览页，展示常见形态和最小接入方式。预览只用本地状态；上传文件会生成浏览器临时 URL，不调用后台接口，刷新页面后清空。
+`@weiran-tech/manage` 提供可在独立 React 项目中使用的组件。每个组件有单独的预览页，展示常见形态和最小接入方式。预览只用本地状态；上传文件会生成浏览器临时 URL，不调用后台接口，刷新页面后清空。
 
 | 组件 | 预览内容 |
 | --- | --- |
@@ -17,6 +17,8 @@
 | [NavListPanel](/components/nav-list-panel) | 数据列表、空列表 |
 | [NavListItem](/components/nav-list-item) | 普通与选中条目 |
 
-使用前请按[版本发布](/releases)从 npmjs.org 安装固定版本，页面同时导入 `@weiran-tech/semi-components/style.css`。组件包不调用后台接口；实际上传由下游传入 `upload` 回调。
+使用前请按[版本发布](/releases)从 npmjs.org 安装固定版本，页面同时导入 `@weiran-tech/manage/style.css`。组件包不调用后台接口；实际上传由下游传入 `upload` 回调。
 
 演示源码集中在 `docs/examples/`，与实际组件保持单向依赖。新增或维护演示见[演示开发约定](/examples/)。
+
+- [原型框架组件](./prototype.md)：版本目录、页面定位、多图评审及存储适配。

@@ -1,26 +1,37 @@
 {
-  "name": "@weiran-tech/semi-components",
+  "name": "@weiran-tech/manage",
   "version": "0.5.0",
   "description": "Reusable React components for Weiran admin applications",
   "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/weiran-tech/weiran4j.git",
-    "directory": "packages/semi-components"
+    "directory": "packages/component-manage"
   },
-  "publishConfig": { "registry": "https://registry.npmjs.org", "access": "public" },
-  "files": ["dist"],
-  "sideEffects": ["**/*.css"],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
     "./style.css": "./dist/style.css"
   },
   "scripts": {
-    "build": "vite build && tsc -p tsconfig.build.json",
-    "pack:check": "npm pack --dry-run --json"
+    "build": "vite build && tsc -p tsconfig.build.json && node ../../scripts/clean-component-types.mjs dist",
+    "pack:check": "npm pack --dry-run --json",
+    "test": "node --test ../../scripts/npm-release.test.mjs"
   },
   "peerDependencies": {
     "react": "^19.0.0",

@@ -5,7 +5,7 @@
 ## 启动和检查
 
 ```bash
-pnpm install --frozen-lockfile
+node scripts/prepare-install.mjs && pnpm install --frozen-lockfile
 pnpm dev
 ```
 
@@ -20,7 +20,7 @@ pnpm build:site
 pnpm check:site
 ```
 
-`VITE_APP_TITLE` 控制管理端标题；主色 `#0064FA`。组件从 npm `@weiran-tech/semi-components` 引用，不复制组件包源码。
+`VITE_APP_TITLE` 控制管理端标题；主色 `#0064FA`。管理组件从 npm `@weiran-tech/manage`、原型框架从 `@weiran-tech/prototype` 引用，不复制组件包源码。
 
 ## 添加和维护页面
 

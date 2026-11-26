@@ -1,5 +1,10 @@
 # 流程本身的修改记录
 
+## 2026-11-26 · npm 公共组件拆包
+
+- 现行 schema 的影响包提示从 semi-components 更新为 component-manage 与 component-prototype；不修改历史归档或门禁机制。
+- 两个 npm 包使用独立版本和标签发布，原型业务数据继续留在应用侧。
+
 ## 2026-11-14 · 现行提示词契约纠偏
 
 修正 config/schema/templates 的 Java/Flyway/数字成功码/动态菜单事实，保留规则 ID；新增 workflow-contracts 插件及正反样本、真实 CLI 注入测试，不改历史归档。

@@ -46,7 +46,7 @@ main 发布会先按内容摘要复用托管平台已有资源，仅补齐缺失
 
 维护者在 **GitHub 仓库 Settings → Secrets and variables → Actions** 直接设置 `VERCEL_TOKEN`（有该团队项目部署权限），不要通过聊天、源码或 VITE_ 变量传递。main CI、候选与站点刷新工作流均支持此方式。未配置时只产出可下载部署包，会明确报告未自动更新线上。首次通过已授权连接器发布不等于此 Secret 已配置。
 
-也可选择 Vercel Git 源码构建：Other / Node 24，Install `pnpm install --frozen-lockfile`，Build `pnpm build:deploy`，Output `dist`。这种方式须单独配置 `GITHUB_REPOSITORY=weiran-tech/rp-example` 和只读仓库 `GH_TOKEN`（仅读取 Releases），不要给不可信 PR 暴露凭证。推荐静态产物路径，可避免在 Vercel 存 GitHub token。
+也可选择 Vercel Git 源码构建：Other / Node 24，Install `node scripts/prepare-install.mjs && pnpm install --frozen-lockfile`，Build `pnpm build:deploy`，Output `dist`。这种方式须单独配置 `GITHUB_REPOSITORY=weiran-tech/rp-example` 和只读仓库 `GH_TOKEN`（仅读取 Releases），不要给不可信 PR 暴露凭证。推荐静态产物路径，可避免在 Vercel 存 GitHub token。
 
 路由优先匹配文件，再分别处理管理端、mobile、releases；使用指南由管理端路由解析，旧文档链接进入指南；缺失快照和资源返回 404。官方配置说明见 [Vercel 路由](https://vercel.com/docs/project-configuration/vercel-json)。
 

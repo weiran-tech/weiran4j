@@ -3,7 +3,7 @@
 使用简体中文协作。这是 React + Semi UI 管理端与 Vue + Vant 手机端的纯前端原型，不包含 Java、数据库或后端服务。
 
 - 包名 `@weiran/rp`，接入 mono4j 的 pnpm 工作区与 Turbo。本目录 `pnpm dev` 启动同域演示（5208），端口冲突直接报错；指南集成在站点。
-- 组件从 npm `@weiran-tech/semi-components` 引用，不复制源码。保留管理布局、动态菜单、登录页和业务演示。
+- 管理组件从 npm `@weiran-tech/manage`、原型框架从 `@weiran-tech/prototype` 引用，不复制公共组件源码。保留管理布局、动态菜单、登录页和业务演示。
 - 管理页面在 `src/pages/`，菜单在 `src/mocks/seed.ts`；手机端在 `src/mobile/`。新增数据契约同步补 `src/mocks/transport.ts` 或手机端 Mock。
 - 数据保存在 localStorage，仅供演示，不代表真实身份与权限安全。主色 #0064FA。
 - 使用指南在 `src/pages/help/content/`，功能调整同步指南。运行 `pnpm lint`、`pnpm test`、`pnpm build`；布局改动需真浏览器检查。

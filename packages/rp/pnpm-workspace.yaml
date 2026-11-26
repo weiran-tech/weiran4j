@@ -42,4 +42,5 @@ allowBuilds:
   core-js-pure: true
   esbuild: true
 minimumReleaseAgeExclude:
-  - '@weiran-tech/semi-components@0.4.1'
+  - '@weiran-tech/manage'
+  - '@weiran-tech/prototype'

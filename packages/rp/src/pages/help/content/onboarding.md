@@ -71,7 +71,7 @@ git push -u origin main
 在包含根 `package.json` 的项目目录执行：
 
 ```bash
-pnpm install --frozen-lockfile
+node scripts/prepare-install.mjs && pnpm install --frozen-lockfile
 pnpm dev
 ```
 
