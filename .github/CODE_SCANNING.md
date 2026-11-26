@@ -14,6 +14,7 @@
 以下告警应按具体实例审阅，不全局忽略同类规则。
 
 - **#31 / #32 / #33 / #34 `js/file-access-to-http`**：脚本的用途是把构建好的公开静态站点上传到固定的 `https://api.vercel.com`。`dist` 是唯一资源输入，发布器不上传环境变量、服务端启动器、隐藏文件、源码配置或链接目标。JSON 元数据和缺失资源上传均属于明确的发布行为，不是向未知地址泄露文件。
+- **#44 `js/file-access-to-http`**：复扫跟踪到状态查询中的公开 teamId，来自 `prototype/hosting.json`；该标识用于向固定 Vercel API 查询刚创建的部署，不是向未知主机发送文件内容。
 - **#35 / #36 `js/http-to-file-access`**：脚本向 GitHub 提供的 GITHUB_OUTPUT / GITHUB_STEP_SUMMARY 写部署结果，网络响应不决定文件路径。返回的部署编号与 `*.vercel.app` 主机名经过格式白名单检查，拒绝换行、路径和其他域名，防止结果字段注入。
 
 ## 验证
@@ -21,3 +22,7 @@
 媒体协议回归、Mock 改密及旧缓存迁移、归档穿越及链接拒绝、静态资源白名单、部署地址注入、原型工具测试与构建均纳入本地检查。最终告警状态以本次提交在 GitHub 上重新完成的 CodeQL 分析为准。
 
 规则参考：[上传文件数据](https://codeql.github.com/codeql-query-help/javascript/js-file-access-to-http/)、[网络数据写入文件](https://codeql.github.com/codeql-query-help/javascript/js-http-to-file-access/)、[DOM 文本重解释](https://codeql.github.com/codeql-query-help/javascript/js-xss-through-dom/)。
+
+## GitHub 复扫结果
+
+提交 `080781c` 的 CodeQL 运行 [45823089040](https://github.com/weiran-tech/weiran4j/actions/runs/45823089040) 成功；#28、#30、#40、#41、#43 自动转为 fixed。上述 7 条预期数据流告警已按实例以 false positive 处置，并在 GitHub 保留判断依据；扫描规则保持开启。

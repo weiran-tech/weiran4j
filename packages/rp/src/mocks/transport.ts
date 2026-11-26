@@ -206,7 +206,7 @@ export async function mockFetch(input: string, options: RequestInit = {}): Promi
                 case 'sendPhoneCode': case 'sendBindPhoneCode': break;
                 case 'login': case 'loginWithPhoneCode': {
                     const user = db.tables.user!.find((row) => action === 'login' ? row.username === body.username : row.phone === body.phone);
-                    if (!user || user.status !== 'enabled' || (action === 'login' ? !await compare(String(body.password ?? ''), db.passwordHash) : body.code !== '123456')) throw new MockError('账号或凭据错误', 110101, 401);
+                    if (!user || user.status !== 'enabled' || (action === 'login' ? !await compare(text(body.password), db.passwordHash) : body.code !== '123456')) throw new MockError('账号或凭据错误', 110101, 401);
                     document.cookie = `${CSRF_COOKIE}=${user.id}.prototype; Path=/; SameSite=Lax`;
                     data = { userId: user.id, expiresIn: 86400, mfaRequired: false }; break;
                 }
@@ -223,8 +223,8 @@ export async function mockFetch(input: string, options: RequestInit = {}): Promi
                     if (body.code !== '123456') throw new MockError('演示验证码为 123456');
                     me.phone = body.phone; break;
                 case 'verifyPassword': case 'updatePassword':
-                    if (!await compare(String(body.password ?? body.oldPassword ?? ''), db.passwordHash)) throw new MockError('密码错误', 110101, 401);
-                    if (action === 'updatePassword') db.passwordHash = await hash(String(body.newPassword), 10);
+                    if (!await compare(text(body.password ?? body.oldPassword), db.passwordHash)) throw new MockError('密码错误', 110101, 401);
+                    if (action === 'updatePassword') db.passwordHash = await hash(text(body.newPassword), 10);
                     break;
                 case 'listCurrentIdentities': data = db.tables.identity!.filter((row) => row.userId === userId); break;
                 case 'deleteCurrentIdentity': db.tables.identity = db.tables.identity!.filter((row) => row.id !== id); break;
@@ -556,7 +556,7 @@ export async function mockFetch(input: string, options: RequestInit = {}): Promi
                 }
                 case 'assignMenus': requireRow(rows, id).menuIds = body.menuIds; break;
                 case 'updateAccountField': requireRow(rows, id)[String(body.field)] = body.value; break;
-                case 'updatePassword': if (id === 1) db.passwordHash = await hash(String(body.password), 10); break;
+                case 'updatePassword': if (id === 1) db.passwordHash = await hash(text(body.password), 10); break;
                 case 'delete':
                     if (requireRow(rows, id).isBuiltin) throw new MockError('内置记录不能删除');
                     if (resource === 'menu' && rows.some((row) => row.parentId === id)) throw new MockError('请先删除子菜单');
