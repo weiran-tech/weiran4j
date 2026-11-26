@@ -8,11 +8,13 @@
 docs/
   examples/              # React 场景、模拟数据、状态切换与演示样式
   .vitepress/theme/      # 文档主题与 Vue/React 挂载入口
-  components/            # 组件说明与预览页面
+  components/manage/     # 后台组件说明与预览页面
+  components/prototype/  # 原型组件说明与预览页面
   page-states.md         # 页面状态演示入口
 packages/
   manage/                # 实际业务页面与后台组件
-  component-manage/       # 可复用组件包
+  component-manage/       # 后台组件包
+  component-prototype/    # 原型组件包
 ```
 
 依赖方向为 `docs/examples → packages`。业务应用和组件包不导入演示；模拟状态、虚构数据和演示专用控制栏不进入业务组件。演示直接复用实际组件与 hook，避免复制一份实现后与业务行为脱节。
@@ -23,7 +25,8 @@ packages/
 
 | 演示 | 源码入口 | 文档入口 |
 | --- | --- | --- |
-| 公共组件、上传与富文本 | `ComponentGalleryReact.tsx` | [组件总览](/components/) |
+| 后台组件、上传与富文本 | `ComponentGalleryReact.tsx` | [Manage 组件](/components/manage/) |
+| 原型版本、目录、评审与搜索 | `PrototypeComponentsDemo.tsx` | [Prototype 组件](/components/prototype/) |
 | 页面反馈、权限、布局、失败恢复与关闭保护 | `PageStateDemoReact.tsx` 及其场景模块 | [页面状态](/page-states) |
 | 短信模板变量插入 | `SmsTemplateDemoReact.tsx` | [系统配置](/configuration) |
 
@@ -48,3 +51,13 @@ packages/
 已发布的 Flyway 文件原样保存在应用 `db/app-demo`，仍仅 local/test 加载，避免已有数据库校验失败。新迁移清理旧菜单 id 14–22、`system.demo.*` 配置及旧结果表；不删除曾上传到资源库的真实文件。可选演示模块通过 `db/demo-runtime` 追加迁移恢复菜单 id 14–22、演示配置与 `demo_batch_item`，local/test 使用同一结果表验证真实处理器；历史测试夹具迁移保留，不再维护重复 Java 处理器。
 
 下游仅部署后台可省略整个 `docs/`，无需再清理示例页面或演示模块。`demo-v*` 发布流程保留为后台体验镜像，发布物不包含测试夹具或业务示例。
+
+## 参数化组件预览
+
+组件页面使用 `DemoParameters` 提供参数表单，布尔、数值、文本及枚举可编辑，页面、选项等结构化数据用 JSON 配置。参数变化时按示例结构校验并立即更新预览，无需点击应用；格式不完整时保留上一次有效预览，修正后自动恢复；参数更新或重置时重新挂载真实组件以同步受控初始值。回调、上传及存储由本地演示适配器提供，不执行用户输入的 JavaScript。
+
+Prototype 主入口自动携带样式和 Semi 基础样式，演示仅导入组件。仅需模型或 Node 工具时使用 `/core`，该入口不加载界面样式。
+
+参数面板与实时预览平级排布，整体保留一层统一外框，内部使用分隔线，不再嵌套卡片。
+
+组件演示在自定义参数区提供参数组合，切换后立即更新全部参数与预览，也可继续手动编辑。不再额外排列常见状态示例。

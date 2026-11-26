@@ -1,15 +1,7 @@
-import navLogoImage from './assets/nav-logo.svg?no-inline';
-import { NavLogo } from '../../packages/manage/src/components/NavLogo';
-import editorImage from './assets/editor-image.svg?no-inline';
+import { ManageParameterDemo } from './ManageParameterDemo';
 import '@douyinfe/semi-ui/react19-adapter';
 import '@weiran-tech/manage/style.css';
-import {
-    FileTypeIcon, FileUpload, IconPicker, ImageUpload, NavListItem, NavListPanel,
-    OptionSelect, PdfPreview, RichTextEditor, TextAvatar, VideoPreview,
-    DEFAULT_UPLOAD_SETTINGS,
-} from '@weiran-tech/manage';
-import { Heart, House, Settings } from 'lucide-react';
-import React, { useEffect, useRef, useState, type ReactNode } from 'react';
+import React, { useEffect, useRef } from 'react';
 import './component-gallery.css';
 
 const ITEMS = [
@@ -28,15 +20,6 @@ const ITEMS = [
 ] as const;
 
 export type ItemKey = typeof ITEMS[number]['key'];
-type ExampleProps = { title: string; children: ReactNode };
-
-function Example({ title, children }: ExampleProps) {
-    return <section className="component-gallery__example"><h4>{title}</h4>{children}</section>;
-}
-
-const ICONS = { House, Heart, Settings };
-const ICON_NAMES = Object.keys(ICONS);
-
 /** 文档示例只在浏览器里生成临时 URL，不调用业务接口。 */
 function useLocalUpload() {
     const urls = useRef<string[]>([]);
@@ -52,126 +35,10 @@ function useLocalUpload() {
 }
 
 export function ComponentGallery({ component: selected }: { component: ItemKey }) {
-    const [image, setImage] = useState('');
-    const [file, setFile] = useState('');
-    const [files, setFiles] = useState<string[]>([]);
-    const [html, setHtml] = useState(`<p>选中文字设置链接，或上传 PDF 文件。点击图片或视频，拖动图片四角缩放，或在 Popup 中点击位置图标。</p><img src="${editorImage}" alt="图片布局示例" data-media-width="50%">`);
-    const [failUpload, setFailUpload] = useState(false);
-    const [mediaUrl, setMediaUrl] = useState('');
-    const [preview, setPreview] = useState<'video' | 'pdf' | null>(null);
-    const [icon, setIcon] = useState('House');
-    const [option, setOption] = useState<string | undefined>();
-    const [navItem, setNavItem] = useState('first');
-    const [error, setError] = useState('');
     const upload = useLocalUpload();
-    const current = ITEMS.find((item) => item.key === selected) ?? ITEMS[0];
-    const showError = (message: string) => setError(message);
-
-    const examples = () => {
-        switch (selected) {
-            case 'nav-logo':
-                return <>
-                    <Example title="徽标与标题"><NavLogo onClick={() => setError('已点击导航品牌入口')} /></Example>
-                    <Example title="Logo 图片"><NavLogo logoSrc={navLogoImage} /></Example>
-                    <Example title="Logo 图标"><NavLogo icon={<House size={18} />} /></Example>
-                    <Example title="文字徽标"><NavLogo textIcon="微" title="微然管理" /></Example>
-                    <Example title="图片失败 / 回退文字"><NavLogo logoSrc="/missing-nav-logo.svg" textIcon="微" /></Example>
-                    <Example title="仅徽标 / 折叠导航"><NavLogo showTitle={false} size={26} /></Example>
-                    <Example title="仅标题"><NavLogo title="应用导航" showLogo={false} /></Example>
-                    <Example title="禁用"><NavLogo disabled /></Example>
-                </>;
-            case 'image':
-                return <>
-                    <Example title="默认 / 上传后预览"><ImageUpload value={image} onChange={setImage}
-                        formats={DEFAULT_UPLOAD_SETTINGS.imageFormats} maxSizeMb={DEFAULT_UPLOAD_SETTINGS.imageMaxSizeMb}
-                        upload={upload} onError={showError} /></Example>
-                    <Example title="禁用"><ImageUpload value={image} onChange={() => undefined} disabled
-                        formats={DEFAULT_UPLOAD_SETTINGS.imageFormats} maxSizeMb={DEFAULT_UPLOAD_SETTINGS.imageMaxSizeMb}
-                        upload={upload} /></Example>
-                </>;
-            case 'file':
-                return <>
-                    <Example title="单文件"><FileUpload value={file} onChange={setFile} settings={DEFAULT_UPLOAD_SETTINGS}
-                        upload={upload} onUploadError={() => showError('上传失败，请重试')} /></Example>
-                    <Example title="多文件 / 排序"><FileUpload multiple value={files} onChange={setFiles}
-                        settings={DEFAULT_UPLOAD_SETTINGS} upload={upload} onUploadError={() => showError('上传失败，请重试')} /></Example>
-                    <Example title="禁用"><FileUpload value={file} onChange={() => undefined} settings={DEFAULT_UPLOAD_SETTINGS}
-                        upload={upload} disabled /></Example>
-                </>;
-            case 'editor':
-                return <>
-                    <Example title="可编辑 / 文件上传、链接与媒体布局"><RichTextEditor value={html} onChange={setHtml}
-                        settings={DEFAULT_UPLOAD_SETTINGS} upload={async (file, progress) => {
-                            if (failUpload) throw new Error('模拟上传失败');
-                            return upload(file, progress);
-                        }} /></Example>
-                    <label><input type="checkbox" checked={failUpload} onChange={(event) => setFailUpload(event.target.checked)} />模拟上传失败（取消勾选后重新上传）</label>
-                    <Example title="空内容 / 上传配置加载中"><RichTextEditor value="" onChange={() => undefined} upload={upload} /></Example>
-                    <Example title="只读"><RichTextEditor value={html} onChange={() => undefined} disabled
-                        settings={DEFAULT_UPLOAD_SETTINGS} upload={upload} /></Example>
-                    <details><summary>查看当前 HTML</summary><pre>{html}</pre></details>
-                </>;
-            case 'video':
-            case 'pdf':
-                return <Example title="打开与关闭弹窗">
-                    <p>输入可访问的 {selected === 'video' ? '视频' : 'PDF'} URL 后预览。</p>
-                    <input className="component-gallery__url" type="url" aria-label="媒体 URL" value={mediaUrl} onChange={(event) => setMediaUrl(event.target.value)}
-                        placeholder="https://example.com/sample.pdf" />
-                    <button type="button" disabled={!mediaUrl.trim()} onClick={() => setPreview(selected)}>打开预览</button>
-                    <VideoPreview url={preview === 'video' ? mediaUrl : null} title="视频预览" onClose={() => setPreview(null)} />
-                    <PdfPreview url={preview === 'pdf' ? mediaUrl : null} title="PDF 预览" onClose={() => setPreview(null)} />
-                </Example>;
-            case 'filetype':
-                return <Example title="常见扩展名"><div className="component-gallery__tiles">
-                    {['photo.png', 'movie.mp4', 'document.pdf', 'report.docx', 'slides.pptx', 'sheet.xlsx', 'archive.zip'].map((name) =>
-                        <div key={name}><FileTypeIcon name={name} size={56} /><span>{name}</span></div>)}
-                </div></Example>;
-            case 'avatar':
-                return <Example title="自定义 / 回退文字 / 小尺寸"><div className="component-gallery__tiles">
-                    <div><TextAvatar avatar={{ text: '微', background: '#0064FA' }} fallback="微然" size="large" /><span>自定义</span></div>
-                    <div><TextAvatar avatar={null} fallback="管理员" size="large" /><span>回退文字</span></div>
-                    <div><TextAvatar avatar={{ text: '小' }} fallback="小王" size="extra-small" /><span>小尺寸</span></div>
-                </div></Example>;
-            case 'icon':
-                return <>
-                    <Example title="可选择 / 清空"><IconPicker value={icon} onChange={setIcon} icons={ICON_NAMES}
-                        renderIcon={(name, size) => { const Icon = ICONS[name as keyof typeof ICONS]; return <Icon size={size} />; }} /></Example>
-                    <Example title="禁用"><IconPicker value="Heart" icons={ICON_NAMES} disabled
-                        renderIcon={(name, size) => { const Icon = ICONS[name as keyof typeof ICONS]; return <Icon size={size} />; }} /></Example>
-                </>;
-            case 'option':
-                return <>
-                    <Example title="可选择 / 清空"><OptionSelect value={option} onChange={setOption} options={[
-                        { label: '启用', value: 'enabled' }, { label: '停用', value: 'disabled' },
-                    ]} /><span>当前值：{option ?? '未选择'}</span></Example>
-                    <Example title="禁用"><OptionSelect value="enabled" disabled options={[{ label: '启用', value: 'enabled' }]} /></Example>
-                    <Example title="加载中"><OptionSelect options={[]} loading /></Example>
-                </>;
-            case 'navigation':
-                return <>
-                    <Example title="有数据 / 选中项"><div className="component-gallery__nav"><NavListPanel title="示例导航"
-                        dataSource={[{ key: 'first', name: '第一项' }, { key: 'second', name: '第二项' }]}
-                        renderItem={(item) => <NavListItem key={item.key} primary={item.name} secondary={item.key}
-                            active={navItem === item.key} onClick={() => setNavItem(item.key)} />} /></div></Example>
-                    <Example title="空数据"><div className="component-gallery__nav"><NavListPanel title="空列表"
-                        dataSource={[]} emptyText="暂无条目" renderItem={() => null} /></div></Example>
-                </>;
-            case 'nav-item':
-                return <Example title="普通 / 选中 / 带副标题">
-                    <div className="component-gallery__nav"><NavListPanel dataSource={[
-                        { key: 'first', name: '普通条目' }, { key: 'second', name: '选中条目' },
-                    ]} renderItem={(item) => <NavListItem key={item.key} primary={item.name} secondary={item.key}
-                        active={navItem === item.key} onClick={() => setNavItem(item.key)} />} /></div>
-                </Example>;
-        }
-    };
-
+    const current = ITEMS.find(item => item.key === selected) ?? ITEMS[0];
     return <div className="component-gallery">
-        <div className="component-gallery__content">
-            <p>{current.note}。{selected === 'nav-logo' ? '示例复用后台导航组件。' : '示例直接使用组件包的公开导出。'}
-                {['image', 'file', 'editor'].includes(selected) && ' 上传仅生成浏览器临时 URL。'}</p>
-            {error && <p role="alert" className="component-gallery__error">{error}</p>}
-            {examples()}
-        </div>
+        <p>{current.note}。示例使用实际组件，可切换参数组合并继续编辑。{['image', 'file', 'editor'].includes(selected) && '上传仅生成浏览器临时 URL。'}</p>
+        <ManageParameterDemo component={selected} upload={upload} />
     </div>;
 }

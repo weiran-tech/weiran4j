@@ -1,3 +1,4 @@
+import { manageComponents, prototypeComponents } from '../examples/component-catalog'
 import { backofficePages } from '../examples/backoffice-pages'
 import { pageStateScenes } from '../examples/page-state-scenes'
 import { fileURLToPath } from 'node:url'
@@ -16,6 +17,19 @@ const demoSidebar = [
   { text: '演示开发约定', link: '/examples/' },
 ]
 
+const componentSidebar = [
+  { text: '组件总览', link: '/components/' },
+  { text: 'Manage · 后台组件', link: '/components/manage/', collapsed: false, items: [
+    ...manageComponents.map(([text, slug]) => ({ text, link: `/components/manage/${slug}` })),
+    { text: '工具函数与类型', link: '/components/manage/utilities' },
+  ] },
+  { text: 'Prototype · 原型组件', link: '/components/prototype/', collapsed: false, items: [
+    ...prototypeComponents.map(([text, slug]) => ({ text, link: `/components/prototype/${slug}` })),
+    { text: '模型、存储与导出', link: '/components/prototype/core' },
+  ] },
+  { text: '安装与发布', link: '/releases' },
+]
+
 const config = withMermaid({
   vite: { css: { postcss: managePostcss }, resolve: { alias: { '@': fileURLToPath(new URL('../../packages/manage/src', import.meta.url)) } } },
   base: '/',
@@ -29,13 +43,14 @@ const config = withMermaid({
       { text: '使用指南', link: '/usage' },
       { text: '架构说明', link: '/architecture' },
       { text: '系统配置', link: '/configuration' },
-      { text: '公共组件', link: '/components/' },
+      { text: '组件', link: '/components/', activeMatch: '^/components/' },
       { text: '演示', link: '/page-states', activeMatch: '^/(?:page-states|backoffice-examples|examples)(?:/|$)' },
       { text: 'OpenAPI', link: '/openapi' },
       { text: '测试', link: '/testing/' },
       { text: '部署与运维', link: '/deployment' },
     ],
     sidebar: {
+      '/components/': componentSidebar,
       '/page-states': demoSidebar,
       '/backoffice-examples': demoSidebar,
       '/examples/': demoSidebar,
@@ -47,21 +62,7 @@ const config = withMermaid({
           { text: '使用指南', link: '/usage' },
           { text: '架构说明', link: '/architecture' },
           { text: '系统配置', link: '/configuration' },
-          { text: '公共组件', link: '/components/', items: [
-            { text: '组件总览', link: '/components/' },
-            { text: 'ImageUpload', link: '/components/image-upload' },
-            { text: 'FileUpload', link: '/components/file-upload' },
-            { text: 'RichTextEditor', link: '/components/rich-text-editor' },
-            { text: 'VideoPreview', link: '/components/video-preview' },
-            { text: 'PdfPreview', link: '/components/pdf-preview' },
-            { text: 'FileTypeIcon', link: '/components/file-type-icon' },
-            { text: 'TextAvatar', link: '/components/text-avatar' },
-            { text: 'IconPicker', link: '/components/icon-picker' },
-            { text: 'OptionSelect', link: '/components/option-select' },
-            { text: 'NavLogo', link: '/components/nav-logo' },
-            { text: 'NavListPanel', link: '/components/nav-list-panel' },
-            { text: 'NavListItem', link: '/components/nav-list-item' },
-          ] },
+          { text: '组件文档', link: '/components/' },
           { text: 'OpenAPI 与 Swagger UI', link: '/openapi' },
           { text: '测试框架基线', link: '/testing/', items: [
             { text: '项目测试入口', link: '/testing' },

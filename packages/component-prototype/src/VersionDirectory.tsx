@@ -3,7 +3,7 @@ import { useState, type ReactNode } from 'react';
 import './versions.css';
 
 /** 阿琅版本详情的概览；业务路由由调用方提供。 */
-export function VersionOverview({ baseline, date, pages, changes }: { baseline: ReactNode; date: string; pages: number; changes: number }) {
+export function RpVersionOverview({ baseline, date, pages, changes }: { baseline: ReactNode; date: string; pages: number; changes: number }) {
     return <section className="prototype-scope version-summary" aria-label="版本概览"><div><small>固定基线</small>{baseline}</div><div><small>说明日期</small><strong>{date}</strong></div><div><small>本版改动页面</small><strong>{pages} 页</strong></div><div><small>本版变动</small><strong>{changes} 项</strong></div></section>;
 }
 export interface DirectoryPage {
@@ -13,7 +13,7 @@ export interface DirectoryPage {
     onDetails?: () => void;
 }
 /** 页面、链接与改动回调均由项目注册；包内不扫描业务目录。 */
-export function PrototypePageDirectory({ version, pages, full, filters, entries, scopeControls, feedback }: {
+export function RpPageDirectory({ version, pages, full, filters, entries, scopeControls, feedback }: {
     version: string; pages: DirectoryPage[]; full: boolean;
     filters?: ReactNode; entries?: ReactNode; scopeControls?: ReactNode; feedback?: ReactNode;
 }) {

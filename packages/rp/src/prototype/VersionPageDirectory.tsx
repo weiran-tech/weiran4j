@@ -1,4 +1,4 @@
-import { PrototypeEntry, PrototypePageDirectory } from '@weiran-tech/prototype';
+import { RpEntry, RpPageDirectory } from '@weiran-tech/prototype';
 import { namespacePath } from '../../prototype/routes.mjs';
 import { useState, type ReactNode } from 'react';
 import { Button } from '@douyinfe/semi-ui';
@@ -44,7 +44,7 @@ export function VersionPageDirectory({ release, platform, full = false, browse =
         return sitePath(`/rp/versions?${params}`);
     }
     if (appearance === 'version') {
-        return <><PrototypePageDirectory version={release.id} full={complete} filters={filters} scopeControls={scopeControls} entries={<div className="proto-actions">{fullTargets.map(target => target.url ? <PrototypeEntry key={target.end} kind={target.end === 'mobile' ? 'mobile' : 'manage'} to={target.url}>打开{target.end === 'mobile' ? '手机端' : '管理端'} →</PrototypeEntry> : <span key={target.end}>{target.end === 'mobile' ? '手机端' : '管理端'}：{snapshots.isPending ? '正在检查归档…' : target.reason}</span>)}</div>} feedback={<>{snapshots.isError && <p role="alert">历史索引读取失败，历史完整原型不可用。<button onClick={() => void snapshots.refetch()}>重试</button></p>}{complete && !product.complete && <p role="alert">完整页面清单尚不完整：{product.reason}</p>}</>} pages={pages.map(page => {
+        return <><RpPageDirectory version={release.id} full={complete} filters={filters} scopeControls={scopeControls} entries={<div className="proto-actions">{fullTargets.map(target => target.url ? <RpEntry key={target.end} kind={target.end === 'mobile' ? 'mobile' : 'manage'} to={target.url}>打开{target.end === 'mobile' ? '手机端' : '管理端'} →</RpEntry> : <span key={target.end}>{target.end === 'mobile' ? '手机端' : '管理端'}：{snapshots.isPending ? '正在检查归档…' : target.reason}</span>)}</div>} feedback={<>{snapshots.isError && <p role="alert">历史索引读取失败，历史完整原型不可用。<button onClick={() => void snapshots.refetch()}>重试</button></p>}{complete && !product.complete && <p role="alert">完整页面清单尚不完整：{product.reason}</p>}</>} pages={pages.map(page => {
             const removed = !page.after;
             let path = removed ? page.before : page.after;
             if (complete && path) { const url = new URL(path, 'https://prototype.invalid'); url.searchParams.set('scope', 'all'); path = url.pathname + url.search + url.hash; }

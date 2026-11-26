@@ -7,7 +7,7 @@ import { currentVersion, releases, sitePath } from './catalog';
 import { readingPath, readingScope, workspaceFor, type ReadingScope } from './workspaces';
 import { routeVersion } from './runtime';
 import { navigatePortal, PortalLink } from './PortalRouter';
-import { PrototypeScopeSwitch } from '@weiran-tech/prototype';
+import { RpScopeSwitch } from '@weiran-tech/prototype';
 import './prototype.css';
 
 export function WorkspaceSwitcher({ placement = 'all' }: { placement?: 'all' | 'header' | 'sidebar' }) {
@@ -35,7 +35,7 @@ export function WorkspaceSwitcher({ placement = 'all' }: { placement?: 'all' | '
         if (global) setHomeScope(next);
         else open(workspace, next);
     }
-    const scopeControl = <PrototypeScopeSwitch value={scope} onChange={selectScope} />;
+    const scopeControl = <RpScopeSwitch value={scope} onChange={selectScope} />;
     if (placement === 'sidebar') return <div className="admin-version-scope">{scopeControl}</div>;
     return <nav className="proto-workspaces" aria-label="工作区切换">{placement === 'all' && <><PortalLink href="/">协作首页</PortalLink>{scopeControl}</>}
         <div className="proto-version-control" role="group" aria-label="工作区版本"><span id={versionLabelId} hidden>工作区版本</span><Select className="proto-version-select" aria-labelledby={versionLabelId} value={version} dropdownMatchSelectWidth={false}

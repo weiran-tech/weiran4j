@@ -7,7 +7,7 @@ import { reviewImages, type ReviewNote, type ReviewStore } from './reviews';
 import { canReview, type Platform, type ProductPage, type Release } from './model';
 import './review.css';
 
-export function ReviewForm({ version, pages, initialNote, initialPage, onSaved, onDeleted, actions, authorsStore }: {
+export function RpReviewForm({ version, pages, initialNote, initialPage, onSaved, onDeleted, actions, authorsStore }: {
     version: Release; pages: ProductPage[]; actions: Pick<ReviewStore, 'addReview' | 'updateReview' | 'deleteReview'>; authorsStore: ReviewAuthorStore;
     initialNote?: ReviewNote; initialPage?: ProductPage; onSaved?: (note: ReviewNote) => void; onDeleted?: () => void;
 }) {

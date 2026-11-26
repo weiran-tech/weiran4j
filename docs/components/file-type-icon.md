@@ -1,13 +1,7 @@
-# FileTypeIcon
+---
+search: false
+---
 
-根据文件名或 URL 的扩展名显示类型图标。预览展示图片、视频、PDF、Word、PPT、Excel、ZIP。
+# 页面已迁移
 
-<ClientOnly><ComponentGallery component="filetype" /></ClientOnly>
-
-## 接入
-
-```tsx
-<FileTypeIcon name="report.pdf" size={56} />
-```
-
-同一入口还导出 `fileExtension`、`isImageFile`、`isVideoFile` 和 `isPdfFile`。
+请访问 [Manage 组件文档](/components/manage/file-type-icon)。

@@ -1,7 +1,7 @@
 import { Tabs } from '@douyinfe/semi-ui';
 import './scope-switch.css';
 
-export function PrototypeScopeSwitch({ value, onChange }: {
+export function RpScopeSwitch({ value, onChange }: {
     value: 'all' | 'version';
     onChange: (value: 'all' | 'version') => void;
 }) {

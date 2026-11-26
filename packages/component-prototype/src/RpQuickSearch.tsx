@@ -8,7 +8,7 @@ export function searchPrototypePages(keyword: string, searchPages: readonly Sear
     return searchPages.filter(page => !page.path.includes(':') && tokens.every(token => `${page.title} ${page.id} ${page.path} ${page.keywords}`.toLowerCase().includes(token)))
         .sort((a, b) => Number(b.title === keyword || b.path === keyword) - Number(a.title === keyword || a.path === keyword));
 }
-export function QuickSearch({ pages, locked = false, onNavigate }: { pages: readonly SearchPage[]; locked?: boolean; onNavigate: (path: string) => void }) {
+export function RpQuickSearch({ pages, locked = false, onNavigate }: { pages: readonly SearchPage[]; locked?: boolean; onNavigate: (path: string) => void }) {
     const [open, setOpen] = useState(false);
     const [keyword, setKeyword] = useState('');
     const [active, setActive] = useState(0);

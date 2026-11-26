@@ -1,24 +1,10 @@
-# 公共组件
+# 组件文档
 
-`@weiran-tech/manage` 提供可在独立 React 项目中使用的组件。每个组件有单独的预览页，展示常见形态和最小接入方式。预览只用本地状态；上传文件会生成浏览器临时 URL，不调用后台接口，刷新页面后清空。
+组件按使用场景分为两个包，均提供独立文档和真实组件预览。左侧为组件专用侧栏，可直接切换 Manage 与 Prototype。
 
-| 组件 | 预览内容 |
-| --- | --- |
-| [ImageUpload](/components/image-upload) | 单图上传、预览、禁用 |
-| [FileUpload](/components/file-upload) | 单文件、多文件、排序、禁用 |
-| [RichTextEditor](/components/rich-text-editor) | 编辑、只读、媒体布局 |
-| [VideoPreview](/components/video-preview) | 视频弹窗 |
-| [PdfPreview](/components/pdf-preview) | PDF 弹窗 |
-| [FileTypeIcon](/components/file-type-icon) | 常见扩展名 |
-| [TextAvatar](/components/text-avatar) | 自定义、回退、小尺寸 |
-| [IconPicker](/components/icon-picker) | 选择、清空、禁用 |
-| [OptionSelect](/components/option-select) | 选择、禁用、加载 |
-| [NavLogo](/components/nav-logo) | 完整、仅徽标、仅标题、禁用 |
-| [NavListPanel](/components/nav-list-panel) | 数据列表、空列表 |
-| [NavListItem](/components/nav-list-item) | 普通与选中条目 |
+| 分类 | 包名 | 内容 |
+| --- | --- | --- |
+| [Manage · 后台组件](/components/manage/) | `@weiran-tech/manage` | 上传、编辑器、媒体预览、头像、选项与导航 |
+| [Prototype · 原型组件](/components/prototype/) | `@weiran-tech/prototype` | 版本、页面目录、快捷搜索、评审与本机存储 |
 
-使用前请按[版本发布](/releases)从 npmjs.org 安装固定版本，页面同时导入 `@weiran-tech/manage/style.css`。组件包不调用后台接口；实际上传由下游传入 `upload` 回调。
-
-演示源码集中在 `docs/examples/`，与实际组件保持单向依赖。新增或维护演示见[演示开发约定](/examples/)。
-
-- [原型框架组件](./prototype.md)：版本目录、页面定位、多图评审及存储适配。
+演示只使用本地数据，不依赖登录或生产服务。业务项目引用组件包，演示实现集中在 `docs/examples/`。安装与标签发布见[版本发布](/releases)，维护方式见[演示开发约定](/examples/)。

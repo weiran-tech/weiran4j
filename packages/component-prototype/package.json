@@ -1,6 +1,6 @@
 {
   "name": "@weiran-tech/prototype",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Reusable source-driven prototype catalog, local reviews and navigation",
   "type": "module",
   "repository": {
@@ -16,6 +16,7 @@
     "dist"
   ],
   "sideEffects": [
+    "./dist/index.js",
     "**/*.css"
   ],
   "main": "./dist/index.js",

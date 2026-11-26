@@ -1,14 +1,16 @@
+import '@douyinfe/semi-ui/react19-adapter';
+import '@douyinfe/semi-ui/lib/es/_base/base.css';
 import './tokens.css';
 export * from './core';
 export * from './export';
-export { PageIdentity } from './PageIdentity';
-export { PrototypeEntry } from './PrototypeEntry';
-export { PrototypeUpdatedAt } from './PrototypeUpdatedAt';
-export { QuickSearch, searchPrototypePages } from './QuickSearch';
-export type { SearchPage } from './QuickSearch';
-export { ReviewForm } from './ReviewForm';
-export { PageReview } from './PageReview';
-export { VersionOverview, PrototypePageDirectory } from './VersionDirectory';
+export { RpPageIdentity } from './RpPageIdentity';
+export { RpEntry } from './RpEntry';
+export { RpUpdatedAt } from './RpUpdatedAt';
+export { RpQuickSearch, searchPrototypePages } from './RpQuickSearch';
+export type { SearchPage } from './RpQuickSearch';
+export { RpReviewForm } from './RpReviewForm';
+export { RpPageReview } from './RpPageReview';
+export { RpVersionOverview, RpPageDirectory } from './VersionDirectory';
 export type { DirectoryPage } from './VersionDirectory';
 
-export { PrototypeScopeSwitch } from './PrototypeScopeSwitch';
+export { RpScopeSwitch } from './RpScopeSwitch';

@@ -1,4 +1,4 @@
-import { authorsStore } from '@/prototype/ReviewForm';
+import { authorsStore } from '@/prototype/RpReviewForm';
 import { fireEvent, screen, within, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { webcrypto } from 'node:crypto';

@@ -3,7 +3,7 @@ import { Bot } from 'lucide-react';
 import { platformLabels, statusLabels, type Release, type Platform } from './model';
 import './page-identity.css';
 
-export function PageIdentity({ release, page, path, platform }: { release: Release; page: { id: string; title: string }; path: string; platform: Platform }) {
+export function RpPageIdentity({ release, page, path, platform }: { release: Release; page: { id: string; title: string }; path: string; platform: Platform }) {
     const copy = () => {
         const text = `版本：${release.id}（${statusLabels[release.status]}）\n端：${platform} / ${platformLabels[platform]}\n页面：${page.title}\n页面标识：${page.id}\n路径：${path}`;
         if (!navigator.clipboard) { Toast.error('浏览器不支持复制，请选择页面信息手动复制'); return; }

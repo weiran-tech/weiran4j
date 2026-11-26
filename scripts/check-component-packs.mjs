@@ -15,6 +15,11 @@ try {
         for (const entry of ['dist/index.js', 'dist/index.d.ts', 'dist/style.css']) {
             if (!pack.files.some(file => file.path === entry)) throw new Error(`${kind} 缺少 ${entry}`);
         }
+        if (kind === 'prototype') {
+            const entry = readFileSync(join(target, 'dist/index.js'), 'utf8');
+            if (!/import ['"]\.\/style\.css['"]/.test(entry)) throw new Error('prototype 主入口未自动加载样式');
+            if (/\.css['"]/.test(readFileSync(join(target, 'dist/core.js'), 'utf8'))) throw new Error('core 入口不得依赖样式');
+        }
         if (pack.files.some(file => /^(src|prototype|tests|node_modules)\//.test(file.path))) throw new Error('发布物包含源码、业务记录或依赖目录');
         for (const dependency of Object.keys(pkg.peerDependencies)) {
             const output = join(work, 'node_modules', dependency);
@@ -26,9 +31,9 @@ try {
     symlinkSync(realpathSync(join(root, 'packages/component-prototype/node_modules/@types')), join(work, 'node_modules/@types'), 'dir');
     writeFileSync(join(work, 'package.json'), JSON.stringify({ type: 'module' }));
     writeFileSync(join(work, 'consumer.tsx'), `import { TextAvatar, type UploadSettings } from '@weiran-tech/manage';
-import { ReviewForm, QuickSearch, type Release, createReviewStore } from '@weiran-tech/prototype';
+import { RpReviewForm, RpQuickSearch, type Release, createReviewStore } from '@weiran-tech/prototype';
 import { assembleManifest } from '@weiran-tech/prototype/core';
-export const components = [TextAvatar, ReviewForm, QuickSearch];
+export const components = [TextAvatar, RpReviewForm, RpQuickSearch];
 export type Settings = UploadSettings;
 export type Version = Release;
 export const store = createReviewStore;
