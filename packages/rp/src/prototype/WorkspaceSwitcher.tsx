@@ -1,15 +1,16 @@
 import { globalPath } from '../../prototype/routes.mjs';
 import { useWorkspaceNavigate } from '@/prototype/navigation';
 import { useId, useState } from 'react';
-import { Button, ButtonGroup, Select } from '@douyinfe/semi-ui';
+import { Select } from '@douyinfe/semi-ui';
 import { useLocation } from 'react-router-dom';
 import { currentVersion, releases, sitePath } from './catalog';
 import { readingPath, readingScope, workspaceFor, type ReadingScope } from './workspaces';
 import { routeVersion } from './runtime';
 import { navigatePortal, PortalLink } from './PortalRouter';
+import { PrototypeScopeSwitch } from '@weiran-tech/prototype';
 import './prototype.css';
 
-export function WorkspaceSwitcher() {
+export function WorkspaceSwitcher({ placement = 'all' }: { placement?: 'all' | 'header' | 'sidebar' }) {
     const versionLabelId = useId();
     const location = useLocation(); const navigate = useWorkspaceNavigate();
     const global = globalPath(location.pathname) !== null;
@@ -34,11 +35,9 @@ export function WorkspaceSwitcher() {
         if (global) setHomeScope(next);
         else open(workspace, next);
     }
-    return <nav className="proto-workspaces" aria-label="工作区切换"><PortalLink href="/">协作首页</PortalLink>
-        <ButtonGroup className="proto-scope" aria-label="查看范围">
-            <Button theme={scope === 'all' ? 'solid' : 'light'} aria-pressed={scope === 'all'} onClick={() => selectScope('all')}>完整</Button>
-            <Button theme={scope === 'version' ? 'solid' : 'light'} aria-pressed={scope === 'version'} onClick={() => selectScope('version')}>差异</Button>
-        </ButtonGroup>
+    const scopeControl = <PrototypeScopeSwitch value={scope} onChange={selectScope} />;
+    if (placement === 'sidebar') return <div className="admin-version-scope">{scopeControl}</div>;
+    return <nav className="proto-workspaces" aria-label="工作区切换">{placement === 'all' && <><PortalLink href="/">协作首页</PortalLink>{scopeControl}</>}
         <div className="proto-version-control" role="group" aria-label="工作区版本"><span id={versionLabelId} hidden>工作区版本</span><Select className="proto-version-select" aria-labelledby={versionLabelId} value={version} dropdownMatchSelectWidth={false}
             optionList={[
                 ...(!releases.some((item) => item.id === version) ? [{ value: version, label: `${version}（不存在）` }] : []),

@@ -10,3 +10,5 @@ export { ReviewForm } from './ReviewForm';
 export { PageReview } from './PageReview';
 export { VersionOverview, PrototypePageDirectory } from './VersionDirectory';
 export type { DirectoryPage } from './VersionDirectory';
+
+export { PrototypeScopeSwitch } from './PrototypeScopeSwitch';

@@ -11,6 +11,8 @@ import { sourceCatalog as catalog } from '../prototype/source-catalog';
 import { embedMode } from '../../prototype/embed.mjs';
 import { money, parseRefund } from '../../prototype/refund.mjs';
 
+const phone = ref(null);
+function notify(message) { showToast({ message, teleport: phone.value || 'body' }); }
 const embedded = embedMode(location.search) === 'page';
 const version = import.meta.env.VITE_PROTOTYPE_VERSION || catalog.current;
 const release = catalog.releases.find((item) => item.id === version);
@@ -31,20 +33,23 @@ const reviewVisible = ref(!embedded && new URLSearchParams(location.search).get(
 const route = ref(location.hash || '#/orders');
 const remaining = computed(() => 12800 - refunded.value);
 const currentPage = computed(() => resolveMobilePage(route.value));
+const directoryScope = ref(context.get('scope') === 'version' ? 'version' : 'all');
+const directoryPages = computed(() => mobilePages.filter(page => directoryScope.value === 'all' || mobilePageChanges(release, `/mobile/#${page.hash}`).length));
+function setDirectoryScope(value) { directoryScope.value = value; const url = new URL(location.href); url.searchParams.set('scope', value); history.replaceState(null, '', url); }
 const detail = computed(() => currentPage.value?.view === 'detail');
 const changes = computed(() => mobilePageChanges(release, `/mobile/${route.value.split('?')[0]}`, selectedId.value));
 async function captureReview() {
     try {
         const { openReviewCapture } = await import('../prototype/review-capture');
         openReviewCapture({ version, baseline: release?.baseline, platform: 'mobile', pageId: currentPage.value?.id, page: `/mobile/${route.value}`, scenario: scenario.value, pageUrl: location.href, change: changes.value[0] });
-    } catch { showToast('截图工具加载失败，请重试'); }
+    } catch { notify('截图工具加载失败，请重试'); }
 }
 
 const change = computed(() => changes.value[0]);
 const selectedId = ref(new URLSearchParams(location.search).get('change'));
 const missingChange = computed(() => selectedId.value && !changes.value.some((item) => item.id === selectedId.value));
 const versionMismatch = new URLSearchParams(location.search).get('version');
-function go(path) { const url = new URL(location.href); url.searchParams.delete('change'); url.searchParams.delete('review'); history.replaceState(null, '', url); selectedId.value = null; reviewVisible.value = false; location.hash = path; }
+function go(path) { refundVisible.value = false; const url = new URL(location.href); url.searchParams.delete('change'); url.searchParams.delete('review'); history.replaceState(null, '', url); selectedId.value = null; reviewVisible.value = false; location.hash = path; }
 function notifyParent() { if (window.parent !== window) window.parent.postMessage({ type: 'prototype-mobile-context', version, path: `/mobile/${location.hash || '#/orders'}`, scenario: scenario.value }, location.origin); }
 function syncRoute() { route.value = location.hash || '#/orders'; refundVisible.value = false; notifyParent(); }
 function syncScenario() { const url = new URL(location.href); url.searchParams.set('scenario', scenario.value); history.replaceState(null, '', url); error.value = ''; notifyParent(); }
@@ -53,24 +58,34 @@ const notesContext = () => notebookContext(version, `/mobile/${route.value}`, 'm
 function reviewNotes() { const context = notesContext(); if (context) openVersionNotebook(context); }
 onMounted(() => { removeNotesShortcut = installVersionNotesShortcut(notesContext); window.addEventListener('hashchange', syncRoute); notifyParent(); });
 onUnmounted(() => { window.removeEventListener('hashchange', syncRoute); removeNotesShortcut?.(); });
-function reset() { formRevision.value++; localStorage.removeItem(storageKey); refunded.value = 0; amount.value = ''; error.value = ''; scenario.value = 'normal'; syncScenario(); refundVisible.value = false; showToast('演示已重置'); }
+function reset() { formRevision.value++; localStorage.removeItem(storageKey); refunded.value = 0; amount.value = ''; error.value = ''; scenario.value = 'normal'; syncScenario(); refundVisible.value = false; notify('演示已重置'); }
 function submit() {
     const parsed = parseRefund(amount.value, remaining.value);
     if (parsed.error) { error.value = parsed.error; return; }
     if (scenario.value === 'failure') { error.value = '模拟退款失败，输入已保留，请切换正常场景重试'; return; }
     const next = refunded.value + parsed.cents;
     try { localStorage.setItem(storageKey, String(next)); } catch { error.value = '本地存储不可用，请检查浏览器设置'; return; }
-    refunded.value = next; amount.value = ''; error.value = ''; refundVisible.value = false; showToast('模拟退款成功');
+    refunded.value = next; amount.value = ''; error.value = ''; refundVisible.value = false; notify('模拟退款成功');
 }
 </script>
 <template>
   <div class="mobile-app" :data-prototype-embed="embedded ? 'page' : 'full'">
-    <van-nav-bar v-if="!embedded" :title="currentPage?.title || '页面不存在'" :left-text="detail ? '返回' : ''" :left-arrow="detail" @click-left="go('/orders')" />
-    <div v-if="!embedded" class="review-strip"><span>{{ version }} · {{ currentPage?.view === 'form' ? 'Vant 组件示例' : '手机端产品' }}</span><span>{{ buildLabel }}</span><a :href="backToVersion" target="_top">返回本版改动</a><button @click="reviewNotes">评审备注</button><button @click="captureReview">截图标注</button><button @click="reviewVisible = true">本页改动 {{ changes.length }}</button></div>
+    <template v-if="!embedded">
+      <aside class="mobile-page-sidebar" aria-label="手机端页面目录">
+        <div class="mobile-page-sidebar-heading">页面目录 <span>{{ directoryPages.length }}</span></div>
+        <div class="mobile-page-scope" role="group" aria-label="查看范围"><button :aria-pressed="directoryScope === 'all'" @click="setDirectoryScope('all')">全部产品</button><button :aria-pressed="directoryScope === 'version'" @click="setDirectoryScope('version')">版本改动</button></div>
+        <section class="mobile-page-group"><h2>手机端产品</h2><div class="mobile-page-group-items"><a v-for="page in directoryPages" :key="page.id" :href="`#${page.hash}`" :aria-current="currentPage?.id === page.id ? 'page' : undefined" @click.prevent="go(page.hash)">{{ page.title }}</a><p v-if="!directoryPages.length" class="mobile-page-empty">本版本暂无手机端页面改动</p></div></section>
+      </aside>
+    </template>
+    <main class="mobile-review-main">
+      <header v-if="!embedded" class="mobile-heading"><div><div class="mobile-eyebrow">WEIRAN · 用户端原型</div><h1>{{ currentPage?.title || '页面不存在' }}</h1></div><div class="mobile-heading-actions"><span>{{ version }} · {{ buildLabel }}</span><a :href="backToVersion" target="_top">查看版本改动 →</a><button @click="reviewNotes">评审备注</button><button @click="captureReview">截图标注</button></div></header>
+      <div class="mobile-review-grid">
+      <section class="mobile-preview-column" aria-label="用户端手机预览"><div class="mobile-device"><div ref="phone" class="mobile-screen">
+      <div v-if="!embedded" class="mh-status"><span>9:41</span><span aria-label="信号与电量">▮▮▮ · 100%</span></div>
+      <div class="mobile-screen-content">
+      <van-nav-bar v-if="!embedded" :title="currentPage?.title || '页面不存在'" :left-text="detail ? '返回' : ''" :left-arrow="detail" @click-left="go('/orders')" />
     <van-notice-bar v-if="versionMismatch && versionMismatch !== version" text="链接版本与当前构建不一致，请从版本中心打开历史快照。" />
     <template v-if="!versionMismatch || versionMismatch === version">
-    <div v-if="!embedded" class="mobile-navigation"><button v-for="page in mobilePages.filter((item) => item.navigation && (currentPage?.view === 'form' ? item.view === 'form' : item.view !== 'form'))" :key="page.id" @click="go(page.hash)">{{ page.title }}</button></div>
-    <div v-if="!embedded" class="scenario"><label>演示场景 <select v-model="scenario" @change="syncScenario"><option value="normal">正常</option><option value="empty">空数据</option><option value="failure">操作失败</option></select></label><button @click="reset">重置</button></div>
     <van-empty v-if="!currentPage" description="页面不存在，请使用上方导航" />
     <example-form v-else-if="currentPage.view === 'form'" :key="formRevision" :scenario="scenario" />
     <van-empty v-else-if="scenario === 'empty'" description="暂无订单，请切换到正常场景" />
@@ -86,5 +101,13 @@ function submit() {
     <van-popup v-model:show="refundVisible" position="bottom" round closeable :style="{ padding: '24px 16px 32px' }"><h2>申请退款</h2><p class="muted">最多可退 ¥{{ money(remaining) }}</p><van-field v-model="amount" type="text" inputmode="decimal" label="退款金额" placeholder="输入本次退款金额" :error-message="error" /><p><button v-if="!embedded" class="change-link" @click="reviewVisible = true">{{ change?.id }} · 查看规则</button></p><van-button block type="primary" round @click="submit">确认模拟退款</van-button></van-popup>
     <van-popup v-model:show="reviewVisible" position="right" :style="{ width: '90%', height: '100%' }" closeable><div class="review-content"><h2>本页改动</h2><p class="review-local-links"><button @click="reviewNotes">本机评审备注</button><a :href="backToVersion + '?tab=review'" target="_top">查看版本评审与导出</a></p><p v-if="missingChange" role="alert">本页没有改动 {{ selectedId }}，请检查分享链接。</p><p v-if="versionMismatch && versionMismatch !== version">请先打开对应历史版本。</p><template v-else><article v-for="change in changes" :key="change.id"><span class="change-link">{{ change.id }}</span><h3>{{ change.title }}</h3><h4>原来</h4><p>{{ change.before }}</p><h4>现在</h4><p>{{ change.after }}</p><h4>业务规则</h4><ul><li v-for="rule in change.rules" :key="rule">{{ rule }}</li></ul><h4>异常处理</h4><p>{{ change.exceptions }}</p><h4>验收标准</h4><ul><li v-for="item in change.acceptance" :key="item">{{ item }}</li></ul><p class="review-local-links"><button @click="reviewNotes">本机评审备注</button><a :href="backToVersion + '?tab=review'" target="_top">查看版本评审与导出</a></p></article><p v-if="!changes.length">本页没有登记改动。</p></template></div></van-popup>
     </template>
+      </div></div></div></section>
+      <aside v-if="!embedded" class="mobile-review-notes">
+        <section class="mobile-note-panel"><h2>本页需求 / 变动</h2><div class="mobile-note-body"><p>{{ version }} · {{ changes.length ? changes.map(item => item.id).join(' / ') : '本版无该页面变动记录' }}</p><p v-for="item in changes" :key="item.id">{{ item.after }}</p><p>路由：<code>/mobile/{{ route }}</code>；内部控件使用 Vant，业务操作仅保存本机数据。</p><button class="change-link" @click="reviewVisible = true">查看本页改动与验收标准 →</button></div></section>
+        <section class="mobile-note-panel"><h2>交互场景</h2><div class="mobile-note-body"><div class="scenario"><label>演示场景 <select v-model="scenario" @change="syncScenario"><option value="normal">正常</option><option value="empty">空数据</option><option value="failure">操作失败</option></select></label><button @click="reset">重置</button></div><p>订单列表进入详情，详情支持模拟退款。空数据与操作失败可切换体验；表单示例从左侧目录进入。</p></div></section>
+        <section class="mobile-note-panel"><h2>业务规则</h2><div class="mobile-note-body"><article v-for="item in changes" :key="item.id"><h3>{{ item.title }}</h3><ul><li v-for="rule in item.rules" :key="rule">{{ rule }}</li></ul><p>{{ item.exceptions }}</p></article><p v-if="!changes.length">本页没有登记改动，请从页面目录选择。</p></div></section>
+      </aside>
+      </div>
+    </main>
   </div>
 </template>

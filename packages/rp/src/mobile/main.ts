@@ -7,6 +7,7 @@ import { createApp } from 'vue';
 import App from './App.vue';
 import 'vant/lib/index.css';
 import './style.css';
+import './review-shell.css';
 const path = location.pathname + location.search + location.hash;
 const entry = runtimeBase === '/' ? versionEntryPath(path, runtimeVersion) : portalEntryPath(path.slice(runtimeBase.length - 1), runtimeBase);
 if (entry) location.replace(entry);

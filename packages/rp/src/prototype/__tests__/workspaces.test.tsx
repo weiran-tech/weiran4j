@@ -49,10 +49,10 @@ it('切换完整与差异，选择旧版保留当前端', () => {
     const assign = stubLocationAssign();
     renderWithProviders(<><WorkspaceSwitcher /><Location /></>, { route: '/manage' });
     expect(screen.queryByRole('button', { name: '组件示例' })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '完整' }));
+    fireEvent.click(screen.getByRole('tab', { name: '全部产品' }));
     expect(screen.getByLabelText('当前地址')).toHaveTextContent(`/manage?version=${currentVersion}&scope=all`);
     expect(screen.getByRole('combobox', { name: '工作区版本' })).toHaveTextContent(`${currentVersion}（当前）`);
-    fireEvent.click(screen.getByRole('button', { name: '差异' }));
+    fireEvent.click(screen.getByRole('tab', { name: '版本改动' }));
     fireEvent.click(screen.getByRole('combobox', { name: '工作区版本' }));
     fireEvent.click(screen.getByRole('option', { name: /v0\.2$/ }));
     expect(assign).toHaveBeenCalledWith('/versions/v0.2/rp/manage?scope=version');
@@ -63,19 +63,19 @@ it('切换完整与差异，选择旧版保留当前端', () => {
 
 it('完整范围切换仍保留所选历史版本，不暴露当前业务菜单', () => {
     renderWithProviders(<><WorkspaceSwitcher /><Location /></>, { route: '/manage?version=v0.2&scope=version' });
-    fireEvent.click(screen.getByRole('button', { name: '完整' }));
+    fireEvent.click(screen.getByRole('tab', { name: '全部产品' }));
     expect(screen.getByLabelText('当前地址')).toHaveTextContent('/rp/manage?version=v0.2&scope=all');
     expect(screen.getByRole('combobox', { name: '工作区版本' })).toHaveTextContent('v0.2');
     const historical = releases.find((release) => release.id === 'v0.2')!;
     expect(flattenMenuPages(workspaceMenus(menus, 'manage', 'all', historical)).map((page) => page.path)).toEqual(['/manage']);
-    fireEvent.click(screen.getByRole('button', { name: '差异' }));
+    fireEvent.click(screen.getByRole('tab', { name: '版本改动' }));
     expect(screen.getByLabelText('当前地址')).toHaveTextContent('/rp/manage?version=v0.2&scope=version');
 });
 
 it('全局首页与指南不携带版本，指南文章在主菜单下组织', () => {
     renderWithProviders(<WorkspaceSwitcher />, { route: '/rp' });
     expect(screen.getByRole('combobox', { name: '工作区版本' })).toHaveTextContent(`${currentVersion}（当前）`);
-    expect(screen.getByRole('button', { name: '完整' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('tab', { name: '全部产品' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.queryByRole('link', { name: '使用指南' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '版本改动' })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: '协作首页' })).toHaveAttribute('href', '/');
@@ -90,14 +90,14 @@ it('首页按完整/差异、版本、端排列，选范围与版本时首页不
     renderWithProviders(<><WorkspaceSwitcher /><Location /></>, { route: '/rp' });
     const nav = screen.getByRole('navigation', { name: '工作区切换' });
     expect([...nav.children].map((node) => node.getAttribute('aria-label') || node.textContent)).toEqual(['协作首页', '查看范围', '工作区版本', '查看端']);
-    fireEvent.click(screen.getByRole('button', { name: '差异' }));
+    fireEvent.click(screen.getByRole('tab', { name: '版本改动' }));
     fireEvent.click(screen.getByRole('combobox', { name: '工作区版本' }));
     fireEvent.click(screen.getByRole('option', { name: /v0\.2$/ }));
     expect(assign).not.toHaveBeenCalled();
     expect(screen.getByLabelText('当前地址')).toHaveTextContent(/^\/rp$/);
     fireEvent.click(screen.getByRole('button', { name: '手机端' }));
     expect(assign).toHaveBeenCalledWith('/versions/v0.2/rp/mobile?scope=version');
-    fireEvent.click(screen.getByRole('button', { name: '完整' }));
+    fireEvent.click(screen.getByRole('tab', { name: '全部产品' }));
     fireEvent.click(screen.getByRole('button', { name: '管理端' }));
     expect(assign).toHaveBeenLastCalledWith('/versions/v0.2/rp/manage?scope=all');
 });

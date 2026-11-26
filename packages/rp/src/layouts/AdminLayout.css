@@ -2085,3 +2085,5 @@
 
 /* 纯页面嵌入不挂载导航、页签或评审工具，完整模式仍按产品偏好渲染。 */
 .admin-layout--embedded > .admin-content { padding: 0; }
+
+.admin-sidebar{display:flex;flex-direction:column}.admin-sidebar__nav.semi-navigation{flex:1;min-height:0;height:auto}.admin-sidebar-logo-area{display:flex;align-items:center;min-height:var(--header-height);padding:0 14px;flex:none}.admin-sidebar>.admin-version-scope{padding:10px 14px 12px;flex:none;border-top:1px solid var(--color-border)}.admin-version-scope{padding:8px 0}.admin-mobile-nav-sheet .admin-version-scope,.double-sidebar__sub>.admin-version-scope{padding:8px 12px}

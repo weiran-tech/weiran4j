@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { Button, LocaleProvider, Select } from '@douyinfe/semi-ui';
 import zhCN from '@douyinfe/semi-ui/lib/es/locale/source/zh_CN';
-import { createReviewAuthors, createReviewStore, PageIdentity, PrototypePageDirectory, PrototypeUpdatedAt, ReviewForm, VersionOverview, type Release } from '@weiran-tech/prototype';
+import { PrototypeScopeSwitch, createReviewAuthors, createReviewStore, PageIdentity, PrototypePageDirectory, PrototypeUpdatedAt, ReviewForm, VersionOverview, type Release } from '@weiran-tech/prototype';
 import '@weiran-tech/prototype/style.css';
 const page = { id: 'sample', title: '本地示例页面', path: '/sample', module: '示例模块', platform: 'manage' as const };
 function Example() {
+    const [scope, setScope] = useState<'all' | 'version'>('all');
     const [scene, setScene] = useState('normal');
     const [count, setCount] = useState(0);
     const release: Release = { id: 'v1.1', title: '组件示例', status: scene === 'readonly' ? 'completed' : 'in_progress', baseline: null, date: '2026-11-26', goal: '使用本地数据验证公共框架', changes: [] };
@@ -16,6 +17,7 @@ function Example() {
     const authors = createReviewAuthors(memory, 'authors', () => actions.readPrototype().notes);
     return <LocaleProvider locale={zhCN}><div className="prototype-scope" style={{ padding: 20 }}>
         <Select aria-label="演示状态" value={scene} onChange={value => setScene(String(value))} optionList={[{ value: 'normal', label: '正常' }, { value: 'readonly', label: '已完结 / 禁用' }, { value: 'empty', label: '空目录' }, { value: 'failure', label: '存储失败 / 重试' }]} />
+        <div style={{ width: 240, margin: '16px 0' }}><PrototypeScopeSwitch value={scope} onChange={setScope} /></div>
         <PageIdentity release={release} page={page} path="/sample" platform="manage" />
         <VersionOverview baseline={<strong>初始基线</strong>} date={release.date} pages={1} changes={0} />
         <PrototypePageDirectory version={release.id} full pages={scene === 'empty' ? [] : [{ ...page, changes: [], unavailable: '本地演示不连接业务服务' }]} />

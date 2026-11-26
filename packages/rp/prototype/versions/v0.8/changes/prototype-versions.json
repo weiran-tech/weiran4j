@@ -150,7 +150,8 @@
       "acceptance": [
         "公共包可独立打包，JS、类型、样式与模型入口可消费。",
         "当前原型复用建议人、多图评审、目录、快捷跳转和页面定位。",
-        "原型发布不依赖远程任务或讨论。"
+        "原型发布不依赖远程任务或讨论。",
+        "管理端范围切换与阿琅一致，位于侧栏 Logo 下方，使用全部产品与版本改动胶囊标签。"
       ],
       "files": [
         "src/App.tsx",
@@ -172,7 +173,11 @@
         "src/prototype/VersionPageDirectory.tsx",
         "src/prototype/export.ts",
         "src/prototype/version-model.ts",
-        "src/prototype/versions.css"
+        "src/prototype/versions.css",
+        "src/layouts/AdminLayout.tsx",
+        "src/layouts/AdminLayout.css",
+        "src/prototype/WorkspaceSwitcher.tsx",
+        "src/prototype/prototype.css"
       ]
     }
   ]

@@ -41,3 +41,5 @@ const authors = createReviewAuthors(localStorage, 'my_project_authors_v1', () =>
 ## 开发和发布
 
 在仓库根执行 `pnpm build:components`、`pnpm test:components`、`pnpm pack:components`。包版本 `0.1.0`，标签 `prototype-v0.1.0` 或 `rp-v0.1.0` 发布同一 npm 包，具体配置见 `docs/releases.md`。
+
+`PrototypeScopeSwitch` 复用 Alang 的胶囊标签样式，接收 `value` 与 `onChange`，管理端放置在侧栏 Logo 下方。

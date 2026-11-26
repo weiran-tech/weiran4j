@@ -128,3 +128,5 @@
 - `packages/component-manage` 发布 `@weiran-tech/manage`，沿用原管理组件协议。
 - `packages/component-prototype` 发布 `@weiran-tech/prototype`，阿琅来源的版本模型、manifest、版本概览、页面目录、多图评审、建议人、页面定位、快捷搜索与导出；页面、数据、路由和存储通过参数注入。示例位于 `docs/examples/PrototypeComponentsDemo.tsx`。
 - 两包均提供 `style.css`；prototype 额外提供无 React 的 `/core`。原型应用在适配层保留旧版本格式与存储迁移，不引入其他项目业务。
+
+原型范围切换 `PrototypeScopeSwitch` 位于 `packages/component-prototype/src/PrototypeScopeSwitch.tsx`，使用 Alang 的全部产品 / 版本改动标签，路由由调用方处理。

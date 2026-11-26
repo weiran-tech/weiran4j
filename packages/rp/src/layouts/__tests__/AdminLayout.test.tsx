@@ -414,15 +414,17 @@ describe('侧边栏手风琴', () => {
     });
 });
 
-it('业务原型工作区保留顶部范围切换，完整范围显示业务侧栏', async () => {
+it('业务原型范围切换位于侧栏，全部产品显示业务菜单', async () => {
     const workspaceMenus: MenuNode[] = [...menus, { ...base, id: 500, parentId: 0, title: '版本中心', type: 'menu', path: '/rp/versions', component: 'prototype/VersionsPage', icon: 'GitBranch' }, { ...base, id: 501, parentId: 0, title: '管理端导览', type: 'menu', path: '/manage', component: 'nope/Manage', icon: null }];
     renderAuthed('/manage?scope=version', {}, workspaceMenus);
     const switcher = await screen.findByRole('navigation', { name: '工作区切换' });
     expect(switcher.closest('.admin-header')).not.toBeNull();
+    expect(within(switcher).queryByRole('tab')).not.toBeInTheDocument();
+    expect(within(switcher).queryByText('协作首页')).not.toBeInTheDocument();
     expect(screen.queryByRole('group', { name: '岗位视图' })).not.toBeInTheDocument();
     const sidebar = document.querySelector('.admin-sidebar')!;
     expect(within(sidebar as HTMLElement).queryByText('系统管理')).not.toBeInTheDocument();
-    fireEvent.click(within(switcher).getByRole('button', { name: '完整' }));
+    fireEvent.click(within(sidebar as HTMLElement).getByRole('tab', { name: '全部产品' }));
     await waitFor(() => expect(within(document.querySelector('.admin-sidebar') as HTMLElement).getByText('系统管理')).toBeInTheDocument());
     expect(screen.getByRole('button', { name: '管理端' })).toHaveAttribute('aria-pressed', 'true');
 });

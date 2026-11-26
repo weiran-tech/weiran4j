@@ -485,6 +485,7 @@ function FullAdminLayout({ menus, routes }: AdminLayoutProps) {
     };
 
     // vertical：全部菜单；mixed：当前一级下的子菜单（一级是页面时不显示侧边栏）
+    const scopeControl = workspaceEnabled ? <WorkspaceSwitcher placement="sidebar" /> : null;
     const sidebarItems = navLayout === 'mixed' ? subItems : navItems;
     const sidebar =
         navLayout === 'double' ? (
@@ -521,7 +522,7 @@ function FullAdminLayout({ menus, routes }: AdminLayoutProps) {
                 </div>
                 {subItems.length > 0 && (
                     <div className="double-sidebar__sub">
-                        <div className="double-sidebar__sub-title">{topItem?.text}</div>
+                        {scopeControl}<div className="double-sidebar__sub-title">{topItem?.text}</div>
                         <Nav
                             className="admin-sidebar__nav double-sidebar__sub-nav"
                             mode="vertical"
@@ -543,6 +544,8 @@ function FullAdminLayout({ menus, routes }: AdminLayoutProps) {
                 }}
                 onMouseLeave={() => setSidebarHovered(false)}
             >
+                {prefs.showLogo && navLayout === 'vertical' && <div className="admin-sidebar-logo-area">{brand}</div>}
+                {!effectiveCollapsed && scopeControl}
                 <Nav
                     className="admin-sidebar__nav"
                     mode="vertical"
@@ -553,7 +556,6 @@ function FullAdminLayout({ menus, routes }: AdminLayoutProps) {
                     isCollapsed={effectiveCollapsed}
                     bodyStyle={{ paddingTop: 8 }}
                     onSelect={handleNavSelect}
-                    {...(prefs.showLogo && navLayout === 'vertical' ? { header: { logo: brand } } : {})}
                     footer={collapseFooter}
                 />
             </aside>
@@ -621,6 +623,7 @@ function FullAdminLayout({ menus, routes }: AdminLayoutProps) {
                             width="min(86vw, 320px)"
                             bodyStyle={{ padding: 0 }}
                         >
+                            {scopeControl}
                             <Nav
                                 className="admin-mobile-nav"
                                 mode="vertical"
@@ -641,7 +644,7 @@ function FullAdminLayout({ menus, routes }: AdminLayoutProps) {
                                 <span className="admin-sidebar__title">{config.appTitle}</span>
                             </button>
                         )}
-                        {workspaceEnabled && <WorkspaceSwitcher />}
+                        {workspaceEnabled && <WorkspaceSwitcher placement="header" />}
                         <div className="admin-topbar__nav">
                             <TopNav
                                 items={topNavItems}
@@ -659,11 +662,11 @@ function FullAdminLayout({ menus, routes }: AdminLayoutProps) {
                         {!isMobile && (navLayout === 'vertical' || navLayout === 'double') && (
                             <header className="admin-header">
                                 {breadcrumb}
-                                {workspaceEnabled && <WorkspaceSwitcher />}
+                                {workspaceEnabled && <WorkspaceSwitcher placement="header" />}
                                 {headerActions}
                             </header>
                         )}
-                        {isMobile && workspaceEnabled && <WorkspaceSwitcher />}
+                        {isMobile && workspaceEnabled && <WorkspaceSwitcher placement="header" />}
                         {prefs.enableTabs && (
                             <TabsBar
                                 tabs={tabsWithIcons}

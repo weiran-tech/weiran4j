@@ -103,3 +103,5 @@
 
 .proto-version-enter { background:var(--semi-color-primary); color:var(--semi-color-white); }
 .proto-version-enter:hover { background:var(--semi-color-primary-hover); color:var(--semi-color-white); }
+
+.proto-workspaces>.prototype-scope{width:220px;flex-shrink:0}
