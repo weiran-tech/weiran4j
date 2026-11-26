@@ -5,5 +5,5 @@ set -eu
 root=$(git rev-parse --show-toplevel)
 cd "$root"
 
-repository=${RP_SUBTREE_REPOSITORY:-https://github.com/weiran-tech/weiran-rp.git}
+repository=${RP_SUBTREE_REPOSITORY:-https://github.com/weiran-tech/rp-example.git}
 git subtree push --prefix=packages/rp "$repository" main

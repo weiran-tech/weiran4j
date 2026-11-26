@@ -45,7 +45,7 @@ jobs:
             "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
       - name: 推送 packages/rp 到独立仓库 main
         env:
-          RP_SUBTREE_REPOSITORY: git@github.com:weiran-tech/weiran-rp.git
+          RP_SUBTREE_REPOSITORY: git@github.com:weiran-tech/rp-example.git
         run: sh scripts/sync-rp.sh
       - name: 清理部署密钥
         if: always()

@@ -43,4 +43,4 @@ Turbo 同时启动后端（5200）、后台（http://localhost:5202）、项目�
 Markdown 中的 `mermaid` 代码块会显示为图表。
 
 
-原型源码位于 `packages/rp`，通过 Git subtree 同步至 [weiran-rp](https://github.com/weiran-tech/weiran-rp)。`main` 上涉及原型的推送会触发 GitHub Actions 自动同步，也可在 Actions 页面手动运行；本地手动重试使用 `pnpm sync:rp`。
+原型源码位于 `packages/rp`，通过 Git subtree 同步至 [rp-example](https://github.com/weiran-tech/rp-example)。`main` 上涉及原型的推送会触发 GitHub Actions 自动同步，也可在 Actions 页面手动运行；本地手动重试使用 `pnpm sync:rp`。

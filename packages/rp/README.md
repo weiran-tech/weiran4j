@@ -81,7 +81,7 @@ pnpm check:site
 
 ## 与独立原型仓库同步
 
-`packages/rp` 使用 Git subtree 推送至 https://github.com/weiran-tech/weiran-rp.git 的 `main`，导出后本目录内容直接位于独立仓库根目录。
+`packages/rp` 使用 Git subtree 推送至 https://github.com/weiran-tech/rp-example.git 的 `main`，导出后本目录内容直接位于独立仓库根目录。
 
 主仓 `main` 推送涉及本目录的改动时，GitHub Actions 的「同步原型子树」工作流自动执行；也可在 Actions 页面手动运行。功能分支不会自动更新独立仓库。工作流按顺序同步，使用目标仓库专用的可写部署密钥，私钥保存在主仓 Actions secret `RP_SUBTREE_SSH_KEY`，不写入代码。
 
