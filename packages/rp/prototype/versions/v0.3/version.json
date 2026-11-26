@@ -1,0 +1,11 @@
+{
+  "id": "v0.3",
+  "title": "产品填写与页面差异交接",
+  "status": "completed",
+  "baseline": "v0.2",
+  "date": "2026-11-23",
+  "sourceCommit": null,
+  "goal": "产品通过表单填写版本说明，开发准确查看历史版本、页面改名映射与手机端改动。",
+  "supersededBy": "v0.6",
+  "legacyStatus": "review"
+}

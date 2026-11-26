@@ -1,7 +1,6 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '@/test/helpers';
-import VersionEditorPage from '../VersionEditorPage';
 import VersionsPage from '../VersionPrototypePanel';
 import MobilePreviewPage from '../MobilePreviewPage';
 import RefundDemoPage from '../RefundDemoPage';
@@ -9,24 +8,8 @@ import { currentVersion } from '@/prototype/catalog';
 
 afterEach(() => vi.unstubAllGlobals());
 describe('产品填写与开发查看', () => {
-    it('新建草稿、填写后刷新恢复本机内容，未填写内容不能通过检查', async () => {
-        const first = renderWithProviders(<VersionEditorPage />);
-        fireEvent.click(screen.getByRole('button', { name: '新建版本' }));
-        fireEvent.change(screen.getByLabelText('版本标题'), { target: { value: '产品填写的版本' } });
-        fireEvent.click(screen.getByRole('button', { name: '检查说明' }));
-        expect(screen.getByRole('alert')).toHaveTextContent(/缺少/);
-        await waitFor(() => expect(localStorage.getItem('prototype_editor_draft_v2')).toContain('产品填写的版本'));
-        first.unmount();
-        renderWithProviders(<VersionEditorPage />);
-        expect(screen.getByLabelText('版本标题')).toHaveValue('产品填写的版本');
-    });
-    it('已定稿版本在编辑器中只读', () => {
-        renderWithProviders(<VersionEditorPage />);
-        fireEvent.change(screen.getByLabelText('编辑版本'), { target: { value: 'v0.2' } });
-        expect(screen.getByLabelText('版本标题')).toBeDisabled();
-        expect(screen.queryByRole('button', { name: '新增改动' })).not.toBeInTheDocument();
-        expect(screen.queryByLabelText('改动标题')).not.toBeInTheDocument();
-    });
+
+
     it('历史手机链接指向历史快照，源码来自实际归档', async () => {
         vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(Response.json([{ version: 'v0.2', base: '/releases/v0.2/', commit: 'a'.repeat(40), builtAt: '2026-11-23' }]))));
         renderWithProviders(<VersionsPage />, { route: '/rp/versions?version=v0.2' });
@@ -38,7 +21,7 @@ describe('产品填写与开发查看', () => {
     it('没有归档的历史版本不会显示当前手机入口', async () => {
         vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(Response.json([]))));
         renderWithProviders(<VersionsPage />, { route: '/rp/versions?version=v0.2' });
-        await waitFor(() => expect(screen.getByText(/已定稿 · 待归档/)).toBeInTheDocument());
+        await waitFor(() => expect(screen.getByText(/已完结 · 待归档/)).toBeInTheDocument());
         expect(screen.queryByRole('link', { name: /查看 v0.2 手机端/ })).not.toBeInTheDocument();
     });
     it('退款失败场景通过链接复现并保留输入', () => {
@@ -93,28 +76,9 @@ it('旧对比参数不再生成双页预览，改动说明仍可阅读', () => {
     expect(screen.getByRole('heading', { name: '退款示例更名与场景分享' })).toBeInTheDocument();
 });
 
-it('创建版本入口一次建立草稿、清除创建参数，恢复时不重复新建，基线仅限已定版', async () => {
-    localStorage.clear();
-    const first = renderWithProviders(<VersionEditorPage />, { route: '/rp/editor?create=1' });
-    expect(screen.getByLabelText('版本编号')).toHaveValue('v0.9');
-    expect(screen.getByLabelText('版本基线')).toHaveValue('v0.2');
-    expect([...screen.getByLabelText<HTMLSelectElement>('版本基线').options].map((option) => option.value)).not.toContain('v0.8');
-    await waitFor(() => expect(JSON.parse(localStorage.getItem('prototype_editor_draft_v2')!).selected).toBe('v0.9'));
-    first.unmount();
-    renderWithProviders(<VersionEditorPage />, { route: '/rp/editor' });
-    expect(screen.getByLabelText('版本编号')).toHaveValue('v0.9');
-    expect(screen.queryByRole('button', { name: /下载|导出|导入/ })).not.toBeInTheDocument();
-});
 
-it('站内新版本不生成改动，现有改动只读', () => {
-    renderWithProviders(<VersionEditorPage />);
-    expect(screen.queryByRole('button', { name: '新增改动' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '删除此项' })).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('改动标题')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '新建版本' }));
-    const saved = JSON.parse(localStorage.getItem('prototype_editor_draft_v2')!);
-    expect(saved.catalog.releases.find((release: { id: string }) => release.id === saved.selected).changes).toEqual([]);
-});
+
+
 
 it('版本改动说明通过按钮打开抽屉，版本页不重复列完整目录', async () => {
     vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(Response.json([]))));

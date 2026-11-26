@@ -1,5 +1,6 @@
 # 构建与部署
 
+> 当前版本由 AI 维护源码，网页仅记录本机评审，见[版本管理](./versions.md)。下文涉及旧 Discussion、候选、交接和批准的步骤仅作历史兼容参考，不是当前网页操作流程。
 发布环境统一使用 **Node.js 24.x**。GitHub Actions、候选构建和定稿归档工作流均使用 Node 24，Vercel 部署参数指定 `24.x`；源码构建同时读取根目录 `package.json` 的 `engines.node`。本地使用 nvm 时执行 `nvm install && nvm use`，读取仓库 `.nvmrc`。
 
 推荐将 GitHub 作为版本来源，使用 Vercel 托管当前原型与历史快照。也可下载 CI 产物自行部署，无需后端与数据库。

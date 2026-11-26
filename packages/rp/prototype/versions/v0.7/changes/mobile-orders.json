@@ -1,0 +1,30 @@
+{
+  "pageId": "mobile-orders",
+  "changes": [
+    {
+      "id": "CHG-004",
+      "type": "modify",
+      "title": "手机订单按页面定位改动",
+      "platform": "mobile",
+      "pageTitle": "手机订单列表",
+      "page": "/mobile/#/orders",
+      "previousPage": "/mobile/#/orders",
+      "nextPage": "/mobile/#/orders",
+      "location": "手机订单列表",
+      "before": "手机端总是展示第一条改动。",
+      "after": "按当前页面筛选改动，再按分享编号定位。",
+      "rules": [
+        "页面没有对应编号时给出提示。",
+        "列表与详情分别登记页面与改动。",
+        "评审意见通过 GitHub Issue 记录版本、页面、场景和处理结论。"
+      ],
+      "exceptions": "导入或链接无效时显示具体原因，保留现有说明与输入。",
+      "acceptance": [
+        "列表只显示本页说明。",
+        "切换详情后显示详情说明。",
+        "错误改动编号不冒充匹配成功。",
+        "从页面改动说明进入 GitHub，创建或查找带版本及改动编号的评审记录。"
+      ]
+    }
+  ]
+}

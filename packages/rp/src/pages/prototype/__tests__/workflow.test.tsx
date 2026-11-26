@@ -1,106 +1,61 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { webcrypto } from 'node:crypto';
-import { blankHandoff } from '../../../../prototype/handoff.mjs';
-import { handoffTransfer } from '../../../../prototype/handoff-transfer.mjs';
 import { renderWithProviders } from '@/test/helpers';
-import WorkflowPage from '../WorkflowPage';
 import VersionsPage from '../VersionsPage';
 import VersionEditorPage from '../VersionEditorPage';
-import { currentRelease, currentVersion } from '@/prototype/catalog';
-beforeEach(() => { localStorage.clear(); vi.stubGlobal('crypto', webcrypto); });
+import VersionListPage from '../VersionListPage';
+import { addReview, updateReview, VERSION_STORAGE_KEY } from '@/mocks/prototype';
+import { useLocation } from 'react-router-dom';
+
+beforeEach(() => { localStorage.clear(); vi.stubGlobal('crypto', webcrypto); vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(Response.json([])))); });
 afterEach(() => vi.unstubAllGlobals());
 
-it('版本记录保留本机编辑和定稿基线，不提供导入导出下载', () => {
-    renderWithProviders(<VersionEditorPage />);
-    fireEvent.change(screen.getByLabelText('版本目标'), { target: { value: '当前本机更新' } });
-    expect(screen.getByLabelText('版本目标')).toHaveValue('当前本机更新');
-    expect(screen.queryByLabelText('导入说明')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /下载|导出|导入/ })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '新建版本' }));
-    expect(screen.getByLabelText('版本基线')).toHaveValue('v0.2');
+it('网页不创建版本，旧编辑入口转入指南且不清理草稿', () => {
+    const first = renderWithProviders(<VersionListPage />);
+    expect(screen.queryByText('创建版本')).not.toBeInTheDocument(); first.unmount();
+    localStorage.setItem('prototype_editor_draft_v2', '历史草稿');
+    function LocationProbe() { const location = useLocation(); return <output>{location.pathname}</output>; }
+    renderWithProviders(<><VersionEditorPage /><LocationProbe /></>, { route: '/rp/editor?create=1' });
+    expect(screen.getByText('/help/versions')).toBeInTheDocument();
+    expect(localStorage.getItem('prototype_editor_draft_v2')).toBe('历史草稿');
 });
-
-
-it('旧研发入口回到原型目录，保留历史交接存储', () => {
-    vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(Response.json(url.includes('handoffs') ? { syncedAt: null, versions: {} } : []))));
-    const saved = JSON.stringify(handoffTransfer(blankHandoff(currentRelease)));
-    localStorage.setItem(`prototype_handoff_${currentVersion}`, saved);
-    renderWithProviders(<WorkflowPage />, { route: '/rp/versions?tab=delivery' });
+it('旧交接与归档入口回到原型目录且保留历史存储', () => {
+    localStorage.setItem('prototype_handoff_v0.8', '历史交接');
+    renderWithProviders(<VersionsPage />, { route: '/rp/versions?tab=delivery&edit=1' });
     expect(screen.getByRole('tab', { name: '原型与改动' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.queryByRole('button', { name: '研发与验收' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: '研发交接摘要' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'CHG 研发与验收矩阵' })).not.toBeInTheDocument();
-    expect(localStorage.getItem(`prototype_handoff_${currentVersion}`)).toBe(saved);
+    expect(screen.queryByRole('button', { name: /编辑交接|版本归档|保存草稿/ })).not.toBeInTheDocument();
+    expect(localStorage.getItem('prototype_handoff_v0.8')).toBe('历史交接');
 });
-
-
-it('版本中心默认进入原型，旧对比链接不恢复已移除的预览', () => {
-    vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(Response.json(url.includes('handoffs') ? { syncedAt: null, versions: {} } : []))));
-    const first = renderWithProviders(<VersionsPage />, { route: '/rp/versions' });
-    expect(screen.getByRole('tab', { name: '原型与改动' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.queryByRole('button', { name: '概览' })).not.toBeInTheDocument();
-    first.unmount();
-    renderWithProviders(<VersionsPage />, { route: '/rp/versions?compare=1' });
-    expect(screen.getByRole('tab', { name: '原型与改动' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.queryByRole('heading', { name: '按页面对比' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '显示页面对比' })).not.toBeInTheDocument();
+it('进行中版本可新增并编辑评审，其他版本不混入记录', () => {
+    renderWithProviders(<VersionsPage />, { route: '/rp/versions?tab=review' });
+    fireEvent.change(screen.getByLabelText('记录人'), { target: { value: '产品' } });
+    fireEvent.change(screen.getByLabelText('评审意见'), { target: { value: '失败场景需保留金额' } });
+    fireEvent.click(screen.getByRole('button', { name: '保存评审备注' }));
+    expect(screen.getByText('失败场景需保留金额')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '编辑评审记录' }));
+    const fields = screen.getAllByLabelText('评审意见');
+    fireEvent.change(fields.at(-1)!, { target: { value: '已复核失败场景' } });
+    fireEvent.click(screen.getByRole('button', { name: '保存修改' }));
+    expect(screen.getByText('已复核失败场景')).toBeInTheDocument();
+    const saved = JSON.parse(localStorage.getItem(VERSION_STORAGE_KEY)!) as { notes: Record<string, unknown[]> };
+    expect(Object.keys(saved.notes)).toEqual(['v0.8']);
+    expect(saved.notes['v0.8']).toHaveLength(1);
 });
-
-it('旧流程演示参数回到原型目录，不展示流程内容', () => {
-    vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(Response.json(url.includes('handoffs') ? { syncedAt: null, versions: {} } : []))));
-    const first = renderWithProviders(<WorkflowPage />, { route: '/rp/versions' });
-    expect(screen.queryByRole('button', { name: '业务流程演示' })).not.toBeInTheDocument(); first.unmount();
-    renderWithProviders(<WorkflowPage />, { route: '/rp/versions?version=v0.2&tab=flow' });
-    expect(screen.queryByRole('button', { name: '业务流程演示' })).not.toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: '原型与改动' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.queryByTitle('业务流程步骤原型')).not.toBeInTheDocument();
+it('已完结版本评审只读，直接调用适配器也不能写入', () => {
+    localStorage.setItem(VERSION_STORAGE_KEY, JSON.stringify({ notes: { 'v0.2': [{ id: 'old', versionId: 'v0.2', pageId: '', author: '历史产品', text: '保留旧意见', date: '2026-11-23' }] } }));
+    renderWithProviders(<VersionsPage />, { route: '/rp/versions?version=v0.2&tab=review' });
+    expect(screen.getByText('保留旧意见')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '保存评审备注' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '编辑评审记录' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '导出 JSON' })).toBeEnabled();
+    expect(() => addReview('v0.2', { author: '测试', text: '篡改', pageId: '' })).toThrow(/进行中/);
+    expect(() => updateReview('v0.2', 'old', { author: '测试', text: '篡改', pageId: '' })).toThrow(/进行中/);
 });
-
-
-
-
-
-it('保留原型与评审两个入口，旧岗位偏好不改变默认页面', () => {
-    localStorage.setItem('prototype_role_view', 'engineering');
-    vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(Response.json(url.includes('handoffs') ? { syncedAt: null, versions: {} } : []))));
-    renderWithProviders(<WorkflowPage />);
-    expect(screen.getByRole('tab', { name: '原型与改动' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('tab', { name: '评审与结论' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '研发与验收' })).not.toBeInTheDocument();
-    expect(screen.getByRole('tablist').children).toHaveLength(2);
-    expect(screen.queryByRole('group', { name: '岗位视图' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: '按页面对比' })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '显示技术信息' }));
-    expect(screen.getByRole('button', { name: /CHG-003 ·/ })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: '研发交接摘要' })).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('研发负责人')).not.toBeInTheDocument();
-    expect(localStorage.getItem(`prototype_handoff_${currentVersion}`)).toBeNull();
-});
-
-it('旧偏好不影响具体改动链接与只读评审', () => {
-    localStorage.setItem('prototype_role_view', 'engineering');
-    vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(Response.json(url.includes('handoffs') ? { syncedAt: null, versions: {} } : []))));
-    renderWithProviders(<WorkflowPage />, { route: '/rp/versions?change=CHG-003&compare=1' });
-    expect(screen.getByRole('tab', { name: '原型与改动' })).toHaveAttribute('aria-selected', 'true');
-    fireEvent.click(screen.getByRole('button', { name: '显示技术信息' }));
-    expect(screen.getByRole('button', { name: /CHG-003 ·/ })).toHaveAttribute('aria-pressed', 'true');
-    fireEvent.click(screen.getByRole('tab', { name: '评审与结论' }));
-    expect(screen.queryByRole('button', { name: '申请定稿' })).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '查看主评审记录 ↗' })).toBeInTheDocument();
-});
-
-
-
-it('移除交接编辑与归档能力，旧归档链接回到目录并保留原始本机数据', () => {
-    const saved = JSON.stringify(handoffTransfer(blankHandoff(currentRelease)));
-    localStorage.setItem(`prototype_handoff_${currentVersion}`, saved);
-    vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(Response.json(url.includes('handoffs') ? { syncedAt: null, versions: {} } : []))));
-    renderWithProviders(<WorkflowPage />, { route: '/rp/versions?tab=archive&edit=1' });
-    expect(screen.getByRole('region', { name: '维护' })).toBeVisible();
-    expect(screen.getByRole('tab', { name: '原型与改动' })).toHaveAttribute('aria-selected', 'true');
-    for (const name of ['编辑交接', '版本归档', '生成提交内容', '保存草稿']) expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: '定版与归档' })).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('导入交接记录')).not.toBeInTheDocument();
-    expect(localStorage.getItem(`prototype_handoff_${currentVersion}`)).toBe(saved);
+it('拒绝不属于版本的页面和 CHG，存储损坏不覆盖原文', () => {
+    expect(() => addReview('v0.8', { author: '测试', text: '意见', pageId: 'unknown' })).toThrow(/页面/);
+    expect(() => addReview('v0.8', { author: '测试', text: '意见', pageId: 'mobile-orders', platform: 'mobile', changeId: 'CHG-003' })).toThrow(/匹配/);
+    localStorage.setItem(VERSION_STORAGE_KEY, '{bad');
+    expect(() => addReview('v0.8', { author: '测试', text: '意见', pageId: '' })).toThrow(/损坏/);
+    expect(localStorage.getItem(VERSION_STORAGE_KEY)).toBe('{bad');
 });

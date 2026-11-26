@@ -7,9 +7,8 @@ import { mobilePageChanges } from '../../prototype/model.mjs';
 import { mobilePages, resolveMobilePage } from '../../prototype/mobile-pages.mjs';
 import ExampleForm from './pages/ExampleForm.vue';
 import { runtimeBase, runtimeStorageId } from '../prototype/runtime';
-import catalog from '../../prototype/releases.json';
+import { sourceCatalog as catalog } from '../prototype/source-catalog';
 import { embedMode } from '../../prototype/embed.mjs';
-import { reviewLinks } from '../../prototype/review.mjs';
 import { money, parseRefund } from '../../prototype/refund.mjs';
 
 const embedded = embedMode(location.search) === 'page';
@@ -40,7 +39,7 @@ async function captureReview() {
         openReviewCapture({ version, baseline: release?.baseline, platform: 'mobile', pageId: currentPage.value?.id, page: `/mobile/${route.value}`, scenario: scenario.value, pageUrl: location.href, change: changes.value[0] });
     } catch { showToast('截图工具加载失败，请重试'); }
 }
-function linksFor(change) { return reviewLinks({ version, baseline: release?.baseline, change, platform: 'mobile', pageId: change?.pageId, page: `/mobile/${route.value}`, scenario: scenario.value, pageUrl: location.href }); }
+
 const change = computed(() => changes.value[0]);
 const selectedId = ref(new URLSearchParams(location.search).get('change'));
 const missingChange = computed(() => selectedId.value && !changes.value.some((item) => item.id === selectedId.value));
@@ -85,7 +84,7 @@ function submit() {
       <div class="order-card" role="link" tabindex="0" @click="go('/orders/demo-001')" @keydown.enter="go('/orders/demo-001')"><div class="card-top"><span>DEMO-20261123</span><van-tag type="primary">{{ remaining === 0 ? '已退款' : refunded ? '部分退款' : '已支付' }}</van-tag></div><h2>原型体验服务</h2><p>包含方案演示与交互体验</p><div class="card-bottom"><strong>¥128.00</strong><van-button size="small" round>查看详情</van-button></div></div>
     </template>
     <van-popup v-model:show="refundVisible" position="bottom" round closeable :style="{ padding: '24px 16px 32px' }"><h2>申请退款</h2><p class="muted">最多可退 ¥{{ money(remaining) }}</p><van-field v-model="amount" type="text" inputmode="decimal" label="退款金额" placeholder="输入本次退款金额" :error-message="error" /><p><button v-if="!embedded" class="change-link" @click="reviewVisible = true">{{ change?.id }} · 查看规则</button></p><van-button block type="primary" round @click="submit">确认模拟退款</van-button></van-popup>
-    <van-popup v-model:show="reviewVisible" position="right" :style="{ width: '90%', height: '100%' }" closeable><div class="review-content"><h2>本页改动</h2><p class="review-issue-links"><a :href="linksFor().thread || linksFor().create" target="_blank" rel="noreferrer">版本评审 Discussion ↗</a></p><p v-if="missingChange" role="alert">本页没有改动 {{ selectedId }}，请检查分享链接。</p><p v-if="versionMismatch && versionMismatch !== version">请先打开对应历史版本。</p><template v-else><article v-for="change in changes" :key="change.id"><span class="change-link">{{ change.id }}</span><h3>{{ change.title }}</h3><h4>原来</h4><p>{{ change.before }}</p><h4>现在</h4><p>{{ change.after }}</p><h4>业务规则</h4><ul><li v-for="rule in change.rules" :key="rule">{{ rule }}</li></ul><h4>异常处理</h4><p>{{ change.exceptions }}</p><h4>验收标准</h4><ul><li v-for="item in change.acceptance" :key="item">{{ item }}</li></ul><p class="review-issue-links"><a :href="linksFor(change).thread || linksFor(change).create" target="_blank" rel="noreferrer">版本评审 Discussion ↗</a><a :href="linksFor(change).history" target="_blank" rel="noreferrer">查找评审记录 ↗</a></p></article><p v-if="!changes.length">本页没有登记改动。</p></template></div></van-popup>
+    <van-popup v-model:show="reviewVisible" position="right" :style="{ width: '90%', height: '100%' }" closeable><div class="review-content"><h2>本页改动</h2><p class="review-issue-links"><button @click="reviewNotes">本机评审备注</button><a :href="backToVersion + '?tab=review'" target="_top">查看版本评审与导出</a></p><p v-if="missingChange" role="alert">本页没有改动 {{ selectedId }}，请检查分享链接。</p><p v-if="versionMismatch && versionMismatch !== version">请先打开对应历史版本。</p><template v-else><article v-for="change in changes" :key="change.id"><span class="change-link">{{ change.id }}</span><h3>{{ change.title }}</h3><h4>原来</h4><p>{{ change.before }}</p><h4>现在</h4><p>{{ change.after }}</p><h4>业务规则</h4><ul><li v-for="rule in change.rules" :key="rule">{{ rule }}</li></ul><h4>异常处理</h4><p>{{ change.exceptions }}</p><h4>验收标准</h4><ul><li v-for="item in change.acceptance" :key="item">{{ item }}</li></ul><p class="review-issue-links"><button @click="reviewNotes">本机评审备注</button><a :href="backToVersion + '?tab=review'" target="_top">查看版本评审与导出</a></p></article><p v-if="!changes.length">本页没有登记改动。</p></template></div></van-popup>
     </template>
   </div>
 </template>

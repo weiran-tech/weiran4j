@@ -26,15 +26,13 @@ it('切版本改路径并保留完整范围', () => {
     expect(assign).toHaveBeenCalledWith('/versions/v0.2/rp/versions?scope=all');
 });
 
-it('编辑已登记版本时切换路径，本机草稿不伪造发布入口', () => {
-    localStorage.clear();
-    const assign = stubLocationAssign();
-    renderWithProviders(<VersionEditorPage />, { route: '/rp/editor' });
-    fireEvent.change(screen.getByLabelText('编辑版本'), { target: { value: 'v0.2' } });
-    expect(assign).toHaveBeenCalledWith('/versions/v0.2/rp/editor');
-    fireEvent.click(screen.getByRole('button', { name: '新建版本' }));
-    expect(screen.getByText(/正在编辑尚未发布的本机草稿/)).toBeInTheDocument();
-    expect(assign).toHaveBeenCalledTimes(1);
+it('旧编辑链接进入指南，已有草稿保持原样', () => {
+    const saved = JSON.stringify({ selected: 'v0.9' });
+    localStorage.setItem('prototype_editor_draft_v2', saved);
+    function LocationProbe() { const location = useLocation(); return <output aria-label="地址">{location.pathname}</output>; }
+    renderWithProviders(<><VersionEditorPage /><LocationProbe /></>, { route: '/rp/editor?create=1' });
+    expect(screen.getByLabelText('地址')).toHaveTextContent('/help/versions');
+    expect(localStorage.getItem('prototype_editor_draft_v2')).toBe(saved);
 });
 
 it('版本应用中的指南和首页离开版本 basename，业务导航仍在当前应用', () => {

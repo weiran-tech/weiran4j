@@ -1,0 +1,29 @@
+{
+  "pageId": "prototype-workflow",
+  "changes": [
+    {
+      "id": "CHG-001",
+      "type": "add",
+      "title": "产品与研发交接工作台",
+      "platform": "manage",
+      "pageTitle": "交接工作台",
+      "previousPage": null,
+      "nextPage": "/prototype/workflow",
+      "page": "/prototype/workflow",
+      "location": "原型协作 → 交接工作台",
+      "before": "评审、研发任务、测试环境和验收结果只能在文档中人工拼接。",
+      "after": "在工作台填写角色、固定候选、CHG 交付矩阵和逐条验收，复制到 GitHub 主 Issue。",
+      "rules": [
+        "本机编辑明确标注未提交，GitHub 同步记录显示更新时间。",
+        "评审采用固定候选及业务指纹，产品与技术分别以本人 GitHub 评论确认。",
+        "研发 PR 使用 Refs 关联任务，验收通过后关闭。"
+      ],
+      "exceptions": "缺少候选、负责人、访问地址、批准或未处理阻塞问题时禁止定稿。",
+      "acceptance": [
+        "每个 CHG 对应任务、负责人及研发去向。",
+        "已验收必须具备测试环境、构建号和逐项通过证据。",
+        "同步记录和本机草稿可明确区分。"
+      ]
+    }
+  ]
+}

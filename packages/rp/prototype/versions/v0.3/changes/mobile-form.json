@@ -1,0 +1,28 @@
+{
+  "pageId": "mobile-form",
+  "changes": [
+    {
+      "id": "CHG-006",
+      "type": "add",
+      "title": "手机端表单示例",
+      "platform": "mobile",
+      "pageTitle": "手机表单示例",
+      "page": "/mobile/#/form",
+      "previousPage": null,
+      "nextPage": "/mobile/#/form",
+      "location": "手机表单示例",
+      "before": "手机模板缺少可复用的独立表单页面。",
+      "after": "提供联系方式表单、必填校验与提交失败场景。",
+      "rules": [
+        "表单仅用于本机演示，不提交真实个人资料。",
+        "必填项校验通过才模拟提交，失败保留输入。"
+      ],
+      "exceptions": "导入或链接无效时显示具体原因，保留现有说明与输入。",
+      "acceptance": [
+        "通过导航打开表单示例。",
+        "空输入不能提交。",
+        "失败后保留输入，正常场景可重试。"
+      ]
+    }
+  ]
+}

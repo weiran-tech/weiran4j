@@ -1,0 +1,10 @@
+{
+  "id": "v0.2",
+  "title": "版本化原型工作台",
+  "status": "completed",
+  "baseline": "v0.1",
+  "date": "2026-11-23",
+  "sourceCommit": null,
+  "goal": "让产品逐项说明版本改动，让开发从说明进入原型，并提供可独立体验的手机端示例。",
+  "legacyStatus": "finalized"
+}

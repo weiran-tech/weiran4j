@@ -1,0 +1,28 @@
+{
+  "pageId": "mobile-order-detail",
+  "changes": [
+    {
+      "id": "CHG-005",
+      "type": "modify",
+      "title": "手机订单详情与退款规则",
+      "platform": "mobile",
+      "pageTitle": "手机订单详情",
+      "page": "/mobile/#/orders/demo-001",
+      "previousPage": "/mobile/#/orders/demo-001",
+      "nextPage": "/mobile/#/orders/demo-001",
+      "location": "手机订单详情",
+      "before": "订单详情与列表共用一条手机改动说明。",
+      "after": "为订单详情单独登记交互规则与验收，并支持场景直达。",
+      "rules": [
+        "金额大于零且不超过剩余可退金额，最多两位小数。",
+        "失败保留输入，成功更新余额。"
+      ],
+      "exceptions": "导入或链接无效时显示具体原因，保留现有说明与输入。",
+      "acceptance": [
+        "CHG-005 定位详情说明。",
+        "失败场景不扣减余额。",
+        "可重置演示状态。"
+      ]
+    }
+  ]
+}

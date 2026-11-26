@@ -1,0 +1,71 @@
+{
+  "pageId": "prototype-versions",
+  "changes": [
+    {
+      "id": "CHG-013",
+      "type": "modify",
+      "title": "源码维护版本与本机评审",
+      "platform": "manage",
+      "pageTitle": "版本中心",
+      "previousPage": "/rp/versions",
+      "nextPage": "/rp/versions",
+      "page": "/rp/versions",
+      "location": "版本清单与版本详情",
+      "before": "网页编辑版本元信息，评审依赖 GitHub 与候选定稿流程。",
+      "after": "版本通过 AI 修改源码；唯一进行中版本允许页面修改和本机评审，已完结版本只读。评审可关联端、页面和 CHG，附截图并导出 HTML / JSON。",
+      "rules": [
+        "版本来源为源码，网页不创建或编辑版本。",
+        "完成状态不代表历史 GitHub 评审批准；历史记录与固定快照保持。",
+        "历史业务页面只打开对应固定快照，不回退当前实现。"
+      ],
+      "exceptions": "无进行中版本时禁止修改页面实现；已完结版本拒绝写入评审。",
+      "acceptance": [
+        "旧版本编辑地址转入维护指南。",
+        "已完结版本只能查看及导出评审。",
+        "评审按版本隔离，并校验页面和 CHG 归属。"
+      ],
+      "files": [
+        "src/App.tsx",
+        "src/prototype/*",
+        "src/mocks/prototype.ts",
+        "src/pages/prototype/Version*",
+        "src/pages/prototype/WorkflowPage.tsx",
+        "src/pages/help/content/*",
+        "src/pages/dashboard/DashboardPage.tsx"
+      ]
+    },
+    {
+      "id": "CHG-015",
+      "type": "modify",
+      "title": "版本 JSON 按版本与页面拆分",
+      "platform": "manage",
+      "pageTitle": "版本中心",
+      "previousPage": "/rp/versions",
+      "nextPage": "/rp/versions",
+      "page": "/rp/versions",
+      "location": "版本清单与版本详情",
+      "before": "所有版本元信息与 CHG 集中保存在 releases.json。",
+      "after": "releases.json 只保留 current 和 activeVersion；版本元信息位于 versions/<版本>/version.json；页面 CHG 放在 changes/<pageId>.json，组内继承稳定页面编号。",
+      "rules": [
+        "浏览器和 Node 工具通过统一读取层组装版本。",
+        "文件名、页面分组和版本目录必须匹配。",
+        "拆分前后历史版本语义保持一致，Git 历史校验兼容旧结构。"
+      ],
+      "exceptions": "无进行中版本时禁止修改页面实现；已完结版本拒绝写入评审。",
+      "acceptance": [
+        "管理端和手机端继续读到相同版本与页面说明。",
+        "构建、版本校验及历史冻结检查支持拆分结构。",
+        "无效目录、重复 pageId 和缺少元信息的分组被拒绝。"
+      ],
+      "files": [
+        "src/App.tsx",
+        "src/prototype/*",
+        "src/mocks/prototype.ts",
+        "src/pages/prototype/Version*",
+        "src/pages/prototype/WorkflowPage.tsx",
+        "src/pages/help/content/*",
+        "src/pages/dashboard/DashboardPage.tsx"
+      ]
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { completeProduct, validateCatalog } from './model.mjs';
-import catalog from './releases.json' with { type: 'json' };
+import catalog from './history/releases-before-source-workflow.json' with { type: 'json' };
 import baselines from './page-baselines.json' with { type: 'json' };
 const change = (id, type, before, after) => ({ id: `CHG-${id}`, type, platform: 'manage', pageId: id, pageTitle: id, page: after || before, previousPage: before, nextPage: after });
 test('完整清单继承未改动页面，覆盖修改、增加新增并排除删除，不污染基线', () => {

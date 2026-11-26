@@ -11,8 +11,8 @@
     "build": "pnpm version:check && pnpm build:web",
     "build:site": "pnpm build && node scripts/build-version.mjs && node scripts/assemble-site.mjs",
     "build:web": "tsc -b && vue-tsc --noEmit -p tsconfig.mobile.json && vite build",
-    "test": "pnpm test:tooling && vitest run",
-    "lint": "eslint src && vue-tsc --noEmit -p tsconfig.mobile.json",
+    "test": "pnpm version:check && pnpm test:tooling && vitest run",
+    "lint": "pnpm version:check && eslint src && vue-tsc --noEmit -p tsconfig.mobile.json",
     "version:work": "node scripts/version-work.mjs",
     "version:new": "node scripts/new-version.mjs",
     "version:check": "node scripts/check-versions.mjs",
@@ -29,7 +29,8 @@
     "handoff:prepare": "node scripts/handoff-exchange.mjs prepare",
     "test:watch": "vitest",
     "lint:fix": "eslint src --fix",
-    "preview": "vite preview --port 5208 --strictPort"
+    "preview": "vite preview --port 5208 --strictPort",
+    "check:versions": "pnpm version:check"
   },
   "devDependencies": {
     "vite": "^8.3.5",

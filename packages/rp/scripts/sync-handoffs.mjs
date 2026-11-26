@@ -1,3 +1,4 @@
+import { readManifest } from './load-prototype.mjs';
 import { readReview, reviewComments } from './discussion-api.mjs';
 import { reviewReference } from '../prototype/review-source.mjs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -5,7 +6,7 @@ import { repository, versionReviews, versionDiscussions } from '../prototype/pro
 import { parseHandoff, normalizeHandoff, handoffErrors, approvalErrors, signedConfirmations, deliveryApprovalErrors, participantErrors, blockerDecision } from '../prototype/handoff.mjs';
 import { allPages } from './github-api.mjs';
 import { reviewBlockers } from './review-blockers.mjs';
-const catalog = JSON.parse(await readFile('prototype/releases.json', 'utf8'));
+const catalog = readManifest(process.cwd(), { allowLegacy: true });
 const policy = JSON.parse(await readFile('prototype/review-policy.json', 'utf8'));
 const versions = {};
 const reviewIssues = await allPages(`repos/${repository}/issues?state=all`);

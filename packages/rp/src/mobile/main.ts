@@ -1,5 +1,5 @@
 import { workErrors } from '../../prototype/version-work.mjs';
-import catalog from '../../prototype/releases.json';
+import { sourceCatalog as catalog } from '../prototype/source-catalog';
 import resolutions from '../../prototype/conflict-resolutions.json';
 import { runtimeBase, runtimeVersion } from '../prototype/runtime';
 import { portalEntryPath, versionEntryPath } from '../../prototype/routes.mjs';

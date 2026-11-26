@@ -1,10 +1,11 @@
+import { readManifest } from './load-prototype.mjs';
 import { execFileSync } from 'node:child_process';
 import { access, cp, mkdir, readFile } from 'node:fs/promises';
 import { reviewFingerprint } from './review-fingerprint.mjs';
 import { releaseGate } from './check-release-gate.mjs';
 import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
-const catalog = JSON.parse(await readFile(new URL('../prototype/releases.json', import.meta.url), 'utf8'));
+const catalog = readManifest();
 const candidate = process.argv.includes('--candidate');
 const version = process.argv.slice(2).find((value) => value !== '--' && value !== '--candidate') || catalog.current;
 const release = catalog.releases.find((item) => item.id === version);

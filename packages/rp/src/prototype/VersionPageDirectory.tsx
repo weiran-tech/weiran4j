@@ -10,11 +10,11 @@ import { useSnapshots } from './useSnapshots';
 
 /** 目录来自所选版本的页面登记；历史页面地址只交给对应快照解析。 */
 export function VersionPageDirectory({ release, platform, full = false, browse = false, technical = false, embedded = false, scopeControls, filters }: { release: Release; platform?: 'manage' | 'mobile'; full?: boolean; browse?: boolean; technical?: boolean; embedded?: boolean; scopeControls?: ReactNode; filters?: ReactNode }) {
-    const [notesPage, setNotesPage] = useState<string | null>(null);
     const snapshots = useSnapshots();
     const { data: menus = [] } = useMyMenus();
     const location = useLocation();
     const context = new URLSearchParams(location.search);
+    const [notesPage, setNotesPage] = useState<string | null>(() => pageDiffs(release).find(page => page.changes.some(change => change.id === context.get('change')))?.key ?? null);
     const scenario = context.get('scenario') || 'normal';
     const entries = flattenMenuPages(menus);
     const complete = full || context.get('scope') === 'all';

@@ -35,7 +35,7 @@ test('框选编号与意见保存后可重开；其他版本记录不混入当�
     fireEvent.input(screen.getByLabelText('标注 1 的意见'), { target: { value: '退款失败应保留输入' } });
     fireEvent.input(screen.getByLabelText('整体评审意见'), { target: { value: '需要复核' } });
     fireEvent.click(screen.getByRole('button', { name: '保存本机记录' }));
-    expect(screen.getByRole('status')).toHaveTextContent('尚未提交评审 Discussion');
+    expect(screen.getByRole('status')).toHaveTextContent('已保存到本浏览器');
     fireEvent.click(screen.getByRole('button', { name: '关闭' }));
     openReviewCapture({ ...context, version: 'v0.7' });
     expect(screen.getByText('本浏览器尚无此版本的截图记录。')).toBeInTheDocument();

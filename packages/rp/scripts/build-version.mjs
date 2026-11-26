@@ -1,7 +1,8 @@
 /** 同一源码构建当前版本的独立产物；根站保留为版本目录入口。 */
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import catalog from '../prototype/releases.json' with { type: 'json' };
+import { readManifest } from './load-prototype.mjs';
+const catalog = readManifest();
 import { versionBase } from '../prototype/routes.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
 execFileSync('pnpm', ['exec', 'vite', 'build', '--outDir', '.prototype-data/current-version', '--emptyOutDir'], {

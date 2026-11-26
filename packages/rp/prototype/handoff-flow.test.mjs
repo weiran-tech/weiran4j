@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import catalog from './releases.json' with { type: 'json' };
+import catalog from './history/releases-before-source-workflow.json' with { type: 'json' };
 import { blankHandoff, normalizeHandoff, handoffErrors, updateDelivery, acceptanceCommand, deliveryCommand, signedConfirmations, deliveryApprovalErrors, blockerDecision, approvalErrors, approvalCommand } from './handoff.mjs';
 import { mergeHandoff } from './handoff-transfer.mjs';
 const release = { ...structuredClone(catalog.releases[0]), status: 'finalized' };

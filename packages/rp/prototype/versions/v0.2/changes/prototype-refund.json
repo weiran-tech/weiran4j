@@ -1,0 +1,29 @@
+{
+  "pageId": "prototype-refund",
+  "changes": [
+    {
+      "id": "CHG-002",
+      "type": "add",
+      "title": "退款交互与改动标记示例",
+      "platform": "manage",
+      "page": "/prototype/refund",
+      "location": "退款示例 → 申请退款",
+      "before": "原型交接没有统一的字段规则、异常处理与验收说明。",
+      "after": "提供可交互的部分退款示例，在金额字段旁关联改动说明。",
+      "rules": [
+        "退款金额必须大于 0，最多两位小数，不能超过剩余可退金额。",
+        "失败时保留输入，允许重试；成功后更新累计退款金额。"
+      ],
+      "exceptions": "可切换空数据、退款失败场景；失败场景不扣减余额。",
+      "acceptance": [
+        "非法金额不能提交。",
+        "失败后金额输入保持不变。",
+        "重置场景恢复初始状态。",
+        "金额旁的 CHG-002 可打开本页改动。"
+      ],
+      "pageTitle": "退款交互示例",
+      "previousPage": null,
+      "nextPage": "/prototype/refund"
+    }
+  ]
+}

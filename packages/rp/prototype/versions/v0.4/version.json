@@ -1,0 +1,11 @@
+{
+  "id": "v0.4",
+  "title": "双端完整原型、纯页面对比与 GitHub 评审",
+  "status": "completed",
+  "baseline": "v0.2",
+  "date": "2026-11-23",
+  "sourceCommit": null,
+  "goal": "管理端 Semi 与手机端 Vant 保留完整产品；按页面对比历史版本，用 GitHub Issue 承接评审、修改和复核。",
+  "supersededBy": "v0.6",
+  "legacyStatus": "review"
+}

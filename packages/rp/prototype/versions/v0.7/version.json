@@ -1,0 +1,11 @@
+{
+  "id": "v0.7",
+  "title": "四阶段协作与统一版本详情",
+  "status": "completed",
+  "baseline": "v0.2",
+  "date": "2026-11-23",
+  "sourceCommit": null,
+  "goal": "产品完成原型，团队形成明确评审结论，研发按定稿版本实施，产品按条件验收；日常四阶段，业务发布独立记录。",
+  "supersededBy": "v0.8",
+  "legacyStatus": "review"
+}

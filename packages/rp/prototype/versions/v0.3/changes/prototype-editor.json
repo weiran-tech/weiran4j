@@ -1,0 +1,29 @@
+{
+  "pageId": "prototype-editor",
+  "changes": [
+    {
+      "id": "CHG-001",
+      "type": "add",
+      "title": "表单填写与导入导出",
+      "platform": "manage",
+      "pageTitle": "填写版本说明",
+      "page": "/prototype/editor",
+      "previousPage": null,
+      "nextPage": "/prototype/editor",
+      "location": "填写版本说明",
+      "before": "产品需要直接编辑 JSON 文件。",
+      "after": "提供版本与改动表单、本机草稿、检查与导入导出。",
+      "rules": [
+        "本机保存不表示已与团队共享，导出后提交仓库。",
+        "已定稿条目只读，导入不能覆盖。",
+        "每条改动明确填写前后页面地址。"
+      ],
+      "exceptions": "导入或链接无效时显示具体原因，保留现有说明与输入。",
+      "acceptance": [
+        "空字段、重复编号、无效地址不能通过检查。",
+        "新建、刷新、导入导出后内容保持一致。",
+        "已定稿版本不能被导入文件修改。"
+      ]
+    }
+  ]
+}

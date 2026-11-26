@@ -1,3 +1,4 @@
+import { readManifest } from './load-prototype.mjs';
 import { readReview, reviewComments } from './discussion-api.mjs';
 import { reviewReference } from '../prototype/review-source.mjs';
 import { readFile } from 'node:fs/promises';
@@ -27,7 +28,7 @@ export async function releaseGate(release) {
     console.log(`定稿门禁通过：${release.id}，候选 ${candidate.version}，主评审记录 #${number}`);
 }
 if (process.argv[1]?.endsWith('check-release-gate.mjs')) {
-    const catalog = JSON.parse(await readFile('prototype/releases.json', 'utf8'));
+    const catalog = readManifest(process.cwd(), { allowLegacy: true });
     const release = catalog.releases.find((item) => item.id === catalog.current);
     if (release.status !== 'finalized') console.log('当前版本未定稿；正式发布将执行在线评审门禁。');
     else await releaseGate(release);

@@ -107,7 +107,7 @@ it('未登录可访问主入口、帮助文章和旧帮助链接', async () => {
     expect(screen.queryByRole('button', { name: '登录' })).not.toBeInTheDocument();
     first.unmount();
     renderWithProviders(<App />, { route: '/rp/help/product?version=v0.8' });
-    expect(await screen.findByRole('heading', { name: '用 AI 完成一次原型调整' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '使用 AI 制作与演示原型' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '登录' })).not.toBeInTheDocument();
 });
 
@@ -130,7 +130,7 @@ it('旧原型演示地址合并到版本详情，保留版本、范围与端', a
     expect(await screen.findByRole('heading', { name: /v0.7 · 四阶段协作/ })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: '原型演示', level: 1 })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '完整产品' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: '手机端' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByLabelText('选择端')).toHaveValue('mobile');
     expect(screen.getByRole('tab', { name: '原型与改动' })).toHaveAttribute('aria-selected', 'true');
 });
 

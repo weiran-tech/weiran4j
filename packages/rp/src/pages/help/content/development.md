@@ -1,5 +1,6 @@
 # 本地开发与 Mock
 
+> 当前版本由 AI 维护源码，网页仅记录本机评审，见[版本管理](./versions.md)。下文涉及旧 Discussion、候选、交接和批准的步骤仅作历史兼容参考，不是当前网页操作流程。
 本项目是独立的 pnpm 工作区，仅包含管理端 React + Semi 及同工程内的手机端 Vue + Vant，没有业务后端或数据库。全部命令在本仓库根目录执行。
 
 ## 启动和检查
@@ -30,7 +31,9 @@ pnpm check:site
 | `src/mocks/seed.ts` | 动态菜单和种子，component 相对 pages、不含扩展名 |
 | `src/mocks/transport.ts` | 浏览器数据适配器；新增契约同时补 Mock，未知操作返回明确错误 |
 | `src/mobile/` | Vant 手机端原型 |
-| `prototype/releases.json` | 本版目标、页面身份、改动、规则和验收条件 |
+| `prototype/releases.json` | current、activeVersion 指针 |
+| `prototype/versions/<版本>/version.json` | 本版目标、状态、基线等元信息 |
+| `prototype/versions/<版本>/changes/<pageId>.json` | 按页面分组的 CHG、规则和验收条件 |
 | `src/pages/help/content/` | 使用指南 Markdown，与管理端一起发布 |
 
 新增功能应同步页面、说明及菜单；修改共享版本规则时检查双端行为。新增菜单优先做兼容迁移，保留旧 ID、自定义内容和演示数据。

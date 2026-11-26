@@ -1,0 +1,10 @@
+{
+  "id": "v0.1",
+  "title": "现有管理端基线",
+  "status": "completed",
+  "baseline": null,
+  "date": "2026-11-23",
+  "sourceCommit": "ff8e375",
+  "goal": "记录引入原型工作台之前的代码基线。此记录只有源码提交，尚未发布历史快照。",
+  "legacyStatus": "baseline"
+}

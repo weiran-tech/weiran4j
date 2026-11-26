@@ -1,0 +1,33 @@
+{
+  "pageId": "prototype-refund",
+  "changes": [
+    {
+      "id": "CHG-003",
+      "type": "modify",
+      "title": "退款示例更名与场景分享",
+      "platform": "manage",
+      "pageTitle": "退款交互示例",
+      "page": "/manage/refund-demo",
+      "previousPage": "/prototype/refund",
+      "nextPage": "/manage/refund-demo",
+      "location": "退款交互示例",
+      "before": "退款示例使用旧路径，分享链接不记录场景。",
+      "after": "新路径使用 refund-demo，旧入口保留兼容，支持分享当前演示场景。 支持手动截取网页或选择已有截图，弹出框选标注、编号意见、本机记录和标注 PDF 导出。",
+      "rules": [
+        "页面编号保持 prototype-refund 不变。",
+        "按前后不同路径加载对应原型。",
+        "退款金额校验和失败保留输入规则不变。",
+        "评审意见通过 GitHub Issue 记录版本、页面、场景和处理结论。",
+        "截图可手动触发或选择已有图片，均不调用系统截屏；记录关联页面地址、版本、基线、端、CHG 与场景，本机截图不自动提交 Discussion 或批准。"
+      ],
+      "exceptions": "导入或链接无效时显示具体原因，保留现有说明与输入。",
+      "acceptance": [
+        "新旧路径都能访问。",
+        "分别打开 v0.2 归档与本版原型时，各自使用对应路径。",
+        "失败场景链接打开后可复现失败。",
+        "从页面改动说明进入 GitHub，创建或查找带版本及改动编号的评审记录。",
+        "可框选并填写中文意见，保存后重开编辑，PDF 包含上下文、编号意见与标注图；截图或保存失败显示原因。"
+      ]
+    }
+  ]
+}

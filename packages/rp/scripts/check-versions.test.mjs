@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import catalog from '../prototype/releases.json' with { type: 'json' };
+import catalog from '../prototype/history/releases-before-source-workflow.json' with { type: 'json' };
 import { immutableErrors, validateCatalog } from './check-versions.mjs';
 test('共享说明完整、链接有效、基线没有循环', () => assert.deepEqual(validateCatalog(catalog), []));
 test('缺少验收、重复编号、越站路径和循环基线被拒绝', () => {

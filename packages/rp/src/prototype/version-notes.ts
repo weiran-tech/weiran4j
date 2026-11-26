@@ -1,3 +1,4 @@
+import { releases } from './catalog';
 import type { ReviewContext } from '../../prototype/review.mjs';
 import './review-capture.css';
 export type NotebookPage = { platform: string; pageId: string; title: string; path: string; introduction?: string; remark?: string };
@@ -18,9 +19,11 @@ export function readVersionNotes(version: string): VersionNote[] {
 
 }
 export function saveVersionNote(note: VersionNote) {
+    if (releases.find(item => item.id === note.version)?.status !== 'in_progress') throw new Error('已完结或未知版本不可新增和编辑评审');
     if (!note.version || !validImage(note.image)) throw new Error('版本或图片格式无效');
     const notes = readVersionNotes(note.version).filter((old) => old.id !== note.id && !(note.kind === 'introduction' && old.kind === 'introduction' && old.platform === note.platform && old.pageId === note.pageId));
     localStorage.setItem(key(note.version), JSON.stringify([...notes, note]));
+    window.dispatchEvent(new Event('weiran-prototype-reviews'));
 }
 const escape = (value: string) => value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]!);
 function notebookPages(context: NotebookContext): NotebookPage[] {
@@ -48,6 +51,7 @@ export function openVersionNotebook(context: NotebookContext) {
     if (opened) return;
     if (!context.version) throw new Error('必须先选择工作版本');
     opened = true;
+    const writable = releases.find(item => item.id === context.version)?.status === 'in_progress';
     const opener = document.activeElement;
     const make = <K extends keyof HTMLElementTagNameMap>(tag: K, text = '') => { const node = document.createElement(tag); node.textContent = text; return node; };
     const dialog = make('dialog'); dialog.className = 'review-capture'; dialog.setAttribute('aria-label', '版本介绍与评审备注'); dialog.setAttribute('data-html2canvas-ignore', 'true');
@@ -83,12 +87,15 @@ export function openVersionNotebook(context: NotebookContext) {
     const save = make('button', '保存本机备注'); save.onclick = () => {
         if (readingImage) { status.textContent = '请等待图片读取完成'; return; }
         if (!introduction.value.trim() && !remark.value.trim() && !image) { status.textContent = '请填写介绍、备注或添加图片'; return; }
-        try { const selected = pages[Number(page.value)]!; saveVersionNote({ id: editingId || crypto.randomUUID(), version: context.version, platform: selected.platform, pageId: selected.pageId, title: selected.title, page: selected.path, kind: kind.value as VersionNote['kind'], introduction: introduction.value, remark: remark.value, image, createdAt: new Date().toISOString() }); dirty = false; if (kind.value === 'review') { introduction.value = ''; remark.value = ''; image = ''; preview.hidden = true; editingId = ''; } renderHistory(); status.textContent = '已保存到本浏览器，尚未提交 GitHub'; } catch (error) { status.textContent = `保存失败，内容仍在窗口中：${String(error)}`; }
+        try { const selected = pages[Number(page.value)]!; saveVersionNote({ id: editingId || crypto.randomUUID(), version: context.version, platform: selected.platform, pageId: selected.pageId, title: selected.title, page: selected.path, kind: kind.value as VersionNote['kind'], introduction: introduction.value, remark: remark.value, image, createdAt: new Date().toISOString() }); dirty = false; if (kind.value === 'review') { introduction.value = ''; remark.value = ''; image = ''; preview.hidden = true; editingId = ''; } renderHistory(); status.textContent = '已保存到本浏览器，仅保存在本浏览器'; } catch (error) { status.textContent = `保存失败，内容仍在窗口中：${String(error)}`; }
     };
+    save.disabled = !writable; imageClear.disabled = !writable;
+    for (const control of [kind, page, introduction, remark, file]) control.disabled = !writable;
+    if (!writable) hint.textContent = '本版本已完结，已有本机备注只读，可查看和导出。';
     const actions = make('div'); actions.className = 'review-capture-actions'; actions.append(save, imageClear);
     for (const [format, text] of [['html', '按版本导出 HTML（图片 / 可打印 PDF）'], ['json', '按版本导出 JSON']] as const) { const button = make('button', text); button.onclick = () => { try { if (dirty) { status.textContent = '请先保存当前备注再导出'; return; } exportVersionNotes(context, format); status.textContent = '已导出当前版本的双端介绍和本机评审记录'; } catch (error) { status.textContent = String(error); } }; actions.append(button); }
     const history = make('div'); history.setAttribute('aria-label', '本版本已保存备注');
-    function renderHistory() { history.replaceChildren(make('h3', '本版本已保存备注')); try { for (const note of readVersionNotes(context.version)) { const row = make('article'); row.append(make('strong', `${note.platform === 'mobile' ? '手机端' : 'PC端'} · ${note.title} · ${note.kind === 'review' ? '评审' : '介绍'}`), make('p', note.introduction), make('p', note.remark)); if (note.image) { const img = make('img'); img.src = note.image; img.alt = '已保存评审图片'; img.style.maxWidth = '100%'; row.append(img); } const remove = make('button', '删除此备注'); remove.onclick = () => { if (!window.confirm('删除此版本的这条本机备注？')) return; try { localStorage.setItem(key(context.version), JSON.stringify(readVersionNotes(context.version).filter((item) => item.id !== note.id))); renderHistory(); } catch (error) { status.textContent = String(error); } }; row.append(remove); history.append(row); } } catch (error) { status.textContent = String(error); } }
+    function renderHistory() { history.replaceChildren(make('h3', '本版本已保存备注')); try { for (const note of readVersionNotes(context.version)) { const row = make('article'); row.append(make('strong', `${note.platform === 'mobile' ? '手机端' : 'PC端'} · ${note.title} · ${note.kind === 'review' ? '评审' : '介绍'}`), make('p', note.introduction), make('p', note.remark)); if (note.image) { const img = make('img'); img.src = note.image; img.alt = '已保存评审图片'; img.style.maxWidth = '100%'; row.append(img); } const remove = make('button', '删除此备注'); remove.onclick = () => { if (!window.confirm('删除此版本的这条本机备注？')) return; try { localStorage.setItem(key(context.version), JSON.stringify(readVersionNotes(context.version).filter((item) => item.id !== note.id))); renderHistory(); } catch (error) { status.textContent = String(error); } }; if (writable) row.append(remove); history.append(row); } } catch (error) { status.textContent = String(error); } }
     const cleanup = () => { dialog.remove(); opened = false; if (opener instanceof HTMLElement) opener.focus(); };
     close.onclick = () => { if (guard()) cleanup(); }; dialog.addEventListener('cancel', (event) => { event.preventDefault(); if (guard()) cleanup(); });
     dialog.append(header, hint, kind, page, introduction, remark, file, preview, actions, status, history); document.body.append(dialog); fill(); renderHistory(); dialog.showModal(); remark.focus();

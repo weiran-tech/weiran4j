@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import catalog from './releases.json' with { type: 'json' };
+import catalog from './history/releases-before-source-workflow.json' with { type: 'json' };
 import { baselinePagePath, pageDiffs, previewTarget, contextPath, parseCatalog, validateCatalog, mobilePageChanges, immutableErrors } from './model.mjs';
 import { resolveMobilePage } from './mobile-pages.mjs';
 const current = catalog.releases.find((item) => item.id === catalog.current);

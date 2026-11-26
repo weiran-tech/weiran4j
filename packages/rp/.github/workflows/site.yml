@@ -1,17 +1,6 @@
 name: Refresh prototype site
 on:
   workflow_dispatch:
-  issues:
-    types: [edited, closed, reopened, assigned, unassigned, labeled, unlabeled]
-  discussion:
-    types: [created, edited, deleted, answered, unanswered, closed, reopened]
-  discussion_comment:
-    types: [created, edited, deleted]
-  issue_comment:
-    types: [created, edited, deleted]
-  workflow_run:
-    workflows: [Freeze prototype version]
-    types: [completed]
 permissions:
   issues: read
   discussions: read
@@ -21,7 +10,6 @@ concurrency:
   cancel-in-progress: false
 jobs:
   assemble:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       # 从默认分支构建当前站点，归档仅取已发布的附件；不运行上游 artifact 中的代码。
@@ -38,9 +26,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: node scripts/restore-snapshots.mjs
-        env:
-          GH_TOKEN: ${{ github.token }}
-      - run: pnpm handoff:sync
         env:
           GH_TOKEN: ${{ github.token }}
       - run: pnpm build:site && pnpm check:site

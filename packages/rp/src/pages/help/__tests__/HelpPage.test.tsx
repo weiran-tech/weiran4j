@@ -8,9 +8,8 @@ import { helpLink, legacyHelpDoc } from '@/prototype/help';
 function Location() { const location = useLocation(); return <output aria-label="当前地址">{location.pathname}{location.search}{location.hash}</output>; }
 it('旧参数转为全局子路径，按岗位阅读表格和命令', () => {
     renderWithProviders(<><HelpPage /><Location /></>, { route: '/rp/help?doc=review&version=v0.8&scope=all' });
-    expect(screen.getByRole('heading', { name: '组织评审与记录结论' })).toBeInTheDocument();
-    expect(screen.getByRole('table')).toBeInTheDocument();
-    expect(screen.getByText(/\/prototype resolve v0.8 adopted/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '本机评审' })).toBeInTheDocument();
+    expect(screen.getByText(/评审仅存当前浏览器/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('link', { name: '下一篇：研发与验收' }));
     expect(screen.getByRole('heading', { name: '研发交接与验收参考' })).toBeInTheDocument();
     expect(screen.getByLabelText('当前地址')).toHaveTextContent('/help/delivery');
@@ -35,7 +34,7 @@ it('相对 Markdown 与历史目录链接正确转换，不给外链追加上下
 it('旧指南迁移清理版本上下文，同时保留仅页面嵌入参数', () => {
     renderWithProviders(<><HelpPage /><Location /></>, { route: '/rp/help?doc=review&version=v0.8&scope=all&embed=page' });
     expect(screen.getByLabelText('当前地址')).toHaveTextContent('/help/review?embed=page');
-    expect(screen.getByRole('heading', { name: '组织评审与记录结论' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '本机评审' })).toBeInTheDocument();
 });
 
 it('长文末尾切换下一篇后滚动回顶部', () => {

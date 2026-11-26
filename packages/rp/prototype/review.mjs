@@ -1,4 +1,5 @@
-import catalog from './releases.json' with { type: 'json' };
+// 当前本机评审不依赖此旧 GitHub 链接生成器；这里保留迁移前评审上下文。
+import catalog from './history/releases-before-source-workflow.json' with { type: 'json' };
 import { handoffIssueUrl } from './handoff.mjs';
 import { versionDiscussions } from './project.mjs';
 import { repository } from './project.mjs';

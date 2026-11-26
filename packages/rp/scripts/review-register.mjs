@@ -1,3 +1,4 @@
+import { readManifest } from './load-prototype.mjs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { repository } from '../prototype/project.mjs';
 import { github } from './github-api.mjs';
@@ -7,7 +8,7 @@ const [version, target] = process.argv.slice(2).filter((value) => value !== '--'
 const discussion = target?.startsWith('discussion:');
 const input = discussion ? target.slice(11) : target;
 const file = discussion ? 'prototype/discussions.json' : 'prototype/reviews.json';
-const catalog = JSON.parse(await readFile('prototype/releases.json', 'utf8'));
+const catalog = readManifest(process.cwd(), { allowLegacy: true });
 if (!catalog.releases.some((item) => item.id === version) || !/^[1-9]\d*$/.test(input || '')) throw new Error('用法：pnpm version:review -- v0.6 <discussion:编号>（旧版 Issue 可用数字编号）');
 const release = catalog.releases.find((item) => item.id === version);
 if (discussion && (release.supersededBy || ['finalized', 'baseline'].includes(release.status))) throw new Error('历史版本不能更换评审来源，请在新版本创建 Discussion');

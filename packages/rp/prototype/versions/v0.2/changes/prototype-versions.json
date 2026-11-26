@@ -1,0 +1,28 @@
+{
+  "pageId": "prototype-versions",
+  "changes": [
+    {
+      "id": "CHG-001",
+      "type": "add",
+      "title": "版本中心与原型对比",
+      "platform": "manage",
+      "page": "/prototype/versions",
+      "location": "原型协作 → 版本中心",
+      "before": "页面分散在菜单中，缺少统一的版本说明和历史入口。",
+      "after": "集中查看版本目标、改动清单、定稿状态与可用历史快照。",
+      "rules": [
+        "定稿版本必须对应 Git tag 和独立构建产物。",
+        "没有归档的版本明确提示不可预览，不能用最新页面冒充。"
+      ],
+      "exceptions": "历史快照不存在时保留文字说明，不显示旧版 iframe。",
+      "acceptance": [
+        "能够按端和改动类型筛选。",
+        "分享链接包含版本与改动编号。",
+        "同一路径可以打开两版原型进行对照。"
+      ],
+      "pageTitle": "版本中心",
+      "previousPage": null,
+      "nextPage": "/prototype/versions"
+    }
+  ]
+}

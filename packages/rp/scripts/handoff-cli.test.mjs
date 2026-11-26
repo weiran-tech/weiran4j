@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { handoffMarkdown, blankHandoff } from '../prototype/handoff.mjs';
-import catalog from '../prototype/releases.json' with { type: 'json' };
+import catalog from '../prototype/history/releases-before-source-workflow.json' with { type: 'json' };
 const root = fileURLToPath(new URL('../', import.meta.url));
 test('缺少部署凭证时明确报告产物完成、线上未更新，不误报 READY', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'prototype-deploy-result-'));

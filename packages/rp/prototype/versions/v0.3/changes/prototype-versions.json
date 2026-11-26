@@ -1,0 +1,31 @@
+{
+  "pageId": "prototype-versions",
+  "changes": [
+    {
+      "id": "CHG-002",
+      "type": "modify",
+      "title": "历史入口与按页面对比",
+      "platform": "manage",
+      "pageTitle": "版本中心",
+      "page": "/prototype/versions",
+      "previousPage": "/prototype/versions",
+      "nextPage": "/prototype/versions",
+      "location": "版本中心",
+      "before": "历史版本手机入口可能打开当前构建，前后对比共用一个路径。",
+      "after": "所有入口跟随所选版本，按页面编号对照前后地址，并显示归档状态。",
+      "rules": [
+        "新增页左侧不加载，删除页右侧不加载。",
+        "历史页面只有真实快照时才可打开。",
+        "分享对比链接保留页面、基线和演示场景。",
+        "归档成功后重新组装含历史快照的部署包，配置部署 Hook 后自动触发站点更新。"
+      ],
+      "exceptions": "导入或链接无效时显示具体原因，保留现有说明与输入。",
+      "acceptance": [
+        "v0.2 手机入口指向 v0.2 快照。",
+        "新增、删除与改名映射正确。",
+        "源码提交来自归档元信息。",
+        "部署检查验证管理端、手机端、文档和历史快照资源。"
+      ]
+    }
+  ]
+}

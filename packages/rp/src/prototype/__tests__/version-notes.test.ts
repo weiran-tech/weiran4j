@@ -4,7 +4,7 @@ const record = (version: string, id: string): VersionNote => ({ id, version, pla
 beforeEach(() => { localStorage.clear(); vi.spyOn(window, 'confirm').mockReturnValue(true); Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, value: function (this: HTMLDialogElement) { this.open = true; } }); });
 afterEach(() => { const close = screen.queryByRole('button', { name: '关闭' }); if (close) fireEvent.click(close); vi.restoreAllMocks(); });
 test('图片和评审按版本保存，批量输出不混入其他版本', () => {
-    saveVersionNote(record('v0.8', 'one')); saveVersionNote(record('v0.9', 'two'));
+    saveVersionNote(record('v0.8', 'one')); localStorage.setItem('prototype_version_notes_v1_v0.9', JSON.stringify([record('v0.9', 'two')]));
     const bundle = versionNoteBundle({ version: 'v0.8', pages: [{ platform: 'mobile', pageId: 'orders', title: '订单', path: '/mobile/#/orders' }] });
     expect(bundle.notes.map((item) => item.id)).toEqual(['one']);
     expect(bundle.notes[0]?.image).toContain('data:image/png');

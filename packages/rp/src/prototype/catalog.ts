@@ -1,7 +1,7 @@
 import { contextPath } from '../../prototype/model.mjs';
 import { globalPath, versionPath } from '../../prototype/routes.mjs';
 import { routeVersion, runtimeBase } from './runtime';
-import data from '../../prototype/releases.json';
+import { sourceCatalog as data } from './source-catalog';
 import baselines from '../../prototype/page-baselines.json';
 import { completeProduct } from '../../prototype/model.mjs';
 
@@ -11,7 +11,7 @@ export { pageDiffs, pagePaths, previewTarget } from '../../prototype/model.mjs';
 export const releases: Release[] = data.releases;
 export const currentVersion: string = import.meta.env.VITE_PROTOTYPE_VERSION || data.current;
 export const currentRelease = releases.find((release) => release.id === currentVersion) ?? releases[0]!;
-export const statusLabels: Record<string, string> = { draft: '草稿', review: '待评审', finalized: '已定稿', baseline: '源码基线' };
+export const statusLabels: Record<string, string> = { in_progress: '进行中', completed: '已完结', draft: '草稿', review: '待评审', finalized: '已定稿', baseline: '源码基线' };
 export const typeLabels: Record<string, string> = { add: '新增', modify: '修改', remove: '删除' };
 export const siteBase = runtimeBase;
 export const readingVersion = () => routeVersion || currentVersion;

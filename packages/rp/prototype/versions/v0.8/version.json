@@ -1,0 +1,23 @@
+{
+  "id": "v0.8",
+  "title": "产研工作流与统一原型工程",
+  "status": "in_progress",
+  "baseline": "v0.2",
+  "date": "2026-11-23",
+  "sourceCommit": null,
+  "goal": "在一个独立前端工程完成产品原型、版本说明、评审与研发交接；按版本或完整目录阅读双端产品，使用指南融入管理端，历史差异保持可追溯。",
+  "platformNotes": {
+    "manage": {
+      "introduction": "PC 管理端基于 React 与 Semi，按版本查看业务页面、规则和改动。",
+      "remark": "浏览器演示数据仅用于原型，正式评审以固定候选为准。"
+    },
+    "mobile": {
+      "introduction": "手机端基于 Vue 与 Vant，展示订单、详情和模拟退款交互。",
+      "remark": "管理端与手机端使用各自的本机演示数据。"
+    }
+  },
+  "routeSchema": 2,
+  "legacyStatus": "review",
+  "editBase": "73990cad22ec610b3f1b4c5ed4abe13e5dfbe50e",
+  "editBaseTree": "b7cc0c32a9af936dce1b98cc79b8af7421919986"
+}

@@ -1,0 +1,28 @@
+{
+  "pageId": "scene-guide",
+  "changes": [
+    {
+      "id": "CHG-008",
+      "type": "remove",
+      "title": "移除业务流程演示",
+      "platform": "manage",
+      "pageTitle": "业务流程演示（已移除）",
+      "previousPage": "/rp/scenes",
+      "nextPage": null,
+      "page": "/rp/scenes",
+      "location": "版本详情 / 原型与改动",
+      "before": "提供业务流程步骤导览、嵌入预览和双端返回导览。",
+      "after": "移除流程内容、步骤配置和演示页面，统一从版本原型目录直接查看页面；旧流程链接回到对应版本目录。",
+      "rules": [
+        "管理端与手机端不再提供返回业务流程导览的入口。",
+        "保留既有 CHG 编号及历史交接记录，固定归档不改写。"
+      ],
+      "exceptions": "旧流程地址仅兼容跳转，不恢复流程内容。",
+      "acceptance": [
+        "版本详情不展示流程步骤、演示 iframe 或流程切换入口。",
+        "旧 /rp/scenes 和 tab=flow 链接显示版本原型目录。",
+        "双端工具栏不展示返回导览，页面目录和改动说明正常使用。"
+      ]
+    }
+  ]
+}

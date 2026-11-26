@@ -1,0 +1,29 @@
+{
+  "pageId": "prototype-editor",
+  "changes": [
+    {
+      "id": "CHG-002",
+      "type": "modify",
+      "title": "单版交接与冲突合并",
+      "platform": "manage",
+      "pageTitle": "填写版本说明",
+      "previousPage": null,
+      "nextPage": "/prototype/editor",
+      "page": "/prototype/editor",
+      "location": "版本说明的创建、导入和导出",
+      "before": "完整导出需要人工覆盖，旧文件可覆盖较新的未定稿说明。",
+      "after": "默认导出带来源的单版交接包，导入逐项解决冲突；新版本默认选定稿基线。",
+      "rules": [
+        "导入不删除其他版本，不修改已定稿记录。",
+        "冲突未解决不覆盖当前内容。",
+        "说明和页面一起提交，表单不代替页面设计器。"
+      ],
+      "exceptions": "过期草稿提供显式恢复入口，校验失败保留当前数据。",
+      "acceptance": [
+        "旧包与当前说明冲突时能选择保留当前或采用导入。",
+        "创建版本优先使用已有定稿基线。",
+        "已定稿不可由网页直接选择发布。"
+      ]
+    }
+  ]
+}

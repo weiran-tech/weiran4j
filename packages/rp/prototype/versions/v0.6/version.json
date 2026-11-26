@@ -1,0 +1,11 @@
+{
+  "id": "v0.6",
+  "title": "产品评审到研发上线的完整交接",
+  "status": "completed",
+  "baseline": "v0.2",
+  "date": "2026-11-23",
+  "sourceCommit": null,
+  "goal": "按阶段约束产品、评审、研发和业务上线交接；产品本人确认验收构建，交接记录冲突合并，部署结果明确区分产物与线上。",
+  "supersededBy": "v0.7",
+  "legacyStatus": "review"
+}

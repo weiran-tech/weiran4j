@@ -1,5 +1,6 @@
 import { access, cp, mkdir, rm, readdir, readFile, writeFile } from 'node:fs/promises';
-import catalog from '../prototype/releases.json' with { type: 'json' };
+import { readManifest } from './load-prototype.mjs';
+const catalog = readManifest();
 import { versionBase } from '../prototype/routes.mjs';
 import { buildMetadata } from './prototype-build-plugin.mjs';
 

@@ -1,13 +1,28 @@
 # 版本说明数据
 
-`releases.json` 是版本说明的唯一共享来源，管理端、手机端和评审抽屉均读取它。
+```text
+releases.json                         仅 current、activeVersion
+pages.json                            稳定页面目录
+page-baselines.json                   固定基线的完整页面清单
+versions/<版本>/version.json           元信息，不含 changes
+versions/<版本>/changes/<pageId>.json   单个页面的 CHG 分组
+```
 
-新建版本：`pnpm version:new -- v0.4 "订单体验优化"`。填写目标与 changes，将当前版本的状态从 draft 改为 review；确认定稿后改为 finalized，再推送相同名称的 Git tag。禁止改动已定稿版本；修订应进入下一个版本。
+页面分组示例：
 
-每条改动必填：id、type（add/modify/remove）、title、platform（manage/mobile）、page、location、before、after、rules、exceptions、acceptance。页面路径是端内可打开的真实地址；编号在同一版本唯一，工作页面链接用 /versions/<版本>/ 路径确定版本，change 参数定位改动；scope=version 看本版改动、scope=all 看完整产品。
+```json
+{
+  "pageId": "prototype-versions",
+  "changes": [
+    { "id": "CHG-015", "platform": "manage", "title": "版本 JSON 按版本与页面拆分" }
+  ]
+}
+```
 
-完整产品从 page-baselines.json 的固定起始清单沿 baseline 链继承，按稳定 platform/pageId 覆盖新增与修改、排除删除；未改动页面保留，无页面改动时 changes 可为空但必须指定基线。新构建保存 product-pages.json，历史完整菜单和交互由对应不可变快照承载。
+示例仅展示组织结构，实际 CHG 仍须填写 type、pageTitle、page、location、before、after、rules、exceptions、acceptance 等字段。组内不再填写 pageId，组装时从文件顶层继承；同页多条 CHG 合并在同一数组。版本编号与目录、pageId 与文件名必须匹配。
 
-网页内的演示输入仅保存在本机。版本说明通过文件提交共享，不把 localStorage 当作团队协作数据库。`baseline` 状态仅用于引入工具前的源码基线，不表示已经归档。
+浏览器读取 `src/prototype/source-catalog.ts`，Node 工具读取 `scripts/load-prototype.mjs`；二者复用纯组装器 `prototype/manifest.mjs`。页面不直接导入单个版本文件。Git 历史读取兼容旧大 JSON，冻结比较基于组装后的内容，排版与对象键顺序不构成语义变化。
 
-全局入口例外：`/rp` 是全部版本协作首页，`/rp/help/<文章>` 是指南子页面，二者不带版本。旧版本前缀下的首页和指南会回到根路径；固定 `/releases/` 快照保持不变。原型在版本详情中按页面目录阅读；旧业务流程演示链接返回版本原型目录。
+状态为 in_progress / completed，只允许唯一进行中版本，activeVersion 与 current 指向它。先登记 editBase 与本版 CHG，再修改实现；完结前提交实现并登记 implementationRef。subtree 来源同时保留对应目录树引用。完整产品仍沿固定基线链继承、覆盖、删除；缺少历史快照时不以当前实现替代。
+
+已完结版本不可重写。网页仅保存本机评审，支持截图及导出，不修改源码。操作见站内版本管理指南；历史 Issue、Discussion、交接、固定归档和迁移前原文继续保留。

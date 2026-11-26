@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { archiveDevMiddleware } from './archive-dev.mjs';
-import catalog from '../prototype/releases.json' with { type: 'json' };
+import { readManifest } from './load-prototype.mjs';
 import { versionBase } from '../prototype/routes.mjs';
 import { buildMetadata } from './prototype-build-plugin.mjs';
 import { readFile } from 'node:fs/promises';
@@ -8,6 +8,7 @@ import { readFile } from 'node:fs/promises';
 export function prototypeDevPlugin() {
     return { name: 'prototype-development', configureServer(server) {
         server.middlewares.use((req, res, next) => {
+            const catalog = readManifest();
             const base = versionBase(catalog.current);
             const path = new URL(req.url || '/', 'http://localhost').pathname;
             const metadata = { ...buildMetadata(), base };

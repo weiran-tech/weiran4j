@@ -1,10 +1,10 @@
-export type Change = {
+export type Change = { files?: string[];
     introduction?: string; remark?: string; id: string; type: string; title: string; platform: string; page: string; pageId?: string; pageTitle?: string;
     previousPage?: string | null; nextPage?: string | null; location: string;
     before: string; after: string; rules: string[]; exceptions: string; acceptance: string[];
 };
-export type Release = { platformNotes?: Partial<Record<'manage' | 'mobile', { introduction: string; remark: string }>>; routeSchema?: number; supersededBy?: string; id: string; title: string; status: string; baseline: string | null; date: string; sourceCommit: string | null; goal: string; changes: Change[] };
-export type Catalog = { current: string; releases: Release[] };
+export type Release = { editBase?: string; editBaseTree?: string; implementationTree?: string; implementationRef?: string; legacyStatus?: string; platformNotes?: Partial<Record<'manage' | 'mobile', { introduction: string; remark: string }>>; routeSchema?: number; supersededBy?: string; id: string; title: string; status: string; baseline: string | null; date: string; sourceCommit: string | null; goal: string; changes: Change[] };
+export type Catalog = { activeVersion?: string | null; workflowSchema?: number; current: string; releases: Release[] };
 export type Snapshot = { routeSchema?: number; version: string; base: string; commit: string; builtAt: string; kind?: string; prototypeVersion?: string; fingerprint?: string };
 export type PageDiff = { key: string; pageId: string; title: string; platform: string; before: string | null; after: string | null; changes: Change[] };
 export function validPath(value: unknown): boolean;

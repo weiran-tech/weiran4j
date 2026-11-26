@@ -1,38 +1,33 @@
 # Weiran Prototype
 
-使用简体中文协作。这是 React + Semi（管理端）与 Vue + Vant（手机端）的纯前端原型工程，不包含 Java、数据库或后端服务。
+使用简体中文协作。这是 React + Semi UI 管理端与 Vue + Vant 手机端的纯前端原型，不包含 Java、数据库或后端服务。
 
-原型已接入 mono4j 的 pnpm 工作区和 Turbo：mono4j 根目录的 `pnpm dev` 同时启动原型；本目录也支持单独运行启动、检查与构建命令。统一前端包名为 `@weiran/rp`，管理端保留 `src/pages/`，手机端位于 `src/mobile/`，不依赖其他业务主仓库。
+- 包名 `@weiran/rp`，接入 mono4j 的 pnpm 工作区与 Turbo。本目录 `pnpm dev` 启动同域演示（5208），端口冲突直接报错；指南集成在站点。
+- 组件从 npm `@weiran-tech/semi-components` 引用，不复制源码。保留管理布局、动态菜单、登录页和业务演示。
+- 管理页面在 `src/pages/`，菜单在 `src/mocks/seed.ts`；手机端在 `src/mobile/`。新增数据契约同步补 `src/mocks/transport.ts` 或手机端 Mock。
+- 数据保存在 localStorage，仅供演示，不代表真实身份与权限安全。主色 #0064FA。
+- 使用指南在 `src/pages/help/content/`，功能调整同步指南。运行 `pnpm lint`、`pnpm test`、`pnpm build`；布局改动需真浏览器检查。
 
-- `pnpm dev` 启动管理端和手机端的同域演示（5208），使用指南集成在站点，不提供独立文档应用。端口冲突直接报错。
-- 组件从 npm `@weiran-tech/semi-components` 引用，不复制组件包源码。
-- 保留 `src/main.tsx`、登录页、管理布局、动态菜单和演示页面入口。
-- 新页面在 `src/pages/` 创建，在 `src/mocks/seed.ts` 菜单登记。
-- `src/mocks/transport.ts` 是浏览器内数据适配器，开发和构建产物均使用它；新增数据契约同时补 Mock。
-- Mock 数据存 localStorage，会话只用于原型展示，不代表真实身份或权限安全。
-- `pnpm lint`、`pnpm test`、`pnpm build` 验证；布局改动需浏览器检查。
-- 使用指南在 `src/pages/help/content/`，新增或调整功能同步文档。主色 #0064FA。
+## 版本管理（修改页面前必读）
 
-- 访问分区：主入口 `/`、帮助文档 `/help`、版本协作 `/rp`，管理端 `/manage`，手机端 `/mobile/`；工作页面按 `/versions/<version>/` 隔离，固定候选及定稿归档继续使用 `/releases/<id>/`。旧快照和版本说明不可重写。
-- 版本只由路径决定，普通参数不保留 `version`；`scope=version` 看改动、`scope=all` 看完整产品。完整清单继承固定基线并覆盖新增/修改、排除删除；无页面改动仍可查看完整原型，新构建保存 `product-pages.json`。
+- 公共首页 `/`、版本清单 `/versions`、指南 `/help` 共用 PortalLayout；管理端 `/manage`、手机端 `/mobile/` 保留自己的布局。版本详情位于 `/versions/<版本>/rp/versions`，版本只来自路径，普通参数不保留 `version`。
+- 版本与 CHG 仅由 AI 修改 `prototype/versions/<版本>/version.json` 和 `changes/<pageId>.json`；网页不创建、编辑版本或批准定稿。旧 `/rp/editor` 进入维护指南。端标识始终为 `manage` / `mobile`。
+- 状态仅为 `in_progress`（进行中）与 `completed`（已完结）。页面修改前必须存在唯一进行中版本，`activeVersion` 与 `current` 均指向它。先登记版本和 `editBase`（完整提交 SHA），本项目经 subtree 导出时同时登记 `editBaseTree`（该提交的 rp 目录树 SHA），再修改页面。运行 `pnpm version:work -- <版本>` 检查目标。
+- 稳定页面目录在 `prototype/pages.json`。新增页面先登记，改名或调整路由保留稳定编号；新增、修改、删除关联本版 CHG。共享组件、样式和 Mock 调整在受影响页面 CHG 的 `files` 登记具体文件范围，禁止使用 `src/**` 等兜底范围。
+- 完整目录沿选定基线合并，`scope=all` 看完整产品，`scope=version` 看本版改动。`prototype/page-baselines.json` 保存固定基线，不用当前菜单反推历史。
+- 完结前先提交页面实现，将完整提交 SHA 登记为 `implementationRef`，跨仓导出时同时登记该提交的 rp 目录树 `implementationTree`，再将状态改为 `completed` 并清空 `activeVersion`。已完结版本及固定基线不可重写。新版本明确选择已完结基线，可使用 `pnpm version:new -- <版本> "标题" <基线>`。
+- `pnpm version:check` 接入 dev、lint、test、build，检查整个 `editBase` 以来的实现与 CHG；CI 用 `--base <SHA>` 或 `PROTOTYPE_BASE_REF` 补充校验冻结记录。不得通过挪动 `editBase` 隐藏本轮改动。
 
-- 全局协作首页 `/` 提供入口，独立版本清单 `/versions` 汇总全部版本，旧 `/rp` 兼容跳转，指南 `/help/<文章>` 按岗位组织，均不带版本；版本详情 `/versions/<版本>/rp/versions` 内组织原型目录、改动与评审；业务流程演示内容已移除，旧流程地址回到版本原型目录。
+## 本机评审与历史
 
-- 版本详情 `/versions/<版本>/rp/versions` 的“原型与改动”按端、模块和页面分组，旧 `/rp/demo` 仅兼容跳转。新版本基线只选已定版版本；完整产品只沿选定基线链合并，不混入同基线的其他版本。
-- 新版评审使用 GitHub Discussions，登记在 `prototype/discussions.json`；`prototype/reviews.json` 仅兼容历史 Issue。本人确认和阻塞复核保留在线门禁，不自动发布或继承批准。
+- 进行中版本允许新增和编辑本机评审，已完结版本仅查看及导出。版本、端、页面与 CHG 必须匹配；支持图片、HTML / JSON 导出和 HTML 打印 PDF。存储适配器位于 `src/mocks/prototype.ts`。
+- 页面上的 Ctrl / Cmd + Shift + E 打开本机备注，按版本隔离；旧备注与截图存储保留，不自动提交 GitHub。旧存储与新评审可分别导出。
+- 历史业务页面仅打开对应固定快照，不以当前业务实现冒充历史。`/releases/<id>/` 固定归档与原有发布恢复机制保留。
+- 迁移前版本说明原文保存在 `prototype/history/releases-before-source-workflow.json`；旧 Issue / Discussion、交接、批准证据和门禁工具仅作历史兼容保留。旧版状态记录在 `legacyStatus`，历史说明与快照不改写。“已完结”不代表补办或继承 GitHub 批准。
+- 保留本项目业务示例、端口、部署配置和包名；参考项目的业务页面、账号数据、本地配置及历史评审不得复制过来。
 
-- 版本清单独立放在 `/versions`，主页提供入口，版本详情、说明编辑和原型目录使用公共 PortalLayout，无需进入管理端或手机端外壳；双端业务原型保留各自布局与登录。协作菜单只保留协作与原型演示。版本内只有原型与改动、评审与结论两个主分区；研发与验收页面已移除，历史交接数据与门禁保留；原型按页面目录进入；维护区直接展示摘要和指南，不折叠，不提供交接编辑或版本归档操作。不提供岗位切换，不读取旧岗位偏好，默认只读，技术信息与维护工具按需展开，真实确认与归档门禁保持。
-- 站内仅创建和维护版本记录（目标、基线、日期等）；不提供改动记录的增删改，导入和旧草稿不得绕过。改动说明在页面内通过按钮和抽屉阅读，完整页面目录合并到版本详情“原型与改动”，旧 `/rp/demo` 保留参数跳转。
-- 不提供按页面并排对比；目录和抽屉只打开单页或完整原型，旧对比专属参数清除，固定基线与历史归档机制保留。
-- 通过 AI 编程工具修改源码时，同时检查本版改动说明、菜单登记与 Mock 契约；不增加站内 AI 编辑入口，不自动批准评审。
+## 版本 JSON 组织
 
-- 版本切换通过 PortalRouter 更新历史路径和阅读上下文，保留外壳；runtimeVersion、runtimeStorageId 与资源前缀始终属于实际构建。旧版本管理业务页仍转入归档目录，不借用当前业务实现，固定归档不接管跨构建导航。
-
-## 版本优先的产品与 AI 工作约定
-
-- 开始任何页面、Mock、文案或规则调整前，必须明确目标版本及基线，先执行 `pnpm version:work -- <版本>`；不得只凭 `current` 猜测版本。页面和本机评审记录均使用目标版本上下文。
-- 新版本仅从已经评审并定稿的版本派生，`review`、`draft`、未评审源码基线和本机伪造定稿状态均不可作为新基线。历史快照与已定稿说明不重写。
-- 同基线、同端、同稳定页面编号出现并行调整时，先停止该版本的页面编辑和开发。先解决实现与规则，再执行 `pnpm version:work -- 本版 对方版本 manage或mobile 页面编号 "解决结论" "代码或评审证据"`，把解决代码和 `prototype/conflict-resolutions.json` 一起提交。结论绑定双方页面内容；内容变化后必须重新解决，不能点击忽略继续。
-- 新增或变更页面及时登记本版 CHG 和稳定页面编号，再次执行工作检查。`pnpm dev`、`pnpm version:check` 和构建都会检查源记录的基线与冲突。浏览器暂存内容不能绕过源记录门禁。
-- `platformNotes.manage/mobile` 保存版本双端介绍与备注；CHG 可填写 `introduction`、`remark` 作为页面介绍。产品可在“版本介绍与评审备注”中补充本机介绍和评审，按版本批量导出 HTML / JSON；HTML 含图片，可打印 PDF。浏览器备注不会自动修改源码或批准评审。
-- 在版本原型中按 `Ctrl / Cmd + Shift + E` 呼出评审备注；支持文本、选择或粘贴图片，图片与备注只保存在当前浏览器。手机端同时提供按钮入口，历史记录按版本隔离。
+- `prototype/releases.json` 只保留 `current`、`activeVersion`；每版元信息在 `prototype/versions/<版本>/version.json`，不含 `changes`。
+- CHG 按稳定页面分组在 `prototype/versions/<版本>/changes/<pageId>.json`，顶层为 `{ pageId, changes }`；组内每条 CHG 不重复填写 `pageId`，其他字段保持原有契约。同页多条 CHG 保存在同一数组。
+- 浏览器统一使用 `src/prototype/source-catalog.ts`，Node 工具统一使用 `scripts/load-prototype.mjs`，二者复用 `prototype/manifest.mjs`；页面不直接导入拆分文件。Git 历史读取兼容迁移前的大 JSON。

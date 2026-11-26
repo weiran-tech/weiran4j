@@ -1,4 +1,4 @@
-import catalog from '../../prototype/releases.json';
+import { sourceCatalog as catalog } from './source-catalog';
 import { pathVersion, versionBase } from '../../prototype/routes.mjs';
 export const runtimeVersion = import.meta.env.VITE_PROTOTYPE_VERSION || catalog.current;
 export const runtimeStorageId = import.meta.env.VITE_PROTOTYPE_ARCHIVE_ID || `${runtimeVersion}-work`;

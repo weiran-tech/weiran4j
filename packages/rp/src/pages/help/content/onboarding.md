@@ -1,5 +1,6 @@
 # 新成员上手：下载与协作
 
+> 当前版本由 AI 维护源码，网页仅记录本机评审，见[版本管理](./versions.md)。下文涉及旧 Discussion、候选、交接和批准的步骤仅作历史兼容参考，不是当前网页操作流程。
 第一次使用本项目，按这条顺序操作：**获得 GitHub 访问权限 → 下载项目 → 本地启动 → 修改与提交 → PR 评审合并，发布由维护者按[部署指南](./deployment.md)完成**。
 
 ## 先确认自己需要做什么
@@ -126,7 +127,7 @@ pnpm check:site
 ```bash
 git status
 git diff
-git add src/pages/prototype/RefundDemoPage.tsx prototype/releases.json
+git add src/pages/prototype/RefundDemoPage.tsx prototype/versions/v0.8/
 git diff --cached
 git commit -m "feat: 调整退款原型及验收说明"
 git push -u origin feat/refund-prototype

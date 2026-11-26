@@ -1,3 +1,4 @@
+import { releases } from './catalog';
 import type { ReviewContext } from '../../prototype/review.mjs';
 import { runtimeStorageId } from './runtime';
 import './review-capture.css';
@@ -43,6 +44,7 @@ function readRecords(): RecordItem[] {
 
 /** 原生 dialog 在 React 管理端及 Vue 手机端共用；图片和意见只保存到本浏览器。 */
 export function openReviewCapture(context: ReviewContext, getTarget: () => HTMLElement | null = () => document.body) {
+    const writable = releases.find(item => item.id === context.version)?.status === 'in_progress';
     if (active) return;
     active = true;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -85,7 +87,7 @@ export function openReviewCapture(context: ReviewContext, getTarget: () => HTMLE
     let preview: Mark | null = null;
     const describeError = (error: unknown) => { status.textContent = error instanceof Error ? error.message : '操作失败，请重试'; };
     const guard = () => !dirty || window.confirm('当前标注尚未保存，是否放弃这些修改？');
-    const updateButtons = () => { for (const button of [upload, capture, undo, save, pdf, accessible]) button.disabled = busy || (button !== capture && button !== upload && !item); undo.disabled ||= !item?.marks.length; note.disabled = busy || !item; close.disabled = busy; for (const input of marks.querySelectorAll('textarea')) input.disabled = busy; };
+    const updateButtons = () => { for (const button of [upload, capture, undo, save, pdf, accessible]) button.disabled = busy || (button !== capture && button !== upload && !item); for (const button of [upload, capture, undo, save, accessible]) button.disabled ||= !writable; undo.disabled ||= !item?.marks.length; note.disabled = busy || !item || !writable; close.disabled = busy; for (const input of marks.querySelectorAll('textarea')) input.disabled = busy || !writable; };
     function draw() {
         const ctx = canvas.getContext('2d');
         if (!ctx || !base || !item) return;
@@ -132,7 +134,7 @@ export function openReviewCapture(context: ReviewContext, getTarget: () => HTMLE
                 const open = element('button', `${new Date(record.createdAt).toLocaleString()} · ${record.context.pageId || record.context.page || '当前页'}`);
                 open.type = 'button'; open.onclick = async () => { if (busy || !guard()) return; try { await load(record); dirty = false; status.textContent = '已打开本机记录'; } catch (error) { describeError(error); } };
                 const remove = element('button', '删除'); remove.type = 'button';
-                remove.onclick = () => { if (busy || !window.confirm('删除这条本机截图记录？')) return; try { localStorage.setItem(storageKey, JSON.stringify(readRecords().filter((entry) => entry.id !== record.id))); renderHistory(); status.textContent = '已删除本机记录'; } catch (error) { describeError(error); } };
+                remove.onclick = () => { if (!writable || busy || !window.confirm('删除这条本机截图记录？')) return; try { localStorage.setItem(storageKey, JSON.stringify(readRecords().filter((entry) => entry.id !== record.id))); renderHistory(); status.textContent = '已删除本机记录'; } catch (error) { describeError(error); } };
                 row.append(open, remove); historyList.append(row);
             }
         } catch (error) { describeError(error); }
@@ -189,12 +191,13 @@ export function openReviewCapture(context: ReviewContext, getTarget: () => HTMLE
         finally { busy = false; updateButtons(); }
     };
     save.onclick = () => {
+        if (!writable) return;
         if (!item) return;
         try {
             const records = readRecords().filter((entry) => entry.id !== item!.id);
             if (records.length >= 12) throw new Error('本机构建最多保存 12 条截图，请导出并删除旧记录后再保存。');
             localStorage.setItem(storageKey, JSON.stringify([item, ...records]));
-            dirty = false; renderHistory(); status.textContent = '已保存到本浏览器；尚未提交评审 Discussion。';
+            dirty = false; renderHistory(); status.textContent = '已保存到本浏览器，不会自动提交。';
         } catch { status.textContent = '保存失败：本机存储不可用、已满或超过 12 条。可先导出 PDF，再清理旧记录。'; }
     };
     pdf.onclick = async () => {

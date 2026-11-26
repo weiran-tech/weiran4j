@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import catalog from './releases.json' with { type: 'json' };
+import catalog from './history/releases-before-source-workflow.json' with { type: 'json' };
 import { mergeTransfer, releaseTransfer } from './transfer.mjs';
 import { blankHandoff, handoffErrors, handoffMarkdown, parseHandoff, approvalErrors, approvalCommand } from './handoff.mjs';
 import { resetDemo } from './demo-reset.mjs';

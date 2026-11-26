@@ -1,0 +1,29 @@
+{
+  "pageId": "mobile-orders",
+  "changes": [
+    {
+      "id": "CHG-003",
+      "type": "add",
+      "title": "Vant 手机订单与退款示例",
+      "platform": "mobile",
+      "page": "/mobile/#/orders",
+      "location": "手机端 → 订单 → 订单详情",
+      "before": "模板仅提供管理端示例。",
+      "after": "新增 Vue 3 + Vant 手机原型，支持订单列表、详情、退款与演示场景。",
+      "rules": [
+        "手机直达页与电脑预览使用同一个页面。",
+        "本地演示数据按构建版本隔离。",
+        "退款金额校验、失败重试与管理端示例保持一致。"
+      ],
+      "exceptions": "空数据场景展示 Vant 空状态；失败场景展示错误提示并保留输入。",
+      "acceptance": [
+        "在手机宽度下完整操作订单详情和退款。",
+        "电脑可切换预览尺寸、扫码或打开独立页面。",
+        "刷新后保留同一版本的演示状态。"
+      ],
+      "pageTitle": "手机订单",
+      "previousPage": null,
+      "nextPage": "/mobile/#/orders"
+    }
+  ]
+}

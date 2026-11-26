@@ -1,0 +1,11 @@
+{
+  "id": "v0.5",
+  "title": "产品评审与研发验收交接",
+  "status": "completed",
+  "baseline": "v0.2",
+  "date": "2026-11-23",
+  "sourceCommit": null,
+  "goal": "以固定候选评审、GitHub 真实批准和逐项验收串起产品到研发交付，避免草稿、评审与业务实现状态混淆。",
+  "supersededBy": "v0.6",
+  "legacyStatus": "review"
+}

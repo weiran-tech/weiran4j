@@ -1,3 +1,4 @@
+import { readManifest } from './load-prototype.mjs';
 import { readReview, reviewComments } from './discussion-api.mjs';
 import { reviewReference } from '../prototype/review-source.mjs';
 /** 仅读取 GitHub 最新正文，生成本地交接包 / 合并正文，不自动覆盖 Issue。 */
@@ -5,7 +6,7 @@ import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { parseHandoff, normalizeHandoff, handoffMarkdown, signedConfirmations, deliveryApprovalErrors, participantErrors } from '../prototype/handoff.mjs';
 import { mergeHandoff, handoffTransfer } from '../prototype/handoff-transfer.mjs';
 const [mode, input] = process.argv.slice(2).filter((value) => value !== '--');
-const catalog = JSON.parse(await readFile('prototype/releases.json', 'utf8'));
+const catalog = readManifest(process.cwd(), { allowLegacy: true });
 const transfer = mode === 'prepare' ? JSON.parse(await readFile(input, 'utf8')) : null;
 const version = mode === 'pull' ? input : transfer?.version;
 const release = catalog.releases.find((item) => item.id === version);

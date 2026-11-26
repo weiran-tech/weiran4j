@@ -5,7 +5,7 @@ import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { versionDiscussions } from '../prototype/project.mjs';
-import catalog from '../prototype/releases.json' with { type: 'json' };
+import catalog from '../prototype/history/releases-before-source-workflow.json' with { type: 'json' };
 import { blankHandoff, handoffMarkdown, approvalCommand } from '../prototype/handoff.mjs';
 import { releaseGate } from './check-release-gate.mjs';
 import { reviewFingerprint } from './review-fingerprint.mjs';

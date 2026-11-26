@@ -15,7 +15,7 @@ export function validateCatalog(data) {
         ids.add(release.id);
         for (const field of ['title', 'goal', 'date']) if (!nonempty(release[field])) errors.push(`${prefix} 缺少${fieldLabels[field] || field}`);
         if (!/^\d{4}-\d{2}-\d{2}$/.test(release.date || '') || Number.isNaN(Date.parse(release.date))) errors.push(`${prefix} 日期无效`);
-        if (!['draft', 'review', 'finalized', 'baseline'].includes(release.status)) errors.push(`${prefix} 状态无效`);
+        if (!['draft', 'review', 'finalized', 'baseline', 'in_progress', 'completed'].includes(release.status)) errors.push(`${prefix} 状态无效`);
         if (release.sourceCommit !== null && (typeof release.sourceCommit !== 'string' || !/^[a-f0-9]{7,40}$/.test(release.sourceCommit))) errors.push(`${prefix} 源码提交无效`);
         if (release.platformNotes !== undefined && (!object(release.platformNotes) || Object.entries(release.platformNotes).some(([platform, note]) => !['manage', 'mobile'].includes(platform) || !object(note) || typeof note.introduction !== 'string' || typeof note.remark !== 'string'))) errors.push(`${prefix} 双端介绍与备注格式无效`);
         if (!Array.isArray(release.changes)) { errors.push(`${prefix} changes 必须为数组`); continue; }
@@ -50,7 +50,7 @@ export function validateCatalog(data) {
     for (const release of byId.values()) {
         if (release.supersededBy && (!ids.has(release.supersededBy) || release.supersededBy === release.id || release.status === 'finalized')) errors.push(`${release.id} 承接版本无效，已定稿历史不可标记承接`);
         if (release.baseline !== null && (!ids.has(release.baseline) || release.baseline === release.id)) errors.push(`${release.id} 基线无效`);
-        if (release.baseline && byId.has(release.baseline) && !['finalized', 'baseline'].includes(byId.get(release.baseline).status)) errors.push(`${release.id} 必须选择已定版的固定基线，不能继承工作草稿`);
+        if (release.baseline && byId.has(release.baseline) && !['finalized', 'baseline', 'completed'].includes(byId.get(release.baseline).status)) errors.push(`${release.id} 必须选择已定版的固定基线，不能继承工作草稿`);
         if (['review', 'finalized'].includes(release.status) && !release.changes.length && !release.baseline) errors.push(`${release.id} 无页面改动时必须指定完整产品基线`);
         if (release.id === data.current && release.supersededBy) errors.push('当前版本不能标记为已承接');
         const retired = new Set([release.id]); let successor = byId.get(release.supersededBy);

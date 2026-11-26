@@ -1,0 +1,533 @@
+{
+  "pages": [
+    {
+      "id": "collaboration-home",
+      "title": "独立原型入口",
+      "path": "/rp",
+      "platform": "manage",
+      "module": "本版页面",
+      "files": [
+        "src/pages/dashboard/DashboardPage.tsx"
+      ]
+    },
+    {
+      "id": "prototype-versions",
+      "title": "版本中心",
+      "path": "/rp/versions",
+      "platform": "manage",
+      "module": "原型协作",
+      "files": [
+        "src/pages/prototype/VersionsPage.tsx"
+      ]
+    },
+    {
+      "id": "mobile-preview",
+      "title": "手机端预览",
+      "path": "/rp/mobile",
+      "platform": "manage",
+      "module": "原型协作",
+      "files": [
+        "src/pages/prototype/MobilePreviewPage.tsx"
+      ]
+    },
+    {
+      "id": "prototype-refund",
+      "title": "退款交互示例",
+      "path": "/manage/refund-demo",
+      "platform": "manage",
+      "module": "原型协作",
+      "files": [
+        "src/pages/prototype/RefundDemoPage.tsx"
+      ]
+    },
+    {
+      "id": "biz-pay-accounts",
+      "title": "账户管理",
+      "path": "/manage/biz/accounts",
+      "platform": "manage",
+      "module": "收付管理",
+      "files": [
+        "src/pages/biz/pay/AccountsPage.tsx"
+      ]
+    },
+    {
+      "id": "biz-pay-payoutaccounts",
+      "title": "出款账户",
+      "path": "/manage/biz/payout-accounts",
+      "platform": "manage",
+      "module": "收付管理",
+      "files": [
+        "src/pages/biz/pay/PayoutAccountsPage.tsx"
+      ]
+    },
+    {
+      "id": "biz-pay-merchants",
+      "title": "收款商户",
+      "path": "/manage/biz/merchants",
+      "platform": "manage",
+      "module": "收付管理",
+      "files": [
+        "src/pages/biz/pay/MerchantsPage.tsx"
+      ]
+    },
+    {
+      "id": "biz-pay-routes",
+      "title": "路由分流",
+      "path": "/manage/biz/routes",
+      "platform": "manage",
+      "module": "收付管理",
+      "files": [
+        "src/pages/biz/pay/RoutesPage.tsx"
+      ]
+    },
+    {
+      "id": "biz-pay-traderules",
+      "title": "交易规则",
+      "path": "/manage/biz/trade-rules",
+      "platform": "manage",
+      "module": "收付管理",
+      "files": [
+        "src/pages/biz/pay/TradeRulesPage.tsx"
+      ]
+    },
+    {
+      "id": "biz-pay-payrules",
+      "title": "提现规则",
+      "path": "/manage/biz/pay-rules",
+      "platform": "manage",
+      "module": "收付管理",
+      "files": [
+        "src/pages/biz/pay/PayRulesPage.tsx"
+      ]
+    },
+    {
+      "id": "biz-finance-payflows",
+      "title": "支付流水",
+      "path": "/manage/biz/pay-flows",
+      "platform": "manage",
+      "module": "财务管理",
+      "files": [
+        "src/pages/biz/finance/PayFlowsPage.tsx"
+      ]
+    },
+    {
+      "id": "biz-finance-refunds",
+      "title": "退款管理",
+      "path": "/manage/biz/refunds",
+      "platform": "manage",
+      "module": "财务管理",
+      "files": [
+        "src/pages/biz/finance/RefundsPage.tsx"
+      ]
+    },
+    {
+      "id": "biz-finance-withdrawals",
+      "title": "提现管理",
+      "path": "/manage/biz/withdrawals",
+      "platform": "manage",
+      "module": "财务管理",
+      "files": [
+        "src/pages/biz/finance/WithdrawalsPage.tsx"
+      ]
+    },
+    {
+      "id": "biz-finance-unwithdrawn",
+      "title": "未提现订单",
+      "path": "/manage/biz/unwithdrawn",
+      "platform": "manage",
+      "module": "财务管理",
+      "files": [
+        "src/pages/biz/finance/UnwithdrawnPage.tsx"
+      ]
+    },
+    {
+      "id": "biz-finance-vouchers",
+      "title": "财务凭证",
+      "path": "/manage/biz/vouchers",
+      "platform": "manage",
+      "module": "财务管理",
+      "files": [
+        "src/pages/biz/finance/VouchersPage.tsx"
+      ]
+    },
+    {
+      "id": "biz-finance-exportjobs",
+      "title": "导出管理",
+      "path": "/manage/biz/exports",
+      "platform": "manage",
+      "module": "财务管理",
+      "files": [
+        "src/pages/biz/finance/ExportJobsPage.tsx"
+      ]
+    },
+    {
+      "id": "ops-goods-goods",
+      "title": "商品管理",
+      "path": "/manage/ops-goods/goods",
+      "platform": "manage",
+      "module": "商品与订单",
+      "files": [
+        "src/pages/ops/goods/GoodsPage.tsx"
+      ]
+    },
+    {
+      "id": "ops-orders-orders",
+      "title": "订单管理",
+      "path": "/manage/ops-goods/orders",
+      "platform": "manage",
+      "module": "商品与订单",
+      "files": [
+        "src/pages/ops/orders/OrdersPage.tsx"
+      ]
+    },
+    {
+      "id": "ops-invite-invite",
+      "title": "邀请注册",
+      "path": "/manage/ops-rebate/invite",
+      "platform": "manage",
+      "module": "邀请返利",
+      "files": [
+        "src/pages/ops/invite/InvitePage.tsx"
+      ]
+    },
+    {
+      "id": "ops-rebate-config-rebateconfig",
+      "title": "返利配置",
+      "path": "/manage/ops-rebate/config",
+      "platform": "manage",
+      "module": "邀请返利",
+      "files": [
+        "src/pages/ops/rebate-config/RebateConfigPage.tsx"
+      ]
+    },
+    {
+      "id": "ops-rebates-rebates",
+      "title": "返利明细",
+      "path": "/manage/ops-rebate/list",
+      "platform": "manage",
+      "module": "邀请返利",
+      "files": [
+        "src/pages/ops/rebates/RebatesPage.tsx"
+      ]
+    },
+    {
+      "id": "ops-users-opsusers",
+      "title": "用户管理",
+      "path": "/manage/ops-users",
+      "platform": "manage",
+      "module": "业务页面",
+      "files": [
+        "src/pages/ops/users/OpsUsersPage.tsx"
+      ]
+    },
+    {
+      "id": "system-users-users",
+      "title": "系统用户",
+      "path": "/manage/system/users",
+      "platform": "manage",
+      "module": "系统管理",
+      "files": [
+        "src/pages/system/users/UsersPage.tsx"
+      ]
+    },
+    {
+      "id": "system-roles-roles",
+      "title": "角色管理",
+      "path": "/manage/system/roles",
+      "platform": "manage",
+      "module": "系统管理",
+      "files": [
+        "src/pages/system/roles/RolesPage.tsx"
+      ]
+    },
+    {
+      "id": "system-menus-menus",
+      "title": "菜单管理",
+      "path": "/manage/system/menus",
+      "platform": "manage",
+      "module": "系统管理",
+      "files": [
+        "src/pages/system/menus/MenusPage.tsx"
+      ]
+    },
+    {
+      "id": "system-dicts-dicts",
+      "title": "字典管理",
+      "path": "/manage/system/dicts",
+      "platform": "manage",
+      "module": "系统管理",
+      "files": [
+        "src/pages/system/dicts/DictsPage.tsx"
+      ]
+    },
+    {
+      "id": "system-configs-configs",
+      "title": "系统配置",
+      "path": "/manage/system/configs",
+      "platform": "manage",
+      "module": "系统管理",
+      "files": [
+        "src/pages/system/configs/ConfigsPage.tsx"
+      ]
+    },
+    {
+      "id": "system-sms-smsconfigs",
+      "title": "短信配置",
+      "path": "/manage/system/sms",
+      "platform": "manage",
+      "module": "系统管理",
+      "files": [
+        "src/pages/system/sms/SmsConfigsPage.tsx"
+      ]
+    },
+    {
+      "id": "system-security-securitysettings",
+      "title": "安全设置",
+      "path": "/manage/system/security",
+      "platform": "manage",
+      "module": "系统管理",
+      "files": [
+        "src/pages/system/security/SecuritySettingsPage.tsx"
+      ]
+    },
+    {
+      "id": "system-upload-settings-uploadsettings",
+      "title": "上传设置",
+      "path": "/manage/system/upload-settings",
+      "platform": "manage",
+      "module": "系统管理",
+      "files": [
+        "src/pages/system/upload-settings/UploadSettingsPage.tsx"
+      ]
+    },
+    {
+      "id": "system-media-library",
+      "title": "资源库",
+      "path": "/manage/system/media-library",
+      "platform": "manage",
+      "module": "系统管理",
+      "files": [
+        "src/pages/system/media-library.tsx"
+      ]
+    },
+    {
+      "id": "system-regions-regions",
+      "title": "行政区划",
+      "path": "/manage/system/regions",
+      "platform": "manage",
+      "module": "系统管理",
+      "files": [
+        "src/pages/system/regions/RegionsPage.tsx"
+      ]
+    },
+    {
+      "id": "logs-loginlogs",
+      "title": "登录日志",
+      "path": "/manage/logs/login",
+      "platform": "manage",
+      "module": "审计日志",
+      "files": [
+        "src/pages/logs/LoginLogsPage.tsx"
+      ]
+    },
+    {
+      "id": "logs-operationlogs",
+      "title": "操作日志",
+      "path": "/manage/logs/operation",
+      "platform": "manage",
+      "module": "审计日志",
+      "files": [
+        "src/pages/logs/OperationLogsPage.tsx"
+      ]
+    },
+    {
+      "id": "im-chats",
+      "title": "会话与群",
+      "path": "/manage/im/chats",
+      "platform": "manage",
+      "module": "IM 与客服",
+      "files": [
+        "src/pages/im/ChatsPage.tsx"
+      ]
+    },
+    {
+      "id": "im-staff",
+      "title": "客服列表",
+      "path": "/manage/im/staff",
+      "platform": "manage",
+      "module": "IM 与客服",
+      "files": [
+        "src/pages/im/StaffPage.tsx"
+      ]
+    },
+    {
+      "id": "im-routing",
+      "title": "客服分组与分流",
+      "path": "/manage/im/routing",
+      "platform": "manage",
+      "module": "IM 与客服",
+      "files": [
+        "src/pages/im/RoutingPage.tsx"
+      ]
+    },
+    {
+      "id": "im-config",
+      "title": "客服配置",
+      "path": "/manage/im/config",
+      "platform": "manage",
+      "module": "IM 与客服",
+      "files": [
+        "src/pages/im/ConfigPage.tsx"
+      ]
+    },
+    {
+      "id": "demo-demolist",
+      "title": "列表与表格",
+      "path": "/manage/demo/list",
+      "platform": "manage",
+      "module": "原型演示",
+      "files": [
+        "src/pages/demo/DemoListPage.tsx"
+      ]
+    },
+    {
+      "id": "demo-demofields",
+      "title": "表单与组件",
+      "path": "/manage/demo/fields",
+      "platform": "manage",
+      "module": "原型演示",
+      "files": [
+        "src/pages/demo/DemoFieldsPage.tsx"
+      ]
+    },
+    {
+      "id": "demo-democonfig",
+      "title": "动态配置",
+      "path": "/manage/demo/config",
+      "platform": "manage",
+      "module": "原型演示",
+      "files": [
+        "src/pages/demo/DemoConfigPage.tsx"
+      ]
+    },
+    {
+      "id": "demo-demonavigation",
+      "title": "导航与布局",
+      "path": "/manage/demo/navigation",
+      "platform": "manage",
+      "module": "原型演示",
+      "files": [
+        "src/pages/demo/DemoNavigationPage.tsx"
+      ]
+    },
+    {
+      "id": "demo-demoaccess",
+      "title": "权限展示",
+      "path": "/manage/demo/access",
+      "platform": "manage",
+      "module": "原型演示",
+      "files": [
+        "src/pages/demo/DemoAccessPage.tsx"
+      ]
+    },
+    {
+      "id": "demo-demobatch",
+      "title": "批处理工作台",
+      "path": "/manage/demo/batch",
+      "platform": "manage",
+      "module": "原型演示",
+      "files": [
+        "src/pages/demo/DemoBatchPage.tsx"
+      ]
+    },
+    {
+      "id": "demo-demosequence",
+      "title": "自增序号",
+      "path": "/manage/demo/sequence",
+      "platform": "manage",
+      "module": "原型演示",
+      "files": [
+        "src/pages/demo/DemoSequencePage.tsx"
+      ]
+    },
+    {
+      "id": "mobile-orders",
+      "title": "手机订单列表",
+      "path": "/mobile/#/orders",
+      "platform": "mobile",
+      "module": "订单与退款",
+      "files": [
+        "src/mobile/**"
+      ]
+    },
+    {
+      "id": "mobile-order-detail",
+      "title": "手机订单详情",
+      "path": "/mobile/#/orders/demo-001",
+      "platform": "mobile",
+      "module": "订单与退款",
+      "files": [
+        "src/mobile/**"
+      ]
+    },
+    {
+      "id": "prototype-workflow",
+      "title": "版本协作",
+      "path": "/rp/workflow",
+      "platform": "manage",
+      "module": "本版页面",
+      "files": [
+        "src/pages/prototype/WorkflowPage.tsx"
+      ]
+    },
+    {
+      "id": "prototype-editor",
+      "title": "版本记录",
+      "path": "/rp/editor",
+      "platform": "manage",
+      "module": "本版页面",
+      "files": [
+        "src/pages/prototype/VersionEditorPage.tsx"
+      ]
+    },
+    {
+      "id": "mobile-form",
+      "title": "手机表单示例",
+      "path": "/mobile/#/form",
+      "platform": "mobile",
+      "module": "手机端页面",
+      "files": [
+        "src/mobile/**"
+      ]
+    },
+    {
+      "id": "manage-guide",
+      "title": "管理端产品导览",
+      "path": "/manage",
+      "platform": "manage",
+      "module": "本版页面",
+      "files": [
+        "src/pages/prototype/ManageGuidePage.tsx"
+      ]
+    },
+    {
+      "id": "workflow-help",
+      "title": "使用指南",
+      "path": "/help",
+      "platform": "manage",
+      "module": "本版页面",
+      "files": [
+        "src/pages/help/HelpPage.tsx"
+      ]
+    },
+    {
+      "id": "scene-guide",
+      "title": "业务流程演示（已移除）",
+      "path": "/rp/scenes",
+      "platform": "manage",
+      "module": "历史协作",
+      "retired": true,
+      "files": []
+    }
+  ]
+}
