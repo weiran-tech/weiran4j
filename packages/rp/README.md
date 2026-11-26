@@ -45,7 +45,7 @@ Mock 数据与会话仅用于浏览器演示，不代表真实身份与权限安
 
 `pnpm build` 输出双端产物到 `.prototype-data/web-build/`；`pnpm build:site` 组装可部署站点到 `dist/`，`pnpm check:site` 检查组装结果。上传 `dist/` 即可部署，也可执行 `node dist/serve.mjs` 预览。现有部署配置、固定归档与恢复机制保留，不导入参考项目的 Codeup / ESA 配置。
 
-历史版本只打开对应固定快照，不以当前实现冒充历史。迁移前原文保存在 `prototype/history/`，旧状态以 `legacyStatus` 留存。旧 GitHub Issue / Discussion、交接、候选和批准工具作为历史兼容保留；“已完结”不代表补办历史批准。
+历史版本只打开对应固定快照，不以当前实现冒充历史。迁移前原文保存在 `prototype/history/`，旧状态以 `legacyStatus` 留存。不关联 GitHub Issue / Discussion；本机评审通过导出移交，固定候选与快照不依赖远程批准。
 
 ## 与独立原型仓库同步
 

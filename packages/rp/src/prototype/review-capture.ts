@@ -1,5 +1,5 @@
 import { releases } from './catalog';
-import type { ReviewContext } from '../../prototype/review.mjs';
+import type { ReviewContext } from './review-context';
 import { runtimeStorageId } from './runtime';
 import './review-capture.css';
 
@@ -56,7 +56,7 @@ export function openReviewCapture(context: ReviewContext, getTarget: () => HTMLE
     const close = element('button', '关闭'); close.type = 'button';
     header.append(close);
     const info = element('p', `${context.version} · ${context.platform === 'mobile' ? '手机端' : '管理端'} · ${context.pageId || context.page || '当前页'}`);
-    const hint = element('p', '选择手动截取的图片，或点击截取当前网页；在图片上拖动框选后填写意见。不调用系统截屏，本机记录需手动上传到版本 Discussion。');
+    const hint = element('p', '选择手动截取的图片，或点击截取当前网页；在图片上拖动框选后填写意见。不调用系统截屏，评审记录仅保存在当前浏览器，可导出后移交团队。');
     const controls = element('div', '', 'review-capture-actions');
     const upload = element('button', '选择已有截图');
     const fileInput = element('input'); fileInput.type = 'file'; fileInput.accept = 'image/png,image/jpeg,image/webp'; fileInput.hidden = true; fileInput.setAttribute('aria-label', '上传截图');
@@ -203,7 +203,7 @@ export function openReviewCapture(context: ReviewContext, getTarget: () => HTMLE
     pdf.onclick = async () => {
         if (!item || busy) return;
         busy = true; updateButtons(); status.textContent = '正在生成 PDF…';
-        try { preview = null; draw(); await exportReviewPdf(item, canvas); status.textContent = 'PDF 已导出，包含截图、标注与意见。请手动上传至版本 Discussion。'; }
+        try { preview = null; draw(); await exportReviewPdf(item, canvas); status.textContent = 'PDF 已导出，包含截图、标注与意见。可将文件移交团队复核。'; }
         catch (error) { describeError(error); }
         finally { busy = false; updateButtons(); }
     };
@@ -230,7 +230,7 @@ async function exportReviewPdf(item: RecordItem, screenshot: HTMLCanvasElement) 
         `改动：${item.context.change?.id || '未指定'} · 场景：${item.context.scenario || 'normal'}`,
         `记录时间：${new Date(item.createdAt).toLocaleString()}`, `截图来源：${item.source === 'upload' ? '手动上传（请核对图片与关联页面）' : '当前网页'}`, `关联页面：${item.context.pageUrl || ''}`,
         `整体意见：${item.note || '未填写'}`, ...item.marks.map((mark, index) => `标注 ${index + 1}：${mark.text || '未填写意见'}`),
-        '此文件为本机评审记录；本人确认与阻塞复核以版本 Discussion 为准。',
+        '此文件为本机评审记录；可导出后移交团队复核，版本状态由源码维护。',
     ];
     for (const paragraph of lines) {
         for (const line of wrapReviewText(ctx, paragraph, 1100)) {

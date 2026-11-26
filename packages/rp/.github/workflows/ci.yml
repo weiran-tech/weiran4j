@@ -5,8 +5,6 @@ on:
   pull_request:
   workflow_dispatch:
 permissions:
-  issues: read
-  discussions: read
   contents: read
 concurrency:
   group: prototype-ci-${{ github.ref }}

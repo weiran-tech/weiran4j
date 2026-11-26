@@ -25,4 +25,4 @@ versions/<版本>/changes/<pageId>.json   单个页面的 CHG 分组
 
 状态为 in_progress / completed，只允许唯一进行中版本，activeVersion 与 current 指向它。先登记 editBase 与本版 CHG，再修改实现；完结前提交实现并登记 implementationRef。subtree 来源同时保留对应目录树引用。完整产品仍沿固定基线链继承、覆盖、删除；缺少历史快照时不以当前实现替代。
 
-已完结版本不可重写。网页仅保存本机评审，支持截图及导出，不修改源码。操作见站内版本管理指南；历史 Issue、Discussion、交接、固定归档和迁移前原文继续保留。
+已完结版本不可重写。网页仅保存本机评审，支持截图及导出，不修改源码。操作见站内版本管理指南；不关联远程任务或讨论；固定归档和迁移前版本原文继续保留。

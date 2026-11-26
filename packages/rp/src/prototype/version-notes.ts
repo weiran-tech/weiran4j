@@ -1,5 +1,5 @@
 import { releases } from './catalog';
-import type { ReviewContext } from '../../prototype/review.mjs';
+import type { ReviewContext } from './review-context';
 import './review-capture.css';
 export type NotebookPage = { platform: string; pageId: string; title: string; path: string; introduction?: string; remark?: string };
 export type NotebookContext = ReviewContext & { pages?: NotebookPage[]; platformNotes?: Partial<Record<'manage' | 'mobile', { introduction: string; remark: string }>> };

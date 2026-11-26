@@ -1,6 +1,5 @@
 # 构建与部署
 
-> 当前版本由 AI 维护源码，网页仅记录本机评审，见[版本管理](./versions.md)。下文涉及旧 Discussion、候选、交接和批准的步骤仅作历史兼容参考，不是当前网页操作流程。
 发布环境统一使用 **Node.js 24.x**。GitHub Actions、候选构建和定稿归档工作流均使用 Node 24，Vercel 部署参数指定 `24.x`；源码构建同时读取根目录 `package.json` 的 `engines.node`。本地使用 nvm 时执行 `nvm install && nvm use`，读取仓库 `.nvmrc`。
 
 推荐将 GitHub 作为版本来源，使用 Vercel 托管当前原型与历史快照。也可下载 CI 产物自行部署，无需后端与数据库。
@@ -29,26 +28,25 @@
 
 main 发布会先按内容摘要复用托管平台已有资源，仅补齐缺失文件，小文件可随部署请求提交，避免反复上传全部历史快照。相同分支只保留最新一次检查与发布任务。发布遇到限流或错误时不标记成功，线上保留上一次可用部署。[Vercel 部署接口说明](https://vercel.com/docs/rest-api/deployments/create-a-new-deployment)。
 
-- main / PR：说明校验、lint、测试、构建与路由检查。main 恢复历史快照和交接摘要；PR 不使用发布凭证。`prototype-site` artifact 保存 30 天。
+- main / PR：说明校验、lint、测试、构建与路由检查。main 恢复历史快照；PR 不使用发布凭证。`prototype-site` artifact 保存 30 天。
 - **Build review candidate**：手动从 main 构建固定候选，发布 prerelease 附件 `v0.8-rc-<40位提交>.tar.gz`，组装完整站点。候选不是定稿，旧候选保持可追溯。
-- **Freeze prototype version**：当前版本 finalized 后推送同名 tag；HEAD 须在 GitHub main 中，在线门禁验证主评审记录、候选内容指纹、产品批准、技术确认、未解决阻塞和基线，才归档。批准命令见交接工作台。
-- **Refresh prototype site**：归档成功、Discussion / Issue / 评论变化或手动触发后，重建 main 的站点摘要和完整历史。已有 Release 附件先核对身份再续跑，拒绝覆盖。
+- **Freeze prototype version**：当前版本 completed 后推送同名 tag；HEAD 须在 main 中，核对源码版本、implementationRef 与准确 tag 后归档。
+- **Refresh prototype site**：手动触发后，重建 main 的站点摘要和完整历史。已有 Release 附件先核对身份再续跑，拒绝覆盖。
 
-本地 `pnpm candidate` 要求 review 且工作区干净。`pnpm snapshot -- v0.8` 还要求定稿门禁、准确 tag 与主分支提交。`pnpm release:check` 可单独检查当前 finalized 版本；未定稿仅报告状态。归档目录和产物均被 Git 忽略。
+本地 `pnpm candidate` 要求 in_progress 且工作区干净。`pnpm snapshot -- v0.8` 要求 completed、implementationRef、准确 tag 与主分支提交。归档目录和产物均被 Git 忽略。
 
-批准名单在 `prototype/review-policy.json`，默认空名单会拒绝定稿。GitHub 主评审记录 JSON 块由交接工作台生成，正文损坏会显示同步错误。勿以关闭 Discussion 或标记答案代替批准。当前私有仓库的平台规则受套餐限制，需维护者审查 PR 与控制文件，不能将脚本声称为不可绕过的平台保护。
 
 ## Vercel：发布已检查的静态产物
 
-当前站点：[协作首页](https://rp-example.vercel.app/)，站点需要 Vercel 身份验证。候选归档路径为 `/releases/<候选编号>/`；从交接工作台或版本主评审记录 打开当前评审候选，基线为 v0.2。
+当前站点：[协作首页](https://rp-example.vercel.app/)，站点需要 Vercel 身份验证。候选归档路径为 `/releases/<候选编号>/`；从版本目录打开对应固定候选，基线为 v0.2。
 
 已配置项目 `rp-example`，项目非敏感标识在 `prototype/hosting.json`。站点保护保持启用，团队成员需获得 Vercel 项目访问权。原型登录不是托管访问控制。
 
-推荐 GitHub 构建完毕后运行 `scripts/deploy-static.mjs`：仅上传 `dist` 静态文件，保留 `vercel.json` 的路径配置，轮询 READY 后才报告成功。安装和构建步骤不接触 Vercel 凭证；归档与交接读取使用 Actions 自带的 `GITHUB_TOKEN`。
+推荐 GitHub 构建完毕后运行 `scripts/deploy-static.mjs`：仅上传 `dist` 静态文件，保留 `vercel.json` 的路径配置，轮询 READY 后才报告成功。安装和构建步骤不接触 Vercel 凭证；归档读取使用 Actions 自带的 `GITHUB_TOKEN`。
 
 维护者在 **GitHub 仓库 Settings → Secrets and variables → Actions** 直接设置 `VERCEL_TOKEN`（有该团队项目部署权限），不要通过聊天、源码或 VITE_ 变量传递。main CI、候选与站点刷新工作流均支持此方式。未配置时只产出可下载部署包，会明确报告未自动更新线上。首次通过已授权连接器发布不等于此 Secret 已配置。
 
-也可选择 Vercel Git 源码构建：Other / Node 24，Install `pnpm install --frozen-lockfile`，Build `pnpm build:deploy`，Output `dist`。这种方式须单独配置 `GITHUB_REPOSITORY=weiran-tech/rp-example` 和只读仓库 `GH_TOKEN`（读取 Releases、Discussions、Issues 和评论），不要给不可信 PR 暴露凭证。推荐静态产物路径，可避免在 Vercel 存 GitHub token。
+也可选择 Vercel Git 源码构建：Other / Node 24，Install `pnpm install --frozen-lockfile`，Build `pnpm build:deploy`，Output `dist`。这种方式须单独配置 `GITHUB_REPOSITORY=weiran-tech/rp-example` 和只读仓库 `GH_TOKEN`（仅读取 Releases），不要给不可信 PR 暴露凭证。推荐静态产物路径，可避免在 Vercel 存 GitHub token。
 
 路由优先匹配文件，再分别处理管理端、mobile、releases；使用指南由管理端路由解析，旧文档链接进入指南；缺失快照和资源返回 404。官方配置说明见 [Vercel 路由](https://vercel.com/docs/project-configuration/vercel-json)。
 
@@ -99,6 +97,5 @@ Hook 只触发 Vercel 构建，不代表线上部署已经成功；结果以 Ver
 
 部署脚本向 GitHub Actions Summary 和 step output 分别记录 `artifact_only` 与 `ready`。缺少 `VERCEL_TOKEN` 时显示“部署包已生成，线上未更新”；只有托管平台返回 READY 才给出线上部署已就绪及 URL。工作流总状态 success 不能替代部署结果。
 
-交接工作台显示允许名单、配置凭证入口、部署记录入口及摘要时间。“刷新已发布摘要”只读取当前站点文件，不触发新部署，也不声称读取 GitHub 实时内容。实时交接使用 `handoff:pull`；自动发布仍需维护者直接在 GitHub Secrets 设置凭证，团队账号访问由 Vercel 管理。
 
 共享的 `prototype/**` 及构建元数据插件参与 Turbo 缓存键；归档编号、构建类型和内容指纹也声明为构建环境输入。只更新根版本说明或共享规则时，双端构建和测试会重新执行，避免旧版本页面或过期测试结果被复用。

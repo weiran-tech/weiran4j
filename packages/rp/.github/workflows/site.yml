@@ -2,8 +2,6 @@ name: Refresh prototype site
 on:
   workflow_dispatch:
 permissions:
-  issues: read
-  discussions: read
   contents: read
 concurrency:
   group: prototype-site

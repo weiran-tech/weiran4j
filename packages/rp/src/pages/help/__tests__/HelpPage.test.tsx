@@ -28,7 +28,7 @@ it('旧文档深链进入对应指南，删除的文章明确提示', () => {
 it('相对 Markdown 与历史目录链接正确转换，不给外链追加上下文', () => {
     expect(helpLink('./deployment.md')).toBe('/help/deployment');
     expect(legacyHelpDoc('/docs/components/file-upload')).toBe('removed');
-    expect(helpLink('https://github.com/weiran-tech/rp-example/issues/5')).toBe('https://github.com/weiran-tech/rp-example/issues/5');
+    expect(helpLink('https://example.com/reference')).toBe('https://example.com/reference');
 });
 
 it('旧指南迁移清理版本上下文，同时保留仅页面嵌入参数', () => {

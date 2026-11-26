@@ -53,7 +53,3 @@ for (const name of await readdir(archives).catch((error) => { if (error.code ===
 await mkdir(new URL('releases/', output), { recursive: true });
 await writeFile(new URL('releases/index.json', output), JSON.stringify(snapshots, null, 2));
 console.log(`手机端 /mobile/，历史快照 ${snapshots.length} 个。`);
-
-await mkdir(new URL('handoffs/', output), { recursive: true });
-try { await cp(new URL('.prototype-data/handoffs.json', root), new URL('handoffs/index.json', output)); }
-catch (error) { if (error.code !== 'ENOENT') throw error; await writeFile(new URL('handoffs/index.json', output), JSON.stringify({ syncedAt: null, versions: {} })); }

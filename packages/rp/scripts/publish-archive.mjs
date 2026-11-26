@@ -9,7 +9,7 @@ const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
 const headers = { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' };
 const response = await fetch(`https://api.github.com/repos/${repository}/releases/tags/${id}`, { headers });
 if (response.status === 404) {
-    const args = ['release', 'create', id, `.prototype-artifacts/${id}.tar.gz`, '--repo', repository, '--title', id, '--notes', expected.kind === 'candidate' ? `固定评审候选；原型 ${expected.prototypeVersion}，提交 ${expected.commit}。不代表产品批准。` : '已通过产品与技术评审门禁的定稿原型；禁止覆盖。'];
+    const args = ['release', 'create', id, `.prototype-artifacts/${id}.tar.gz`, '--repo', repository, '--title', id, '--notes', expected.kind === 'candidate' ? `固定评审候选；原型 ${expected.prototypeVersion}，提交 ${expected.commit}。不代表产品批准。` : '已完结版本的固定原型快照；禁止覆盖。'];
     if (expected.kind === 'candidate') args.push('--target', expected.commit, '--prerelease'); else args.push('--verify-tag');
     execFileSync('gh', args, { stdio: 'inherit' });
 } else {

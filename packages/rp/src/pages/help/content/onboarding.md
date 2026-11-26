@@ -1,6 +1,5 @@
 # 新成员上手：下载与协作
 
-> 当前版本由 AI 维护源码，网页仅记录本机评审，见[版本管理](./versions.md)。下文涉及旧 Discussion、候选、交接和批准的步骤仅作历史兼容参考，不是当前网页操作流程。
 第一次使用本项目，按这条顺序操作：**获得 GitHub 访问权限 → 下载项目 → 本地启动 → 修改与提交 → PR 评审合并，发布由维护者按[部署指南](./deployment.md)完成**。
 
 ## 先确认自己需要做什么
@@ -8,7 +7,7 @@
 | 使用方式 | 需要准备 | 从哪里开始 |
 | --- | --- | --- |
 | 只查看原型 | 团队演示站访问权限 | 直接打开演示站，不必下载代码 |
-| 产品或评审参与人 | 演示站权限、GitHub 仓库访问权限 | 查看版本、操作原型、通过 Discussion 评论串记录问题与结论 |
+| 产品或评审参与人 | 演示站权限、GitHub 仓库访问权限 | 查看版本、操作原型、记录本机意见并导出后移交团队 |
 | 修改原型的成员 | GitHub 写入权限、Git、Node.js 24、pnpm 12.15.0 | 克隆仓库，在分支上修改并提交 PR |
 | 合并与部署负责人 | 仓库维护权限、部署平台或服务器权限 | 检查 PR、合并 main、发布经过验证的产物 |
 
@@ -16,7 +15,7 @@
 
 ## 1. 加入 GitHub 协作
 
-**新成员：**注册并登录自己的 GitHub 账号，把用户名交给项目维护者。接受邮件或 GitHub 通知中的仓库 / 组织邀请，再打开项目地址确认能够看到代码和 Discussions。
+**新成员：**注册并登录自己的 GitHub 账号，把用户名交给项目维护者。接受邮件或 GitHub 通知中的仓库 / 组织邀请，再打开项目地址确认能够看到代码。
 
 **维护者：**进入仓库 Settings 的访问管理页面，将成员加入有仓库权限的团队，或邀请为仓库协作者；根据工作分配查看、提交代码和维护权限。只需参与一个仓库的外部成员可以通过仓库协作者方式加入。操作位置及权限要求见 [GitHub 访问管理说明](https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories)。
 
@@ -52,10 +51,7 @@ ZIP 不包含用于提交的 Git 历史。之后需要提交修改时，重新�
 
 | 配置 | 新项目要做什么 |
 | --- | --- |
-| `prototype/project.mjs` | 将 `repository` 改为自己的 GitHub 仓库 |
-| `prototype/discussions.json` | 清理旧示例映射，只登记新项目自己的版本 Discussion |
-| `prototype/reviews.json` | 仅保留本项目仍需查阅的历史 Issue 登记 |
-| `prototype/review-policy.json` | 填写新项目真实的产品和技术确认人 |
+| `prototype/project.mjs` | 将快照发布的 `repository` 改为自己的源码仓库 |
 | `prototype/hosting.json` | 更换为自己的托管项目标识，不向示例站发布 |
 
 用 `pnpm version:new -- v1.0 "团队首版原型"` 建立自己的草稿版本，再完善页面和说明。编号须唯一。完成配置和检查后提交，并上传到新仓库；以下地址须换成新仓库实际地址：
@@ -67,7 +63,6 @@ git remote set-url origin https://github.com/your-team/your-prototype.git
 git push -u origin main
 ```
 
-进入评审前，在新仓库开启 Discussions，在 General 分类创建自己的版本 Discussion，并通过 `pnpm version:review -- v1.0 discussion:1` 登记，命令最后的 `1` 须换成实际 Discussion 编号。后续配置和功能修改都按本文的分支与 PR 流程进行。
 
 新项目使用自己的候选、批准和发布记录；旧示例记录不代表新团队已完成评审。新仓库没有历史附件时，旧快照不可预览是正常现象。
 
@@ -181,4 +176,4 @@ git pull --ff-only origin main
 | 仓库提示 404 或无法克隆 | 确认受邀账号已接受邀请且具有仓库权限 |
 | 从 ZIP 下载后无法 push | 使用 Git 克隆目录提交，先保留并复制自己的修改 |
 | 本机缺少历史页面 | 使用团队演示站，或下载含历史快照的 main 部署包 |
-| 保存后别人看不到 | 按[共享记录与同步](./sharing.md)区分草稿、GitHub 正文和站点摘要 |
+| 保存后别人看不到 | 按[共享记录与同步](./sharing.md)区分源码提交与本机评审；本机意见需导出后移交 |

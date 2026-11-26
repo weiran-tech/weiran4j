@@ -2,10 +2,10 @@ import { readManifest } from './load-prototype.mjs';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-/** 排除协作记录与文档；仅规范化当前版本的发布状态，业务说明和源码变化会使批准失效。 */
+/** 排除协作记录与文档；仅规范化当前版本的发布状态，业务说明和源码变化会生成不同指纹。 */
 export function reviewFingerprint(root = process.cwd()) {
     const manifest = readManifest(root, { allowLegacy: true });
-    const files = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(Boolean).filter((path) => !path.startsWith('docs/') && !path.startsWith('.github/') && !['README.md', 'prototype/review-policy.json', 'prototype/hosting.json'].includes(path)).sort();
+    const files = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(Boolean).filter((path) => !path.startsWith('docs/') && !path.startsWith('.github/') && !['README.md', 'prototype/hosting.json'].includes(path)).sort();
     const hash = createHash('sha256');
     for (const path of files) {
         let value = readFileSync(`${root}/${path}`);

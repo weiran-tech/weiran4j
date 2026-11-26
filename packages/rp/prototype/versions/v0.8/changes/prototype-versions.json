@@ -15,7 +15,7 @@
       "after": "版本通过 AI 修改源码；唯一进行中版本允许页面修改和本机评审，已完结版本只读。评审可关联端、页面和 CHG，附截图并导出 HTML / JSON。",
       "rules": [
         "版本来源为源码，网页不创建或编辑版本。",
-        "完成状态不代表历史 GitHub 评审批准；历史记录与固定快照保持。",
+        "完成状态由源码维护；本机评审与固定快照独立保存。",
         "历史业务页面只打开对应固定快照，不回退当前实现。"
       ],
       "exceptions": "无进行中版本时禁止修改页面实现；已完结版本拒绝写入评审。",
@@ -66,6 +66,38 @@
         "src/pages/help/content/*",
         "src/pages/dashboard/DashboardPage.tsx"
       ]
+    },
+    {
+      "platform": "manage",
+      "pageTitle": "版本中心",
+      "page": "/rp/versions",
+      "location": "版本清单与版本详情",
+      "id": "CHG-017",
+      "type": "modify",
+      "title": "移除远程 Issue 与 Discussion 评审集成",
+      "before": "保留远程评审映射、评论批准门禁、同步工具和旧指南。",
+      "after": "仅保留源码版本和本机评审，删除远程登记、同步、批准门禁及相关 CI 权限。",
+      "rules": [
+        "不关联 GitHub Issue 或 Discussion。",
+        "本机评审与固定历史快照继续可用，不清除浏览器记录。"
+      ],
+      "exceptions": "本机意见导出后由团队移交，历史版本原文与固定快照不重写。",
+      "acceptance": [
+        "构建与归档不读取远程评审或批准。",
+        "本机评审、导出与页面版本校验仍可用。"
+      ],
+      "files": [
+        "src/prototype/review-context.ts",
+        "src/prototype/review-capture.ts",
+        "src/prototype/version-notes.ts",
+        "src/prototype/ReviewLinks.tsx",
+        "src/prototype/useHandoffs.ts",
+        "src/mobile/App.vue",
+        "src/mobile/style.css",
+        "src/pages/help/content/*.md"
+      ],
+      "previousPage": "/rp/versions",
+      "nextPage": "/rp/versions"
     }
   ]
 }

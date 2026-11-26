@@ -9,5 +9,5 @@
 .mobile-navigation button { background:white; border:1px solid #d8e1ed; padding:8px 14px; border-radius:20px; color:#0064fa; }
 .review-content article { border-bottom:1px solid #e5ebf3; padding:16px 0; }
 
-.review-issue-links { display:flex; flex-wrap:wrap; gap:12px; }
-.review-issue-links a { color:#0064fa; }
+.review-local-links { display:flex; flex-wrap:wrap; gap:12px; }
+.review-local-links a { color:#0064fa; }

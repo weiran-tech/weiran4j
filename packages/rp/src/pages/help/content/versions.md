@@ -28,7 +28,7 @@
 
 迁移前的版本说明保存在 `prototype/history/releases-before-source-workflow.json`，旧状态以 `legacyStatus` 留存。v0.1–v0.7 已停止本轮修改，v0.8 继续进行；“已完结”不代表历史 GitHub 评审被补批或业务已验收。
 
-固定 `/releases/<id>/` 快照、Issue / Discussion、交接和批准证据保留。旧归档不重建、不替换；旧协作和研发交接工具仅作历史兼容。本项目继续沿用自己的管理端、手机端业务示例和部署方式。
+固定 `/releases/<id>/` 快照保留，旧归档不重建、不替换；已删除远程评审关联、同步和批准工具。本项目继续沿用自己的管理端、手机端业务示例和部署方式。
 
 ## JSON 文件组织
 

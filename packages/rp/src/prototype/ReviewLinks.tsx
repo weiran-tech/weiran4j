@@ -1,5 +1,5 @@
 import { Button } from '@douyinfe/semi-ui';
-import type { ReviewContext } from '../../prototype/review.mjs';
+import type { ReviewContext } from './review-context';
 import { notebookContext } from './notebook-context';
 import { openVersionNotebook } from './version-notes';
 import { PortalLink } from './PortalRouter';

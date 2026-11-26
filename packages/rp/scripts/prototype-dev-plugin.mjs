@@ -19,7 +19,6 @@ export function prototypeDevPlugin() {
                 if (!path.startsWith(base) && !portalBase) { res.statusCode = 404; res.end('此版本没有工作构建，请使用归档入口'); return; }
                 req.url = req.url.slice((portalBase || base).length - 1);
             }
-            if (req.url?.split('?')[0] === '/handoffs/index.json') { res.setHeader('Content-Type', 'application/json'); res.setHeader('Cache-Control', 'no-cache'); void readFile(new URL('../.prototype-data/handoffs.json', import.meta.url), 'utf8').then((value) => res.end(value)).catch(() => res.end(JSON.stringify({ syncedAt: null, versions: {} }))); return; }
             next();
         });
         server.middlewares.use(archiveDevMiddleware(fileURLToPath(new URL('../.prototype-archives/', import.meta.url))));

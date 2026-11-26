@@ -2,8 +2,6 @@ name: Build review candidate
 on:
   workflow_dispatch:
 permissions:
-  issues: read
-  discussions: read
   contents: write
 concurrency:
   group: prototype-candidate
@@ -39,7 +37,6 @@ jobs:
         run: |
           rm -rf .prototype-archives
           node scripts/restore-snapshots.mjs
-          pnpm handoff:sync
           pnpm build:site
           pnpm check:site
         env:

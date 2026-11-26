@@ -2,14 +2,13 @@ import { readManifest } from './load-prototype.mjs';
 import { execFileSync } from 'node:child_process';
 import { access, cp, mkdir, readFile } from 'node:fs/promises';
 import { reviewFingerprint } from './review-fingerprint.mjs';
-import { releaseGate } from './check-release-gate.mjs';
 import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const catalog = readManifest();
 const candidate = process.argv.includes('--candidate');
 const version = process.argv.slice(2).find((value) => value !== '--' && value !== '--candidate') || catalog.current;
 const release = catalog.releases.find((item) => item.id === version);
-if (!release || (!candidate && release.status !== 'finalized') || (candidate && release.status !== 'review') || version !== catalog.current) throw new Error('只能归档已定稿的当前版本：先将状态改为 finalized，提交代码并打同名 tag');
+if (!release || (!candidate && release.status !== 'completed') || (candidate && release.status !== 'in_progress') || version !== catalog.current) throw new Error('只能归档已完结的当前版本；候选仅限进行中版本，归档前提交实现并打同名 tag');
 execFileSync('node', ['scripts/check-versions.mjs'], { cwd: root, stdio: 'inherit' });
 const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
 if (!candidate) {
@@ -17,7 +16,10 @@ if (!candidate) {
     if (commit !== tagCommit) throw new Error('当前 HEAD 必须与版本 tag 指向同一提交');
     let mainRef = 'origin/main'; try { execFileSync('git', ['rev-parse', '--verify', 'refs/remotes/github/main'], { cwd: root, stdio: 'ignore' }); mainRef = 'github/main'; } catch { /* Actions checkout 使用 origin */ }
     execFileSync('git', ['merge-base', '--is-ancestor', commit, mainRef], { cwd: root });
-    await releaseGate(release);
+    if (!release.legacyStatus) {
+        if (!/^[a-f0-9]{40}$/.test(release.implementationRef || '')) throw new Error('已完结版本缺少冻结的 implementationRef');
+        execFileSync('git', ['merge-base', '--is-ancestor', release.implementationRef, commit], { cwd: root });
+    }
 }
 if (execFileSync('git', ['status', '--porcelain'], { cwd: root, encoding: 'utf8' }).trim()) throw new Error('请先提交改动再归档');
 const archiveId = candidate ? `${version}-rc-${commit}` : version;

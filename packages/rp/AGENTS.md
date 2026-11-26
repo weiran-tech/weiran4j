@@ -23,7 +23,7 @@
 - 进行中版本允许新增和编辑本机评审，已完结版本仅查看及导出。版本、端、页面与 CHG 必须匹配；支持图片、HTML / JSON 导出和 HTML 打印 PDF。存储适配器位于 `src/mocks/prototype.ts`。
 - 页面上的 Ctrl / Cmd + Shift + E 打开本机备注，按版本隔离；旧备注与截图存储保留，不自动提交 GitHub。旧存储与新评审可分别导出。
 - 历史业务页面仅打开对应固定快照，不以当前业务实现冒充历史。`/releases/<id>/` 固定归档与原有发布恢复机制保留。
-- 迁移前版本说明原文保存在 `prototype/history/releases-before-source-workflow.json`；旧 Issue / Discussion、交接、批准证据和门禁工具仅作历史兼容保留。旧版状态记录在 `legacyStatus`，历史说明与快照不改写。“已完结”不代表补办或继承 GitHub 批准。
+- 迁移前版本说明原文保存在 `prototype/history/releases-before-source-workflow.json`；不关联 GitHub Issue / Discussion，不保留远程评审登记、同步和批准门禁。旧版状态记录在 `legacyStatus`，历史说明与快照不改写。本机评审由导出文件移交，完结状态仅由源码维护。
 - 保留本项目业务示例、端口、部署配置和包名；参考项目的业务页面、账号数据、本地配置及历史评审不得复制过来。
 
 ## 版本 JSON 组织
