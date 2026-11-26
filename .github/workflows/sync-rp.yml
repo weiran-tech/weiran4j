@@ -30,13 +30,15 @@ jobs:
       - name: 配置目标仓库专用 SSH 密钥
         env:
           RP_SUBTREE_SSH_KEY: ${{ secrets.RP_SUBTREE_SSH_KEY }}
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           test -n "$RP_SUBTREE_SSH_KEY" || { echo '缺少 RP_SUBTREE_SSH_KEY secret'; exit 1; }
           umask 077
           printf '%s\n' "$RP_SUBTREE_SSH_KEY" > "$RUNNER_TEMP/rp-subtree-key"
-          curl --fail --silent --show-error https://api.github.com/meta \
+          curl --fail --silent --show-error --retry 3 \
+            --header "Authorization: Bearer $GH_TOKEN" https://api.github.com/meta \
             | jq -r '.ssh_keys[] | "github.com " + .' > "$RUNNER_TEMP/rp-known-hosts"
           test -s "$RUNNER_TEMP/rp-known-hosts"
           printf 'GIT_SSH_COMMAND=ssh -i "%s/rp-subtree-key" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="%s/rp-known-hosts"\n' \
