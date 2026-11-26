@@ -130,7 +130,7 @@ it('旧原型演示地址合并到版本详情，保留版本、范围与端', a
     expect(await screen.findByRole('heading', { name: /v0.7 · 四阶段协作/ })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: '原型演示', level: 1 })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: '完整产品' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByLabelText('选择端')).toHaveValue('mobile');
+    expect(screen.getByRole('radio', { name: '手机端' })).toBeChecked();
     expect(screen.getByRole('tab', { name: '原型与改动' })).toHaveAttribute('aria-selected', 'true');
 });
 

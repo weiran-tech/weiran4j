@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { webcrypto } from 'node:crypto';
 import { renderWithProviders } from '@/test/helpers';
@@ -58,4 +58,28 @@ it('拒绝不属于版本的页面和 CHG，存储损坏不覆盖原文', () => 
     localStorage.setItem(VERSION_STORAGE_KEY, '{bad');
     expect(() => addReview('v0.8', { author: '测试', text: '意见', pageId: '' })).toThrow(/损坏/);
     expect(localStorage.getItem(VERSION_STORAGE_KEY)).toBe('{bad');
+});
+
+it('版本目录按管理端范围筛选，搜索 CHG 与模块共同作用，空结果可恢复', () => {
+    renderWithProviders(<VersionsPage />, { route: '/rp/versions?tab=prototype&scope=version&platform=manage' });
+    const directory = screen.getByRole('region', { name: '版本页面目录' });
+    expect(within(directory).getAllByRole('article')).toHaveLength(3);
+    expect(screen.getByRole('radio', { name: '管理端' })).toBeChecked();
+    fireEvent.change(screen.getByLabelText('搜索页面'), { target: { value: 'CHG-003' } });
+    expect(within(directory).getAllByRole('article')).toHaveLength(1);
+    expect(within(directory).getByText('退款交互示例')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('筛选模块'), { target: { value: '管理端 · 本版页面' } });
+    expect(screen.getByText('没有匹配的页面')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('搜索页面'), { target: { value: '' } });
+    expect(within(directory).getAllByRole('article')).toHaveLength(2);
+    expect(within(directory).queryByText('退款交互示例')).not.toBeInTheDocument();
+});
+it('版本页签支持键盘切换，当前项保持焦点和面板关联', () => {
+    renderWithProviders(<VersionsPage />);
+    const tab = screen.getByRole('tab', { name: '原型与改动' }); tab.focus();
+    fireEvent.keyDown(tab, { key: 'ArrowRight' });
+    const review = screen.getByRole('tab', { name: /评审记录/ });
+    expect(review).toHaveAttribute('aria-selected', 'true');
+    expect(review).toHaveFocus();
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', review.id);
 });

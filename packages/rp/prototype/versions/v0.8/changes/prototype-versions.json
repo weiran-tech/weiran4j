@@ -68,6 +68,36 @@
       ]
     },
     {
+      "id": "CHG-016",
+      "type": "modify",
+      "title": "版本详情与阿琅统一页面风格",
+      "platform": "manage",
+      "pageTitle": "版本中心",
+      "previousPage": "/rp/versions",
+      "nextPage": "/rp/versions",
+      "page": "/rp/versions",
+      "location": "版本清单与版本详情",
+      "before": "版本概览为普通文字区，目录采用纵向列表，筛选控件与页签样式不统一。",
+      "after": "统一四项版本概览、下划线页签、双端分段筛选、搜索与模块筛选，以及紧凑页面卡片；保留原有历史快照校验与改动抽屉。",
+      "rules": [
+        "只统一展示与目录筛选，不替换本项目数据。",
+        "缺少历史快照时仍不可打开当前实现冒充历史。",
+        "端与目录范围继续保存在地址参数中。"
+      ],
+      "exceptions": "无进行中版本时禁止修改页面实现；已完结版本拒绝写入评审。",
+      "acceptance": [
+        "管理端本版改动以模块分组和紧凑卡片展示。",
+        "可搜索页面、编号及 CHG，并筛选模块。",
+        "窄屏控件换行，卡片单列，改动说明与原型链接继续有效。"
+      ],
+      "files": [
+        "src/pages/prototype/VersionsPage.tsx",
+        "src/prototype/VersionPageDirectory.tsx",
+        "src/prototype/versions.css",
+        "src/pages/help/content/versions.md"
+      ]
+    },
+    {
       "platform": "manage",
       "pageTitle": "版本中心",
       "page": "/rp/versions",

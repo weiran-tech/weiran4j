@@ -1,0 +1,50 @@
+/* 版本详情沿用阿琅的概览、下划线页签和紧凑页面卡片。 */
+.version-detail .version-detail-heading{align-items:flex-start;margin-bottom:24px}
+.version-detail .version-detail-heading h1{margin:12px 0 10px;overflow-wrap:anywhere}
+.version-detail .version-detail-heading p{line-height:1.8;max-width:100%}
+.version-detail .version-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;padding:22px 24px;margin-bottom:24px;border:1px solid var(--semi-color-border);border-radius:12px;background:var(--semi-color-bg-1)}
+.version-detail .version-summary small{display:block;margin-bottom:10px;color:var(--semi-color-text-2);font-size:13px}
+.version-detail .version-summary strong,.version-detail .version-summary a{font-size:18px;font-weight:600}
+.version-detail .version-summary a{color:var(--semi-color-primary);text-decoration:none}
+.version-detail .version-tabs{display:flex;gap:24px;margin-bottom:24px;border-bottom:1px solid var(--semi-color-border)}
+.version-detail .version-tabs button{padding:12px 0;border:0;border-bottom:3px solid transparent;background:transparent;color:var(--semi-color-text-2);font:inherit;cursor:pointer}
+.version-detail .version-tabs button[aria-selected=true]{color:var(--semi-color-primary);border-bottom-color:var(--semi-color-primary);font-weight:600}
+.version-detail .version-tabs span{font-size:12px;margin-left:4px}
+.version-detail .version-tabs button:focus-visible,.version-detail .version-segments button:focus-visible{outline:2px solid var(--semi-color-primary);outline-offset:3px}
+.version-detail .version-directory>.proto-heading{align-items:center;gap:20px}
+.version-detail .version-directory h2{margin:0 0 8px;font-size:19px}
+.version-detail .version-directory .proto-heading p{margin:0;line-height:1.7;font-size:13px}
+.version-detail .version-directory-actions{display:flex;align-items:center;justify-content:flex-end;gap:20px;flex-wrap:wrap}
+.version-detail .version-directory-actions .semi-radioGroup{flex:none}
+.version-detail .version-directory-actions .proto-actions{gap:10px}
+.version-detail .version-prototype-entry{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;box-sizing:border-box;padding:7px 12px;border:1px solid var(--semi-color-border);border-radius:6px;background:var(--semi-color-bg-1);color:var(--semi-color-text-0);font-size:13px;font-weight:500;line-height:20px;text-decoration:none;white-space:nowrap}
+.version-detail .version-prototype-entry-mobile{color:#087d88;background:color-mix(in srgb,#00a6b2 7%,var(--semi-color-bg-1));border-color:color-mix(in srgb,#00a6b2 22%,var(--semi-color-border))}
+.version-detail .version-prototype-entry:hover{box-shadow:0 2px 6px #1327440a}
+.version-detail .version-prototype-entry svg{flex:none}
+.version-detail .version-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:20px 0}
+.version-detail .version-toolbar>.semi-input-wrapper{max-width:360px;flex:1;min-width:180px}
+.version-detail .version-toolbar>.semi-input-wrapper input{border:0;padding:0;background:transparent}
+.version-detail .version-toolbar>select{max-width:100%;font:inherit;border:1px solid var(--semi-color-border);border-radius:6px;padding:7px 12px;background:var(--semi-color-bg-1);color:var(--semi-color-text-0)}
+.version-detail .version-segments{display:flex;margin-left:auto;border:1px solid var(--semi-color-border);border-radius:6px;overflow:hidden}
+.version-detail .version-segments button{border:0;padding:9px 14px;background:var(--semi-color-bg-1);color:var(--semi-color-text-2);font:inherit;cursor:pointer}
+.version-detail .version-segments button[aria-pressed=true]{background:var(--semi-color-primary-light-default);color:var(--semi-color-primary);font-weight:600}
+.version-detail .version-module{margin-top:24px}
+.version-detail .version-module>h3{margin:0;font-size:15px;padding:12px 14px;background:var(--semi-color-fill-0);border-radius:6px}
+.version-detail .version-module>h3 small{margin-left:12px;font-size:12px;font-weight:400;color:var(--semi-color-text-2)}
+.version-detail .version-page-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:12px}
+.version-detail .version-page-row{display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:0;padding:12px 14px;border:1px solid var(--semi-color-border);border-radius:8px;background:var(--semi-color-bg-1);transition:border-color .18s,box-shadow .18s}
+.version-detail .version-page-row:hover{border-color:var(--semi-color-primary-light-active);box-shadow:0 4px 14px #0064fa08}
+.version-detail .version-page-row strong{font-size:14px;line-height:1.5}
+.version-detail .version-page-row small{display:block;margin-top:3px;font-size:11px;line-height:1.4;color:var(--semi-color-text-2);overflow-wrap:anywhere}
+.version-detail .version-page-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;flex-wrap:wrap}
+.version-detail .version-page-footer>.proto-muted{font-size:11px}
+.version-detail .version-page-footer>.proto-actions{gap:4px;margin-left:auto;flex-wrap:wrap;font-size:12px}
+.version-detail .version-page-row .semi-button{height:24px;padding:0 4px;font-size:11px}
+.version-detail .version-page-row a{color:var(--semi-color-primary);text-decoration:none}
+.version-detail .version-empty{text-align:center;padding:40px 16px}
+.version-detail .version-empty h3{font-size:16px}
+.version-detail .version-empty p{margin:10px 0}
+.version-detail .version-notice{padding:14px 18px;margin:16px 0;border:1px solid var(--semi-color-primary-light-active);border-radius:8px;background:var(--semi-color-primary-light-default);line-height:1.8}
+@media(max-width:800px){.version-detail .version-summary{grid-template-columns:repeat(2,minmax(0,1fr));padding:18px}.version-detail .version-toolbar>.semi-input-wrapper{max-width:none}.version-detail .version-segments{margin-left:0}.version-detail .version-tabs{gap:18px}}
+@media(max-width:700px){.version-detail .version-directory-actions{justify-content:flex-start;gap:12px}.version-detail .version-page-grid{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce){.version-detail .version-page-row{transition:none}}
