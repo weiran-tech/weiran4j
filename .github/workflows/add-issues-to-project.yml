@@ -1,0 +1,31 @@
+name: Add issues to project
+
+on:
+  issues:
+    types: [opened, reopened, transferred]
+
+permissions:
+  issues: read
+
+concurrency:
+  group: issue-project-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  add-to-project:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check project token
+        env:
+          PROJECT_TOKEN: ${{ secrets.ADD_TO_PROJECT_PAT }}
+        run: |
+          if [ -z "$PROJECT_TOKEN" ]; then
+            echo "::error::Configure ADD_TO_PROJECT_PAT with write access to weiran-tech WeiranProject (Project 2). See .github/ISSUE_PROJECT.md."
+            exit 1
+          fi
+      - name: Add issue to WeiranProject
+        uses: actions/add-to-project@f2c1f1fa649a891be84948ea89b5dfba1526ef05 # v2.0.1
+        with:
+          project-url: https://github.com/orgs/weiran-tech/projects/2
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
