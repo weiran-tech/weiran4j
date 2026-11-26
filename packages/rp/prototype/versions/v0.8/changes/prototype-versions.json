@@ -151,7 +151,8 @@
         "公共包可独立打包，JS、类型、样式与模型入口可消费。",
         "当前原型复用建议人、多图评审、目录、快捷跳转和页面定位。",
         "原型发布不依赖远程任务或讨论。",
-        "管理端范围切换与阿琅一致，位于侧栏 Logo 下方，使用全部产品与版本改动胶囊标签。"
+        "管理端范围切换与阿琅一致，位于侧栏 Logo 下方，使用全部产品与版本改动胶囊标签。",
+        "原型演示口令仅存储 BCrypt 哈希，旧明文缓存迁移后清除，登录、改密与重置保持可用。"
       ],
       "files": [
         "src/App.tsx",
@@ -177,7 +178,8 @@
         "src/layouts/AdminLayout.tsx",
         "src/layouts/AdminLayout.css",
         "src/prototype/WorkspaceSwitcher.tsx",
-        "src/prototype/prototype.css"
+        "src/prototype/prototype.css",
+        "src/mocks/transport.ts"
       ]
     }
   ]

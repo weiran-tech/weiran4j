@@ -1,7 +1,7 @@
 /** 只上传已验证的静态产物；Vercel 凭证不传给安装、构建或浏览器。 */
-import { readdir, readFile, stat, appendFile } from 'node:fs/promises';
+import { readFile, appendFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-import { join } from 'node:path';
+import { collectDeploymentFiles, deploymentHost, deploymentId } from './deployment-files.mjs';
 import { createStaticDeployment } from './static-deployment.mjs';
 async function outcome(status, url = '') {
     const artifactOnly = status === 'artifact_only';
@@ -13,25 +13,18 @@ if (!token) { await outcome('artifact_only'); console.log('未配置 VERCEL_TOKE
 const config = JSON.parse(await readFile('prototype/hosting.json', 'utf8'));
 const rootConfig = JSON.parse(await readFile('vercel.json', 'utf8'));
 const staticConfig = { cleanUrls: true, redirects: rootConfig.redirects, rewrites: rootConfig.rewrites, headers: rootConfig.headers };
-const files = [];
-async function walk(directory, prefix = '') {
-    for (const name of await readdir(directory)) {
-        const path = join(directory, name); const file = prefix + name;
-        if ((await stat(path)).isDirectory()) await walk(path, file + '/');
-        else if (file !== 'serve.mjs') files.push({ file, content: await readFile(path) });
-    }
-}
-await walk('dist'); files.push({ file: 'vercel.json', content: Buffer.from(JSON.stringify(staticConfig)) });
+const files = await collectDeploymentFiles('dist');
+files.push({ file: 'vercel.json', content: Buffer.from(JSON.stringify(staticConfig)) });
 const headers = { Authorization: `Bearer ${token}` }; const query = `?teamId=${config.teamId}`;
 for (const item of files) {
     item.sha = createHash('sha1').update(item.content).digest('hex'); item.size = item.content.length;
 }
 const deployment = await createStaticDeployment(files, { name: config.projectName, project: config.projectId, target: 'production', projectSettings: { framework: null, buildCommand: '', installCommand: '', outputDirectory: '', nodeVersion: '24.x' } }, { headers, query });
 for (let index = 0; index < 80; index++) {
-    const status = await fetch(`https://api.vercel.com/v13/deployments/${deployment.id}${query}`, { headers });
+    const status = await fetch(`https://api.vercel.com/v13/deployments/${deploymentId(deployment.id)}${query}`, { headers });
     if (!status.ok) throw new Error('无法核实托管部署状态');
     const value = await status.json();
-    if (value.readyState === 'READY') { await outcome('ready', `https://${value.url}`); console.log(`静态站点已部署：https://${value.url}`); process.exit(0); }
+    if (value.readyState === 'READY') { await outcome('ready', `https://${deploymentHost(value.url)}`); console.log(`静态站点已部署：https://${deploymentHost(value.url)}`); process.exit(0); }
     if (['ERROR', 'CANCELED'].includes(value.readyState)) throw new Error('托管部署未成功，请检查 Vercel 构建记录');
     await new Promise((resolve) => setTimeout(resolve, 3000));
 }

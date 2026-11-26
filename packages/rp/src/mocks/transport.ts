@@ -1,3 +1,4 @@
+import { compare, hash, hashSync } from 'bcryptjs';
 import { runtimeStorageId, runtimeVersion } from '@/prototype/runtime';
 import { namespacePath } from '../../prototype/routes.mjs';
 import { sitePath } from '@/prototype/catalog';
@@ -24,16 +25,18 @@ interface Database {
     tables: Record<string, Row[]>;
     preferences: unknown;
     favorites: number[];
-    password: string;
+    passwordHash: string;
     security: Record<string, unknown>;
     sequences: Record<string, number>;
 }
+// 仅本地 Mock：演示口令运行时散列，不将明文写入浏览器存储。
+const defaultPasswordHash = hashSync('admin123', 10);
 function initial(): Database {
     /* 种子里各表是模块级常量，`createSeed()` 每次返回的是**同一批数组引用**。
        直接交给数据库会让一次写入改到「下一次初始化的种子」—— 测试里表现为
        改了一条账户状态，下个用例读到的种子已经变了；真实场景里「重置数据」也拿不回原始值。
        深拷贝一份，每次初始化都是干净的。 */
-    return { version: MOCK_SCHEMA_VERSION, tables: structuredClone(createSeed()), preferences: null, favorites: [], password: 'admin123', sequences: {},
+    return { version: MOCK_SCHEMA_VERSION, tables: structuredClone(createSeed()), preferences: null, favorites: [], passwordHash: defaultPasswordHash, sequences: {},
         security: { passwordMinLength: 6, passwordMaxLength: 64, requireLower: false, requireUpper: false, requireDigit: false, requireSymbol: false, mfaEnabled: false, mfaRememberDays: 7, revision: 1 } };
 }
 /**
@@ -62,14 +65,21 @@ function seedShapeOK(db: Database): boolean {
 }
 function read(): Database {
     try {
+        let migrateStorage = false;
         let raw = localStorage.getItem(MOCK_STORAGE_KEY);
         // 工作构建首次迁移旧演示库，复制后独立保存；旧归档继续使用原键。
         if (raw === null && runtimeStorageId === `${runtimeVersion}-work`) {
             raw = localStorage.getItem(`prototype_mock_${runtimeVersion}`);
-            if (raw !== null) localStorage.setItem(MOCK_STORAGE_KEY, raw);
+            migrateStorage = raw !== null; // 读取后统一迁移，避免再次复制旧明文凭据。
         }
-        const saved = JSON.parse(raw || 'null') as Database | null;
+        const saved = JSON.parse(raw || 'null') as (Database & { password?: string }) | null;
         if (saved?.version === MOCK_SCHEMA_VERSION && saved.tables?.user && saved.tables.menu && seedShapeOK(saved)) {
+            if (saved.password !== undefined) {
+                saved.passwordHash = hashSync(saved.password, 10);
+                delete saved.password;
+                migrateStorage = true;
+            }
+            if (!saved.passwordHash) saved.passwordHash = defaultPasswordHash;
             // 移除旧缓存中的内置编辑入口，不重置业务数据或其他菜单。
             saved.tables.menu = saved.tables.menu.filter((entry) => !(entry.path === '/rp/write' && entry.component === 'prototype/ProductRequestPage'));
             for (const entry of saved.tables.menu) if (typeof entry.path === 'string') { entry.path = namespacePath(entry.path); if (entry.type === 'directory' && entry.path === '/rp') entry.path = '/rp/navigation'; }
@@ -115,13 +125,14 @@ function read(): Database {
                 if (entry.path === '/rp' && entry.title === '工作台') entry.title = '协作首页';
                 if (entry.path === '/manage/demo' && entry.title === '原型演示') entry.title = 'Semi 组件示例';
             }
+            if (migrateStorage) persist(saved);
             return saved;
         }
     } catch { /* 无效数据回到种子。 */ }
     return initial();
 }
 function persist(db: Database) {
-    localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(db));
+    localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(db, (key, value: unknown) => /^(?:password|oldPassword|newPassword|confirmPassword|token|accessToken|refreshToken)$/i.test(key) ? undefined : value));
 }
 export function resetMockData() {
     localStorage.removeItem(MOCK_STORAGE_KEY);
@@ -195,7 +206,7 @@ export async function mockFetch(input: string, options: RequestInit = {}): Promi
                 case 'sendPhoneCode': case 'sendBindPhoneCode': break;
                 case 'login': case 'loginWithPhoneCode': {
                     const user = db.tables.user!.find((row) => action === 'login' ? row.username === body.username : row.phone === body.phone);
-                    if (!user || user.status !== 'enabled' || (action === 'login' ? body.password !== db.password : body.code !== '123456')) throw new MockError('账号或凭据错误', 110101, 401);
+                    if (!user || user.status !== 'enabled' || (action === 'login' ? !await compare(String(body.password ?? ''), db.passwordHash) : body.code !== '123456')) throw new MockError('账号或凭据错误', 110101, 401);
                     document.cookie = `${CSRF_COOKIE}=${user.id}.prototype; Path=/; SameSite=Lax`;
                     data = { userId: user.id, expiresIn: 86400, mfaRequired: false }; break;
                 }
@@ -212,8 +223,8 @@ export async function mockFetch(input: string, options: RequestInit = {}): Promi
                     if (body.code !== '123456') throw new MockError('演示验证码为 123456');
                     me.phone = body.phone; break;
                 case 'verifyPassword': case 'updatePassword':
-                    if ((body.password ?? body.oldPassword) !== db.password) throw new MockError('密码错误', 110101, 401);
-                    if (action === 'updatePassword') db.password = String(body.newPassword);
+                    if (!await compare(String(body.password ?? body.oldPassword ?? ''), db.passwordHash)) throw new MockError('密码错误', 110101, 401);
+                    if (action === 'updatePassword') db.passwordHash = await hash(String(body.newPassword), 10);
                     break;
                 case 'listCurrentIdentities': data = db.tables.identity!.filter((row) => row.userId === userId); break;
                 case 'deleteCurrentIdentity': db.tables.identity = db.tables.identity!.filter((row) => row.id !== id); break;
@@ -545,7 +556,7 @@ export async function mockFetch(input: string, options: RequestInit = {}): Promi
                 }
                 case 'assignMenus': requireRow(rows, id).menuIds = body.menuIds; break;
                 case 'updateAccountField': requireRow(rows, id)[String(body.field)] = body.value; break;
-                case 'updatePassword': if (id === 1) db.password = String(body.password); break;
+                case 'updatePassword': if (id === 1) db.passwordHash = await hash(String(body.password), 10); break;
                 case 'delete':
                     if (requireRow(rows, id).isBuiltin) throw new MockError('内置记录不能删除');
                     if (resource === 'menu' && rows.some((row) => row.parentId === id)) throw new MockError('请先删除子菜单');

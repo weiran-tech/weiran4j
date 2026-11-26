@@ -130,3 +130,5 @@
 - 两包均提供 `style.css`；prototype 额外提供无 React 的 `/core`。原型应用在适配层保留旧版本格式与存储迁移，不引入其他项目业务。
 
 原型范围切换 `PrototypeScopeSwitch` 位于 `packages/component-prototype/src/PrototypeScopeSwitch.tsx`，使用 Alang 的全部产品 / 版本改动标签，路由由调用方处理。
+
+VideoPreview 播放与下载共用 HTTP / HTTPS 地址校验；非法协议不创建播放器，弹窗显示无效地址提示。

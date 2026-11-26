@@ -171,3 +171,30 @@ it('内置旧帮助目录迁移到 /help，保留目录和文章 ID 及自定义
     expect(flat(rows).find((entry) => entry.id === guideId)?.path).toBe('/help');
     expect(flat(rows).find((entry) => entry.id === articleId)?.path).toBe('/help/product');
 });
+
+describe('原型口令安全存储', () => {
+    it('改密后仅保存 BCrypt 哈希，后续请求使用新口令', async () => {
+        signIn();
+        await call('system/auth/updatePassword', 'POST', { oldPassword: 'admin123', newPassword: 'test-new-pass' });
+        const raw = localStorage.getItem(MOCK_STORAGE_KEY)!;
+        expect(raw).not.toContain('test-new-pass');
+        expect(raw).not.toContain('admin123');
+        const saved = JSON.parse(raw) as Record<string, unknown>;
+        expect(saved.password).toBeUndefined();
+        expect(saved.passwordHash).toMatch(/^\$2[aby]\$10\$/);
+        await call('n/system/auth/login', 'POST', { username: 'admin', password: 'test-new-pass' });
+        const old = await mockFetch('/api-backend/n/system/auth/login', { method: 'POST', body: JSON.stringify({ username: 'admin', password: 'admin123' }) });
+        expect(old.status).toBe(401);
+    });
+    it('旧缓存口令迁移为哈希，不丢失演示数据', async () => {
+        signIn();
+        await call('system/auth/updatePreferences', 'PUT', { pageSize: 30 });
+        const saved = JSON.parse(localStorage.getItem(MOCK_STORAGE_KEY)!) as Record<string, unknown>;
+        delete saved.passwordHash; saved.password = 'legacy-demo-pass';
+        localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(saved));
+        await call('n/system/auth/login', 'POST', { username: 'admin', password: 'legacy-demo-pass' });
+        const raw = localStorage.getItem(MOCK_STORAGE_KEY)!;
+        expect(raw).not.toContain('legacy-demo-pass');
+        expect(JSON.parse(raw).preferences).toEqual({ pageSize: 30 });
+    });
+});
