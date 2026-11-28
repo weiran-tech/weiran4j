@@ -21,7 +21,9 @@
         "SERVER_PORT",
         "SPRING_*",
         "VITE_PROTOTYPE_*",
-        "VITE_APP_TITLE"
+        "VITE_APP_TITLE",
+        "GITHUB_PACKAGES_USER",
+        "GITHUB_PACKAGES_TOKEN"
       ]
     },
     "//#test:flows:unit": {

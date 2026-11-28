@@ -1,0 +1,24 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+
+> Task :weiran-system-api:verifyWuli3DomainClasspath
+:weiran-system-api: compileClasspath boundary passed (4 artifacts, no Spring/MyBatis/starter)
+
+> Task :weiran-region-api:verifyWuli3DomainClasspath
+:weiran-region-api: compileClasspath boundary passed (4 artifacts, no Spring/MyBatis/starter)
+
+> Task :weiran-region-domain:verifyWuli3DomainClasspath
+:weiran-region-domain: compileClasspath boundary passed (4 artifacts, no Spring/MyBatis/starter)
+
+> Task :weiran-system-domain:verifyWuli3DomainClasspath
+:weiran-system-domain: compileClasspath boundary passed (4 artifacts, no Spring/MyBatis/starter)
+
+BUILD SUCCESSFUL in 9s
+8 actionable tasks: 4 executed, 4 up-to-date

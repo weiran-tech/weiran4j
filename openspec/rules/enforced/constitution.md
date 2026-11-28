@@ -47,8 +47,8 @@
 
 第三方依赖版本分两类，**各自只有一处**（D-013）：
 
-- **框架版本**只在 `weiran-dependencies/build.gradle.kts`（import 的 Spring Boot / MyBatis-Plus BOM 与上游 constraints）。
-  这两个 BOM 已经管住的依赖，不在 `weiran-dependencies` 里复述。
+- **框架版本**只在 `weiran-dependencies/build.gradle.kts`（import 的 Wuli3 BOM（传递管理 Spring Boot / MyBatis-Plus 等）与上游 constraints）。
+  Wuli3 BOM 及其传递平台已经管住的依赖，不在 `weiran-dependencies` 里复述。
 - **业务版本**（fork 下游自己引的第三方库与第三方 BOM）只在下游独占的 `weiran-dependencies/biz-dependencies.gradle.kts`。
   下游清单**不得**约束框架已管理的依赖，不论往高还是往低。
 

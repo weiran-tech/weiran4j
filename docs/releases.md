@@ -50,6 +50,20 @@ git push origin lib-v0.1.2
 mavenCentral()
 maven {
     url = uri("https://maven.pkg.github.com/weiran-tech/weiran4j")
+    content { includeGroup("com.wulicode.weiran") }
+    credentials {
+        username = providers.gradleProperty("gpr.user").orNull
+        password = providers.gradleProperty("gpr.key").orNull
+    }
+}
+```
+
+当前源码已按 D-017 接入 Wuli3 1.1.1；消费从本次接入之后发布的 Java 库时，还需为其传递依赖配置 Wuli3 仓库（账号须对两边的包均有读取权限）：
+
+```kotlin
+maven {
+    url = uri("https://maven.pkg.github.com/weiran-tech/wuli3")
+    content { includeGroup("com.wulicode.wuli3") }
     credentials {
         username = providers.gradleProperty("gpr.user").orNull
         password = providers.gradleProperty("gpr.key").orNull

@@ -14,7 +14,7 @@ import org.gradle.api.artifacts.result.ResolutionResult
  * 的版本冲突取高，于是下游一钉版本、或某个业务库的传递依赖要了更高版本，Spring / Jackson 等框架依赖就会被
  * 悄悄升级——编译、测试照样全绿。这里把两份版本放在一起比：
  *
- * - **框架版本**：只用上游 BOM 的框架层（两个 BOM + 上游 constraints，由 `weiran-dependencies` 在 apply 下游清单
+ * - **框架版本**：只用上游 BOM 的框架层（Wuli3 BOM 及其传递平台 + 上游 constraints，由 `weiran-dependencies` 在 apply 下游清单
  *   之前快照到 extra）单独解析每个模块，能解析出版本的就是「框架已管理」；
  * - **实际版本**：本模块 `runtimeClasspath` 最终选中的版本。
  *

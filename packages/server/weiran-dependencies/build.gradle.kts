@@ -12,14 +12,11 @@ javaPlatform {
  * `biz-dependencies.gradle.kts` 出现（D-013，宪法 CP-4）。
  *
  * 框架版本来源分两层：
- * 1. import 两个上游 BOM —— Spring Boot（Spring、Jackson、Caffeine、Flyway、MySQL 驱动、
- *    Testcontainers、JUnit、AssertJ、Lombok 等）与 MyBatis-Plus（各子模块互相对齐）；
- * 2. 上游 BOM 都不管的依赖（jjwt、springdoc、forbiddenapis 注解）在 constraints 里钉版本。
+ * 1. import Wuli3 BOM（传递管理 Spring Boot、MyBatis-Plus 等基础依赖）。
+ * 2. Wuli3 不管理的本仓依赖在 constraints 里钉版本。
  */
 dependencies {
-    api(platform("org.springframework.boot:spring-boot-dependencies:3.5.16"))
-    // 3.5.9 起分页插件拆到 mybatis-plus-jsqlparser；3.5.17 的 boot3 starter 与 Spring Boot 3.5 兼容。
-    api(platform("com.baomidou:mybatis-plus-bom:3.5.17"))
+    api(platform("com.wulicode.wuli3:wuli3-dependencies:1.1.1"))
 
     constraints {
         // 本仓模块，供未来外部消费方无版本引入。
@@ -76,10 +73,14 @@ extra["weiran.frameworkConstraints"] = apiDeclarations.dependencyConstraints
 // 框架依赖被传递依赖拉离框架版本、且确认可接受的，逐条写在这里，理由必填（CP-6）。
 // 不再漂移的条目会被检查任务报 warning，届时删掉。
 extra["weiran.versionDriftAllowlist"] = mapOf(
+    "org.apache.commons:commons-collections4" to
+        "local/test 的 POI 6.0.0 需要 4.6.0，Wuli3 BOM 管理 4.5.0；保留演示处理器依赖的较新版本",
+    "org.jetbrains.kotlin:kotlin-stdlib" to
+        "Wuli3 1.1.1 core 使用 Kotlin 2.4.20 编译并声明运行时，Boot BOM 管理 1.9.25；跟随正式 core 制品",
+    "org.jetbrains.kotlin:kotlin-stdlib-common" to
+        "与 Wuli3 core 所需 kotlin-stdlib 2.4.20 对齐，Boot BOM 管理 1.9.25",
     "org.yaml:snakeyaml" to
         "Spring Boot BOM 自带的 jackson-dataformat-yaml 2.21.4 需要 2.5，BOM 仍管 2.4；属 Spring Boot 自身不一致",
-    "org.apache.commons:commons-lang3" to
-        "springdoc 的 swagger-core-jakarta 需要 3.20.0，BOM 管 3.17.0；只影响 OpenAPI 文档（默认关闭）",
     "commons-codec:commons-codec" to
         "仅 local/test 与 Demo 镜像加载的 POI 6.0.0 需要 1.23.0，Spring Boot BOM 管 1.18.0；生产镜像不包含演示模块",
     "org.apache.logging.log4j:log4j-api" to
@@ -107,7 +108,7 @@ publishing {
             from(components["javaPlatform"])
             pom {
                 name.set("weiran-dependencies")
-                description.set("weiran4j 统一依赖平台：聚合 Spring Boot 与 MyBatis-Plus BOM 及本仓组件版本。")
+                description.set("weiran4j 统一依赖平台：聚合 Wuli3 BOM 及本仓组件版本。")
             }
         }
     }

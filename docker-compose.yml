@@ -35,6 +35,9 @@ services:
   backend:
     build:
       context: ./packages/server
+      secrets:
+        - github_packages_user
+        - github_packages_token
     image: weiran4j-backend:local
     env_file: ./packages/server/.env
     environment:
@@ -83,3 +86,10 @@ services:
 volumes:
   mysql-data:
   backend-logs:
+
+# 仅构建时挂载，不传给运行中的服务，不写入镜像层。
+secrets:
+  github_packages_user:
+    environment: GITHUB_PACKAGES_USER
+  github_packages_token:
+    environment: GITHUB_PACKAGES_TOKEN

@@ -1,0 +1,72 @@
+$ turbo run build --filter=@weiran/docs
+
+   • turbo 2.11.10
+   • Packages in scope: @weiran/docs
+   • Running build in 1 package
+   • Remote caching disabled
+
+@weiran-tech/prototype:build: cache miss, executing b90bbd346ffd5919
+@weiran-tech/manage:build: cache hit, replaying logs ed419a4be382dca1
+@weiran-tech/manage:build: $ vite build && tsc -p tsconfig.build.json && node ../../scripts/clean-component-types.mjs dist
+@weiran-tech/manage:build: vite v8.3.6 building client environment for production...
+@weiran-tech/manage:build: transforming...
+@weiran-tech/manage:build: ✓ 22 modules transformed.
+@weiran-tech/manage:build: rendering chunks...
+@weiran-tech/manage:build: computing gzip size...
+@weiran-tech/manage:build: dist/style.css  11.78 kB │ gzip:  2.59 kB
+@weiran-tech/manage:build: dist/index.js   47.03 kB │ gzip: 13.23 kB
+@weiran-tech/manage:build: 
+@weiran-tech/manage:build: ✓ built in 47ms
+@weiran-tech/prototype:build: $ vite build && tsc -p tsconfig.build.json && node ../../scripts/clean-component-types.mjs dist
+@weiran-tech/prototype:build: vite v8.3.6 building client environment for production...
+@weiran-tech/prototype:build: transforming...
+@weiran-tech/prototype:build: ✓ 24 modules transformed.
+@weiran-tech/prototype:build: rendering chunks...
+@weiran-tech/prototype:build: computing gzip size...
+@weiran-tech/prototype:build: dist/style.css  34.92 kB │ gzip: 4.74 kB
+@weiran-tech/prototype:build: dist/core.js     9.75 kB │ gzip: 3.76 kB
+@weiran-tech/prototype:build: dist/index.js   27.58 kB │ gzip: 9.21 kB
+@weiran-tech/prototype:build: 
+@weiran-tech/prototype:build: ✓ built in 42ms
+@weiran/docs:build: cache miss, executing 7f834025478779d0
+@weiran/docs:build: $ pnpm typecheck && vitepress build .
+@weiran/docs:build: $ tsc --noEmit -p tsconfig.json
+@weiran/docs:build: 
+@weiran/docs:build:   vitepress v1.6.4
+@weiran/docs:build: 
+@weiran/docs:build: - building client + server bundles...
+@weiran/docs:build: ../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/Icon.mjs (2:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/Icon.mjs" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/context.mjs (2:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/lucide-react@1.61.0_@types+react@19.3.0_react@19.3.1/node_modules/lucide-react/dist/esm/context.mjs" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/HydrationBoundary.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/HydrationBoundary.js" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/IsRestoringProvider.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/IsRestoringProvider.js" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/QueryErrorResetBoundary.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/QueryErrorResetBoundary.js" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useQuery.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useQuery.js" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useQueries.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useQueries.js" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useIsFetching.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useIsFetching.js" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useMutationState.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useMutationState.js" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useMutation.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useMutation.js" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useInfiniteQuery.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useInfiniteQuery.js" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/errorBoundaryUtils.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/errorBoundaryUtils.js" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useSuspenseQuery.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useSuspenseQuery.js" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useSuspenseInfiniteQuery.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useSuspenseInfiniteQuery.js" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useSuspenseQueries.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useSuspenseQueries.js" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/@tiptap+react@3.31.3_@floating-ui+dom@1.8.0_@tiptap+core@3.31.3_@tiptap+pm@3.31.3__@tip_4422c810aa114cbf1fa93bb48dd44728/node_modules/@tiptap/react/dist/index.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tiptap+react@3.31.3_@floating-ui+dom@1.8.0_@tiptap+core@3.31.3_@tiptap+pm@3.31.3__@tip_4422c810aa114cbf1fa93bb48dd44728/node_modules/@tiptap/react/dist/index.js" was ignored.
+@weiran/docs:build: ../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useBaseQuery.js (1:0): Module level directives cause errors when bundled, "use client" in "../node_modules/.pnpm/@tanstack+react-query@5.104.5_@types+react@19.3.0_react@19.3.1/node_modules/@tanstack/react-query/build/modern/useBaseQuery.js" was ignored.
+@weiran/docs:build: 
+@weiran/docs:build: (!) Some chunks are larger than 500 kB after minification. Consider:
+@weiran/docs:build: - Using dynamic import() to code-split the application
+@weiran/docs:build: - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+@weiran/docs:build: - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+@weiran/docs:build: "default" is imported from external module "react" but never used in "examples/DemoParameters.tsx", "examples/PrototypeComponentsDemo.tsx", "examples/ConfigRecoveryDemos.tsx", "examples/backoffice/DemoSequencePage.tsx", "examples/backoffice/DemoNavigationPage.tsx", "examples/backoffice/DemoConfigPage.tsx", "examples/EditBoundaryDemos.tsx", "examples/AdminRecoveryDemos.tsx", "examples/AuthorizationCalibrationDemo.tsx", "examples/ActionGuardDemo.tsx", "examples/SmsTemplateDemoReact.tsx", "examples/backoffice/DemoAccessPage.tsx", "examples/ManageParameterDemo.tsx", "examples/LocalExampleProviders.tsx", "examples/ComponentGalleryReact.tsx", "examples/MediaLibraryStyleDemo.tsx", "examples/PageStateDemoReact.tsx", "examples/backoffice/DemoBatchPage.tsx", "examples/backoffice/DemoListPage.tsx", "examples/backoffice/DemoFieldsPage.tsx" and "examples/BackofficeDemoReact.tsx".
+@weiran/docs:build: [32m✓[0m building client + server bundles...
+@weiran/docs:build: - rendering pages...
+@weiran/docs:build: [32m✓[0m rendering pages...
+@weiran/docs:build: - generating sitemap...
+@weiran/docs:build: [32m✓[0m generating sitemap...
+@weiran/docs:build: build complete in 14.75s.
+
+ Tasks:    3 successful, 3 total
+Cached:    1 cached, 3 total
+  Time:    20.34s 
+

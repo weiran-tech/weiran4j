@@ -6,6 +6,9 @@
 
 ## 已知问题汇总
 
+- **#36 ⚠️ P3 Wuli3 1.1.1 的 Kotlin 运行时与其 Boot BOM 基线不一致（部分解决）**
+  症状：消费 Wuli3 core 后，core 正式制品需要 Kotlin 2.4.20，但传递的 Boot BOM 管理 1.9.25，Weiran 的 `verifyFrameworkVersions` 会报版本漂移。`integrate-wuli3-1-1-1` 已在本仓逐项带理由兼容 kotlin-stdlib / kotlin-stdlib-common，未降低实际运行时；待 Wuli3 BOM 与其 core 声明一致后移除对应豁免。POI 演示所需 commons-collections4 4.6.0 与 Wuli3 4.5.0 的差异另有最小豁免，不改变生产数据协议。
+
 - **#33 ⚠️ P3 主从维护页的新增入口位置不同**
   症状：2026-11-23 源码巡检发现，配置与短信配置页将“新增配置项”放在 `PageContainer.extra` 的标题栏右侧，字典项维护页将“新增字典项”放在内容区 `SearchToolbar.leading` 左侧，其他标准列表也使用左侧主操作。切换同类维护页时新增入口位置变化。配置右侧为分组表单，与表格页有结构差异；建议统一位置，或明确记录表单维护页例外，不能仅以布局不同判定功能错误。本次未做全站账号截图对照。
 

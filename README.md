@@ -8,7 +8,7 @@ https://weiran4j.wulicode.com/
 
 ## 开始使用
 
-准备 JDK 21、Node.js 22.13+、pnpm 12 和 MySQL 8。创建空库并准备本地配置：
+准备 JDK 21、Node.js 22.13+、pnpm 12 和 MySQL 8。先配置 [GitHub Packages 只读凭据](packages/server/docs/02-部署.md#1a-wuli3-制品读取权限)，以读取 Wuli3 1.1.1 基础依赖。创建空库并准备本地配置：
 
 ```bash
 mysql -uroot -e "CREATE DATABASE weiran4j DEFAULT CHARACTER SET utf8mb4"

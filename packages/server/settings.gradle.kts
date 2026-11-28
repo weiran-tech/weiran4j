@@ -12,6 +12,21 @@ dependencyResolutionManagement {
     // 禁止模块级 repositories：仓库声明只有这一处，避免各模块各自加源导致解析结果不可复现。
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = "wuli3GitHubPackages"
+                    url = uri("https://maven.pkg.github.com/weiran-tech/wuli3")
+                    credentials {
+                        username = providers.gradleProperty("wuli3.packages.username")
+                            .orElse(providers.environmentVariable("GITHUB_PACKAGES_USER")).orNull
+                        password = providers.gradleProperty("wuli3.packages.token")
+                            .orElse(providers.environmentVariable("GITHUB_PACKAGES_TOKEN")).orNull
+                    }
+                }
+            }
+            filter { includeGroup("com.wulicode.wuli3") }
+        }
         mavenCentral()
     }
 }

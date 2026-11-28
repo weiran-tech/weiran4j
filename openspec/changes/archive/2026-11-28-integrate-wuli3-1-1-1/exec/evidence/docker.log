@@ -1,0 +1,134 @@
+#0 building with "orbstack" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.92kB done
+#1 DONE 0.0s
+
+#2 [auth] docker/dockerfile:pull token for registry-1.docker.io
+#2 DONE 0.0s
+
+#3 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#3 DONE 1.6s
+
+#4 docker-image://docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
+#4 CACHED
+
+#5 [internal] load metadata for docker.io/library/eclipse-temurin:21-jdk
+#5 ...
+
+#6 [auth] library/eclipse-temurin:pull token for registry-1.docker.io
+#6 DONE 0.0s
+
+#7 [internal] load metadata for docker.io/library/eclipse-temurin:21-jre
+#7 ...
+
+#5 [internal] load metadata for docker.io/library/eclipse-temurin:21-jdk
+#5 DONE 1.3s
+
+#7 [internal] load metadata for docker.io/library/eclipse-temurin:21-jre
+#7 DONE 1.5s
+
+#8 [internal] load .dockerignore
+#8 transferring context: 251B done
+#8 DONE 0.0s
+
+#9 [stage-1 1/4] FROM docker.io/library/eclipse-temurin:21-jre@sha256:d77e090ae1f6970c047b443c6f0a6c1358b0426d44432bb5a7753408cd43de0d
+#9 DONE 0.0s
+
+#10 [stage-1 2/4] RUN groupadd --system --gid 10001 weiran     && useradd --system --uid 10001 --gid weiran --home-dir /app --no-create-home weiran     && mkdir -p /app/logs     && chown -R weiran:weiran /app
+#10 CACHED
+
+#11 [stage-1 3/4] WORKDIR /app
+#11 CACHED
+
+#12 [build 1/4] FROM docker.io/library/eclipse-temurin:21-jdk@sha256:8ad118b146aa92da815b576441acd6b42b38236797ad0b6edc8c200b85bb0734
+#12 DONE 0.0s
+
+#13 [internal] load build context
+#13 transferring context: 326.99kB 0.2s done
+#13 DONE 0.2s
+
+#14 [build 2/4] WORKDIR /src
+#14 CACHED
+
+#15 [build 3/4] COPY . .
+#15 DONE 0.2s
+
+#16 [build 4/4] RUN --mount=type=cache,target=/root/.gradle     --mount=type=secret,id=github_packages_user,env=GITHUB_PACKAGES_USER,required=true     --mount=type=secret,id=github_packages_token,env=GITHUB_PACKAGES_TOKEN,required=true     ./gradlew --no-daemon :weiran-app:bootJar -x test       -PdemoVersion="0.1.0-SNAPSHOT"     && cp weiran-app/build/libs/weiran-app-*.jar /src/app.jar
+#16 0.728 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+#16 1.425 Daemon will be stopped at the end of the build 
+#16 5.026 > Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+#16 5.225 > Task :build-logic:compileKotlin FROM-CACHE
+#16 5.226 > Task :build-logic:compileJava NO-SOURCE
+#16 5.226 > Task :build-logic:pluginDescriptors
+#16 5.226 > Task :build-logic:processResources
+#16 5.226 > Task :build-logic:classes
+#16 5.326 > Task :build-logic:jar
+#16 19.63 > Task :weiran-system-api:processResources NO-SOURCE
+#16 19.63 > Task :weiran-region-domain:processResources NO-SOURCE
+#16 19.63 > Task :weiran-region-api:processResources NO-SOURCE
+#16 19.63 > Task :weiran-region-application:processResources
+#16 19.63 > Task :weiran-system-application:processResources
+#16 19.63 > Task :weiran-system-adapter:processResources
+#16 19.63 > Task :weiran-region-adapter:processResources
+#16 19.63 > Task :weiran-region-infrastructure:processResources
+#16 19.63 > Task :weiran-demo:processResources
+#16 19.63 > Task :weiran-system-domain:processResources NO-SOURCE
+#16 19.63 > Task :weiran-app:processResources
+#16 19.63 > Task :weiran-system-infrastructure:processResources
+#16 49.63 > Task :weiran-framework:compileJava
+#16 98.63 > Task :weiran-framework:processResources
+#16 98.63 > Task :weiran-framework:classes
+#16 98.63 > Task :weiran-framework:jar
+#16 99.73 > Task :weiran-region-api:compileJava
+#16 99.73 > Task :weiran-region-api:classes
+#16 99.73 > Task :weiran-region-api:jar
+#16 101.6 > Task :weiran-region-domain:compileJava
+#16 101.6 > Task :weiran-region-domain:classes
+#16 101.6 > Task :weiran-region-domain:jar
+#16 102.6 > Task :weiran-system-api:compileJava
+#16 102.6 > Task :weiran-system-api:classes
+#16 102.6 > Task :weiran-system-api:jar
+#16 103.3 > Task :weiran-region-application:compileJava
+#16 103.3 > Task :weiran-region-application:classes
+#16 103.4 > Task :weiran-region-application:jar
+#16 103.5 > Task :weiran-region-infrastructure:compileJava
+#16 103.5 > Task :weiran-region-infrastructure:classes
+#16 103.5 > Task :weiran-region-infrastructure:jar
+#16 103.7 > Task :weiran-system-domain:compileJava
+#16 103.7 > Task :weiran-system-domain:classes
+#16 103.7 > Task :weiran-system-domain:jar
+#16 104.4 > Task :weiran-region-adapter:compileJava
+#16 104.4 > Task :weiran-region-adapter:classes
+#16 104.4 > Task :weiran-region-adapter:jar
+#16 107.2 > Task :weiran-system-application:compileJava
+#16 108.9 > Task :weiran-system-adapter:compileJava
+#16 108.9 > Task :weiran-system-adapter:classes
+#16 109.0 > Task :weiran-system-adapter:jar
+#16 109.0 > Task :weiran-system-application:classes
+#16 109.0 > Task :weiran-system-application:jar
+#16 115.7 > Task :weiran-demo:compileJava
+#16 115.7 > Task :weiran-demo:classes
+#16 115.7 > Task :weiran-demo:jar
+#16 131.4 > Task :weiran-system-infrastructure:compileJava
+#16 131.4 > Task :weiran-system-infrastructure:classes
+#16 131.4 > Task :weiran-system-infrastructure:jar
+#16 134.7 > Task :weiran-app:compileJava
+#16 134.7 > Task :weiran-app:classes
+#16 134.7 > Task :weiran-app:resolveMainClassName
+#16 142.8 > Task :weiran-app:bootJar
+#16 142.8 
+#16 142.8 BUILD SUCCESSFUL in 2m 22s
+#16 142.8 40 actionable tasks: 39 executed, 1 from cache
+#16 DONE 143.3s
+
+#17 [stage-1 4/4] COPY --from=build --chown=weiran:weiran /src/app.jar /app/app.jar
+#17 DONE 0.1s
+
+#18 exporting to image
+#18 exporting layers
+#18 exporting layers 0.1s done
+#18 writing image sha256:ec9fd032d9690fb9b4ddce3cde57b22db63d208b9c39927aee589d950939405d
+#18 writing image sha256:ec9fd032d9690fb9b4ddce3cde57b22db63d208b9c39927aee589d950939405d done
+#18 naming to docker.io/library/weiran4j:wuli3-check done
+#18 DONE 0.2s

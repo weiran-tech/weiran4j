@@ -14,7 +14,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-aop")
-    implementation("com.baomidou:mybatis-plus-spring-boot3-starter")
+    implementation("com.wulicode.wuli3:wuli3-core-spring-boot-starter")
+    implementation("com.wulicode.wuli3:wuli3-mysql-spring-boot-starter") {
+        // 保留现有 JSQLParser 版本；两个变体含相同 MP 类，不能同时进入运行时。
+        exclude(group = "com.baomidou", module = "mybatis-plus-jsqlparser-4.9")
+    }
     // 3.5.9 起分页插件 PaginationInnerInterceptor 在这个模块里。
     implementation("com.baomidou:mybatis-plus-jsqlparser")
 }

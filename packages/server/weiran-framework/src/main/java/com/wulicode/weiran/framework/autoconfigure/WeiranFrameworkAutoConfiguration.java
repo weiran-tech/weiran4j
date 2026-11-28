@@ -1,6 +1,7 @@
 package com.wulicode.weiran.framework.autoconfigure;
 
 import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.autoconfigure.MybatisPlusInnerInterceptorAutoConfiguration;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,7 +60,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * <p>所有 Bean 都带 {@code @ConditionalOnMissingBean}（Controller 与 advice 除外），
  * 业务模块或应用可以按需替换任意一个。
  */
-@AutoConfiguration
+// Weiran 负责既有分页链；需先于 MP 对 Wuli3 InnerInterceptor Bean 的默认聚合执行。
+@AutoConfiguration(before = MybatisPlusInnerInterceptorAutoConfiguration.class)
 public class WeiranFrameworkAutoConfiguration {
 
     /** 业务时钟，固定在 {@link WeiranTime#ZONE}。测试可替换成固定时钟。 */

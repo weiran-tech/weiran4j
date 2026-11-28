@@ -36,6 +36,9 @@ jobs:
         shell: bash
         run: bash .github/scripts/lib-release-notes.sh "$GITHUB_REF_NAME" > "$RUNNER_TEMP/lib-release-notes.md"
       - name: 后端门禁
+        env:
+          GITHUB_PACKAGES_USER: ${{ vars.PACKAGES_READ_USER || github.actor }}
+          GITHUB_PACKAGES_TOKEN: ${{ secrets.PACKAGES_READ_TOKEN || secrets.GITHUB_TOKEN }}
         working-directory: packages/server
         # 与 main CI 使用同一构建输入，复用已验证的编译与检查输出；版本号只用于发布坐标。
         run: ./gradlew check --no-daemon
@@ -47,6 +50,8 @@ jobs:
       - name: 发布 BOM 与库模块到 GitHub Packages
         working-directory: packages/server
         env:
+          GITHUB_PACKAGES_USER: ${{ vars.PACKAGES_READ_USER || github.actor }}
+          GITHUB_PACKAGES_TOKEN: ${{ secrets.PACKAGES_READ_TOKEN || secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew publish --no-daemon -PlibVersion=${{ steps.version.outputs.value }}

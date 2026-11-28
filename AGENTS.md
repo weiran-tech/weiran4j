@@ -3,7 +3,7 @@
 **Java 21 + MySQL 8 + Semi UI 的后台管理框架**，能力形态对标
 [mono4ts](/Users/duoli/Projects/hanrui-jinnuo/mono4ts)（Hono + Drizzle + Semi）的「标准后台底座」：
 登录/JWT、用户、角色、菜单（动态路由 + 按钮权限）、字典、系统配置、登录日志、操作日志。
-2026-09-26 起原地重写（决策 D-008）：**不再兼容 PHP weiran-v1，不再依赖 wuli3 底座**。
+2026-09-26 起原地重写（决策 D-008）：**不再兼容 PHP weiran-v1**。2026-11-27 起按 D-017 接入 Wuli3 1.1.1 BOM、core/MySQL starter；Weiran 保留数字错误码、响应、认证、权限及审计兼容层。
 
 ## 对话语言
 
@@ -11,7 +11,7 @@
 
 ## 先读这四条
 
-1. **架构、数据与业务契约见 [`packages/server/docs/01-架构与接口契约.md`](packages/server/docs/01-架构与接口契约.md)。**
+1. **后端构建需 GitHub Packages 读取权限**：Wuli3 制品位于 `https://maven.pkg.github.com/weiran-tech/wuli3`；凭据通过用户级 Gradle 属性 `wuli3.packages.username/token` 或 `GITHUB_PACKAGES_USER/TOKEN` 提供，详见 `packages/server/docs/02-部署.md` §1a；不得写入仓库或镜像。**架构、数据与业务契约见 [`packages/server/docs/01-架构与接口契约.md`](packages/server/docs/01-架构与接口契约.md)。**
    HTTP 接口定义以 Springdoc 根据 Controller 与 DTO 声明生成的 OpenAPI 为准，`/v3/api-docs` 与 Swagger UI 仅在 `local` profile 开启。不要在 `01-架构与接口契约.md` 复述 OpenAPI 已描述的接口内容；该文档只记录 OpenAPI 无法完整表达的架构约束、数据约束、跨接口行为与业务规则。前端 `packages/manage/src/types/api.ts` 手动同步。
 2. **构建必须用 JDK 21。** 本机默认 JDK 可能更高，Gradle daemon 跑在高版本上
    palantir-java-format 会直接崩，报错看起来像代码问题但不是。

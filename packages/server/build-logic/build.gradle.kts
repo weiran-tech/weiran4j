@@ -11,7 +11,7 @@ dependencies {
     implementation("com.diffplug.spotless:com.diffplug.spotless.gradle.plugin:8.9.0")
     implementation("de.thetaphi:forbiddenapis:3.10")
     implementation("net.ltgt.gradle:gradle-errorprone-plugin:5.1.0")
-    implementation("org.springframework.boot:spring-boot-gradle-plugin:3.5.16")
+    implementation("org.springframework.boot:spring-boot-gradle-plugin:3.5.15")
 }
 
 repositories {
